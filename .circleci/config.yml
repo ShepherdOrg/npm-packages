@@ -1,0 +1,24 @@
+version: 2
+jobs:
+  build:
+    docker:
+    - image: circleci/node:10.0.0
+    working_directory: ~/repo
+
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+          - yarn-{{ .Branch }}
+        paths:
+          - ~/.cache/yarn
+    - run:
+        name: Yarn install
+        command: yarn install --frozen-lockfile
+    - run:
+        name: Monorepo build and publish
+        command: yarn run build
+    - save_cache:
+        key: yarn-{{ .Branch }}-{{ epoch }}
+        paths:
+        - ~/.cache/yarn

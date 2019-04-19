@@ -1,0 +1,24 @@
+{
+  "name": "packages",
+  "private": true,
+  "description": "Shepherd published packages",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "yamrt ./packages",
+    "publish": "yamrt ./packages --publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShepherdOrg/shepherd.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ShepherdOrg/shepherd/issues"
+  },
+  "homepage": "https://github.com/ShepherdOrg/shepherd#readme",
+  "devDependencies": {
+    "yamrt": "0.0.1-alpha-13"
+  }
+}

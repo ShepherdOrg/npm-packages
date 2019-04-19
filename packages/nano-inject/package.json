@@ -1,0 +1,43 @@
+{
+  "name": "@shepherdorg/nano-inject",
+  "version": "0.0.3",
+  "description": "Minimalistic dependency injection library...",
+  "keywords": [
+    "dependency injection",
+    "typescript"
+  ],
+  "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShepherdOrg/shepherd"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf dist",
+    "ci": "npm run clean && npm run test && npm run build && npm run format-verify",
+    "e2etest": "mocha --exit --require ts-node/register --recursive ./**/*.e2e.ts",
+    "e2etdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js --watch ./**/*.e2e.ts",
+    "test": "mocha --exit --require ts-node/register --recursive ./**/*.spec.ts",
+    "tdd": "mocha -R dot --require ts-node/register --recursive --watch-extensions ts,js --watch ./**/*.spec.ts",
+    "prepush": "npm run ci",
+    "format": "prettier --ignore-path ../../.prettierignore --write 'lib/**/*.{ts,js}'",
+    "format-verify": "prettier  --ignore-path ../../.prettierignore -l 'lib/**/*.{ts,js}'",
+    "prepublishOnly": "npm ci && npm run build && npm run test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.11.4",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "mocha-typescript": "^1.1.17",
+    "prettier": "^1.14.2",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.1.1"
+  }
+}
