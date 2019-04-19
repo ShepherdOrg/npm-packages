@@ -16,14 +16,11 @@ jobs:
         name: Place NPM registry token
         command: echo -e "//registry.npmjs.org/:_authToken=$NPMTOKEN \nscope=shepherdorg \naccess=public" > ~/.npmrc
     - run:
-        name: Check NPM registry token
-        command: cat ~/.npmrc
-    - run:
         name: Yarn install
         command: yarn install --frozen-lockfile
     - run:
         name: Monorepo build and publish
-        command: yarn run publish
+        command: npm run publish
     - save_cache:
         key: yarn-{{ .Branch }}-{{ epoch }}
         paths:
