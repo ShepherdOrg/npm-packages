@@ -1,0 +1,12 @@
+{
+	"auths": {
+		"localhost:5000": {},
+		"localhost:5500": {
+			"auth": "dGVzdHVzZXI6dGVzdHBhc3N3b3Jk",
+			"email": "testuser@shepherdtest.org"
+		}
+	},
+	"HttpHeaders": {
+		"User-Agent": "Docker-Client/18.06.1-ce (darwin)"
+	}
+}

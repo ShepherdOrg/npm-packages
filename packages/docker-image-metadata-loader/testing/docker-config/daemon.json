@@ -1,0 +1,5 @@
+{
+  "debug" : true,
+  "experimental" : true,
+  "insecure-registries" : ["localhost:5500"]
+}

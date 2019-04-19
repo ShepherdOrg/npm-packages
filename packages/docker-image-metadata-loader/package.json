@@ -1,0 +1,55 @@
+{
+  "name": "@shepherdorg/docker-image-metadata-loader",
+  "version": "0.0.1",
+  "description": "Retrieve docker image metadata efficiently from private docker registry, or alternatively by using docker pull and inspect",
+  "keywords": [
+    "docker",
+    "image",
+    "registry",
+    "inspect"
+  ],
+  "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
+  "homepage": "",
+  "license": "GPL",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShepherdOrg/npm-packages"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc",
+    "clean": "rm -rf dist && echo Dist cleaned",
+    "ci-task": "npm run clean && npm run test && npm run test && npm run build && npm run format-verify",
+    "contract-test": "SERVICE_SUFFIX=.dev.it.tm.is mocha -R dot --exit --require ts-node/register --recursive './src/**/*.contract-spec.ts'",
+    "contract-tdd": "SERVICE_SUFFIX=.dev.it.tm.is mocha --exit --require ts-node/register --recursive  --watch-extensions ts,js --watch  './src/**/*.contract-spec.ts'",
+    "test-disabled": "mocha --exit --require ts-node/register --recursive ./**/*.spec.ts",
+    "tdd": "mocha -R dot --require ts-node/register --recursive --watch-extensions ts,js --watch ./**/*.spec.ts",
+    "test": "mocha --require ts-node/register --recursive ./**/*.spec.ts",
+    "prepush": "npm run ci",
+    "format": "prettier --ignore-path ../../.prettierignore --write 'lib/**/*.{ts,js}'",
+    "format-verify": "prettier  --ignore-path ../../.prettierignore -l 'lib/**/*.{ts,js}'",
+    "run-local-registry": "docker run -d -p 5000:5000 --restart always --name registry registry:2",
+    "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
+  },
+  "dependencies": {
+    "@shepherdorg/exec": "0.0.1",
+    "@shepherdorg/nano-inject": "0.0.6",
+    "lodash": "4.17.11",
+    "superagent": "5.0.2"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/lodash": "^4.14.123",
+    "@types/mocha": "^5.2.6",
+    "@types/node": "^11.13.5",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "mocha-typescript": "^1.1.17",
+    "prettier": "^1.17.0",
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.4"
+  }
+}
