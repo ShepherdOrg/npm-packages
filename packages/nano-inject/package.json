@@ -8,7 +8,7 @@
   ],
   "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
   "homepage": "",
-  "license": "ISC",
+  "license": "MIT",
   "main": "dist/index.js",
   "files": [
     "dist"

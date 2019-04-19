@@ -1,0 +1,22 @@
+{
+  "name": "@shepherdorg/exec",
+  "version": "0.0.1",
+  "description": "Wrapper around process exec",
+  "keywords": [
+  ],
+  "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
+  "homepage": "",
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShepherdOrg/npm-packages"
+  },
+  "dependencies": {
+    "child_process": "1.0.2"
+  },
+  "scripts": {
+    "build": "echo Nothing to build in pure JS module",
+    "prepublishOnly": "yarn install --frozen-lockfile"
+  }
+}
