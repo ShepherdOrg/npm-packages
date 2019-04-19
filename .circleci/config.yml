@@ -17,7 +17,7 @@ jobs:
         command: yarn install --frozen-lockfile
     - run:
         name: Monorepo build and publish
-        command: yarn run build
+        command: yarn run publish
     - save_cache:
         key: yarn-{{ .Branch }}-{{ epoch }}
         paths:

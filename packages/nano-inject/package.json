@@ -28,7 +28,7 @@
     "prepush": "npm run ci",
     "format": "prettier --ignore-path ../../.prettierignore --write 'lib/**/*.{ts,js}'",
     "format-verify": "prettier  --ignore-path ../../.prettierignore -l 'lib/**/*.{ts,js}'",
-    "prepublishOnly": "npm ci && npm run build && npm run test"
+    "prepublishOnly": "yarn install --frozen-lockfile && yarn run build && yarn run test"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.5",
