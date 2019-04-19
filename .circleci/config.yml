@@ -16,6 +16,9 @@ jobs:
         name: Place NPM registry token
         command: echo "//registry.npmjs.org/:_authToken=$NPMTOKEN" > ~/.npmrc
     - run:
+        name: Check NPM registry token
+        command: cat ~/.npmrc
+    - run:
         name: Yarn install
         command: yarn install --frozen-lockfile
     - run:
