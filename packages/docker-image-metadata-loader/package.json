@@ -31,7 +31,9 @@
     "prepush": "npm run ci",
     "format": "prettier --ignore-path ../../.prettierignore --write 'lib/**/*.{ts,js}'",
     "format-verify": "prettier  --ignore-path ../../.prettierignore -l 'lib/**/*.{ts,js}'",
-    "run-local-registry": "docker run -d -p 5000:5000 --restart always --name registry registry:2",
+    "start-local-registry": "docker run -d -p 5000:5000 --restart always --name registry registry:2",
+    "start-local-secure-registry": "./testing/run-basicauth-registry.sh",
+    "populate-local-registries": "./testing/populate-local-registries.sh",
     "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
   },
   "dependencies": {

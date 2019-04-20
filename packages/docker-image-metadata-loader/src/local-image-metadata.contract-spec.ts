@@ -4,7 +4,7 @@ import { expect } from "chai";
 import { TDockerImageLabels } from "./registry-metadata-client";
 import { getTestCaseLogger } from "./testcase-logger";
 
-const exec = require("exec");
+const exec = require("@shepherdorg/exec");
 
 describe("Image metadata loading", function(){
   this.timeout(60000);

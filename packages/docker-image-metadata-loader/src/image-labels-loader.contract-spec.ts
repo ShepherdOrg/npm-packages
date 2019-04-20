@@ -8,7 +8,7 @@ import {
 import { TDockerInspectMetadata } from "./local-image-metadata";
 
 
-describe("Loading image labels", function() {
+describe.only("Loading image labels", function() {
   this.timeout(60000)
   let testLogger: ILog;
   let loader;

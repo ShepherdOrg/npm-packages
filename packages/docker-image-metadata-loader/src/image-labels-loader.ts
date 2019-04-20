@@ -4,7 +4,7 @@ import { inject } from "@shepherdorg/nano-inject";
 
 import * as _ from "lodash";
 
-const exec = require("exec");
+const exec = require("@shepherdorg/exec");
 
 export function imageLabelsLoader(injected) {
 
