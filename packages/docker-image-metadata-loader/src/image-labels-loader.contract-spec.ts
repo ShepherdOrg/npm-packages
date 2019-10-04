@@ -8,7 +8,7 @@ import {
 import { TDockerInspectMetadata } from "./local-image-metadata";
 
 
-describe.only("Loading image labels", function() {
+describe("Loading image labels", function() {
   this.timeout(60000)
   let testLogger: ILog;
   let loader;
@@ -32,7 +32,6 @@ describe.only("Loading image labels", function() {
         expect(testLogger.debugEntries).to.contain("icelandair/shepherd:latest metadata loaded using docker inspect");
       });
     });
-
   })
 
   describe('localhost registry', function() {

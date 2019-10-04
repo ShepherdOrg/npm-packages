@@ -1,0 +1,24 @@
+{
+  "name": "@shepherdorg/cli",
+  "version": "0.0.1",
+  "description": "Command line interfaces for Shepherd",
+  "keywords": [],
+  "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
+  "homepage": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShepherdOrg/npm-packages"
+  },
+  "files": [
+    "bin/*.*"
+  ],
+  "bin": {
+    "shepherd-build-docker": "./bin/shepherd-build-docker.sh"
+  },
+  "dependencies": {},
+  "scripts": {
+    "build": "echo Nothing to build in pure JS module",
+    "prepublishOnly": "yarn install --frozen-lockfile"
+  }
+}
