@@ -1,0 +1,92 @@
+[
+    {
+        "Id": "sha256:5e7f163c9c21eb579e587bf51fbe9173effc0137745a6fa944e6ea5d381acbda",
+        "RepoTags": [
+            "public-repo-with-deployment-dir:latest",
+            "public-repo-with-deployment-dir:latest-031a5f1"
+        ],
+        "RepoDigests": [],
+        "Parent": "sha256:0bce59b5ebc3f403079b9b6f246b10ccba63423603d70ea3ce6e2a3fe5d9dd7f",
+        "Comment": "",
+        "Created": "2019-10-05T13:37:09.7601609Z",
+        "Container": "ac74622abf8814feb9d36dd2a6a892f63a3e7e791b9e54635b59c1c912e2f608",
+        "ContainerConfig": {
+            "Hostname": "ac74622abf88",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "/bin/sh",
+                "-c",
+                "#(nop) ",
+                "LABEL shepherd.metadata=H4sIAIWcmF0AA+2UW2+jRhTH9zmfwuLVdRiuDpYqdcAxxjHYBgdM3oZhuNjDJVwCeNXvXjbZrdo+rPqy2lbyTxqdufz/Z86RRlMnpExIFd6f6yL/9GMAAMiiOPkS57L0HgH/sX6fCuJ8wgmSKHOczANpAjgRiMKnCfhB9fyNtm5QNZYSt5Sm39GNsij6zvlHL5M/4/+Ez3dM0KY0XBd1Y6GMMIsJo7cUtXFb1TMTYbUoLrN9VdzTAiPK3P0yYcICX0hlZCgmRxQzC6ZsA5riWUXKYtalTTILSUmLISN5MwvTakFRQ+rmn159VKI6+df+GRA4JEXce544bdQK5fiLPUN1Q6pv288VHffGyW/jSNrgHhfZwvn6zHdVzOZlNisRvowl1Pej5ptRK7JsXC2Yr/dIEeE5bi5KiBe5EEQ8InJAQBBiIZBBFIF3Ix0v/3DWo9V4fBmQ08WWpu594RCbZ9jvHNhbx6Izl8VgabAyl7AzNTUljroO8a4L9BX3IriDsTJb49HNkddfMa+02xQ2WwfEjicBnCmX0LPKIMNxkKuNodMWC3YS6H3iZz019A03+i6Gbr/5fENxql59YVPi9WHMaRW+J415pfwv57XvbWigqVkgGHHgucD37CTUH2Osr86IX33oYfHr2CZzaQOiFXmUxqosjn2uxdqAhoezFYBwyjtHf66ZcFi1U7HEhQ6sgl9ySzf3N4pDRWpEipOx1kDMFOoAdhXQYzA9Bvvn9CrtsLLx8m3OX/bW+Xl6VjoI8bDtX6PX2lxZ+ZsDO0N+tpVDb0AdoSd1CzZnRTgbpsB6Nt0fyzxnbStwT5y054eeO7GaSRu2bHtxZ8foLUJ6aLHoyZ1ek6kb1WnEqV0K0ZR7OArsfs0eeeckxDwfnPZLggXzNRGcrXpqlw/Y518c0eP63SbwBC83mna76cPhRZ67rVyzkhq5g73lp9GOqPJDAjvLtc+sUiL1oMED2R2Ma07kawyf4I2fwfh+f7/72d/sjRs3bvzn+AOfIs5iAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            ],
+            "ArgsEscaped": true,
+            "Image": "sha256:0bce59b5ebc3f403079b9b6f246b10ccba63423603d70ea3ce6e2a3fe5d9dd7f",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": {
+                "shepherd.metadata": "H4sIAIWcmF0AA+2UW2+jRhTH9zmfwuLVdRiuDpYqdcAxxjHYBgdM3oZhuNjDJVwCeNXvXjbZrdo+rPqy2lbyTxqdufz/Z86RRlMnpExIFd6f6yL/9GMAAMiiOPkS57L0HgH/sX6fCuJ8wgmSKHOczANpAjgRiMKnCfhB9fyNtm5QNZYSt5Sm39GNsij6zvlHL5M/4/+Ez3dM0KY0XBd1Y6GMMIsJo7cUtXFb1TMTYbUoLrN9VdzTAiPK3P0yYcICX0hlZCgmRxQzC6ZsA5riWUXKYtalTTILSUmLISN5MwvTakFRQ+rmn159VKI6+df+GRA4JEXce544bdQK5fiLPUN1Q6pv288VHffGyW/jSNrgHhfZwvn6zHdVzOZlNisRvowl1Pej5ptRK7JsXC2Yr/dIEeE5bi5KiBe5EEQ8InJAQBBiIZBBFIF3Ix0v/3DWo9V4fBmQ08WWpu594RCbZ9jvHNhbx6Izl8VgabAyl7AzNTUljroO8a4L9BX3IriDsTJb49HNkddfMa+02xQ2WwfEjicBnCmX0LPKIMNxkKuNodMWC3YS6H3iZz019A03+i6Gbr/5fENxql59YVPi9WHMaRW+J415pfwv57XvbWigqVkgGHHgucD37CTUH2Osr86IX33oYfHr2CZzaQOiFXmUxqosjn2uxdqAhoezFYBwyjtHf66ZcFi1U7HEhQ6sgl9ySzf3N4pDRWpEipOx1kDMFOoAdhXQYzA9Bvvn9CrtsLLx8m3OX/bW+Xl6VjoI8bDtX6PX2lxZ+ZsDO0N+tpVDb0AdoSd1CzZnRTgbpsB6Nt0fyzxnbStwT5y054eeO7GaSRu2bHtxZ8foLUJ6aLHoyZ1ek6kb1WnEqV0K0ZR7OArsfs0eeeckxDwfnPZLggXzNRGcrXpqlw/Y518c0eP63SbwBC83mna76cPhRZ67rVyzkhq5g73lp9GOqPJDAjvLtc+sUiL1oMED2R2Ma07kawyf4I2fwfh+f7/72d/sjRs3bvzn+AOfIs5iAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+        },
+        "DockerVersion": "19.03.2",
+        "Author": "",
+        "Config": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "/bin/sh"
+            ],
+            "ArgsEscaped": true,
+            "Image": "sha256:0bce59b5ebc3f403079b9b6f246b10ccba63423603d70ea3ce6e2a3fe5d9dd7f",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": {
+                "shepherd.metadata": "H4sIAIWcmF0AA+2UW2+jRhTH9zmfwuLVdRiuDpYqdcAxxjHYBgdM3oZhuNjDJVwCeNXvXjbZrdo+rPqy2lbyTxqdufz/Z86RRlMnpExIFd6f6yL/9GMAAMiiOPkS57L0HgH/sX6fCuJ8wgmSKHOczANpAjgRiMKnCfhB9fyNtm5QNZYSt5Sm39GNsij6zvlHL5M/4/+Ez3dM0KY0XBd1Y6GMMIsJo7cUtXFb1TMTYbUoLrN9VdzTAiPK3P0yYcICX0hlZCgmRxQzC6ZsA5riWUXKYtalTTILSUmLISN5MwvTakFRQ+rmn159VKI6+df+GRA4JEXce544bdQK5fiLPUN1Q6pv288VHffGyW/jSNrgHhfZwvn6zHdVzOZlNisRvowl1Pej5ptRK7JsXC2Yr/dIEeE5bi5KiBe5EEQ8InJAQBBiIZBBFIF3Ix0v/3DWo9V4fBmQ08WWpu594RCbZ9jvHNhbx6Izl8VgabAyl7AzNTUljroO8a4L9BX3IriDsTJb49HNkddfMa+02xQ2WwfEjicBnCmX0LPKIMNxkKuNodMWC3YS6H3iZz019A03+i6Gbr/5fENxql59YVPi9WHMaRW+J415pfwv57XvbWigqVkgGHHgucD37CTUH2Osr86IX33oYfHr2CZzaQOiFXmUxqosjn2uxdqAhoezFYBwyjtHf66ZcFi1U7HEhQ6sgl9ySzf3N4pDRWpEipOx1kDMFOoAdhXQYzA9Bvvn9CrtsLLx8m3OX/bW+Xl6VjoI8bDtX6PX2lxZ+ZsDO0N+tpVDb0AdoSd1CzZnRTgbpsB6Nt0fyzxnbStwT5y054eeO7GaSRu2bHtxZ8foLUJ6aLHoyZ1ek6kb1WnEqV0K0ZR7OArsfs0eeeckxDwfnPZLggXzNRGcrXpqlw/Y518c0eP63SbwBC83mna76cPhRZ67rVyzkhq5g73lp9GOqPJDAjvLtc+sUiL1oMED2R2Ma07kawyf4I2fwfh+f7/72d/sjRs3bvzn+AOfIs5iAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 5533135,
+        "VirtualSize": 5533135,
+        "GraphDriver": {
+            "Data": {
+                "MergedDir": "/var/lib/docker/overlay2/ead36607baf9e7ea732e546ec4d1891b686f66de773d9e50020c4a37a2639eed/merged",
+                "UpperDir": "/var/lib/docker/overlay2/ead36607baf9e7ea732e546ec4d1891b686f66de773d9e50020c4a37a2639eed/diff",
+                "WorkDir": "/var/lib/docker/overlay2/ead36607baf9e7ea732e546ec4d1891b686f66de773d9e50020c4a37a2639eed/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:a464c54f93a9e88fc1d33df1e0e39cca427d60145a360962e8f19a1dbf900da9"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2019-10-05T13:37:09.8247733Z"
+        }
+    }
+]

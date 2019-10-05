@@ -1,0 +1,145 @@
+[
+    {
+        "Id": "sha256:a78ee647402888ffbe66bb85f5d8a48735fdab9a309c0ee3f14d7ce64e2ff6c7",
+        "RepoTags": [
+            "testenvimage:0.0.0-751e58e",
+            "testenvimage:latest"
+        ],
+        "RepoDigests": [],
+        "Parent": "sha256:2911b9138e85a5a344f50ac90a45debe7a322e1125075249ced09cb701ac937e",
+        "Comment": "",
+        "Created": "2019-10-05T10:14:17.6873001Z",
+        "Container": "e780575c2cacfed141c3fce4fa73089c2da81b5753e6c85f42f2bc08b266f1eb",
+        "ContainerConfig": {
+            "Hostname": "e780575c2cac",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "5432/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/11/bin",
+                "GOSU_VERSION=1.10",
+                "LANG=en_US.utf8",
+                "PG_MAJOR=11",
+                "PG_VERSION=11.1-1.pgdg90+1",
+                "PGDATA=/var/lib/postgresql/data"
+            ],
+            "Cmd": [
+                "/bin/sh",
+                "-c",
+                "#(nop) ",
+                "LABEL shepherd.infrastructure=true"
+            ],
+            "Image": "sha256:2911b9138e85a5a344f50ac90a45debe7a322e1125075249ced09cb701ac937e",
+            "Volumes": {
+                "/var/lib/postgresql/data": {}
+            },
+            "WorkingDir": "",
+            "Entrypoint": [
+                "./entrypoint.sh"
+            ],
+            "OnBuild": [],
+            "Labels": {
+                "shepherd.builddate": "",
+                "shepherd.environment.variables": "DB_HOST=${MICROSERVICES_POSTGRES_RDS_HOST},DB_PASS=$MICRO_SITES_DB_PASSWORD",
+                "shepherd.git.branch": "",
+                "shepherd.git.hash": "",
+                "shepherd.git.url": "",
+                "shepherd.infrastructure": "true",
+                "shepherd.lastcommits": "",
+                "shepherd.name": "Infrastructure",
+                "shepherd.version": ""
+            }
+        },
+        "DockerVersion": "19.03.2",
+        "Author": "",
+        "Config": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "5432/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/11/bin",
+                "GOSU_VERSION=1.10",
+                "LANG=en_US.utf8",
+                "PG_MAJOR=11",
+                "PG_VERSION=11.1-1.pgdg90+1",
+                "PGDATA=/var/lib/postgresql/data"
+            ],
+            "Cmd": null,
+            "Image": "sha256:2911b9138e85a5a344f50ac90a45debe7a322e1125075249ced09cb701ac937e",
+            "Volumes": {
+                "/var/lib/postgresql/data": {}
+            },
+            "WorkingDir": "",
+            "Entrypoint": [
+                "./entrypoint.sh"
+            ],
+            "OnBuild": [],
+            "Labels": {
+                "shepherd.builddate": "",
+                "shepherd.environment.variables": "DB_HOST=${MICROSERVICES_POSTGRES_RDS_HOST},DB_PASS=$MICRO_SITES_DB_PASSWORD",
+                "shepherd.git.branch": "",
+                "shepherd.git.hash": "",
+                "shepherd.git.url": "",
+                "shepherd.infrastructure": "true",
+                "shepherd.lastcommits": "",
+                "shepherd.name": "Infrastructure",
+                "shepherd.version": ""
+            }
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 310816282,
+        "VirtualSize": 310816282,
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/c45aae77eaf4d4b2889cc698677806c4f4251a28f47b9c723c777adaa28e617e/diff:/var/lib/docker/overlay2/767f5521c18412dbfcc4e09986880ce7573288b1f7d9c34064998d9d982923b4/diff:/var/lib/docker/overlay2/dc4bc496fda37a8712e2684cf9b85b4e5f0287b8c377b0a3aea53ce741b29245/diff:/var/lib/docker/overlay2/89e5e91ed6959e6b5f305b469b90b5512830457707ecef55bd7b7654887cb467/diff:/var/lib/docker/overlay2/5f0b98f578880e0e51d86aa7f1ae20cb5f432e4a1edfd914760d89cca02efd04/diff:/var/lib/docker/overlay2/1ad194a788cd21576d7d587cec64c570413e1a72f57b3f1d0b7ba63ed55907bb/diff:/var/lib/docker/overlay2/ed765a5ec24176e944d63723dd2db29822aab94c03bf67030d6774919e4f0288/diff:/var/lib/docker/overlay2/49fb38f14f6d9c66dda360998d0c89c4f8d6f80c79e86a0307793e5ad0f2b2fe/diff:/var/lib/docker/overlay2/8c99433d918baefb0b33d4897d0ed40dc7999b4a72e288f02f579717f6d7340e/diff:/var/lib/docker/overlay2/e7789d16d83088a5e9a9fff96c2b5668780583bfb49175279bb21266063a7a7f/diff:/var/lib/docker/overlay2/49d9f99cf35561c8e7458eec2c2c3a04660c5affc09e45d90dc5254da2aa906b/diff:/var/lib/docker/overlay2/945088a57908bbfe3dc3d58f2f1a1c9b9bca66dafc73a1c870ee499a44f7d283/diff:/var/lib/docker/overlay2/d83cc47c3b76a6894c0d20cf75cae438379892087ab48a39f75cc09b2bcde47a/diff:/var/lib/docker/overlay2/1fc1eb2a5c21af444911a6783593ed3953755c6e2dc8deede3a70764bdd7b74c/diff:/var/lib/docker/overlay2/1431ee30caf4830a9b98c3debcbe0d25295e9780c989710e0b864b93b1f1a227/diff:/var/lib/docker/overlay2/582b804440a02136435491c77c26ad3f46896c717b6f12a329ee517961cded53/diff",
+                "MergedDir": "/var/lib/docker/overlay2/4d92b309bb8876f8d79f957e851ac4dd5a9782da4caad093d8c0c72b48f48d23/merged",
+                "UpperDir": "/var/lib/docker/overlay2/4d92b309bb8876f8d79f957e851ac4dd5a9782da4caad093d8c0c72b48f48d23/diff",
+                "WorkDir": "/var/lib/docker/overlay2/4d92b309bb8876f8d79f957e851ac4dd5a9782da4caad093d8c0c72b48f48d23/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:ef68f6734aa485edf13a8509fe60e4272428deaf63f446a441b79d47fc5d17d3",
+                "sha256:f4dc7b940efc629f786b88e934fcdf3c5bb08bc831386003d9f718d210e9d51e",
+                "sha256:7d368124827e42907911f825e76c2fc71d816e42e1a73639a21805e7d5274835",
+                "sha256:6abc44856c0952dc85251659b557bd02128c89fbe471cb8f9b561e06b6dbf013",
+                "sha256:0efd50c666a460c3f1c18b734bb4a5825d33ffef24b0583fff8cc6f3e550c63d",
+                "sha256:79f7f1bc4f1333d84ff518d7269483fb84ebe624c7d6075672b9f14e653a7ebc",
+                "sha256:0fed1cc19b774707d0d203392d52e27d5fce14b9e6c59e49b2fc5e57aff20a11",
+                "sha256:f98fa050b01cba1d29978461230dd2000ae132cb70c5998609a8a116a40d277a",
+                "sha256:b66d1e6e729a6857624761b91855fe8deb632216892b20d603526ce5879c1b0d",
+                "sha256:e98f3c8aa22520d5631570e016b52c331a877987f374831916fa9becf51c7f77",
+                "sha256:64586d0526e322eafbd668f0454cd2cb11e85c735e0ed77309e455484333aa31",
+                "sha256:1aff3ab0ea50c716f737bc3f43ba352cb5669569e956da8542bdf0c48a392ab8",
+                "sha256:b214c7e7e1915dac563aa990cca0ceb0db32d2acf716318d80b373c425da56d4",
+                "sha256:532658a7753c5ad29007deee3ddd000878cba24e38a04649dcd8d61fbcb5317e",
+                "sha256:fbebc014d46ad5e56a3f053617b45c1f5d5dd45571c2691507e91443773e2502",
+                "sha256:821e9dbf846d8036665fa819ebe6df21237a084548c85ff55164f201fd5631f5",
+                "sha256:1ee3b6541e34702f05190415605815b31b1654d4d4e4080a184722e643f86ec8"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2019-10-05T10:14:17.7993808Z"
+        }
+    }
+]
