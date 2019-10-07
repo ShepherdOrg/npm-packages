@@ -1,0 +1,16 @@
+{
+  "displayName": "plain-deployer-repo",
+  "version": "1.0.0",
+  "isInfrastructure": false,
+  "isDbMigration": false,
+  "environment": {
+    "DB_HOST": "MICROSERVICES_POSTGRES_RDS_HOST",
+    "DB_PASS": "MICRO_SITES_DB_PASSWORD"
+  },
+  "deploymentCommand": "ls",
+  "rollbackCommand": "cat",
+  "hyperlinks":[
+    {"title": "TestlinkOne", "url": "https://link.to.nowhere"}
+  ]
+}
+

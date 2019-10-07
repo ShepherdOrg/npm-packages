@@ -5,7 +5,7 @@ const expect = require('chai').expect
 const Future = require('fluture')
 import * as path from 'path'
 
-describe('Build docker with kube.yaml deployment', function () {
+describe('Build docker with insufficient deployment information', function () {
 
     this.timeout(10000)
     let shepherdMeta, buildOutput;
@@ -30,8 +30,8 @@ describe('Build docker with kube.yaml deployment', function () {
     })
 
 
-    it('should have kubeConfigB64', () => {
-        expect(shepherdMeta.kubeConfigB64.length).to.equal(684)
+    it('should exit with error indicating problem', () => {
+        expect(buildOutput.indexOf('ERROR')).to.be.gte(0)
     })
 
     xit('should suppress tslint warnings', () => {

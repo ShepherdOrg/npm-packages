@@ -138,15 +138,18 @@ if [ -z "$BRANCH_NAME" ]; then
 fi
 
 
-
 cat > ./.build/metadata/shepherd.json <<_EOF_
 {
-"buildHostName": "${HOSTNAME}"
+  "buildHostName": "${HOSTNAME}"
 , "dockerImageTag":"${DOCKER_IMAGE_LATEST}"
 , "dockerImageGithash":"${DOCKER_IMAGE_GITHASH}"
+, "displayName":"${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}"
+, "gitHash":"${DIRHASH}"
+, "gitBranch":"${BRANCH_NAME}"
 , "gitUrl":"${GIT_URL}"
 , "gitCommit":"${GIT_COMMIT}"
 , "lastCommits":"${LAST_COMMITS_B64}"
+, "semanticVersion":"${SEMANTIC_VERSION}"
 _EOF_
 
 
@@ -160,7 +163,7 @@ fi
 if [[ -d ./deployment ]]; then
 	mkdir -p ./.build/deployment/
 
-	find ./.build/deployment -name "*.yaml" -type f | xargs -n 1 -I {} bash -c 'cat "$@" | sed -e "s|DOCKER_IMAGE|"${DOCKER_IMAGE_GITHASH}"|" > ./.build/deployment/$(basename $@)  || exit 255' _ {}
+	find ./deployment -name "*.yaml" -type f | xargs -n 1 -I {} bash -c 'cat "$@" | sed -e "s|DOCKER_IMAGE|"${DOCKER_IMAGE_GITHASH}"|" > ./.build/deployment/$(basename $@)  || exit 255' _ {}
 
 fi
 
@@ -211,6 +214,8 @@ if [ "${PUSH_ARG}" = "push" ]; then
 else
 	echo "Not pushing ${DOCKER_IMAGE}"
 fi
+
+# TODO Error if docker image produced is not configured with enough information to deploy
 
 popd >/dev/null
 

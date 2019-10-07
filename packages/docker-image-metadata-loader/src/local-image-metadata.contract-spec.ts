@@ -14,13 +14,13 @@ describe("Image metadata loading", function(){
   const imageMetadataLoader = dockerImageMetadata(inject({exec:exec, logger: testCaseLogger}));
 
   it("should pull and inspect icelandair/shepherd image", () => {
-    return imageMetadataLoader.pullAndInspectImage({image:"icelandair/shepherd", imagetag:"latest"}).then((imageMetadata:TDockerInspectMetadata)=>{
+    return imageMetadataLoader.inspectImage({image:"icelandair/shepherd", imagetag:"latest"}).then((imageMetadata:TDockerInspectMetadata)=>{
       expect(imageMetadata.dockerLabels["is.icelandairlabs.name"]).to.equal("Shepherd agent");
     });
   });
 
   it("should pull and inspect icelandair/shepherd image labels", () => {
-    return imageMetadataLoader.pullAndInspectImageLabels({image:"icelandair/shepherd", imagetag:"latest"}).then((imageLabels:TDockerImageLabels)=>{
+    return imageMetadataLoader.inspectImageLabels({image:"icelandair/shepherd", imagetag:"latest"}).then((imageLabels:TDockerImageLabels)=>{
       expect(imageLabels["is.icelandairlabs.name"]).to.equal("Shepherd agent");
     });
   });

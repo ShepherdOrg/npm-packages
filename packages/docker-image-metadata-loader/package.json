@@ -1,7 +1,7 @@
 {
   "name": "@shepherdorg/docker-image-metadata-loader",
-  "version": "0.0.2",
-  "description": "Retrieve docker image metadata efficiently from private docker registry, or alternatively by using docker pull and inspect",
+  "version": "0.1.0",
+  "description": "Retrieve docker image metadata efficiently from (private) docker registry, or alternatively by using docker pull and inspect",
   "keywords": [
     "docker",
     "image",
@@ -10,7 +10,7 @@
   ],
   "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
   "homepage": "",
-  "license": "GPL",
+  "license": "GPL-3.0-or-later",
   "main": "dist/index.js",
   "files": [
     "dist"

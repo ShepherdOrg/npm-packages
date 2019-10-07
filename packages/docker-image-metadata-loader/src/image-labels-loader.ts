@@ -35,7 +35,7 @@ export function imageLabelsLoader(injected) {
         };
       });
     } else {
-      return localImageLoader.pullAndInspectImageLabels(imageDef).then((dockerImageLabels) => {
+      return localImageLoader.inspectImageLabels(imageDef).then((dockerImageLabels) => {
         logger.debug(`${imageDef.image}:${imageDef.imagetag} metadata loaded using docker inspect`);
         return {
           dockerLabels: dockerImageLabels,

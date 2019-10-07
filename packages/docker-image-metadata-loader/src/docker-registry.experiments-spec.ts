@@ -155,7 +155,7 @@ describe("Get docker info from local registry using superagent", function() {
   let getImageTags = (IMAGE) => {
     let ApiUrl = `${PROTOCOL}://${REGISTRY_HOST}/v2/${IMAGE}/tags/list/?n=10`;
     return agent.get(ApiUrl).set("Host", REGISTRY_HOST).then((result) => {
-      expect(result.body.name).to.equal(`${IMAGE}`);
+      expect(result.body.displayName).to.equal(`${IMAGE}`);
       return result.body;
     });
   };
@@ -184,15 +184,15 @@ describe("Get docker info from local registry using superagent", function() {
       return Promise.all(imageTagPromises);
     }).then((imagesWithTags) => {
       const imageManifestPromises = imagesWithTags.map((imageWithTag:any) => {
-        console.log("Getting manifest for ", imageWithTag.name, imageWithTag.tags[0]);
-        return getImageManifest(imageWithTag.name, imageWithTag.tags[0]);
+        console.log("Getting manifest for ", imageWithTag.displayName, imageWithTag.tags[0]);
+        return getImageManifest(imageWithTag.displayName, imageWithTag.tags[0]);
       });
       // @ts-ignore
       return Promise.all(imageManifestPromises);
 
     }).then((imagesWithManifests) => {
 //            console.log('HAVE images with manifests', imagesWithManifests)
-      return imagesWithManifests.filter(current => current && current["shepherd.name"]);
+      return imagesWithManifests.filter(current => current && current["shepherd.displayName"]);
     }).then((filtered) => {
       console.log("FILTERED", filtered);
     });
@@ -218,7 +218,7 @@ describe("Get docker info from local registry using superagent", function() {
     let ApiUrl = `${PROTOCOL}://${REGISTRY_HOST}/v2/${IMAGE}/tags/list/?page_size=10`;
     console.log("ApiUrl", ApiUrl);
     return agent.get(ApiUrl).set("Host", REGISTRY_HOST).then((result) => {
-      expect(result.body.name).to.equal(`${IMAGE}`);
+      expect(result.body.displayName).to.equal(`${IMAGE}`);
       return result.body;
     });
 

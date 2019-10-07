@@ -1,0 +1,101 @@
+{
+  "$id": "https://shepherdorg.org/shepherd-docker-metadata.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Shepherd metadata to describe a deployer or container deployed with shepherd.",
+  "type": "object",
+  "properties": {
+    "displayName": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "isInfrastructure": {
+      "type": "boolean"
+    },
+    "isDeployer": {
+      "type": "boolean"
+    },
+    "deployCommand": {
+      "type": "string",
+      "description": "Command to pass into a deployer for executing deployment script"
+    },
+    "rollbackCommand": {
+      "type": "string",
+      "description": "Command to pass into a deployer for executing rollback script"
+    },
+    "kubeConfigB64": {
+      "type": "string",
+      "description": "Base64 encoded tar gz with kubernetes deployment files."
+    },
+    "isDbMigration": {
+      "type": "boolean"
+    },
+    "dbMigrationImage": {
+      "type": "string"
+    },
+    "lastCommits": {
+      "type": "string",
+      "description": "Base64 encoded string with last relevant commits."
+    },
+    "gitCommit": {
+      "type": "string",
+      "description": "Git commit hash"
+    },
+    "gitHash": {
+      "type": "string",
+      "description": "Hash calculated from sources behind this deployer."
+    },
+    "gitUrl": {
+      "type": "string",
+      "description": "URL that was used to check out the sources to build the image"
+    },
+    "buildHostName": {
+      "type": "string",
+      "description": "Name of host where this image was built."
+    },
+    "buildDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Build date and time"
+    },
+    "environment": {
+      "type": "object",
+      "patternProperties": {
+        "^.*$": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "hyperlinks": {
+      "type": ["array"],
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "displayName",
+    "version"
+  ],
+  "additionalProperties": false
+}
+
+
