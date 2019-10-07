@@ -1,0 +1,57 @@
+{
+  "$id": "https://shepherdorg.org/shepherd-generated-docker-metadata.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Shepherd metadata to describe a deployer or container deployed with shepherd.",
+  "type": "object",
+  "properties": {
+    "kubeConfigB64": {
+      "type": "string",
+      "description": "Base64 encoded tar gz with kubernetes deployment files."
+    },
+    "lastCommits": {
+      "type": "string",
+      "description": "Base64 encoded string with last relevant commits."
+    },
+    "gitCommit": {
+      "type": "string",
+      "description": "Git commit hash"
+    },
+    "gitBranch": {
+      "type": "string",
+      "description": "Branch in repository that image was build from"
+    },
+    "gitHash": {
+      "type": "string",
+      "description": "Hash calculated from sources behind this deployer."
+    },
+    "gitUrl": {
+      "type": "string",
+      "description": "URL that was used to check out the sources to build the image"
+    },
+    "buildHostName": {
+      "type": "string",
+      "description": "Name of host where this image was built."
+    },
+    "buildDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Build date and time"
+    },
+    "semanticVersion": {
+      "type": "string",
+      "format": "regex",
+      "pattern": "^[0-9.-]",
+
+      "description": "Semantic version"
+    }
+  },
+  "required": [
+    "lastCommits",
+    "gitCommit",
+    "gitHash",
+    "gitUrl",
+    "buildHostName",
+    "buildDate"
+  ],
+  "additionalProperties": false
+}

@@ -7,7 +7,7 @@
     "DB_HOST": "MICROSERVICES_POSTGRES_RDS_HOST",
     "DB_PASS": "MICRO_SITES_DB_PASSWORD"
   },
-  "deploymentCommand": "ls",
+  "deployCommand": "ls",
   "rollbackCommand": "cat",
   "hyperlinks":[
     {"title": "TestlinkOne", "url": "https://link.to.nowhere"}

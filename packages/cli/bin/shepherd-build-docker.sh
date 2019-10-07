@@ -140,7 +140,8 @@ fi
 
 cat > ./.build/metadata/shepherd.json <<_EOF_
 {
-  "buildHostName": "${HOSTNAME}"
+  "buildDate": "$(date +%Y-%m-%dT%H:%M:%S)+00:00"
+, "buildHostName": "${HOSTNAME}"
 , "dockerImageTag":"${DOCKER_IMAGE_LATEST}"
 , "dockerImageGithash":"${DOCKER_IMAGE_GITHASH}"
 , "displayName":"${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}"
@@ -202,7 +203,6 @@ if [ ! -z "${LAYERCACHE_TAR}" ]; then
 	echo "Saving layer cache tar to ${LAYERCACHE_TAR} "
 	docker save -o ${LAYERCACHE_TAR} ${DOCKER_IMAGE_LATEST}
 fi
-
 
 if [ "${PUSH_ARG}" = "push" ]; then
 	docker push ${DOCKER_IMAGE}

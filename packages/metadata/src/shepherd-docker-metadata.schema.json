@@ -24,40 +24,11 @@
       "type": "string",
       "description": "Command to pass into a deployer for executing rollback script"
     },
-    "kubeConfigB64": {
-      "type": "string",
-      "description": "Base64 encoded tar gz with kubernetes deployment files."
-    },
     "isDbMigration": {
       "type": "boolean"
     },
     "dbMigrationImage": {
       "type": "string"
-    },
-    "lastCommits": {
-      "type": "string",
-      "description": "Base64 encoded string with last relevant commits."
-    },
-    "gitCommit": {
-      "type": "string",
-      "description": "Git commit hash"
-    },
-    "gitHash": {
-      "type": "string",
-      "description": "Hash calculated from sources behind this deployer."
-    },
-    "gitUrl": {
-      "type": "string",
-      "description": "URL that was used to check out the sources to build the image"
-    },
-    "buildHostName": {
-      "type": "string",
-      "description": "Name of host where this image was built."
-    },
-    "buildDate": {
-      "type": "string",
-      "format": "date-time",
-      "description": "Build date and time"
     },
     "environment": {
       "type": "object",

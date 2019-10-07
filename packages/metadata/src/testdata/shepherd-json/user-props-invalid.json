@@ -1,0 +1,16 @@
+{
+  "displayName": "plain-deployer-repo",
+  "isInfrastructure": false,
+  "isDbMigration": "should be a boolean",
+  "environment": {
+    "DB_HOST": "MICROSERVICES_POSTGRES_RDS_HOST",
+    "DB_PASS": false
+  },
+  "deployCommand": "ls",
+  "rollbackCommand": "cat",
+  "hyperlinks":[
+    {"title": "TestlinkOne", "url": "ftp://ftp.is.not.supported"}
+  ],
+  "someAdditionalField": "should not be here"
+}
+
