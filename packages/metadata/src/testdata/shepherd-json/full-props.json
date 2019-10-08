@@ -1,4 +1,19 @@
 {
+  "displayName": "plain-deployer-repo",
+  "isInfrastructure": false,
+  "isDbMigration": false,
+  "environment": {
+    "DB_HOST": "MICROSERVICES_POSTGRES_RDS_HOST",
+    "DB_PASS": "MICRO_SITES_DB_PASSWORD"
+  },
+  "deployCommand": "ls",
+  "rollbackCommand": "cat",
+  "hyperlinks": [
+    {
+      "title": "TestlinkOne",
+      "url": "https://link.to.nowhere"
+    }
+  ],
   "buildDate": "2019-11-13T20:20:39+00:00",
   "lastCommits": "c29tZXRoaW5nCg==",
   "buildHostName": "Gulaugurs-MacBook-Pro.local",

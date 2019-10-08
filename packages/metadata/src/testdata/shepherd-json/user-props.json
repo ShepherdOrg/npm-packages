@@ -1,6 +1,5 @@
 {
   "displayName": "plain-deployer-repo",
-  "version": "1.0.0",
   "isInfrastructure": false,
   "isDbMigration": false,
   "environment": {

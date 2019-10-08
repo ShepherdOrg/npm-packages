@@ -2,8 +2,16 @@
   "name": "@shepherdorg/metadata",
   "version": "0.0.1",
   "description": "Shepherd metadata model handling",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "join-metadata-files": "dist/join-metadata-files.js"
+  },
   "scripts": {
+    "build": "tsc && cp ./src/*.json ./dist && chmod +x ./dist/join-metadata-files.js",
+    "test": "mocha --exit --require ts-node/register --recursive './**/*.spec.ts'",
     "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,json --watch './**/*.spec.ts'"
   },
   "author": "Guðlaugur S. Egilsson gulli@kolibri.is",

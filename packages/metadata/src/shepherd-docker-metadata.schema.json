@@ -7,9 +7,6 @@
     "displayName": {
       "type": "string"
     },
-    "version": {
-      "type": "string"
-    },
     "isInfrastructure": {
       "type": "boolean"
     },
@@ -63,8 +60,7 @@
     }
   },
   "required": [
-    "displayName",
-    "version"
+    "displayName"
   ],
   "additionalProperties": false
 }
