@@ -19,6 +19,6 @@
   },
   "homepage": "https://github.com/ShepherdOrg/shepherd#readme",
   "devDependencies": {
-    "yamrt": "0.2.1"
+    "yamrt": "0.2.2"
   }
 }

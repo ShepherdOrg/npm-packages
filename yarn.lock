@@ -580,10 +580,10 @@ validate-npm-package-license@^3.0.1:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
 
-yamrt@0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/yamrt/-/yamrt-0.2.1.tgz#ed50da54c4a4fd5b2bf6fb8ad44d60c1535ca2a8"
-  integrity sha512-dwrjup5tCO8NFi1uuIM7NrQhwTiKj+omnnxniGenotnSsdgAx+Ibz5fISd2wuoRn7rBBBrO5iGIYmpc/AUUw7A==
+yamrt@0.2.2:
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/yamrt/-/yamrt-0.2.2.tgz#8ad4600c36d44b584f6345a308477f9ea1965e50"
+  integrity sha512-ZTEnzQh/7PxsN359KluhaZAiYhVZs4Q1Mg5BYBiRlqoT632c+cG11CzzjNT6/lqFxDdavbVpcvsMyFrgMAQwhg==
   dependencies:
     bluebird "3.5.4"
     chalk "2.4.2"
