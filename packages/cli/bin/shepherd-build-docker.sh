@@ -138,13 +138,12 @@ if [ -z "$BRANCH_NAME" ]; then
 fi
 
 
-cat > ./.build/metadata/shepherd.json <<_EOF_
+cat > ./.build/metadata/builddata.json <<_EOF_
 {
   "buildDate": "$(date +%Y-%m-%dT%H:%M:%S)+00:00"
 , "buildHostName": "${HOSTNAME}"
 , "dockerImageTag":"${DOCKER_IMAGE_LATEST}"
 , "dockerImageGithash":"${DOCKER_IMAGE_GITHASH}"
-, "displayName":"${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}"
 , "gitHash":"${DIRHASH}"
 , "gitBranch":"${BRANCH_NAME}"
 , "gitUrl":"${GIT_URL}"
@@ -178,19 +177,29 @@ if [[ -d ./.build/deployment/ ]]; then
 fi
 
 if [ ! -z "${KUBECONFIG_B64}" ]; then
-	cat >> ./.build/metadata/shepherd.json <<_EOF_
+	cat >> ./.build/metadata/builddata.json <<_EOF_
 ,"kubeConfigB64":"${KUBECONFIG_B64}"
 _EOF_
 
 fi
 
-cat >> ./.build/metadata/shepherd.json <<_EOF_
+cat >> ./.build/metadata/builddata.json <<_EOF_
 }
 _EOF_
 
+if [ -e ./shepherd.json ]; then
+	echo "Have shepherd.json userdata file"
+	cp ./shepherd.json ./.build/metadata/userdata.json
+else
+	echo "NO shepherd.json userdata file, generating displayname"
+	cat > ./.build/metadata/userdata.json <<_EOF_
+{  "displayName":"${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}" }
+_EOF_
+fi
+
+join-metadata-files ./.build/metadata/userdata.json ./.build/metadata/builddata.json > ./.build/metadata/shepherd.json
 
 SHEPHERD_METADATA=$(cd ./.build/metadata && tar  -b 1 -zcv shepherd.json 2>/dev/null | base64 )
-
 
 docker build -t ${DOCKER_IMAGE} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_GITHASH} \
 	--build-arg SHEPHERD_METADATA=${SHEPHERD_METADATA} \

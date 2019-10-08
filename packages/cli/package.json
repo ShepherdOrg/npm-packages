@@ -16,7 +16,9 @@
   "bin": {
     "shepherd-build-docker": "./bin/shepherd-build-docker.sh"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@shepherdorg/metadata": "0.0.1"
+  },
   "scripts": {
     "build": "echo Nothing to build in pure JS module",
     "prepublishOnly": "yarn install --frozen-lockfile"
