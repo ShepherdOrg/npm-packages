@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "yamrt ./packages",
-    "publish": "yamrt ./packages --publish"
+    "build": "yamrt .",
+    "publish": "yamrt . --publish"
   },
   "repository": {
     "type": "git",
