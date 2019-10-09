@@ -1,22 +1,23 @@
-import {readJsonFiles} from '../src/readJsonFiles'
+import {readJsonFiles} from '../readJsonFiles'
 
 const exec = require('child-process-promise').exec;
 const expect = require('chai').expect
 const Future = require('fluture')
 
-describe.only('Build docker with deployment dir', function () {
+describe('Build docker with deployment dir', function () {
 
     this.timeout(10000)
     let shepherdMeta, buildOutput;
     let dockerMeta: any
 
     before(() => {
-        return exec('../bin/shepherd-build-docker.sh public-repo-with-deployment-dir/Dockerfile').then(({stdout, stderr}) => {
+        let dockerDir = __dirname
+        return exec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile`).then(({stdout, stderr}) => {
             if (stderr) expect.fail('GOT ERROR> ' + stderr)
 
             buildOutput = stdout
 
-            return Future.promise(readJsonFiles('public-repo-with-deployment-dir/.build', '**/*/shepherd.json')).then((metaFiles) => {
+            return Future.promise(readJsonFiles('e2etest/public-repo-with-deployment-dir/.build', '**/*/shepherd.json')).then((metaFiles) => {
                 shepherdMeta = metaFiles[0]
 
                 return exec('docker inspect public-repo-with-deployment-dir:latest').then(({stdout})=>{

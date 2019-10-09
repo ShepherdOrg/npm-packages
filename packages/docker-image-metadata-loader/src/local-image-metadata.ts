@@ -7,8 +7,8 @@ export interface TDockerInspectMetadata {
 
 export type TDockerImageReference={
   dockerImage?: string
-  image: string
-  imagetag: string
+  image?: string
+  imagetag?: string
 }
 
 function extractImageLabels(dockerImageMetadata: any, imageDef: TDockerImageReference, logger, dockerImageName) {

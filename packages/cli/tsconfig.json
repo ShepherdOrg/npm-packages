@@ -15,10 +15,11 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "outDir": "dist",
-    "sourceMap": true
+    "sourceMap": false
   },
   "exclude": [
     "node_modules",
+    "e2etest",
     "dist"
   ],
   "types": [

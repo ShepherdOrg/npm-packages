@@ -1,4 +1,4 @@
-import {readJsonFiles} from '../src/readJsonFiles'
+import {readJsonFiles} from '../readJsonFiles'
 
 const exec = require('child-process-promise').exec;
 const expect = require('chai').expect
@@ -13,7 +13,7 @@ describe('Build docker with kube.yaml deployment', function () {
 
     before(() => {
         let dockerDir = __dirname
-        return exec(`../bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile`).then(({stdout, stderr}) => {
+        return exec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile`).then(({stdout, stderr}) => {
             if (stderr) expect.fail('GOT ERROR> ' + stderr)
 
             buildOutput = stdout
