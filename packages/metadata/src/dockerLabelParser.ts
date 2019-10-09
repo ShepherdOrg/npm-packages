@@ -6,7 +6,8 @@ import {
     TShepherdMetadata
 } from './index'
 
-let uncompressBase64Tar = require('./base64tar/untar-string')
+// let uncompressBase64Tar = require('./base64tar/untar-string')
+import uncompressBase64Tar from './base64tar/untar-string'
 
 export function extractImageLabels(dockerImageMetadata: TDockerImageInspection) {
     let ContainerConfig = dockerImageMetadata[0].ContainerConfig;
@@ -38,7 +39,7 @@ function decodeBase64String(base64EncodedString: string): string {
     return new Buffer.from(base64EncodedString, "base64").toString();
 }
 
-export async function extractShepherdMetadata(imageLabels: Array<any>): Promise<TShepherdDeployerMetadata | TShepherdK8sMetadata> {
+export async function extractShepherdMetadata(imageLabels: any): Promise<TShepherdDeployerMetadata | TShepherdK8sMetadata> {
     if (imageLabels['shepherd.metadata']) {
         return await decodeShepherdMetadataLabel(imageLabels['shepherd.metadata'])
     } else if (imageLabels && Object.getOwnPropertyNames(imageLabels).find((propName) => propName.startsWith('shepherd.'))) {

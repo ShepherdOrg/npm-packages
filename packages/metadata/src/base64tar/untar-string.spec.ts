@@ -1,5 +1,6 @@
-const untarString = require('./untar-string');
+import {expect} from "chai";
 
+import untarString from './untar-string'
 
 const base64EncodedTar = 'H4sIAEZiQloAA+1XTXPiOBDlzK9QpXLaKoFtDEz5RhLPrmvCRwEzmRsl7A5Rxba8sgyhsvnvK9t8\n' +
     'GBsCSSbJTq3fBSy1XkvqVuupVncgcNnSA1/UK+8DRaLdbsa/arupZn/XqKgNTW21G0qrqVcUVdM1\n' +
@@ -22,14 +23,11 @@ const base64EncodedTar = 'H4sIAEZiQloAA+1XTXPiOBDlzK9QpXLaKoFtDEz5RhLPrmvCRwEzmR
     '3Pxljc1razR+Kg9yiRIlSpQoUaJEiRIlSrwa/wJ4qk95ACgAAA==';
 
 describe('untar base64 encoded string archive', function () {
-    it('should untar string and return object with expanded directory structure', function (done) {
-        untarString(base64EncodedTar).then(function (dirStructure) {
-            expect(dirStructure['./deployment/www-icelandair-com.deployment.yml']).to.be.ok();
-            expect(dirStructure['./deployment/www-icelandair-com.deployment.yml'].content).to.be.ok();
+    it('should untar string and return object with expanded directory structure', function () {
+        return untarString(base64EncodedTar).then(function (dirStructure:any) {
+            expect(dirStructure['./deployment/www-icelandair-com.deployment.yml']).to.be.a('object')
+            expect(dirStructure['./deployment/www-icelandair-com.deployment.yml'].content).to.be.a('string');
             expect(dirStructure['./deployment/www-icelandair-com.deployment.yml'].content).to.contain('name: www-icelandair-com');
-            done();
-        }).catch(function (err) {
-            done.fail(err);
         })
 
     });

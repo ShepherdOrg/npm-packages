@@ -9,9 +9,9 @@ function bufferToStream(buffer) {
 }
 
 
-module.exports=function(base64EncodedTar){
+export default function(base64EncodedTar):Promise<any>{
     return new Promise(function(resolve, reject){
-        const buffer = new Buffer.from(base64EncodedTar, "base64");
+        const buffer = Buffer.from(base64EncodedTar, "base64");
 
         let files={};
 
