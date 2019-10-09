@@ -6,7 +6,6 @@ import {
     TShepherdMetadata
 } from './index'
 
-// let uncompressBase64Tar = require('./base64tar/untar-string')
 import uncompressBase64Tar from './base64tar/untar-string'
 
 export function extractImageLabels(dockerImageMetadata: TDockerImageInspection) {
@@ -18,6 +17,10 @@ function decodeShepherdMetadataLabel(imageLabel: TCompressedMetadata) {
     return uncompressBase64Tar(imageLabel).then((tarFiles) => {
         try {
             const shepherdMeta = JSON.parse(tarFiles['shepherd.json'].content)
+            if(shepherdMeta.lastCommits){
+                shepherdMeta.lastCommits = decodeBase64String(shepherdMeta.lastCommits)
+            }
+
             if (shepherdMeta.kubeConfigB64) {
                 return uncompressBase64Tar(shepherdMeta.kubeConfigB64).then((kubeDeploymentFiles) => {
                     shepherdMeta.kubeDeploymentFiles = kubeDeploymentFiles

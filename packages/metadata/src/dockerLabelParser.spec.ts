@@ -58,6 +58,10 @@ describe('Shepherd metadata reading', function () {
             expect(metaData.lastCommits).to.be.a('string')
         });
 
+        it('should decode lastCommits base64 string', () => {
+            expect(metaData.lastCommits).to.contain('Introducing npm installable build docker script')
+        });
+
         it('should contain kubeConfigB64', () => {
             expect(metaData.kubeConfigB64).to.be.a('string')
         });
@@ -66,7 +70,12 @@ describe('Shepherd metadata reading', function () {
             expect(metaData.kubeDeploymentFiles['./deployment/kube.yaml'].content).to.be.a('string')
         });
 
-        it('should read hyperlinks', () => {
+        xit('TODO should read hyperlinks', () => {
+            if(metaData.hyperlinks){
+                expect(metaData.hyperlinks.length).to.equal(1)
+            } else{
+                expect.fail('Should have hyperlinks property')
+            }
 
         });
 
