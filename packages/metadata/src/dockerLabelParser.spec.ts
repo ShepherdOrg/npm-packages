@@ -100,6 +100,11 @@ describe('Shepherd metadata reading', function () {
             expect(metaData.kubeConfigB64).to.be.a('string')
         });
 
+        it('should uncompress kubeConfiB64Files', () => {
+            expect(metaData.kubeDeploymentFiles).to.be.a('object')
+            expect(metaData.kubeDeploymentFiles['./deployment/']).to.be.a('object')
+        });
+
         it('should read shepherd.deployer', () => {
             expect(metaData.isDeployer).to.equal(false)
         });

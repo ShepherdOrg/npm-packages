@@ -54,6 +54,7 @@ export async function extractShepherdMetadata(imageLabels: any): Promise<TShephe
             gitHash: imageLabels["shepherd.git.hash"],
             gitUrl: imageLabels["shepherd.git.url"],
             kubeConfigB64: imageLabels["shepherd.kube.config.tar.base64"],
+            kubeDeploymentFiles: imageLabels["shepherd.kube.config.tar.base64"] && await uncompressBase64Tar(imageLabels["shepherd.kube.config.tar.base64"]),
             lastCommits: imageLabels["shepherd.lastcommits"] && decodeBase64String(imageLabels["shepherd.lastcommits"]),
             semanticVersion: imageLabels["shepherd.version"],
             isDeployer: !!imageLabels["shepherd.deployer"],
