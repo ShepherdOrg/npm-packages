@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/cli",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Command line interfaces for Shepherd",
   "keywords": [],
   "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
@@ -16,7 +16,8 @@
   ],
   "bin": {
     "shepherd-build-docker": "bin/shepherd-build-docker.sh",
-    "shepherd-inspect": "dist/src/shepherd-inspect-cmd.js"
+    "shepherd-inspect": "dist/shepherd-inspect-cmd.js",
+    "join-metadata-files": "node_modules/@shepherdorg/metadata/dist/join-metadata-files.js"
   },
   "scripts": {
     "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
@@ -24,7 +25,7 @@
     "e2etest": "mocha --exit --require ts-node/register --recursive 'e2etest/**/*.e2e.ts'",
     "e2etdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'e2etest/**/*.e2e.ts'",
     "test": "npm run specs && npm run e2etest",
-    "build": "tsc && chmod +x ./dist/src/shepherd-inspect-cmd.js",
+    "build": "tsc && chmod +x ./dist/shepherd-inspect-cmd.js",
     "prepublishOnly": "yarn install --frozen-lockfile"
   },
   "dependencies": {
