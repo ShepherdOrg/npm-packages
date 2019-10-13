@@ -4,7 +4,7 @@ import {inspectAndExtractShepherdMetadata} from './shepherd-inspect'
 
 let dockerImageReference = process.argv[2]
 
-if(!dockerImageReference){
+if(!dockerImageReference || process.argv.indexOf('--help') > 0){
     console.log(`
 Inspect shepherd metadata for a docker image.
 

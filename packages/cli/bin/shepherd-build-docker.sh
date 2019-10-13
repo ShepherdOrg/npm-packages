@@ -2,7 +2,26 @@
 
 set -eao pipefail
 
-if [[ "$1" = "--help" || "${1}" = "" ]]; then
+function installationDir(){
+	TARGET_FILE=$1
+
+	cd `dirname $TARGET_FILE`
+	TARGET_FILE=`basename $TARGET_FILE`
+
+	# Iterate down a (possible) chain of symlinks
+	while [ -L "$TARGET_FILE" ]
+	do
+	    TARGET_FILE=`readlink $TARGET_FILE`
+	    cd `dirname $TARGET_FILE`
+	    TARGET_FILE=`basename $TARGET_FILE`
+	done
+
+	PHYS_DIR=`pwd -P`
+	RESULT=$(dirname $PHYS_DIR/$TARGET_FILE)
+	echo $RESULT
+}
+
+function outputUsage(){
 	cat << _EOF_
 Usage (bash):
 	OPTION=OPTIONVALUE $(basename $0) <dockerfile> [push]
@@ -27,7 +46,22 @@ DOCKER_REGISTRY_HOST=myregistry:8888 $(basename $0) ./Dockerfile push
 	Build dockerfile in current directory and push to myregistry:8888/currentdirname:latest registry/repository.
 
 _EOF_
-exit 0
+}
+
+export THISDIR=$(installationDir ${BASH_SOURCE[0]})
+
+. ${THISDIR}/deploy/functions.sh
+
+
+
+if [[ "${1}" = "" ]]; then
+	outputUsage
+	exit 0
+fi
+
+if has_param '--help' "$@"; then
+	outputUsage
+	exit 0
 fi
 
 DOCKERFILE=$1
@@ -225,6 +259,7 @@ else
 fi
 
 # TODO Error if docker image produced is not configured with enough information to deploy
+# TODO Add SHEPHERD_METADATA arg and label to Dockerfile if missing.
 
 popd >/dev/null
 

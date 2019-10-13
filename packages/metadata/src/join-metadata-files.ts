@@ -5,8 +5,10 @@ import {readJsonFile, validateAndCombineFullProps} from './shepherdJson'
 let userPropsFile = process.argv[2]
 let generatedPropsFile = process.argv[3]
 
-if(!generatedPropsFile || ! userPropsFile){
-    console.log(`Usage:
+if(!generatedPropsFile || ! userPropsFile || process.argv.indexOf('--help') > 0){
+    console.log(`Validated and join user specified properties and build generated properties into one JSON structure to be packaged in a docker label.
+
+Usage:
 ${process.argv[1]}  <user props json file>  <generated props json file>    
 
 Order of file names is significant to enable schema validation.

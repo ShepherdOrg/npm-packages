@@ -26,6 +26,8 @@ export type TShepherdMetadata = {
 export type TShepherdDeployerMetadata = TShepherdMetadata & {
     deployCommand: string
     rollbackCommand?: string
+// TODO: Support dryrun command
+    dryrunCommand: string
     environmentVariablesExpansionString: string
 }
 export type TShepherdK8sMetadata = TShepherdMetadata & {
