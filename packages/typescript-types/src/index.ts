@@ -17,7 +17,6 @@ export interface IStorageBackend {
 
     connect()
     disconnect()
-    resetAllDeploymentStates()
 }
 
 export type TStateStoreDependencies = {
