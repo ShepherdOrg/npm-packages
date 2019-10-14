@@ -1,4 +1,4 @@
-module.exports = function () {
+export function PgConfig() {
     return {
         "host": process.env.SHEPHERD_PG_HOST || "localhost",
         "user": process.env.SHEPHERD_PG_USER || "postgres",
