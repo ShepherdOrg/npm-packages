@@ -7,7 +7,7 @@
   "dependencies": {
     "@shepherdorg/typescript-types": "^0.0.2",
     "bluebird": "3.5.1",
-    "lodash": "4.17.4",
+    "lodash": "4.17.15",
     "md5-file": "3.2.3"
   },
   "devDependencies": {
