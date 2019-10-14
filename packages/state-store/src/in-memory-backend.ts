@@ -1,13 +1,20 @@
-import {IStorageBackend} from './index'
+import {IStorageBackend} from '../../typescript-types/src/'
 
 
-interface IInMemoryStorageBackend  extends IStorageBackend{
-    store():any
+interface IInMemoryStorageBackend extends IStorageBackend {
+    store(): any
 }
 
-export function InMemoryStore():IInMemoryStorageBackend {
+export function InMemoryStore(): IInMemoryStorageBackend {
     let store = {};
     return {
+        connect() {
+            // Noop
+        }, disconnect() {
+            // Noop
+        }, resetAllDeploymentStates() {
+            store = {}
+        },
         set: function (key, value) {
             return new Promise(function (resolve, _reject) {
                 store[key] = value;

@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 
-function mkDirByPathSync(targetDir, { isRelativeToScript = false } = {}) {
+export function mkDirByPathSync(targetDir, { isRelativeToScript = false } = {}) {
     const sep = path.sep;
     const initDir = path.isAbsolute(targetDir) ? sep : '';
     const baseDir = isRelativeToScript ? __dirname : '.';
@@ -30,5 +30,3 @@ function mkDirByPathSync(targetDir, { isRelativeToScript = false } = {}) {
         return curDir;
     }, initDir);
 }
-
-module.exports=mkDirByPathSync;

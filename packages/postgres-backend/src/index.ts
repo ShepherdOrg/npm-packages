@@ -1,7 +1,12 @@
+import {IStorageBackend} from '@shepherdorg/typescript-types'
+
 const pg = require('pg');
 
+export interface IPostgresStorageBackend extends IStorageBackend{
+    resetAllDeploymentStates()
+}
 
-module.exports=function PostgresStore(config) {
+export function PostgresStore(config):IPostgresStorageBackend {
     let client;
 
     return {
@@ -16,8 +21,8 @@ module.exports=function PostgresStore(config) {
                         // execute a query on our database
                         client.query('SELECT count(*) from deployments', [], function (err, result) {
                             if (err) {
-                                console.debug("Attempt to create deployments table");
-                                client.query("CREATE TABLE deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL);", [], function (err, result) {
+                                console.debug("Barbaric built-in migration...attempt to create deployments table");
+                                client.query("CREATE TABLE deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL);", [], function (err) {
                                     if (err) {
                                         // console.debug("ERROR creating table", err);
                                         reject("Error creating deployments table" + err);
@@ -39,15 +44,15 @@ module.exports=function PostgresStore(config) {
                 }
             });
         },
-        disconnect(){
+        disconnect() {
             client.end();
         },
-        resetAllDeploymentStates(){
+        resetAllDeploymentStates() {
             return new Promise(function (resolve, reject) {
-                if(!(process.env.RESET_FOR_REAL === "yes-i-really-want-to-drop-deployments-table") ){
+                if (!(process.env.RESET_FOR_REAL === "yes-i-really-want-to-drop-deployments-table")) {
                     reject("RESET_FOR_REAL must be set to true");
                 } else {
-                    client.query('DROP TABLE deployments', [], function (err, result) {
+                    client.query('DROP TABLE deployments', [], function (err) {
                         if (err) {
                             reject(err);
                         } else {
@@ -57,7 +62,6 @@ module.exports=function PostgresStore(config) {
                 }
 
             })
-
         },
         set: function (key, value) {
             return new Promise(function (resolve, reject) {
@@ -69,27 +73,27 @@ module.exports=function PostgresStore(config) {
                     } else {
                         // console.debug("SELECT result is", result);
                         if (result.rows.length === 0) {
-                            client.query("INSERT INTO deployments (data, identifier, lastdeployment) VALUES ($1::jsonb, $2::text, $3::timestamp)", [value, key, new Date()], function(err, result){
+                            client.query("INSERT INTO deployments (data, identifier, lastdeployment) VALUES ($1::jsonb, $2::text, $3::timestamp)", [value, key, new Date()], function (err) {
                                 if (err) {
                                     console.error("Error INSERTING value ", key, value);
                                     reject(err);
-                                } else{
+                                } else {
                                     // console.debug("INSERT successful");
-                                    resolve({key:key, value:value})
+                                    resolve({key: key, value: value})
                                 }
                             });
                         } else if (result.rows.length === 1) {
-                            client.query("UPDATE deployments SET data = $1::jsonb, lastdeployment = $3::timestamp WHERE identifier = $2::text", [value, key, new Date()], function(err, result){
+                            client.query("UPDATE deployments SET data = $1::jsonb, lastdeployment = $3::timestamp WHERE identifier = $2::text", [value, key, new Date()], function (err) {
                                 if (err) {
                                     console.error("Error UPDATING value of ", key, value);
                                     reject(err);
-                                } else{
+                                } else {
                                     // console.debug("UPDATE successful");
-                                    resolve({key:key, value:value})
+                                    resolve({key: key, value: value})
                                 }
                             });
                         } else {
-                            reject("Too many rows with identifer ", + key + " : " + result.rows.length);
+                            reject(new Error(`Too many rows with identifer ${key} : ${result.rows.length}`));
                         }
                     }
                 })
@@ -104,13 +108,13 @@ module.exports=function PostgresStore(config) {
                         if (result.rows.length === 0) {
                             resolve({key: key, value: undefined})
                         } else if (result.rows.length === 1) {
-                            resolve({key:key, value:result.rows[0].data});
-                        } else{
-                            reject("Too many rows with identifer ", + key + " : " + result.rows.length);
+                            resolve({key: key, value: result.rows[0].data});
+                        } else {
+                            reject(new Error(`Too many rows with identifer ${key} : ${result.rows.length}`))
                         }
                     }
                 })
             });
         }
     }
-};
+}

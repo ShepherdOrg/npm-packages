@@ -1,25 +1,28 @@
-const PostgresStore = require('./index');
+import {PostgresStore} from './index'
 
+import {expect} from 'chai'
 
 describe('postgres object store backend', function () {
 
     let store;
 
     beforeEach(function () {
-        console.log('Connecting to postgres on ' + process.env.SHEPHERD_PG_PORT || 5432 )
+        let pgPort = process.env.SHEPHERD_PG_PORT || 5432
+        let pgHost = process.env.SHEPHERD_PG_HOST || 'localhost'
+        // console.debug(`Connecting to postgres on ${pgHost}:${pgPort}`)
         store = PostgresStore({
             user: 'postgres',
-            host: process.env.SHEPHERD_PG_HOST || 'localhost',
+            host: pgHost,
             database: 'postgres',
             password: process.env.SHEPHERD_PG_PASSWORD || 'mysecretpassword',
-            port: process.env.SHEPHERD_PG_PORT || 5432,
+            port: pgPort,
         });
 
     });
 
     it('should persist object', function () {
         return new Promise(function (resolve, reject) {
-            store.connect().then(function (numberOfDeployments) {
+            store.connect().then(function (_numberOfDeployments) {
                 store.set("postgres/deployment", {is: "awesome"}).then(function (savedKeyPair) {
                     expect(savedKeyPair.key).to.eql("postgres/deployment");
                     expect(savedKeyPair.value.is).to.eql("awesome");
@@ -36,7 +39,7 @@ describe('postgres object store backend', function () {
 
     it('should set object', function () {
         return new Promise(function (resolve, reject) {
-            store.connect().then(function (numberOfDeployments) {
+            store.connect().then(function (_numberOfDeployments) {
                 store.set("postgres/deployment", {is: "awesome"}).then(
                     store.get("postgres/deployment").then(function (retrievedKeyPair) {
                         expect(retrievedKeyPair.key).to.eql("postgres/deployment");
@@ -55,7 +58,7 @@ describe('postgres object store backend', function () {
 
     it('should set object twice', function () {
         return new Promise(function (resolve, reject) {
-            store.connect().then(function (numberOfDeployments) {
+            store.connect().then(function (_numberOfDeployments) {
                 store.set("postgres/deployment", {is: "awesome"}).then(
                     store.set("postgres/deployment", {is: "awesome"}).then(
                         store.get("postgres/deployment").then(function (retrievedKeyPair) {
@@ -72,10 +75,11 @@ describe('postgres object store backend', function () {
 
     it('should return undefined value if state non-existing object', function () {
         return new Promise(function (resolve, reject) {
-            store.connect().then(function () {
+
+            return store.connect().then(function () {
                 store.get("postgres/neverset-deployment").then(function (retrievedKeyPair) {
                         expect(retrievedKeyPair.key).to.eql("postgres/neverset-deployment");
-                        expect(retrievedKeyPair.value).to.be(undefined);
+                        expect(retrievedKeyPair.value).to.equal(undefined);
                         resolve();
                     }
                 ).catch(function (setError) {

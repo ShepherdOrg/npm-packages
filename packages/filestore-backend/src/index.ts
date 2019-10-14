@@ -1,12 +1,16 @@
-const path = require('path');
-const fs = require('fs');
-const mkdirP = require('./mkdirp');
+import path from 'path'
+
+import fs from 'fs'
+
+import {mkDirByPathSync} from './mkdirp'
+import {IStorageBackend} from '@shepherdorg/typescript-types'
 
 function fileNamify(keyString) {
     return keyString.replace(/\//g, '_')
 }
 
-function FileStore(config) {
+export function FileStore(config):IStorageBackend {
+
     return {
         connect() {
             return new Promise(function (resolve, reject) {
@@ -14,16 +18,14 @@ function FileStore(config) {
                     return reject('Must pass in config with valid directory field');
                 }
                 if (!fs.existsSync(config.directory)) {
-                    mkdirP(config.directory);
+                    mkDirByPathSync(config.directory);
                 }
                 resolve();
             })
         },
         disconnect() {
             // This is a noop in this implementation.
-            return new Promise(function (resolve) {
-                resolve();
-            })
+            return Promise.resolve()
         },
         get(key) {
             return new Promise(function (resolve, reject) {
@@ -59,5 +61,3 @@ function FileStore(config) {
         }
     }
 }
-
-module.exports = FileStore;

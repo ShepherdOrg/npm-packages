@@ -1,4 +1,4 @@
-import {TStateStoreDependencies} from './index'
+import {TDeploymentState, TStateStoreDependencies} from '../../typescript-types/src/'
 
 const fs = require('fs');
 const path = require('path');
@@ -30,19 +30,6 @@ export function DeploymentDir(operation, parameterizedDir) {
     }
 }
 
-
-export type TDeploymentState = {
-
-    new: boolean
-    key: string
-    modified: boolean
-    operation: string
-    version: string
-    lastVersion?: string
-    timestamp?: Date
-    signature: string
-    env: string
-}
 
 export function ReleaseStateStore(injected: TStateStoreDependencies) {
     let storageBackend = injected.storageBackend;

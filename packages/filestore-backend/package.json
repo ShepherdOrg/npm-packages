@@ -2,13 +2,12 @@
   "name": "@shepherdorg/state-store",
   "version": "0.0.1",
   "description": "State store for persisting shepherd deployment state using a provided backend.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "private": true,
+  "main": "run.js",
   "dependencies": {
     "@shepherdorg/typescript-types": "^0.0.2",
-    "bluebird": "3.5.1",
-    "lodash": "4.17.4",
-    "md5-file": "3.2.3"
+    "bluebird": "^3.7.0",
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
     "@types/chai": "^4.2.3",

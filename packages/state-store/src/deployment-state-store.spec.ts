@@ -1,4 +1,3 @@
-// const inject = require('../inject/inject');
 import {InMemoryStore} from './in-memory-backend'
 import {expect} from 'chai'
 

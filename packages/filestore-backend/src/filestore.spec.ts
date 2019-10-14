@@ -1,5 +1,7 @@
-const FileStore = require('./index');
-const path = require('path');
+import {expect} from 'chai'
+import path from 'path'
+
+import {FileStore} from './index'
 
 describe('file object store backend', function () {
 
@@ -14,7 +16,7 @@ describe('file object store backend', function () {
 
     it('should persist object', function () {
         return new Promise(function (resolve, reject) {
-            store.connect().then(function (numberOfDeployments) {
+            store.connect().then(function (_numberOfDeployments) {
                 store.set("postgres/deployment", {is: "awesomeToo"}).then(function (savedKeyPair) {
                     expect(savedKeyPair.key).to.eql("postgres/deployment");
                     expect(savedKeyPair.value.is).to.eql("awesomeToo");
@@ -31,8 +33,8 @@ describe('file object store backend', function () {
 
     it('should set object', function () {
         return new Promise(function (resolve, reject) {
-            store.connect().then(function (numberOfDeployments) {
-                store.set("postgres/deployment", {is: "awesome"}).then(()=>{
+            store.connect().then(function (_numberOfDeployments) {
+                store.set("postgres/deployment", {is: "awesome"}).then(() => {
                     store.get("postgres/deployment").then(function (retrievedKeyPair) {
                         expect(retrievedKeyPair.key).to.eql("postgres/deployment");
                         expect(retrievedKeyPair.value.is).to.eql("awesome");
@@ -47,9 +49,9 @@ describe('file object store backend', function () {
 
     it('should set object twice', function () {
         return new Promise(function (resolve, reject) {
-            store.connect().then(function (numberOfDeployments) {
-                store.set("postgres/deployment", {is: "awesomerrrr"}).then( (writeOne) => {
-                    store.set("postgres/deployment", {is: "awesome"}).then((writeTwoResult)=>{
+            store.connect().then(function (_numberOfDeployments) {
+                store.set("postgres/deployment", {is: "awesomerrrr"}).then((_writeOne) => {
+                    store.set("postgres/deployment", {is: "awesome"}).then((_writeTwoResult) => {
                         store.get("postgres/deployment").then(function (retrievedKeyPair) {
                             expect(retrievedKeyPair.key).to.eql("postgres/deployment");
                             expect(retrievedKeyPair.value.is).to.eql("awesome");
@@ -67,7 +69,7 @@ describe('file object store backend', function () {
             store.connect().then(function () {
                 store.get("postgres/neverset-deployment").then(function (retrievedKeyPair) {
                         expect(retrievedKeyPair.key).to.eql("postgres/neverset-deployment");
-                        expect(retrievedKeyPair.value).to.be(undefined);
+                        expect(retrievedKeyPair.value).to.equal(undefined);
                         resolve();
                     }
                 ).catch(function (setError) {
@@ -83,8 +85,8 @@ describe('file object store backend', function () {
 
     it('should implement disconnect noop', function () {
         return new Promise(function (resolve, reject) {
-            store.connect().then( ()=> {
-                store.disconnect().then(function (retrievedKeyPair) {
+            store.connect().then(() => {
+                store.disconnect().then(function (_retrievedKeyPair) {
                         resolve();
                     }
                 ).catch(function (setError) {
