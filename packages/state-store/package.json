@@ -1,0 +1,29 @@
+{
+  "name": "@shepherdorg/state-store",
+  "version": "0.0.1",
+  "description": "State store for persisting shepherd deployment state using a provided backend.",
+  "private": true,
+  "main": "run.js",
+  "dependencies": {
+    "bluebird": "3.5.1",
+    "lodash": "4.17.4",
+    "md5-file": "3.2.3"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.3",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.7.11",
+    "chai": "^4.2.0",
+    "expect.js": "0.3.1",
+    "mocha": "^6.2.1",
+    "should": "11.1.1",
+    "typescript": "^3.6.3",
+    "ts-node": "^8.4.1"
+  },
+  "scripts": {
+    "build": "tsc && cp ./src/*.json ./dist && chmod +x ./dist/join-metadata-files.js",
+    "test": "mocha --exit --require ts-node/register --recursive './**/*.spec.ts'",
+    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,json --watch './**/*.spec.ts'",
+    "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
+  }
+}
