@@ -3,6 +3,7 @@ import {IStorageBackend} from '../../typescript-types/src/'
 
 interface IInMemoryStorageBackend extends IStorageBackend {
     store(): any
+    resetAllDeploymentStates()
 }
 
 export function InMemoryStore(): IInMemoryStorageBackend {
