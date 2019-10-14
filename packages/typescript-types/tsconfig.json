@@ -4,7 +4,7 @@
       "es6"
     ],
     "alwaysStrict": true,
-    "types": ["node", "mocha"],
+    "types": ["node"],
     "declaration": true,
     "module": "commonjs",
     "noUnusedLocals": true,
@@ -23,8 +23,6 @@
     "dist"
   ],
   "types": [
-    "@types/node",
-    "@types/mocha",
-    "@types/chai"
+    "@types/node"
   ]
 }
