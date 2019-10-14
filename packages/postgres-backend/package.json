@@ -28,7 +28,7 @@
     "posttest": "npm run kill-postgres",
     "integrationtest": "mocha --exit --require ts-node/register --recursive './**/*.integrationtest.ts'",
     "itdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,json --watch './**/*.integrationtest.ts'",
-    "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test",
+    "prepublishOnly": "yarn install --frozen-lockfile && npm run build",
     "start-postgres": "docker run --rm --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres",
     "kill-postgres": "docker stop postgres"
   }

@@ -37,7 +37,6 @@ export function PostgresStore(config):IPostgresStorageBackend {
                             }
                         });
                     });
-
                 } catch (e) {
                     // console.debug("Caught exception", e);
                     reject(e);
