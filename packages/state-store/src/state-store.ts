@@ -1,4 +1,4 @@
-import {TDeploymentState, TStateStoreDependencies} from '../../typescript-types/src/'
+import {TDeploymentState, TStateStoreDependencies} from '@shepherdorg/typescript-types'
 
 const fs = require('fs');
 const path = require('path');
