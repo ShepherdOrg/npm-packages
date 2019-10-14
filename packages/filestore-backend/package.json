@@ -1,8 +1,10 @@
 {
   "name": "@shepherdorg/filestore-backend",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "State store for persisting shepherd deployment state using a provided backend.",
-  "main": "run.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
   "dependencies": {
     "@shepherdorg/typescript-types": "^0.0.2",
     "bluebird": "^3.7.0",

@@ -1,9 +1,10 @@
 {
   "name": "@shepherdorg/postgres-backend",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Postgres backend for shepherd state store",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": ["dist"],
   "dependencies": {
     "@shepherdorg/typescript-types": "^0.0.2",
     "bluebird": "^3.7.0",
