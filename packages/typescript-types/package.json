@@ -2,7 +2,6 @@
   "name": "@shepherdorg/typescript-types",
   "version": "0.0.1",
   "description": "Types used across shepherd libraries",
-  "private": true,
   "files": [
     "dist"
   ],
