@@ -2,6 +2,9 @@
   "name": "@shepherdorg/state-store",
   "version": "0.0.3",
   "description": "State store for persisting shepherd deployment state using a provided backend.",
+  "files": [
+    "dist"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
