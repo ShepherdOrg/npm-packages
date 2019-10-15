@@ -44,8 +44,6 @@ describe('k8s deployment file directory structure release plan loader', function
 
             let deploymentDirsPath = Path.join(__dirname ,'../testdata/deployment-dirs');
 
-            console.log('deploymentDirsPath', deploymentDirsPath);
-            deploymentDirsPath = '/Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/testdata/deployment-dirs'
             return scanDir(deploymentDirsPath).then(function (plans) {
                 return Promise.each(plans, function (deploymentPlan) {
                     plan.addDeployment(deploymentPlan);
