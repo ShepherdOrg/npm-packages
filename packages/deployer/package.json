@@ -36,10 +36,10 @@
   },
   "scripts": {
     "test": "npm run specs",
-    "specs": "mocha --exit --recursive './**/*.spec.js'",
-    "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch './**/*.spec.js'",
-    "integrationtest": "mocha --exit --recursive './**/*.integrationtest.js'",
-    "itdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch './**/*.integrationtest.js'",
+    "specs": "mocha --exit --recursive 'src/**/*.spec.js'",
+    "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch 'src/**/*.spec.js'",
+    "integrationtest": "mocha --exit --recursive 'src/**/*.integrationtest.js'",
+    "itdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch 'src/**/*.integrationtest.js'",
     "prepublishOnly": "yarn install --frozen-lockfile && npm test",
     "start-postgres": "docker run --rm --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres",
     "kill-postgres": "docker stop postgres"
