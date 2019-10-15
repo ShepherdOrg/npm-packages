@@ -20,7 +20,7 @@
     "db-migrate-pg": "0.1.15",
     "handlebars": "4.1.2",
     "js-yaml": "3.10.0",
-    "lodash": "4.17.4",
+    "lodash": "4.17.15",
     "tar": "4.2.0",
     "timer-stopwatch": "0.2.0",
     "tmp": "0.0.33"
