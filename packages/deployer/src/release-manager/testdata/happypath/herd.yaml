@@ -1,0 +1,26 @@
+infrastructure:
+    testInfrastructure:
+        image: test-infrastructure
+        imagetag: 0.0.1
+folders:
+    kube-config:
+        path: "./"
+        description: "Kubernetes pull secrets, namespaces, common config"
+images:
+    test-image:
+        image: testenvimage
+        imagetag: 0.0.0
+    test-image-to-delete:
+        image: testenvimage2
+        imagetag: 999.999.99999
+        delete: true
+    test1:
+        image: testenvimage
+        imagetag: 0.0.0
+        featureDeployment: true
+        timeToLiveHours: 48
+#    test2:
+#        image: testenvimage
+#        imagetag: 0.0.0
+#        featureDeployment: true
+#        timeToLiveHours: 120

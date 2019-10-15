@@ -1,0 +1,4 @@
+images:
+    test-image:
+        image: nonexistingimage
+        imagetag: 0.0.0

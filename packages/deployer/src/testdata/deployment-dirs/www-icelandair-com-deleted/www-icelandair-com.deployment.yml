@@ -1,0 +1,71 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: www-icelandair-com-deleted
+  labels:
+    name: www-icelandair-com
+    tier: frontend
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        name: www-icelandair-com
+        tier: frontend
+    spec:
+      imagePullSecrets:
+        - name: registry-pull-secret
+      containers:
+        - image: ${TPL_DOCKER_IMAGE}
+          name: www-icelandair-com
+          resources:
+            limits:
+              cpu: 0.8
+              memory: 512M
+            requests:
+              cpu: 0.4
+              memory: 256M
+          ports:
+            - containerPort: 81
+              name: http-proxy
+              protocol: TCP
+            - containerPort: 444
+              name: https-proxy
+              protocol: TCP
+          volumeMounts:
+            - name: certs-volume
+              readOnly: true
+              mountPath: "/volumes/certs"
+            - name: nginx-acls
+              readOnly: true
+              mountPath: "/etc/nginx/acls/"
+          env:
+            - name: RUNTIME_ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: ${EXPORT1}
+                  key: ENV
+            - name: RUNTIME_ENV2
+              valueFrom:
+                configMapKeyRef:
+                  name: ${EXPORT2}
+                  key: ENV
+        - image: DOCKER_IMAGE_SSR
+          name: www-icelandair-com-ssr
+          resources:
+            limits:
+              cpu: 0.6
+              memory: 512M
+            requests:
+              cpu: 0.4
+              memory: 256M
+      volumes:
+        - name: certs-volume
+          secret:
+            secretName: star-cert-secret
+        - name: nginx-acls
+          configMap:
+            name: www-icelandair-com-nginx-acls
+            items:
+              - key: whitelist
+                path: whitelist.conf
