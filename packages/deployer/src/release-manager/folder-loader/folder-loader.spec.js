@@ -42,7 +42,7 @@ describe('k8s deployment file directory structure release plan loader', function
             process.env.www_icelandair_com_image='www-icelandair-image:1.0';
             process.env.www_icelandair_com_deleted_image='';
 
-            let deploymentDirsPath = Path.join(__dirname ,'../testdata/deployment-dirs');
+            let deploymentDirsPath = Path.join(__dirname ,'../../testdata/deployment-dirs');
 
             return scanDir(deploymentDirsPath).then(function (plans) {
                 return Promise.each(plans, function (deploymentPlan) {
