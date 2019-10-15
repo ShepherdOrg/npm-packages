@@ -35,9 +35,7 @@
     "should": "^13.2.3"
   },
   "scripts": {
-    "pretest": "npm run start-postgres",
     "test": "npm run specs",
-    "posttest": "npm run kill-postgres",
     "specs": "mocha --exit --recursive './**/*.spec.js'",
     "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch './**/*.spec.js'",
     "integrationtest": "mocha --exit --recursive './**/*.integrationtest.js'",
