@@ -2,27 +2,27 @@
   "name": "@shepherdorg/deployer",
   "version": "0.0.2",
   "description": "Deployer application",
-  "main": "dist/index.js",
+  "main": "src/release-manager/shepherd.js",
   "files": [
     "src"
   ],
   "dependencies": {
-    "@shepherdorg/metadata": "^0.0.5",
-    "@shepherdorg/docker-image-metadata-loader": "0.0.2",
+    "@shepherdorg/docker-image-metadata-loader": "^0.1.0",
     "@shepherdorg/exec": "0.0.1",
-    "@shepherdorg/state-store": "^0.0.3",
-    "@shepherdorg/postgres-backend": "^0.0.2",
     "@shepherdorg/filestore-backend": "^0.0.2",
+    "@shepherdorg/metadata": "0.0.6",
     "@shepherdorg/nano-inject": "^0.0.6",
-    "bluebird": "3.5.1",
-    "bunyan": "1.8.12",
-    "db-migrate": "0.10.2",
-    "db-migrate-pg": "0.1.15",
-    "handlebars": "4.1.2",
-    "js-yaml": "3.10.0",
-    "lodash": "4.17.4",
-    "tar": "4.2.0",
-    "timer-stopwatch": "0.2.0",
+    "@shepherdorg/postgres-backend": "^0.0.2",
+    "@shepherdorg/state-store": "^0.0.3",
+    "bluebird": "^3.7.1",
+    "bunyan": "^1.8.12",
+    "db-migrate": "^0.11.6",
+    "db-migrate-pg": "^0.1.15",
+    "handlebars": "^4.1.2",
+    "js-yaml": "^3.10.0",
+    "lodash": "^4.17.15",
+    "tar": "^4.2.0",
+    "timer-stopwatch": "^0.2.0",
     "tmp": "0.0.33"
   },
   "devDependencies": {
@@ -32,7 +32,7 @@
     "chai": "^4.2.0",
     "expect.js": "0.3.1",
     "mocha": "^6.2.1",
-    "should": "11.1.1"
+    "should": "^13.2.3"
   },
   "scripts": {
     "pretest": "npm run start-postgres",
@@ -42,7 +42,7 @@
     "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch './**/*.spec.js'",
     "integrationtest": "mocha --exit --recursive './**/*.integrationtest.js'",
     "itdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch './**/*.integrationtest.js'",
-    "prepublishOnly": "yarn install --frozen-lockfile",
+    "prepublishOnly": "yarn install --frozen-lockfile && npm test",
     "start-postgres": "docker run --rm --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres",
     "kill-postgres": "docker stop postgres"
   }
