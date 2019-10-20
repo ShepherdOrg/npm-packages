@@ -29,7 +29,6 @@ describe('shepherd json load and validation', function () {
 
             if (validate.errors) {
                 const expectedError= `\n .someAdditionalField : Not recognized as a valid shepherd metadata property
- .isDbMigration : Incorrect type, should be boolean
  .environment['DB_PASS'] : Incorrect type, should be string
  .environment['DB_PASS'] : Incorrect type, should be null
  .environment['DB_PASS'] : Incorrect value, should match some schema in anyOf

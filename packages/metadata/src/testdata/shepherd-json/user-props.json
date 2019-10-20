@@ -1,7 +1,6 @@
 {
   "displayName": "plain-deployer-repo",
-  "isInfrastructure": false,
-  "isDbMigration": false,
+  "deployerRole": "install",
   "environment": {
     "DB_HOST": "MICROSERVICES_POSTGRES_RDS_HOST",
     "DB_PASS": "MICRO_SITES_DB_PASSWORD"

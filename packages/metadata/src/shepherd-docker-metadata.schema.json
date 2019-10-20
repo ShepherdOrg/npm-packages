@@ -7,11 +7,9 @@
     "displayName": {
       "type": "string"
     },
-    "isInfrastructure": {
-      "type": "boolean"
-    },
-    "isDeployer": {
-      "type": "boolean"
+    "deployerRole": {
+      "type": "string",
+      "enum": ["infrastructure","install", "migration"]
     },
     "deployCommand": {
       "type": "string",
@@ -21,10 +19,7 @@
       "type": "string",
       "description": "Command to pass into a deployer for executing rollback script"
     },
-    "isDbMigration": {
-      "type": "boolean"
-    },
-    "dbMigrationImage": {
+    "migrationImage": {
       "type": "string"
     },
     "environment": {

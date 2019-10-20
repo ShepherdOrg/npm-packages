@@ -1,5 +1,6 @@
 import {
-    TCompressedMetadata,
+    TCompressedMetadata, TDeployerRole,
+    TDeploymentType,
     TDockerImageInspection,
     TShepherdDeployerMetadata,
     TShepherdK8sMetadata,
@@ -42,14 +43,25 @@ function decodeBase64String(base64EncodedString: string): string {
     return new Buffer.from(base64EncodedString, "base64").toString();
 }
 
+function determineDeploymentType(imageLabels: any):TDeploymentType {
+    if(Boolean(imageLabels["shepherd.deployer"]) || Boolean(imageLabels["shepherd.deployer.command"]) ){
+        return TDeploymentType.Deployer
+    } else if(Boolean(imageLabels["shepherd.kube.config.tar.base64"])){
+        return TDeploymentType.Kubernetes
+    } else{
+        throw new Error("Unable to determine deployment type from image labels: " +  JSON.stringify(imageLabels))
+    }
+}
+
 export async function extractShepherdMetadata(imageLabels: any): Promise<TShepherdDeployerMetadata | TShepherdK8sMetadata> {
     if (imageLabels['shepherd.metadata']) {
         return await decodeShepherdMetadataLabel(imageLabels['shepherd.metadata'])
     } else if (imageLabels && Object.getOwnPropertyNames(imageLabels).find((propName) => propName.startsWith('shepherd.'))) {
-        return Promise.resolve({
+        let deploymentType = determineDeploymentType(imageLabels)
+        let imageInfo = {
             displayName: imageLabels["shepherd.name"],
             buildDate: imageLabels["shepherd.builddate"],
-            dbMigrationImage: imageLabels["shepherd.dbmigration"],
+            migrationImage: imageLabels["shepherd.dbmigration"],
             gitBranch: imageLabels["shepherd.git.branch"],
             gitHash: imageLabels["shepherd.git.hash"],
             gitUrl: imageLabels["shepherd.git.url"],
@@ -57,12 +69,13 @@ export async function extractShepherdMetadata(imageLabels: any): Promise<TShephe
             kubeDeploymentFiles: imageLabels["shepherd.kube.config.tar.base64"] && await uncompressBase64Tar(imageLabels["shepherd.kube.config.tar.base64"]),
             lastCommits: imageLabels["shepherd.lastcommits"] && decodeBase64String(imageLabels["shepherd.lastcommits"]),
             semanticVersion: imageLabels["shepherd.version"],
-            isDeployer: !!imageLabels["shepherd.deployer"],
+            deploymentType: deploymentType,
             deployCommand: imageLabels["shepherd.deployer.command"],
             rollbackCommand: imageLabels["shepherd.rollback.command"],
             environmentVariablesExpansionString: imageLabels["shepherd.environment.variables"],
-            isInfrastructure: false
-        })
+            deployerRole: TDeployerRole.Install //
+        }
+        return Promise.resolve(imageInfo)
     } else {
         throw new Error('No shepherd labels present in docker image Labels ' + JSON.stringify(imageLabels))
     }

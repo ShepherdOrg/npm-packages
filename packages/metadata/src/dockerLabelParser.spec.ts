@@ -1,4 +1,4 @@
-import {TShepherdDeployerMetadata, TShepherdK8sMetadata} from './index'
+import {TDeployerRole, TDeploymentType, TShepherdDeployerMetadata, TShepherdK8sMetadata} from './index'
 import {extractImageLabels, extractMetadataFromDockerInspectJson, extractShepherdMetadata} from './dockerLabelParser'
 
 const expect = require('chai').expect
@@ -93,7 +93,7 @@ describe('Shepherd metadata reading', function () {
         })
 
         it('should read shepherd.dbmigration', () => {
-            expect(metaData.dbMigrationImage).to.equal('testenvimage-migrations:0.0.0')
+            expect(metaData.migrationImage).to.equal('testenvimage-migrations:0.0.0')
         });
 
         it('should read shepherd.kube.config.tar.base64', () => {
@@ -106,7 +106,7 @@ describe('Shepherd metadata reading', function () {
         });
 
         it('should read shepherd.deployer', () => {
-            expect(metaData.isDeployer).to.equal(false)
+            expect(metaData.deploymentType).to.equal(TDeploymentType.Kubernetes)
         });
 
         it('should decode shepherd.lastcommits', () => {
@@ -134,6 +134,10 @@ describe('Shepherd metadata reading', function () {
             expect(metaData.deployCommand).to.equal('ls')
         });
 
+        it('should default to install role', () => {
+            expect(metaData.deployerRole).to.equal('install')
+        });
+
         it('should read shepherd.rollback.command', () => {
             expect(metaData.rollbackCommand).to.equal('cat')
         });
@@ -142,7 +146,40 @@ describe('Shepherd metadata reading', function () {
             expect(metaData.environmentVariablesExpansionString).to.contain('MICROSERVICES_POSTGRES_RDS_HOST')
         });
 
+        it('should set deployer role to install', () => {
+            expect(metaData.deployerRole).to.equal(TDeployerRole.Install)
+        });
+
     })
+
+
+    // describe('from docker labels, deployer, new style', function () {
+    //     let metaData: TShepherdDeployerMetadata
+    //
+    //     before(async () => {
+    //         const dockerImageInspection = require('./testdata/inspected-dockers/testenvimage-migrations.json')
+    //         const imageLabels = extractImageLabels(dockerImageInspection)
+    //         metaData = await extractShepherdMetadata(imageLabels) as TShepherdDeployerMetadata
+    //     })
+    //
+    //     it('should read shepherd.deployer.command', () => {
+    //         expect(metaData.deployCommand).to.equal('ls')
+    //     });
+    //
+    //     it('should read shepherd.rollback.command', () => {
+    //         expect(metaData.rollbackCommand).to.equal('cat')
+    //     });
+    //
+    //     it('should read environment variables expansion string', () => {
+    //         expect(metaData.environmentVariablesExpansionString).to.contain('MICROSERVICES_POSTGRES_RDS_HOST')
+    //     });
+    //
+    //     it('should set deployer role to install', () => {
+    //         expect(metaData.deployerRole).to.equal(TDeployerRole.Install)
+    //     });
+    //
+    // })
+
 
 });
 
