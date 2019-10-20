@@ -34,11 +34,11 @@ describe('Build docker with kube.yaml deployment', function () {
     })
 
     it('should have metadata for deploy command', () => {
-
+        expect(shepherdMeta.deployCommand).to.equal("ls")
     });
 
     it('should have metadata for rollback command', () => {
-
+        expect(shepherdMeta.rollbackCommand).to.equal("cat")
     });
 
     xit('should suppress tslint warnings', () => {

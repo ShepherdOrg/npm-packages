@@ -41,6 +41,7 @@ describe('Build docker with deployment dir', function () {
         expect(buildOutput.indexOf('were not consumed')).to.equal(-1)
     });
 
+
     it('should have kubeConfigB64', () => {
         expect(shepherdMeta.kubeConfigB64.length).to.be.gte(684)
     })

@@ -146,6 +146,12 @@ rm -rf ${DOCKERDIR}/.build
 mkdir -p ${DOCKERDIR}/.build
 mkdir -p ${DOCKERDIR}/.build/metadata
 
+
+while [ ! -d "${DOCKERDIR}/.build/metadata" ]
+do
+  sleep 1
+done
+
 echo "Retrieving changelog for ${DOCKERDIR}"
 LASTFIVECOMMITS=$(git log -5 --pretty=format:" %aD by %an. --- %s %n" -- ${DOCKERDIR} > ${DOCKERDIR}/.build/gitlog.log && cat ${DOCKERDIR}/.build/gitlog.log)
 LAST_COMMITS_B64="$(echo "${LASTFIVECOMMITS}" | base64)"

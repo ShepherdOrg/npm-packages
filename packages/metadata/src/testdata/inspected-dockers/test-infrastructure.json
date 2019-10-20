@@ -1,16 +1,16 @@
 [
     {
-        "Id": "sha256:3b59828afdbd89f9447cfec58c435e616da1e84d4bb5132c768e301825d1fa70",
+        "Id": "sha256:1e6d9b1e6e40d3c41f144cb03cc82eb93828d30bd1608267b0e13473c5eac789",
         "RepoTags": [
             "test-infrastructure:0.0.1"
         ],
         "RepoDigests": [],
-        "Parent": "sha256:4f860deca2409fb0e99e435c91ad3c3873031ddebbc8539dbdfbdc5d1a597b9c",
+        "Parent": "sha256:bf3dd9fb17c8f6bb8e5a4b6773fd2811a326bba7b4fb362dd54be45aa04a5d43",
         "Comment": "",
-        "Created": "2019-10-06T16:51:24.694379Z",
-        "Container": "a9d57091323719a642223ba933151eb4bc26202088b0a5cbcd0c3ddcd94f3e9a",
+        "Created": "2019-10-15T09:31:44.541573Z",
+        "Container": "3964412e110db2aff087632b2cc0e0ce3b0899d781480f69cb7a3d53431b3c2d",
         "ContainerConfig": {
-            "Hostname": "a9d570913237",
+            "Hostname": "3964412e110d",
             "Domainname": "",
             "User": "",
             "AttachStdin": false,
@@ -36,7 +36,7 @@
                 "#(nop) ",
                 "LABEL shepherd.infrastructure=true"
             ],
-            "Image": "sha256:4f860deca2409fb0e99e435c91ad3c3873031ddebbc8539dbdfbdc5d1a597b9c",
+            "Image": "sha256:bf3dd9fb17c8f6bb8e5a4b6773fd2811a326bba7b4fb362dd54be45aa04a5d43",
             "Volumes": {
                 "/var/lib/postgresql/data": {}
             },
@@ -46,13 +46,13 @@
             ],
             "OnBuild": [],
             "Labels": {
-                "shepherd.builddate": "Sun Oct  6 16:51:23 GMT 2019",
+                "shepherd.builddate": "Tue Oct 15 09:31:43 GMT 2019",
                 "shepherd.environment.variables": "DB_HOST=${MICROSERVICES_POSTGRES_RDS_HOST},DB_PASS=$MICRO_SITES_DB_PASSWORD",
                 "shepherd.git.branch": "master",
-                "shepherd.git.hash": "751e58e71bc6be274c40487df9afd576969437e5",
+                "shepherd.git.hash": "99229d509ec6796ea31e9406ae5e8ef8fe1c9fcb",
                 "shepherd.git.url": "git@github.com:ShepherdOrg/shepherd.git",
                 "shepherd.infrastructure": "true",
-                "shepherd.lastcommits": "U2F0LCAyOSBKdW4gMjAxOSAxNzozMjo0NCArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gUmV3cml0ZSBsYWJlbHMgaW4gbWV0YWRhdGEgcmF0aGVyIHRoYW4gdXNpbmcgb3Igc3RhdGVtZW50cy4gU2F0LCA0IE1heSAyMDE5IDIzOjA2OjExICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBTdXBwb3J0IGhhbmRsZWJhcnMgdGVtcGxhdGUgZXhwYW5zaW9uIGluIGt1YmUgZGVwbG95bWVudCBmaWxlcyBTYXQsIDIwIEFwciAyMDE5IDA4OjAwOjM0ICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBVc2UgcHVibGlzaGVkIHBhY2thZ2VzIGZyb20gbnBtLXBhY2thZ2VzIG1vbm9yZXBvIEZyaSwgMTkgQXByIDIwMTkgMTI6MDY6MTQgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIE1vdmluZyBkb2NrZXItaW1hZ2UtbWV0YWRhdGEtbG9hZGVyIHRvIHB1Ymxpc2hlZCBucG0gcGFja2FnZXMuIEZyaSwgMTkgQXByIDIwMTkgMTE6MTQ6MTkgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIFRyeWluZyB0byByZXNvbHZlIHdlaXJkIGVycm9yCg==",
+                "shepherd.lastcommits": "RnJpLCAxMSBPY3QgMjAxOSAxMzo1NDo1MCArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gQWxsIHRlc3RzIHBhc3NpbmcuIFB1c2ggYWdlbnQgaW1hZ2UgdG8gbmV3IGRvY2tlcmh1YiBvcmcuIEZyaSwgMTEgT2N0IDIwMTkgMTE6NDA6MDcgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIFRlc3RzIHBhc3Npbmcgd2l0aCBAc2hlcGhlcmQvbWV0YWRhdGEgbGliIHVzZWQgV2VkLCA5IE9jdCAyMDE5IDE0OjQwOjAyICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBBZGRpbmcgdGVzdCBkb2NrZXIgYnVpbGQgdXNpbmcganNvbiBtZXRhZGF0YSBmb3JtYXQgU2F0LCAyOSBKdW4gMjAxOSAxNzozMjo0NCArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gUmV3cml0ZSBsYWJlbHMgaW4gbWV0YWRhdGEgcmF0aGVyIHRoYW4gdXNpbmcgb3Igc3RhdGVtZW50cy4gU2F0LCA0IE1heSAyMDE5IDIzOjA2OjExICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBTdXBwb3J0IGhhbmRsZWJhcnMgdGVtcGxhdGUgZXhwYW5zaW9uIGluIGt1YmUgZGVwbG95bWVudCBmaWxlcwo=",
                 "shepherd.name": "Infrastructure",
                 "shepherd.version": "0.0.1"
             }
@@ -81,7 +81,7 @@
                 "PGDATA=/var/lib/postgresql/data"
             ],
             "Cmd": null,
-            "Image": "sha256:4f860deca2409fb0e99e435c91ad3c3873031ddebbc8539dbdfbdc5d1a597b9c",
+            "Image": "sha256:bf3dd9fb17c8f6bb8e5a4b6773fd2811a326bba7b4fb362dd54be45aa04a5d43",
             "Volumes": {
                 "/var/lib/postgresql/data": {}
             },
@@ -91,13 +91,13 @@
             ],
             "OnBuild": [],
             "Labels": {
-                "shepherd.builddate": "Sun Oct  6 16:51:23 GMT 2019",
+                "shepherd.builddate": "Tue Oct 15 09:31:43 GMT 2019",
                 "shepherd.environment.variables": "DB_HOST=${MICROSERVICES_POSTGRES_RDS_HOST},DB_PASS=$MICRO_SITES_DB_PASSWORD",
                 "shepherd.git.branch": "master",
-                "shepherd.git.hash": "751e58e71bc6be274c40487df9afd576969437e5",
+                "shepherd.git.hash": "99229d509ec6796ea31e9406ae5e8ef8fe1c9fcb",
                 "shepherd.git.url": "git@github.com:ShepherdOrg/shepherd.git",
                 "shepherd.infrastructure": "true",
-                "shepherd.lastcommits": "U2F0LCAyOSBKdW4gMjAxOSAxNzozMjo0NCArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gUmV3cml0ZSBsYWJlbHMgaW4gbWV0YWRhdGEgcmF0aGVyIHRoYW4gdXNpbmcgb3Igc3RhdGVtZW50cy4gU2F0LCA0IE1heSAyMDE5IDIzOjA2OjExICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBTdXBwb3J0IGhhbmRsZWJhcnMgdGVtcGxhdGUgZXhwYW5zaW9uIGluIGt1YmUgZGVwbG95bWVudCBmaWxlcyBTYXQsIDIwIEFwciAyMDE5IDA4OjAwOjM0ICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBVc2UgcHVibGlzaGVkIHBhY2thZ2VzIGZyb20gbnBtLXBhY2thZ2VzIG1vbm9yZXBvIEZyaSwgMTkgQXByIDIwMTkgMTI6MDY6MTQgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIE1vdmluZyBkb2NrZXItaW1hZ2UtbWV0YWRhdGEtbG9hZGVyIHRvIHB1Ymxpc2hlZCBucG0gcGFja2FnZXMuIEZyaSwgMTkgQXByIDIwMTkgMTE6MTQ6MTkgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIFRyeWluZyB0byByZXNvbHZlIHdlaXJkIGVycm9yCg==",
+                "shepherd.lastcommits": "RnJpLCAxMSBPY3QgMjAxOSAxMzo1NDo1MCArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gQWxsIHRlc3RzIHBhc3NpbmcuIFB1c2ggYWdlbnQgaW1hZ2UgdG8gbmV3IGRvY2tlcmh1YiBvcmcuIEZyaSwgMTEgT2N0IDIwMTkgMTE6NDA6MDcgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIFRlc3RzIHBhc3Npbmcgd2l0aCBAc2hlcGhlcmQvbWV0YWRhdGEgbGliIHVzZWQgV2VkLCA5IE9jdCAyMDE5IDE0OjQwOjAyICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBBZGRpbmcgdGVzdCBkb2NrZXIgYnVpbGQgdXNpbmcganNvbiBtZXRhZGF0YSBmb3JtYXQgU2F0LCAyOSBKdW4gMjAxOSAxNzozMjo0NCArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gUmV3cml0ZSBsYWJlbHMgaW4gbWV0YWRhdGEgcmF0aGVyIHRoYW4gdXNpbmcgb3Igc3RhdGVtZW50cy4gU2F0LCA0IE1heSAyMDE5IDIzOjA2OjExICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBTdXBwb3J0IGhhbmRsZWJhcnMgdGVtcGxhdGUgZXhwYW5zaW9uIGluIGt1YmUgZGVwbG95bWVudCBmaWxlcwo=",
                 "shepherd.name": "Infrastructure",
                 "shepherd.version": "0.0.1"
             }
@@ -138,7 +138,7 @@
             ]
         },
         "Metadata": {
-            "LastTagTime": "2019-10-06T16:51:24.7781969Z"
+            "LastTagTime": "2019-10-15T09:31:44.6229737Z"
         }
     }
 ]

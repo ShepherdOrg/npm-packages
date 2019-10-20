@@ -1,4 +1,10 @@
-import {TDeployerRole, TDeploymentType, TShepherdDeployerMetadata, TShepherdK8sMetadata} from './index'
+import {
+    TDeployerRole,
+    TDeploymentType,
+    TShepherdDeployerMetadata,
+    TShepherdK8sMetadata,
+    TShepherdMetadata
+} from './index'
 import {extractImageLabels, extractMetadataFromDockerInspectJson, extractShepherdMetadata} from './dockerLabelParser'
 
 const expect = require('chai').expect
@@ -71,9 +77,9 @@ describe('Shepherd metadata reading', function () {
         });
 
         xit('TODO should read hyperlinks', () => {
-            if(metaData.hyperlinks){
+            if (metaData.hyperlinks) {
                 expect(metaData.hyperlinks.length).to.equal(1)
-            } else{
+            } else {
                 expect.fail('Should have hyperlinks property')
             }
 
@@ -183,23 +189,63 @@ describe('Shepherd metadata reading', function () {
 
 });
 
+describe('Load all inspected docker files', function () {
 
-describe('Shepherd metadata creation', function () {
+    const installImages = [
+        "test-infrastructure.json",
+        "plain-deployer-repo.json",
+        "testenvimage-migrations.json",
+        "testenvimage.json",
+        "testenvimage2.json",
+    ]
 
+    const k8sImages = [
+        "public-repo-with-kube-yaml.json",
+        "public-repo-with-deployment-dir.json"
+    ]
 
-    describe('from process.env with everything available', function () {
+    const invalidImages = [
+        "alpine.json",
+        "image-with-no-shepherd-label.json"
+    ]
 
-        it('should output json with all required variables', () => {
+    async function loadMetadata(fileName) {
+        const dockerImageInspection = require(`./testdata/inspected-dockers/${fileName}`)
+        const imageLabels = extractImageLabels(dockerImageInspection)
+        const metaData = await extractShepherdMetadata(imageLabels) as TShepherdMetadata
+        return metaData
+    }
+
+    installImages.forEach((fileName) => {
+        it(`should load ${fileName} without error`, async () => {
+            const metaData = await loadMetadata(fileName) as TShepherdDeployerMetadata
+
+            expect(metaData.deployerRole).to.equal('install')
+            expect(Boolean(!!metaData.deployerRole)).to.equal(true)
 
         });
-    });
+    })
 
+    k8sImages.forEach((fileName) => {
+        it(`should load ${fileName} without error`, async () => {
+            const metaData = await loadMetadata(fileName) as TShepherdK8sMetadata
 
-    describe('from process.env with missing env variables', function () {
-
-        it('should complain about all missing variables', () => {
+            expect(Boolean(metaData.kubeDeploymentFiles)).to.equal(true)
 
         });
-    });
+    })
 
+    invalidImages.forEach((fileName) => {
+        it(`should not load ${fileName} without error`, async () => {
+            try {
+                const metaData = await loadMetadata(fileName) as TShepherdK8sMetadata
+
+                expect(Boolean(metaData.kubeDeploymentFiles)).to.equal(true)
+
+            } catch(e){
+                expect(e.message).to.contain("No shepherd labels present")
+            }
+
+        });
+    })
 })

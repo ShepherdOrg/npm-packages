@@ -44,7 +44,7 @@ function decodeBase64String(base64EncodedString: string): string {
 }
 
 function determineDeploymentType(imageLabels: any):TDeploymentType {
-    if(Boolean(imageLabels["shepherd.deployer"]) || Boolean(imageLabels["shepherd.deployer.command"]) ){
+    if(Boolean(imageLabels["shepherd.deployer"]) || Boolean(imageLabels["shepherd.deployer.command"]) || imageLabels["shepherd.infrastructure"]==="true" ){
         return TDeploymentType.Deployer
     } else if(Boolean(imageLabels["shepherd.kube.config.tar.base64"])){
         return TDeploymentType.Kubernetes
@@ -58,6 +58,7 @@ export async function extractShepherdMetadata(imageLabels: any): Promise<TShephe
         return await decodeShepherdMetadataLabel(imageLabels['shepherd.metadata'])
     } else if (imageLabels && Object.getOwnPropertyNames(imageLabels).find((propName) => propName.startsWith('shepherd.'))) {
         let deploymentType = determineDeploymentType(imageLabels)
+
         let imageInfo = {
             displayName: imageLabels["shepherd.name"],
             buildDate: imageLabels["shepherd.builddate"],

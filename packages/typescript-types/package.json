@@ -1,7 +1,7 @@
 {
   "name": "@shepherdorg/typescript-types",
-  "version": "0.0.2",
-  "description": "Types used across shepherd libraries",
+  "version": "0.0.3",
+  "description": "Failed experiment, please ignore",
   "files": [
     "dist"
   ],
