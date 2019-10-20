@@ -3,7 +3,7 @@ import path from 'path'
 import fs from 'fs'
 
 import {mkDirByPathSync} from './mkdirp'
-import {IStorageBackend} from '@shepherdorg/typescript-types'
+import {IStorageBackend} from '@shepherdorg/state-store'
 
 function fileNamify(keyString) {
     return keyString.replace(/\//g, '_')
