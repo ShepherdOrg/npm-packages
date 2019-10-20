@@ -8,9 +8,7 @@ const Promise = require('bluebird').Promise;
 
 const kubeSupportedExtensions = require('./kubeSupportedExtensions');
 
-const calculateDeploymentPlan = require('./image-deployment-planner')(inject({
-    kubeSupportedExtensions
-}));
+const CalculateDeploymentPlan = require('./image-deployment-planner')
 
 const addShepherdMetadata = require('./add-shepherd-metadata');
 
@@ -25,17 +23,22 @@ module.exports = function (injected) {
     const ReleasePlan = injected('ReleasePlan');
 
     const labelsLoader = injected('labelsLoader', true) || require('@shepherdorg/docker-image-metadata-loader');
+    const logger = injected('logger');
 
+    const calculateDeploymentPlan = CalculateDeploymentPlan(inject({
+        kubeSupportedExtensions,
+        logger
+    }));
 
     const scanDir = require('./folder-deployment-planner')(inject({
         kubeSupportedExtensions: {
             '.yml': true,
             '.yaml': true,
             '.json': true
-        }
+        },
+        logger
     }));
 
-    const logger = injected('logger');
 
     // const cmd = injected('exec');
 
@@ -65,12 +68,11 @@ module.exports = function (injected) {
 
                         let imageDependencies = {};
 
-                        function frontloadMigrationRunners (imageMetaData) {
+                        function addMigrationImageToDependenciesPlan (imageMetaData) {
                             return new Promise(function (resolve, reject) {
                                 let dependency;
-                                if (imageMetaData.dockerLabels['shepherd.dbmigration']) {
-                                    logger.debug('add dependencies from shepherd.dbmigration ', imageMetaData.dockerLabels['shepherd.dbmigration']);
-                                    dependency = imageMetaData.dockerLabels['shepherd.dbmigration'];
+                                if (imageMetaData.shepherdMetadata.migrationImage) {
+                                    dependency = imageMetaData.shepherdMetadata.migrationImage;
                                 }
                                 if (dependency) {
                                     imageDependencies[dependency] = {
@@ -89,7 +91,7 @@ module.exports = function (injected) {
                                     return loadImageMetadata(herdDefinition)
                                         .then(calculateDeploymentPlan)
                                         .catch(function (e) {
-                                            reject( new Error('When processing ' + herdName + ': ' + e + (e.stack ? e.stack : '')));
+                                            reject(new Error('When processing ' + herdName + ': ' + e + (e.stack ? e.stack : '')));
                                         });
                                 }));
 
@@ -132,7 +134,7 @@ module.exports = function (injected) {
                                         }
                                         return loadImageMetadata(imgObj)
                                             .then(addShepherdMetadata)
-                                            .then(frontloadMigrationRunners)
+                                            .then(addMigrationImageToDependenciesPlan)
                                             .then(calculateDeploymentPlan)
                                             .then(function (imagePlans) {
                                                 return Promise.each(imagePlans, releasePlan.addDeployment);

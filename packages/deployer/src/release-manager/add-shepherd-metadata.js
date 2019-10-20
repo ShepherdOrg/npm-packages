@@ -21,7 +21,7 @@ const addShepherdMetadata = async (imageMetadata) => {
 
     return {
         imageDefinition: imageMetadata.imageDefinition,
-        dockerLabels: imageMetadata.dockerLabels,
+        // dockerLabels: imageMetadata.dockerLabels, // If we need dockerlabels in the future, this is the place to put it in again.
         shepherdMetadata: shepherdMetadata
     };
 };

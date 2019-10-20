@@ -14,16 +14,16 @@ function readPoliciesFromEnv(){
 }
 
 
-function applyServicePolicies(serviceDoc) {
+function applyServicePolicies(serviceDoc, logger) {
     let modified = false;
     function applyPublicServicePolicy() {
         if (serviceDoc.metadata && serviceDoc.metadata.labels && serviceDoc.metadata.labels.publicService && policies.removePublicServiceIpRestrictions) {
-            console.info("Removing ip restrictions on " + serviceDoc.metadata.name);
+            logger.info("Removing ip restrictions on " + serviceDoc.metadata.name);
             if (serviceDoc.spec && serviceDoc.spec.loadBalancerSourceRanges) {
                 modified=true;
                 delete serviceDoc.spec.loadBalancerSourceRanges;
             } else {
-                console.info("WARNING: Public service defined in " + deploymentfile + "(" + serviceDoc.metadata.name + "), but no loadBalancerSourceRanges set. This means that non-production deployments may be publicly accessible.")
+                logger.info("WARNING: Public service defined in " + deploymentfile + "(" + serviceDoc.metadata.name + "), but no loadBalancerSourceRanges set. This means that non-production deployments may be publicly accessible.")
             }
         }
     }
@@ -33,9 +33,9 @@ function applyServicePolicies(serviceDoc) {
 }
 
 
-function applyMaxCpuRequestToContainer(containerspec) {
+function applyMaxCpuRequestToContainer(containerspec, logger) {
     if (containerspec.resources && containerspec.resources.requests && containerspec.resources.requests.cpu) {
-        console.info("Changing CPU request",containerspec.name, "from", containerspec.resources.requests.cpu, "to", policies.clusterPolicyMaxCpuRequest);
+        logger.info("Changing CPU request",containerspec.name, "from", containerspec.resources.requests.cpu, "to", policies.clusterPolicyMaxCpuRequest);
         containerspec.resources.requests.cpu = policies.clusterPolicyMaxCpuRequest;
         return true;
     }
@@ -43,13 +43,13 @@ function applyMaxCpuRequestToContainer(containerspec) {
 }
 
 
-function applyDeploymentPolicies(deploymentDoc) {
+function applyDeploymentPolicies(deploymentDoc, logger) {
     let modified = false;
 
     function applyReplicasPolicy() {
         if (policies.maxReplicasPolicy !== 0) {
             if (deploymentDoc.spec && deploymentDoc.spec.replicas > policies.maxReplicasPolicy) {
-                console.info("Reducing number of replicas in", deploymentDoc.metadata.name, "from", deploymentDoc.spec.replicas, "to", policies.maxReplicasPolicy);
+                logger.info("Reducing number of replicas in", deploymentDoc.metadata.name, "from", deploymentDoc.spec.replicas, "to", policies.maxReplicasPolicy);
                 modified=true;
                 deploymentDoc.spec.replicas = policies.maxReplicasPolicy;
             }
@@ -57,7 +57,7 @@ function applyDeploymentPolicies(deploymentDoc) {
         if(policies.clusterPolicyMaxCpuRequest){
             if(deploymentDoc.spec && deploymentDoc.spec.template && deploymentDoc.spec.template.spec && deploymentDoc.spec.template.spec.containers){
                 for(let containerspec of deploymentDoc.spec.template.spec.containers){
-                    modified = modified || applyMaxCpuRequestToContainer(containerspec);
+                    modified = modified || applyMaxCpuRequestToContainer(containerspec, logger);
                 }
             }
         }
@@ -67,13 +67,13 @@ function applyDeploymentPolicies(deploymentDoc) {
     return modified;
 }
 
-function applyHPAPolicies(deploymentDoc) {
+function applyHPAPolicies(deploymentDoc, logger) {
     let modified = false;
     function applyReplicasPolicy() {
         if (policies.maxReplicasPolicy !== 0) {
             if (deploymentDoc.spec && deploymentDoc.spec.maxReplicas > policies.maxReplicasPolicy) {
-                console.info("Reducing maxreplicas in HPA ", deploymentDoc.metadata.name, "from", deploymentDoc.spec.maxReplicas, "to", policies.maxReplicasPolicy);
-                console.info("Reducing minreplicas in HPA ", deploymentDoc.metadata.name, "from", deploymentDoc.spec.minReplicas, "to", policies.maxReplicasPolicy);
+                logger.info("Reducing maxreplicas in HPA ", deploymentDoc.metadata.name, "from", deploymentDoc.spec.maxReplicas, "to", policies.maxReplicasPolicy);
+                logger.info("Reducing minreplicas in HPA ", deploymentDoc.metadata.name, "from", deploymentDoc.spec.minReplicas, "to", policies.maxReplicasPolicy);
                 deploymentDoc.spec.maxReplicas = policies.maxReplicasPolicy;
                 deploymentDoc.spec.minReplicas = policies.maxReplicasPolicy;
                 modified=true;
@@ -92,22 +92,22 @@ function applyHPAPolicies(deploymentDoc) {
     return modified;
 }
 
-function applyPolicies(parsedDoc) {
+function applyPolicies(parsedDoc, logger) {
     readPoliciesFromEnv();
     let modified = false;
     if (parsedDoc.kind === "Service") {
-        modified = modified || applyServicePolicies(parsedDoc);
+        modified = modified || applyServicePolicies(parsedDoc, logger);
     }
     if (parsedDoc.kind === "Deployment") {
-        modified = modified || applyDeploymentPolicies(parsedDoc)
+        modified = modified || applyDeploymentPolicies(parsedDoc, logger)
     }
     if (parsedDoc.kind === "HorizontalPodAutoscaler") {
-        modified = modified || applyHPAPolicies(parsedDoc)
+        modified = modified || applyHPAPolicies(parsedDoc, logger)
     }
     return modified;
 }
 
-function applyPoliciesToDoc(rawDoc) {
+function applyPoliciesToDoc(rawDoc, logger) {
     readPoliciesFromEnv();
     try {
 
@@ -118,7 +118,7 @@ function applyPoliciesToDoc(rawDoc) {
         for (let filec of files) {
             if(filec && filec.trim()){
               let parsedDoc = JSYAML.safeLoad(filec);
-              modified = modified || applyPolicies(parsedDoc);
+              modified = modified || applyPolicies(parsedDoc, logger);
               let yml = JSYAML.safeDump(parsedDoc);
               if (outfiles.length > 0) {
                 outfiles += "\n---\n"

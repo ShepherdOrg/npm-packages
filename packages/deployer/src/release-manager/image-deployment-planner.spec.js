@@ -8,6 +8,9 @@ const loader = require('./image-deployment-planner')(inject({
         '.yml': true,
         '.yaml': true,
         '.json': true
+    },
+    logger:{
+        info:()=>{}
     }
 }));
 
@@ -172,7 +175,6 @@ describe('Docker image plan loader', function () {
 
         let loadedPlans;
         beforeEach(function () {
-            console.log('dockerImageMetadata beforeEach')
             return loadPlan(dockerImageMetadata).then(function (plans) {
                 loadedPlans = plans;
             });

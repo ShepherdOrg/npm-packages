@@ -134,7 +134,6 @@ describe('Release plan', function () {
             });
 
             afterEach(function () {
-                console.debug('Cleaning up dryrun mode');
                 delete process.env.DRYRUN_MODE;
             });
 

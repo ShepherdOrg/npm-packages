@@ -1,6 +1,6 @@
 const fs = require('fs');
-
 const identifier = require('./k8s-deployment-document-identifier');
+const expect = require('chai').expect
 
 describe('k8s deployment document identifier', function () {
     it('should be ok with multipart document using LF separator', function () {
@@ -8,7 +8,8 @@ describe('k8s deployment document identifier', function () {
 
         let fileIdentity = identifier(rawYamlDoc);
 
-        console.log('fileIdentity', fileIdentity);
+        expect(fileIdentity).to.equal('kube-system_ServiceAccount_fluentd')
+
     });
 
 });

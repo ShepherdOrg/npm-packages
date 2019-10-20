@@ -5,7 +5,6 @@ const expandEnv = require('../expandenv');
 const expandtemplate = require('../expandtemplate');
 
 const applyClusterPolicies = require('../apply-k8s-policy').applyPoliciesToDoc;
-const JSYAML = require('js-yaml');
 const yamlLoad = require('../k8s-feature-deployment/multipart-yaml-load');
 const modifyDeploymentDocument = require('../k8s-feature-deployment/modify-deployment-document').modifyRawDocument;
 const base64EnvSubst = require('../base64-env-subst').processLine;
@@ -13,10 +12,10 @@ const options = require('./options');
 const path = require('path');
 const _ = require('lodash');
 
-const extractShepherdMetadata = require('@shepherdorg/metadata/dist/dockerLabelParser').extractShepherdMetadata;
 
 module.exports = function (injected) {
     const kubeSupportedExtensions = injected('kubeSupportedExtensions');
+    const logger = injected('logger');
 
     function calculateFileDeploymentPlan (deploymentFileContent, imageMetadata, fileName, featureDeploymentConfig) {
         return new Promise(function (resolve, reject) {
@@ -69,7 +68,7 @@ module.exports = function (injected) {
                 origin = featureDeploymentConfig.origin;
             }
 
-            let deploymentDescriptor = applyClusterPolicies(fileContents);
+            let deploymentDescriptor = applyClusterPolicies(fileContents, logger);
 
             let documentIdentifier = identifyDocument(deploymentDescriptor);
 

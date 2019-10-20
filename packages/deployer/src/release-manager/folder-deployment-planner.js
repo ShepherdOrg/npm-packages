@@ -11,6 +11,7 @@ const applyClusterPolicies = require('../apply-k8s-policy').applyPoliciesToDoc;
 module.exports = function (injected) {
 
     const kubeSupportedExtensions = injected('kubeSupportedExtensions');
+    const logger = injected('logger');
 
     function initDir(dirPath) {
         return {
@@ -100,7 +101,7 @@ module.exports = function (injected) {
                                         delete process.env.TPL_DOCKER_IMAGE;
                                     }
 
-                                    let deploymentDescriptor = applyClusterPolicies(rawDoc);
+                                    let deploymentDescriptor = applyClusterPolicies(rawDoc, logger);
 
                                     let documentIdentifier = identifyDocument(deploymentDescriptor);
                                     let deployment = {
