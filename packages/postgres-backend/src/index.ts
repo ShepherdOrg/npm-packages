@@ -1,4 +1,5 @@
-import {IStorageBackend} from '@shepherdorg/typescript-types'
+import {IStorageBackend} from '@shepherdorg/state-store'
+
 export {PgConfig} from './pg-config'
 
 const pg = require('pg');
