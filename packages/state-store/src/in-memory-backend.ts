@@ -1,4 +1,4 @@
-import {IStorageBackend} from '@shepherdorg/typescript-types'
+import {IStorageBackend} from './index'
 
 interface IInMemoryStorageBackend extends IStorageBackend {
     store(): any

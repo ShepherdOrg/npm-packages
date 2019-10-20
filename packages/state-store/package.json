@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/state-store",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "State store for persisting shepherd deployment state using a provided backend.",
   "files": [
     "dist"
@@ -8,12 +8,15 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
-    "@shepherdorg/typescript-types": "^0.0.2",
     "bluebird": "3.5.1",
     "lodash": "4.17.4",
     "md5-file": "3.2.3"
   },
+  "peerDependencies": {
+    "@shepherdorg/metadata": "^0.0.7"
+  },
   "devDependencies": {
+    "@shepherdorg/metadata": "^0.0.7",
     "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.11",
