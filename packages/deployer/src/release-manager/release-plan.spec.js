@@ -43,13 +43,9 @@ let dockerDeployers = {
             "-i",
             "--rm",
             "-e",
-            "EXPORT1=testing123",
-            "-e",
             "DB_HOST=testing123",
             "-e",
             "DB_PASS=testing123",
-            "-e",
-            "EXPORT1=testing123",
             "-e",
             "DB_HOST=testing123",
             "-e",
@@ -290,7 +286,7 @@ describe('Release plan', function () {
             });
 
             it('should use expanded docker parameter list as deployment descriptor for state checking', function () {
-                expect(checkedStates[0].descriptor).to.equal('-i --rm -e EXPORT1=testing123 -e DB_HOST=testing123 -e DB_PASS=testing123 -e EXPORT1=testing123 -e DB_HOST=testing123 -e DB_PASS=testing123 -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0')
+                expect(checkedStates[0].descriptor).to.equal('-i --rm -e DB_HOST=testing123 -e DB_PASS=testing123 -e DB_HOST=testing123 -e DB_PASS=testing123 -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0')
             });
 
         });
@@ -313,8 +309,6 @@ describe('Release plan', function () {
                 expect(fakeExec.executedCommands[0].params[p++]).to.equal('run');
                 expect(fakeExec.executedCommands[0].params[p++]).to.equal('-i');
                 expect(fakeExec.executedCommands[0].params[p++]).to.equal('--rm');
-                expect(fakeExec.executedCommands[0].params[p++]).to.equal('-e');
-                expect(fakeExec.executedCommands[0].params[p++]).to.equal('EXPORT1=testing123');
                 expect(fakeExec.executedCommands[0].params[p++]).to.equal('-e');
                 expect(fakeExec.executedCommands[0].params[p++]).to.equal('DB_HOST=testing123');
             });

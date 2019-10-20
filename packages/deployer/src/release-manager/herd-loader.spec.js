@@ -4,13 +4,30 @@ const exec = require('@shepherdorg/exec');
 const fakeLogger = require('../test-tools/fake-logger');
 const expect = require('chai').expect;
 
+const path = require('path');
+const fs = require('fs');
+
+/// Inject a mock image metadata loader with fake image information
+
 describe('herd.yaml loading', function () {
     let loader;
     let modifiedState = false;
-    let ReleasePlan, releasePlan;
+    let CreateReleasePlan;
     let loaderLogger;
 
-    beforeEach( ()=> {
+    afterEach(()=>{
+        delete process.env.www_icelandair_com_image;
+        delete process.env.SUB_DOMAIN_PREFIX;
+        delete process.env.PREFIXED_TOP_DOMAIN_NAME;
+        delete process.env.MICROSERVICES_POSTGRES_RDS_HOST;
+        delete process.env.MICRO_SITES_DB_PASSWORD;
+        delete process.env.INFRASTRUCTURE_IMPORTED_ENV;
+        delete process.env.WWW_ICELANDAIR_IP_WHITELIST;
+        delete process.env.EXPORT1;
+        delete process.env.EXPORT2;
+    });
+
+    beforeEach(() => {
         process.env.www_icelandair_com_image = 'testimage123';
         process.env.SUB_DOMAIN_PREFIX = 'testing123';
         process.env.PREFIXED_TOP_DOMAIN_NAME = 'testing123';
@@ -20,22 +37,22 @@ describe('herd.yaml loading', function () {
         process.env.WWW_ICELANDAIR_IP_WHITELIST = 'YnVsbHNoaXRsaXN0Cg==';
         delete process.env.TPL_DOCKER_IMAGE;
 
-        delete process.env.EXPORT1;
-        delete process.env.EXPORT2;
+        process.env.EXPORT1 = 'NotFromInfrastructureAnyMore';
+        process.env.EXPORT2 = 'NeitherFromInfrastructure';
 
-        ReleasePlan = function () {
+        CreateReleasePlan = function () {
 
-            releasePlan = {
+            let releasePlan = {
                 addedDockerDeployers: {},
                 addedK8sDeployments: {},
-                addDeployment(deployment) {
+                addDeployment (deployment) {
                     return new Promise(function (resolve, reject) {
                         if (!deployment.type) {
-                            let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deployment);
+                            let message = 'Illegal deployment, no deployment type attribute in ' + JSON.stringify(deployment);
                             reject(message);
                         }
                         if (!deployment.identifier) {
-                            let message = "Illegal deployment, no identifier attribute in " + JSON.stringify(deployment);
+                            let message = 'Illegal deployment, no identifier attribute in ' + JSON.stringify(deployment);
                             reject(message);
                         }
                         if (deployment.type === 'k8s') {
@@ -52,29 +69,58 @@ describe('herd.yaml loading', function () {
 
         modifiedState = false;
         loaderLogger = fakeLogger();
+
+        let labelsLoader = {
+            getDockerRegistryClientsFromConfig () {
+                return {};
+            },
+            imageLabelsLoader () {
+                return {
+                    getImageLabels (imageDef) {
+                        // console.log('imageDef', imageDef);
+                        let dockerImageMetadataFile = path.join(__dirname, 'testdata', 'inspected-dockers', imageDef.image + '.json');
+                        if(fs.existsSync(dockerImageMetadataFile)){
+                            const dockerInspection = require(dockerImageMetadataFile);
+
+                            // console.log('dockerInspection', dockerInspection[0].ContainerConfig.Labels);
+                            return Promise.resolve({
+                                dockerLabels: dockerInspection[0].ContainerConfig.Labels,
+                                imageDefinition: imageDef
+                            });
+
+                        } else {
+                            return Promise.reject(new Error(`dockerImageMetadataFile ${dockerImageMetadataFile} not found in testdata`))
+                        }
+
+                    }
+                };
+            }
+        };
+
         loader = HerdLoader(inject({
             logger: loaderLogger,
-            ReleasePlan: ReleasePlan,
-            exec:exec
+            ReleasePlan: CreateReleasePlan,
+            exec: exec,
+            labelsLoader: labelsLoader
         }));
     });
 
     it('should load herd.yaml', function () {
-       return loader.loadHerd(__dirname + '/testdata/happypath/herd.yaml').then(function (plan) {
-            expect(plan).not.to.equal(undefined);
-        })
-    });
-
-    it('should log infrastructure execution', function () {
         return loader.loadHerd(__dirname + '/testdata/happypath/herd.yaml').then(function (plan) {
             expect(plan).not.to.equal(undefined);
-            expect(loaderLogger.infoLogEntries[0].data[0]).to.equal('Running infrastructure test-infrastructure:0.0.1');
-        })
+        });
+    });
+
+    it('should not log any execution after herd load.', function () {
+        return loader.loadHerd(__dirname + '/testdata/happypath/herd.yaml').then(function (plan) {
+            expect(plan).not.to.equal(undefined);
+            expect(loaderLogger.infoLogEntries.length).to.equal(0);
+        });
     });
 
     it('should fail if file does not exist', function () {
         loader.loadHerd(__dirname + '/testdata/does-not-exist.yaml').then(function (plan) {
-            expect().fail('Should not finish!')
+            expect().fail('Should not finish!');
         }).catch(function (error) {
             expect(error).to.contain('/testdata/does-not-exist.yaml does not exist!');
         });
@@ -88,23 +134,21 @@ describe('herd.yaml loading', function () {
         beforeEach(function () {
             return loader.loadHerd(__dirname + '/testdata/happypath/herd.yaml').then(function (plan) {
                 loadedPlan = plan;
-            })
+            });
         });
-
 
         it('should add k8s deployment found in scanned directory', function () {
             // expect().fail('LOADED PLAN' + JSON.stringify(loadedPlan, null, 2))
 
-            expect(loadedPlan.addedK8sDeployments['Namespace_monitors'].origin).to.contain("testdata/happypath/namespaces");
+            expect(loadedPlan.addedK8sDeployments['Namespace_monitors'].origin).to.contain('testdata/happypath/namespaces');
         });
 
         it('should have herd name', function () {
             // expect().fail('LOADED PLAN' + JSON.stringify(loadedPlan, null, 2))
 
-            expect(loadedPlan.addedK8sDeployments['Namespace_monitors'].herdName).to.contain("kube-config");
-            expect(loadedPlan.addedK8sDeployments['Namespace_monitors'].herdName).to.contain("testdata/happypath/namespaces");
+            expect(loadedPlan.addedK8sDeployments['Namespace_monitors'].herdName).to.contain('kube-config');
+            expect(loadedPlan.addedK8sDeployments['Namespace_monitors'].herdName).to.contain('testdata/happypath/namespaces');
         });
-
 
     });
 
@@ -117,7 +161,7 @@ describe('herd.yaml loading', function () {
 
             return loader.loadHerd(__dirname + '/testdata/happypath/herd.yaml').then(function (plan) {
                 loadedPlan = plan;
-            })
+            });
         });
 
         it('should base64decode and untar deployment files under file path', function () {
@@ -129,7 +173,7 @@ describe('herd.yaml loading', function () {
         });
 
         it('should modify deployment documents and file under deployments under k8s service identity', function () {
-            expect(loadedPlan.addedK8sDeployments['Service_www-icelandair-com'].descriptor).not.to.contain('${EXPORT1}');
+            expect(loadedPlan.addedK8sDeployments['Service_www-icelandair-com'].descriptor).not.to.contain('${EXPORT2}');
         });
 
         it('should apply k8s deployment-time cluster policy', function () {
@@ -139,9 +183,9 @@ describe('herd.yaml loading', function () {
 
         it('should be serializable', function () {
 
-            function detectRecursion(obj) {
+            function detectRecursion (obj) {
 
-                function detect(obj, seenObjects) {
+                function detect (obj, seenObjects) {
                     if (obj && typeof obj === 'object') {
                         if (seenObjects.indexOf(obj) !== -1) {
                             return ['RECURSION!'];
@@ -178,7 +222,7 @@ describe('herd.yaml loading', function () {
         beforeEach(function () {
             return loader.loadHerd(__dirname + '/testdata/happypath/herd.yaml').then(function (plan) {
                 loadedPlan = plan;
-            })
+            });
         });
 
         it('should load deployer plan by migration image reference', function () {
@@ -187,8 +231,6 @@ describe('herd.yaml loading', function () {
             expect(Object.keys(loadedPlan.addedDockerDeployers)).to.contain('testenvimage-migrations:0.0.0');
         });
     });
-
-
 
     xdescribe('SLOW TEST: non-existing image', function () {
 
@@ -203,9 +245,8 @@ describe('herd.yaml loading', function () {
         beforeEach(function () {
             return loader.loadHerd(__dirname + '/testdata/nonexistingimage/herd.yaml').then(function (plan) {
                 loadedPlan = plan;
-            })
+            });
         });
-
 
         it('should fail with meaningful error message', function () {
             expect(loadError).to.contain('nonexistingimage:0.0.0');
@@ -215,6 +256,6 @@ describe('herd.yaml loading', function () {
 
         });
 
-    })
+    });
 });
 

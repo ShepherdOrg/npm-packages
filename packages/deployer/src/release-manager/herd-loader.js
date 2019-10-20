@@ -8,11 +8,10 @@ const Promise = require('bluebird').Promise;
 
 const kubeSupportedExtensions = require('./kubeSupportedExtensions');
 
-const calculateImagePlan = require('./image-loader')(inject({
+const calculateDeploymentPlan = require('./image-deployment-planner')(inject({
     kubeSupportedExtensions
 }));
 
-const labelsLoader = require('@shepherdorg/docker-image-metadata-loader');
 
 function splitDockerImageTag (imgObj) {
     let colonIdx = imgObj.dockerImage.indexOf(':');
@@ -24,7 +23,10 @@ module.exports = function (injected) {
 
     const ReleasePlan = injected('ReleasePlan');
 
-    const scanDir = require('./folder-loader')(inject({
+    const labelsLoader = injected('labelsLoader', true) || require('@shepherdorg/docker-image-metadata-loader');
+
+
+    const scanDir = require('./folder-deployment-planner')(inject({
         kubeSupportedExtensions: {
             '.yml': true,
             '.yaml': true,
@@ -34,15 +36,10 @@ module.exports = function (injected) {
 
     const logger = injected('logger');
 
-    const cmd = injected('exec');
+    // const cmd = injected('exec');
 
     const dockerRegistries = labelsLoader.getDockerRegistryClientsFromConfig();
     const loader = labelsLoader.imageLabelsLoader(inject({'dockerRegistries': dockerRegistries, logger: logger}));
-
-    const calculateInfrastructurePlan = require('./infrastructure-loader')(inject({
-        logger,
-        exec: cmd
-    }));
 
     function calculateFoldersPlan (imagesPath, herdFolder) {
         return scanDir(path.resolve(imagesPath + '/' + herdFolder.path));
@@ -67,7 +64,7 @@ module.exports = function (injected) {
 
                         let imageDependencies = {};
 
-                        function addDependencies (imageMetaData) {
+                        function frontloadMigrationRunners (imageMetaData) {
                             return new Promise(function (resolve, reject) {
                                 let dependency;
                                 if (imageMetaData.dockerLabels['shepherd.dbmigration']) {
@@ -84,14 +81,14 @@ module.exports = function (injected) {
                             });
                         }
 
-                        let infrastructureLoader = function (infrastructure) {
+                        let infrastructureLoader = function (infrastructureImages) {
                             return new Promise(function (resolve) {
-                                resolve(_.map(infrastructure, function (herdDefinition, herdName) {
+                                resolve(_.map(infrastructureImages, function (herdDefinition, herdName) {
                                     herdDefinition.herdName = herdName;
                                     return loadImageMetadata(herdDefinition)
-                                        .then(calculateInfrastructurePlan)
+                                        .then(calculateDeploymentPlan)
                                         .catch(function (e) {
-                                            reject('When processing ' + herdName + ': ' + e + (e.stack ? e.stack : ''));
+                                            reject( new Error('When processing ' + herdName + ': ' + e + (e.stack ? e.stack : '')));
                                         });
                                 }));
 
@@ -133,15 +130,15 @@ module.exports = function (injected) {
                                             splitDockerImageTag(imgObj);
                                         }
                                         return loadImageMetadata(imgObj)
-                                            .then(addDependencies)
-                                            .then(calculateImagePlan)
+                                            .then(frontloadMigrationRunners)
+                                            .then(calculateDeploymentPlan)
                                             .then(function (imagePlans) {
                                                 return Promise.each(imagePlans, releasePlan.addDeployment);
                                             }).then(function (imgPlans) {
                                                 return imgPlans;
                                             }).catch(function (e) {
-                                                let errorMessage = 'When processing image ' + imgName + '\n' + JSON.stringify(e) + (e.stack ? e.stack : '');
-                                                reject(errorMessage);
+                                                let errorMessage = 'When processing image ' + imgName + '\n' + e.message + (e.stack ? e.stack : '');
+                                                reject(new Error(errorMessage));
                                             });
                                     }));
 
@@ -150,27 +147,12 @@ module.exports = function (injected) {
                             }
                         };
 
-                        let envMap = {};
+                        Promise.resolve({}).then(function () {
 
-                        // TODO: infrastructurePromises obsolete.
-                        Promise.each(infrastructurePromises, function (infrastructureResults) {
+                            _.each(herd, function (herderDefinition, herdType) {
+                                if (loaders[herdType]) {
 
-                            _.each(infrastructureResults, function (infrastructureResult) {
-                                if (infrastructureResult.exportedEnv && infrastructureResult.exportedEnv.parsed) {
-                                    _.extend(envMap, infrastructureResult.exportedEnv.parsed);
-
-                                }
-                            });
-
-                            return envMap;
-
-                        }).then(function (_infrastructureResults) {
-
-                            _.extend(process.env, envMap);
-
-                            _.each(herd, function (herderDefinition, herderName) {
-                                if (loaders[herderName]) {
-                                    allDeploymentPromises.push(loaders[herderName](herderDefinition)
+                                    allDeploymentPromises.push(loaders[herdType](herderDefinition)
                                         .then(function (addedPromises) {
                                             return Promise.all(addedPromises).catch(function (e) {
                                                 reject(e);

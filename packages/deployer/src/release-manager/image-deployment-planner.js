@@ -1,15 +1,15 @@
-const untarBase64String = require('../../untar-string');
-const identifyDocument = require('../../k8s-deployment-document-identifier');
+const untarBase64String = require('../untar-string');
+const identifyDocument = require('../k8s-deployment-document-identifier');
 
-const expandEnv = require('../../expandenv');
-const expandtemplate = require('../../expandtemplate');
+const expandEnv = require('../expandenv');
+const expandtemplate = require('../expandtemplate');
 
-const applyClusterPolicies = require('../../apply-k8s-policy').applyPoliciesToDoc;
+const applyClusterPolicies = require('../apply-k8s-policy').applyPoliciesToDoc;
 const JSYAML = require('js-yaml');
-const yamlLoad = require('../../k8s-feature-deployment/multipart-yaml-load');
-const modifyDeploymentDocument = require('../../k8s-feature-deployment/modify-deployment-document').modifyRawDocument;
-const base64EnvSubst = require('../../base64-env-subst').processLine;
-const options = require('../options');
+const yamlLoad = require('../k8s-feature-deployment/multipart-yaml-load');
+const modifyDeploymentDocument = require('../k8s-feature-deployment/modify-deployment-document').modifyRawDocument;
+const base64EnvSubst = require('../base64-env-subst').processLine;
+const options = require('./options');
 const path = require('path');
 const _ = require('lodash');
 
@@ -37,7 +37,8 @@ module.exports = function (injected) {
                         lines[idx] = expandEnv(line);
                         lines[idx] = base64EnvSubst(lines[idx], {});
                     } catch (error) {
-                        let message = 'In line ' + idx + '\n';
+
+                        let message = `Error expanding variables in line #${idx}: ${line}\n`;
                         message += error;
                         throw new Error(message);
                     }
@@ -47,7 +48,7 @@ module.exports = function (injected) {
 
                 delete process.env.TPL_DOCKER_IMAGE;
             } catch (error) {
-                // console.log('ORIGINAL ERROR', error)
+                // console.error( error)
                 // console.log('ORIGINAL MESSAGE', error.message)
 
                 let message = `In deployment image ${origin}\n In file ${fileName} \n`;
@@ -91,19 +92,6 @@ module.exports = function (injected) {
         return imageMetadata.dockerLabels['shepherd.kube.config.tar.base64'];
     }
 
-    function getDeployerLabel (imageMetadata) {
-        return imageMetadata.dockerLabels['shepherd.deployer'];
-    }
-
-    function getDeployerCommandLabel (imageMetadata) {
-        return imageMetadata.dockerLabels['shepherd.deployer.command'];
-    }
-
-    function getEnvVariablesLabel (imageMetadata) {
-        return imageMetadata.dockerLabels['shepherd.environment.variables']
-            || imageMetadata.dockerLabels['shepherd.deployer.environment'];
-    }
-
     function rewriteDockerLabels (imageMetadata, obsoleteQualifier, newQualifier) {
         _(imageMetadata.dockerLabels).keys().each((dockerLabelKey) => {
             if (dockerLabelKey.startsWith(obsoleteQualifier)) {
@@ -125,7 +113,7 @@ module.exports = function (injected) {
                     herdName: imageMetadata.imageDefinition.herdName // TODO Rename imageDefinition -> herdDeclaration
                 };
 
-                if (shepherdMetadata.isDeployer) {
+                if (shepherdMetadata.deploymentType ==='deployer') {
 
                     let dockerImageWithVersion = imageMetadata.imageDefinition.dockerImage || (imageMetadata.imageDefinition.image + ':' + imageMetadata.imageDefinition.imagetag);
 
@@ -165,7 +153,8 @@ module.exports = function (injected) {
 
                 } else {
 
-                    if (shepherdMetadata.kubeDeploymentFiles) {
+                    if (shepherdMetadata.deploymentType ==='k8s') {
+
                         const files = shepherdMetadata.kubeDeploymentFiles;
 
                         plan.files = files;
@@ -240,7 +229,7 @@ module.exports = function (injected) {
                         return Promise.all(planPromises)
 
                     } else {
-                        console.log('FALLING THROUGH', shepherdMetadata)
+                        throw new Error(`FALLING THROUGH ${(shepherdMetadata.displayName)} - ${(shepherdMetadata.deploymentType)}`)
                     }
 
                 }

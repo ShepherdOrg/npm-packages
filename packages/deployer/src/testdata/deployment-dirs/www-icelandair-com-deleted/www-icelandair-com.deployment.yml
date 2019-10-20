@@ -40,11 +40,6 @@ spec:
               readOnly: true
               mountPath: "/etc/nginx/acls/"
           env:
-            - name: RUNTIME_ENVIRONMENT
-              valueFrom:
-                configMapKeyRef:
-                  name: ${EXPORT1}
-                  key: ENV
             - name: RUNTIME_ENV2
               valueFrom:
                 configMapKeyRef:

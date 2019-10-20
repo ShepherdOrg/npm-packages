@@ -1,4 +1,4 @@
-const DirScan = require('.');
+const DirScan = require('./folder-deployment-planner');
 const inject = require('@shepherdorg/nano-inject').inject;
 
 const Path = require('path');
@@ -36,13 +36,12 @@ describe('k8s deployment file directory structure release plan loader', function
         beforeEach(function () {
             process.env.SUB_DOMAIN_PREFIX='testing1234';
             process.env.PREFIXED_TOP_DOMAIN_NAME='testing12345';
-            process.env.EXPORT1='testing123';
             process.env.EXPORT2='testing123';
             process.env.CLUSTER_POLICY_MAX_CPU_REQUEST='25m';
             process.env.www_icelandair_com_image='www-icelandair-image:1.0';
             process.env.www_icelandair_com_deleted_image='';
 
-            let deploymentDirsPath = Path.join(__dirname ,'../../testdata/deployment-dirs');
+            let deploymentDirsPath = Path.join(__dirname ,'../testdata/deployment-dirs');
 
             return scanDir(deploymentDirsPath).then(function (plans) {
                 return Promise.each(plans, function (deploymentPlan) {

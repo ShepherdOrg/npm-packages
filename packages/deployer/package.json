@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Deployer application",
   "main": "src/release-manager/shepherd.js",
   "files": [
@@ -10,7 +10,7 @@
     "@shepherdorg/docker-image-metadata-loader": "^0.1.0",
     "@shepherdorg/exec": "0.0.1",
     "@shepherdorg/filestore-backend": "^0.0.2",
-    "@shepherdorg/metadata": "0.0.6",
+    "@shepherdorg/metadata": "^0.0.8",
     "@shepherdorg/nano-inject": "^0.0.6",
     "@shepherdorg/postgres-backend": "^0.0.2",
     "@shepherdorg/state-store": "^0.0.3",

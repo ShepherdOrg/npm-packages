@@ -1,7 +1,7 @@
 const inject = require('@shepherdorg/nano-inject').inject;
 const expect = require('chai').expect;
 
-const loader = require('.')(inject({
+const loader = require('./image-deployment-planner')(inject({
     kubeSupportedExtensions: {
         '.yml': true,
         '.yaml': true,
@@ -46,7 +46,7 @@ describe('Docker image plan loader', function () {
                 'shepherd.deployer': 'true',
                 'shepherd.deployer.command': 'ls',
                 'shepherd.deployer.environment': 'THIS_IS_DEPLOYER_ONE=true',
-                'shepherd.environment.variables': 'EXPORT1=${EXPORT1},DB_PASS=$MICRO_SITES_DB_PASSWORD',
+                'shepherd.environment.variables': 'DB_PASS=$MICRO_SITES_DB_PASSWORD',
                 'shepherd.git.branch': 'master',
                 'shepherd.git.hash': 'b14892def916aa1fffa9728a5d58f7359f982c02',
                 'shepherd.git.url': 'https://github.com/Icelandair/shepherd.git',
@@ -462,8 +462,8 @@ describe('Docker image plan loader', function () {
 
             });
 
-            it('should report line in error', function () {
-                expect(loadError.message).to.contain('line 8');
+            it('should report line number in error', function () {
+                expect(loadError.message).to.contain('line #8');
 
             });
 

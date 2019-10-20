@@ -1,12 +1,12 @@
 const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
-const expandEnv = require('../../expandenv');
-const expandtemplate = require('../../expandtemplate');
-const base64EnvSubst = require('../../base64-env-subst').processLine;
+const expandEnv = require('../expandenv');
+const expandtemplate = require('../expandtemplate');
+const base64EnvSubst = require('../base64-env-subst').processLine;
 
-const identifyDocument = require('../../k8s-deployment-document-identifier');
-const applyClusterPolicies = require('../../apply-k8s-policy').applyPoliciesToDoc;
+const identifyDocument = require('../k8s-deployment-document-identifier');
+const applyClusterPolicies = require('../apply-k8s-policy').applyPoliciesToDoc;
 
 module.exports = function (injected) {
 
