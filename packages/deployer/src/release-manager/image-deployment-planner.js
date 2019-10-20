@@ -88,34 +88,20 @@ module.exports = function (injected) {
         });
     }
 
-    function getKubeConfigTarLabel (imageMetadata) {
-        return imageMetadata.dockerLabels['shepherd.kube.config.tar.base64'];
-    }
+    function calculateImagePlan (imageInformation) {
+        if (imageInformation.shepherdMetadata) {
 
-    function rewriteDockerLabels (imageMetadata, obsoleteQualifier, newQualifier) {
-        _(imageMetadata.dockerLabels).keys().each((dockerLabelKey) => {
-            if (dockerLabelKey.startsWith(obsoleteQualifier)) {
-                const newKey = dockerLabelKey.replace(obsoleteQualifier, newQualifier);
-                imageMetadata.dockerLabels[newKey] = imageMetadata.dockerLabels[dockerLabelKey];
-                delete imageMetadata.dockerLabels[dockerLabelKey];
-            }
-        });
-    }
+            const shepherdMetadata = imageInformation.shepherdMetadata;
 
-    function calculateImagePlan (imageMetadata) {
-        if (imageMetadata.dockerLabels) {
-
-            rewriteDockerLabels(imageMetadata, 'is.icelandairlabs', 'shepherd');
-
-            return extractShepherdMetadata(imageMetadata.dockerLabels).then((shepherdMetadata) => {
+            return Promise.resolve().then(() => {
                 let plan = {
                     displayName: shepherdMetadata.displayName,
-                    herdName: imageMetadata.imageDefinition.herdName // TODO Rename imageDefinition -> herdDeclaration
+                    herdName: imageInformation.imageDefinition.herdName // TODO Rename imageDefinition -> herdDeclaration
                 };
 
                 if (shepherdMetadata.deploymentType ==='deployer') {
 
-                    let dockerImageWithVersion = imageMetadata.imageDefinition.dockerImage || (imageMetadata.imageDefinition.image + ':' + imageMetadata.imageDefinition.imagetag);
+                    let dockerImageWithVersion = imageInformation.imageDefinition.dockerImage || (imageInformation.imageDefinition.image + ':' + imageInformation.imageDefinition.imagetag);
 
                     Object.assign(plan, {
                         dockerParameters: ['-i', '--rm', '-e', expandEnv('ENV=${ENV}')],
@@ -159,26 +145,26 @@ module.exports = function (injected) {
 
                         plan.files = files;
                         plan.deployments = {};
-                        plan.dockerLabels = imageMetadata.dockerLabels;
+                        plan.dockerLabels = imageInformation.dockerLabels;
                         let planPromises = [];
                         let nameReferenceChanges = {};
                         let featureDeploymentConfig = {
                             isFeatureDeployment: false
                         };
 
-                        if (process.env.UPSTREAM_IMAGE_NAME === imageMetadata.imageDefinition.herdName && process.env.FEATURE_NAME) {
+                        if (process.env.UPSTREAM_IMAGE_NAME === imageInformation.imageDefinition.herdName && process.env.FEATURE_NAME) {
                             let cleanedName = process.env.FEATURE_NAME.replace(/\//g, '--').toLowerCase();
                             featureDeploymentConfig.isFeatureDeployment = true;
                             featureDeploymentConfig.ttlHours = process.env.FEATURE_TTL_HOURS;
                             featureDeploymentConfig.newName = cleanedName;
-                            featureDeploymentConfig.origin = imageMetadata.imageDefinition.herdName + '::' + cleanedName;
+                            featureDeploymentConfig.origin = imageInformation.imageDefinition.herdName + '::' + cleanedName;
                         }
 
-                        if (imageMetadata.imageDefinition.featureDeployment) {
+                        if (imageInformation.imageDefinition.featureDeployment) {
                             featureDeploymentConfig.isFeatureDeployment = true;
-                            featureDeploymentConfig.ttlHours = imageMetadata.imageDefinition.timeToLiveHours;
-                            featureDeploymentConfig.newName = imageMetadata.imageDefinition.herdName;
-                            featureDeploymentConfig.origin = imageMetadata.imageDefinition.herdName + '::feature';
+                            featureDeploymentConfig.ttlHours = imageInformation.imageDefinition.timeToLiveHours;
+                            featureDeploymentConfig.newName = imageInformation.imageDefinition.herdName;
+                            featureDeploymentConfig.origin = imageInformation.imageDefinition.herdName + '::feature';
                         }
 
                         if (featureDeploymentConfig.isFeatureDeployment) {
@@ -218,7 +204,7 @@ module.exports = function (injected) {
                                     // let deployment = calculateFileDeploymentPlan();
                                     //
                                     // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
-                                    planPromises.push(calculateFileDeploymentPlan(deploymentFileContent, imageMetadata, fileName, featureDeploymentConfig));
+                                    planPromises.push(calculateFileDeploymentPlan(deploymentFileContent, imageInformation, fileName, featureDeploymentConfig));
 
                                 }
                             } catch (e) {
@@ -236,105 +222,7 @@ module.exports = function (injected) {
 
                 return [plan];
             });
-
-        } else {
-            return new Promise(function (resolve, reject) {
-
-                rewriteDockerLabels(imageMetadata, 'is.icelandairlabs', 'shepherd');
-
-                let plan = {
-                    herdName: imageMetadata.imageDefinition.herdName
-                };
-
-                if (imageMetadata.dockerLabels) {
-
-                    if (getKubeConfigTarLabel(imageMetadata)) {
-                        let deploymentFilesArchive = getKubeConfigTarLabel(imageMetadata);
-                        untarBase64String(deploymentFilesArchive).then(function (files) {
-                            plan.files = files;
-                            plan.deployments = {};
-                            plan.dockerLabels = imageMetadata.dockerLabels;
-                            let planPromises = [];
-                            let nameReferenceChanges = {};
-                            let featureDeploymentConfig = {
-                                isFeatureDeployment: false
-                            };
-
-                            if (process.env.UPSTREAM_IMAGE_NAME === imageMetadata.imageDefinition.herdName && process.env.FEATURE_NAME) {
-                                let cleanedName = process.env.FEATURE_NAME.replace(/\//g, '--').toLowerCase();
-                                featureDeploymentConfig.isFeatureDeployment = true;
-                                featureDeploymentConfig.ttlHours = process.env.FEATURE_TTL_HOURS;
-                                featureDeploymentConfig.newName = cleanedName;
-                                featureDeploymentConfig.origin = imageMetadata.imageDefinition.herdName + '::' + cleanedName;
-                            }
-
-                            if (imageMetadata.imageDefinition.featureDeployment) {
-                                featureDeploymentConfig.isFeatureDeployment = true;
-                                featureDeploymentConfig.ttlHours = imageMetadata.imageDefinition.timeToLiveHours;
-                                featureDeploymentConfig.newName = imageMetadata.imageDefinition.herdName;
-                                featureDeploymentConfig.origin = imageMetadata.imageDefinition.herdName + '::feature';
-                            }
-
-                            if (featureDeploymentConfig.isFeatureDeployment) {
-                                _.forEach(plan.files, function (deploymentFileContent, fileName) {
-                                    if (!kubeSupportedExtensions[path.extname(fileName)]) {
-                                        // console.debug('Unsupported extension ', path.extname(fileName));
-                                        return;
-                                    }
-
-                                    if (deploymentFileContent.content) {
-                                        let parsedMultiContent = yamlLoad(deploymentFileContent.content);
-                                        _.forEach(parsedMultiContent, function (parsedContent) {
-                                            if (parsedContent) {
-                                                nameReferenceChanges[parsedContent.kind] = nameReferenceChanges[parsedContent.kind] || {};
-                                                nameReferenceChanges[parsedContent.kind][parsedContent.metadata.name] = parsedContent.metadata.name + '-' + featureDeploymentConfig.newName;
-                                            } else {
-                                                console.warn('Parsed content is NULL!!!', deploymentFileContent.content);
-                                            }
-                                        });
-                                    }
-                                });
-                                featureDeploymentConfig.nameReferenceChanges = nameReferenceChanges;
-                            }
-
-                            _.forEach(plan.files, function (deploymentFileContent, fileName) {
-                                if (!kubeSupportedExtensions[path.extname(fileName)]) {
-                                    // console.debug('Unsupported extension ', path.extname(fileName));
-                                    return;
-                                }
-
-                                try {
-                                    if (deploymentFileContent.content) {
-                                        // let deployment = calculateFileDeploymentPlan();
-                                        //
-                                        // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
-                                        planPromises.push(calculateFileDeploymentPlan(deploymentFileContent, imageMetadata, fileName, featureDeploymentConfig));
-
-                                    }
-                                } catch (e) {
-                                    let error = 'When processing ' + fileName + ':\n';
-                                    reject(error + e);
-                                }
-                            });
-                            Promise.all(planPromises).then(function (allPlans) {
-                                resolve(allPlans);
-                            }).catch(function (err) {
-                                let message = 'In ' + JSYAML.safeDump(imageMetadata.imageDefinition, 1);
-                                message += err;
-                                reject(message);
-                            });
-
-                        }).catch(function (err) {
-                            reject('When processing tar.base64 of docker image ' + JSON.stringify(imageMetadata) + '\n' + err);
-                        });
-                    }
-                } else {
-                    reject('No deployment plan found in ' + JSON.stringify(imageMetadata));
-                }
-            });
-
         }
-
     }
 
     return calculateImagePlan;

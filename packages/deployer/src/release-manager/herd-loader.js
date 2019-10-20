@@ -12,6 +12,7 @@ const calculateDeploymentPlan = require('./image-deployment-planner')(inject({
     kubeSupportedExtensions
 }));
 
+const addShepherdMetadata = require('./add-shepherd-metadata');
 
 function splitDockerImageTag (imgObj) {
     let colonIdx = imgObj.dockerImage.indexOf(':');
@@ -130,6 +131,7 @@ module.exports = function (injected) {
                                             splitDockerImageTag(imgObj);
                                         }
                                         return loadImageMetadata(imgObj)
+                                            .then(addShepherdMetadata)
                                             .then(frontloadMigrationRunners)
                                             .then(calculateDeploymentPlan)
                                             .then(function (imagePlans) {

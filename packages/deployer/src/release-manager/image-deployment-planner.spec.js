@@ -1,5 +1,7 @@
 const inject = require('@shepherdorg/nano-inject').inject;
 const expect = require('chai').expect;
+const addShepherdMetadata = require('./add-shepherd-metadata');
+
 
 const loader = require('./image-deployment-planner')(inject({
     kubeSupportedExtensions: {
@@ -12,7 +14,6 @@ const loader = require('./image-deployment-planner')(inject({
 describe('Docker image plan loader', function () {
 
     before(() => {
-        console.log('SETTING UP ENV FOR LOADER');
         process.env.ENV = 'testenv';
     });
 
@@ -23,7 +24,10 @@ describe('Docker image plan loader', function () {
     let loadedPlan, loadedPlans;
 
     function loadPlan (dockerDeployerMetadata) {
-        return loader(dockerDeployerMetadata).then(function (plans) {
+
+        return addShepherdMetadata(dockerDeployerMetadata)
+            .then(loader)
+            .then(function (plans) {
             loadedPlan = plans[0];
             loadedPlans = plans;
         });
@@ -168,6 +172,7 @@ describe('Docker image plan loader', function () {
 
         let loadedPlans;
         beforeEach(function () {
+            console.log('dockerImageMetadata beforeEach')
             return loadPlan(dockerImageMetadata).then(function (plans) {
                 loadedPlans = plans;
             });
