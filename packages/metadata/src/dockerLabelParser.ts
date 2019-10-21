@@ -2,9 +2,9 @@ import {
     TCompressedMetadata, TDeployerRole,
     TDeploymentType,
     TDockerImageInspection,
-    TShepherdDeployerMetadata,
-    TShepherdK8sMetadata,
-    TShepherdMetadata
+    TDeployerMetadata,
+    TK8sMetadata,
+    TImageMetadata
 } from './index'
 
 import uncompressBase64Tar from './base64tar/untar-string'
@@ -28,7 +28,7 @@ function decodeShepherdMetadataLabel(imageLabel: TCompressedMetadata) {
                     return shepherdMeta
                 })
             } else {
-                return shepherdMeta as TShepherdMetadata;
+                return shepherdMeta as TImageMetadata;
             }
 
         } catch (err) {
@@ -53,7 +53,7 @@ function determineDeploymentType(imageLabels: any):TDeploymentType {
     }
 }
 
-export async function extractShepherdMetadata(imageLabels: any): Promise<TShepherdDeployerMetadata | TShepherdK8sMetadata> {
+export async function extractShepherdMetadata(imageLabels: any): Promise<TDeployerMetadata | TK8sMetadata> {
     if (imageLabels['shepherd.metadata']) {
         return await decodeShepherdMetadataLabel(imageLabels['shepherd.metadata'])
     } else if (imageLabels && Object.getOwnPropertyNames(imageLabels).find((propName) => propName.startsWith('shepherd.'))) {

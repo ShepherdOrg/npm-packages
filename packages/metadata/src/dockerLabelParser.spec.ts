@@ -1,9 +1,9 @@
 import {
     TDeployerRole,
     TDeploymentType,
-    TShepherdDeployerMetadata,
-    TShepherdK8sMetadata,
-    TShepherdMetadata
+    TDeployerMetadata,
+    TK8sMetadata,
+    TImageMetadata
 } from './index'
 import {extractImageLabels, extractMetadataFromDockerInspectJson, extractShepherdMetadata} from './dockerLabelParser'
 
@@ -13,7 +13,7 @@ const expect = require('chai').expect
 describe('Shepherd metadata reading', function () {
 
     describe('from image with no shepherd labels', function () {
-        let metaData: TShepherdK8sMetadata
+        let metaData: TK8sMetadata
 
         let loadError: Error
 
@@ -33,7 +33,7 @@ describe('Shepherd metadata reading', function () {
 
     describe('from shepherd.metadata label, k8s deployment', function () {
 
-        let metaData: TShepherdK8sMetadata
+        let metaData: TK8sMetadata
 
         before(async () => {
             metaData = await extractMetadataFromDockerInspectJson('./testdata/inspected-dockers/public-repo-with-deployment-dir.json')
@@ -90,7 +90,7 @@ describe('Shepherd metadata reading', function () {
 
     describe('from docker labels, k8s deployment, old style', function () {
 
-        let metaData: TShepherdK8sMetadata
+        let metaData: TK8sMetadata
 
         before(async () => {
             const dockerImageInspection = require('./testdata/inspected-dockers/testenvimage.json')
@@ -128,12 +128,12 @@ describe('Shepherd metadata reading', function () {
 
     describe('from docker labels, deployer, old style', function () {
 
-        let metaData: TShepherdDeployerMetadata
+        let metaData: TDeployerMetadata
 
         before(async () => {
             const dockerImageInspection = require('./testdata/inspected-dockers/testenvimage-migrations.json')
             const imageLabels = extractImageLabels(dockerImageInspection)
-            metaData = await extractShepherdMetadata(imageLabels) as TShepherdDeployerMetadata
+            metaData = await extractShepherdMetadata(imageLabels) as TDeployerMetadata
         })
 
         it('should read shepherd.deployer.command', () => {
@@ -212,13 +212,13 @@ describe('Load all inspected docker files', function () {
     async function loadMetadata(fileName) {
         const dockerImageInspection = require(`./testdata/inspected-dockers/${fileName}`)
         const imageLabels = extractImageLabels(dockerImageInspection)
-        const metaData = await extractShepherdMetadata(imageLabels) as TShepherdMetadata
+        const metaData = await extractShepherdMetadata(imageLabels) as TImageMetadata
         return metaData
     }
 
     installImages.forEach((fileName) => {
         it(`should load ${fileName} without error`, async () => {
-            const metaData = await loadMetadata(fileName) as TShepherdDeployerMetadata
+            const metaData = await loadMetadata(fileName) as TDeployerMetadata
 
             expect(metaData.deployerRole).to.equal('install')
             expect(Boolean(!!metaData.deployerRole)).to.equal(true)
@@ -228,7 +228,7 @@ describe('Load all inspected docker files', function () {
 
     k8sImages.forEach((fileName) => {
         it(`should load ${fileName} without error`, async () => {
-            const metaData = await loadMetadata(fileName) as TShepherdK8sMetadata
+            const metaData = await loadMetadata(fileName) as TK8sMetadata
 
             expect(Boolean(metaData.kubeDeploymentFiles)).to.equal(true)
 
@@ -238,7 +238,7 @@ describe('Load all inspected docker files', function () {
     invalidImages.forEach((fileName) => {
         it(`should not load ${fileName} without error`, async () => {
             try {
-                const metaData = await loadMetadata(fileName) as TShepherdK8sMetadata
+                const metaData = await loadMetadata(fileName) as TK8sMetadata
 
                 expect(Boolean(metaData.kubeDeploymentFiles)).to.equal(true)
 

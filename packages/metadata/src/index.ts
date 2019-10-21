@@ -8,7 +8,6 @@ export type THref = {
     url: string
 }
 
-
 export type THerdSpec ={
     key: string // Key used in herd file
     image: string // For example isrvkbuild02:5000/fluentd
@@ -40,7 +39,7 @@ export type TDeploymentState = {
     env: string
 }
 
-export type TShepherdMetadata = {
+export type TImageMetadata = {
     displayName: string
     deploymentType: TDeploymentType
     migrationImage?: string
@@ -51,31 +50,34 @@ export type TShepherdMetadata = {
     gitCommit?: string
     dockerImageTag?: string
     buildHostName?: string
+// TODO: Support e2e test command
+    e2eTestCommand?: string
     hyperlinks?: Array<THref>
 }
 
-export type TShepherdDeployerMetadata = TShepherdMetadata & {
+export type TDeployerMetadata = TImageMetadata & {
     deployCommand: string
     rollbackCommand?: string
 // TODO: Support dryrun command
     dryrunCommand?: string
-// TODO: Support e2e test command
-    e2eTestCommand?: string
     environmentVariablesExpansionString: string
     deployerRole: TDeployerRole
 }
 
-export type TShepherdK8sMetadata = TShepherdMetadata & {
+export type TK8sMetadata = TImageMetadata & {
     kubeDeploymentFiles?: TTarFolderStructure
     kubeConfigB64?: string
 }
 
-
-export type TShepherdExtendedMetadata = TShepherdMetadata & {
+export type THerdMetadata ={
     id: string
     herdSpec: THerdSpec
     deploymentState: TDeploymentState
     timestamp?: Date;
 }
+
+export type THerdDeployerMetadata = TDeployerMetadata & THerdMetadata
+
+export type TK8sDeployerMetadata = TK8sMetadata & THerdMetadata
 
 
