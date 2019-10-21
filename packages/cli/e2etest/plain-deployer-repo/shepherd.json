@@ -1,5 +1,5 @@
 {
-  "displayName": "plain-deployer-repo",
+  "displayName": "Plain shepherd deployer",
   "deployerRole": "install",
   "environment": {
     "DB_HOST": "MICROSERVICES_POSTGRES_RDS_HOST",
@@ -8,6 +8,7 @@
   "deployCommand": "ls",
   "rollbackCommand": "cat",
   "hyperlinks":[
-    {"title": "TestlinkOne", "url": "https://link.to.nowhere"}
+    {"title": "TestlinkOne", "url": "https://link.to.nowhere"},
+    {"title": "TestLinkTwo", "url": "https://link.to.elsewhere"}
   ]
 }

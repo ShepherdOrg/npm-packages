@@ -4,7 +4,11 @@ import {inject} from '@shepherdorg/nano-inject'
 const labelsLoader = require('@shepherdorg/docker-image-metadata-loader')
 
 function shepherdInspect(dockerImageWithTag: string) {
-    const logger = console
+    const logger = {
+        debug: ()=>{},
+        info: console.info,
+        error: console.error
+    }
     const dockerRegistries = labelsLoader.getDockerRegistryClientsFromConfig()
     const loader = labelsLoader.imageLabelsLoader(inject({'dockerRegistries': dockerRegistries, logger: logger}))
 

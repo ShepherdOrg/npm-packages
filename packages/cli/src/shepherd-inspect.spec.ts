@@ -2,7 +2,7 @@ import {expect} from 'chai';
 import {TShepherdK8sMetadata} from '@shepherdorg/metadata/dist'
 import {inspectAndExtractShepherdMetadata} from './shepherd-inspect'
 
-describe('shepherd inspect', function () {
+describe.only('shepherd inspect', function () {
 
     it('should inspect public-repo-with-kube-yaml image with shepherd.metadata label', () => {
 
