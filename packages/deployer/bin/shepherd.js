@@ -7,12 +7,11 @@ This is the main entry point for shepherd deployer agent
 
 Usage: shepherd.js /somewhere/is/a/herd.yaml
  */
-
-global.inject = require('../inject/inject');
+global.inject = require('@shepherdorg/nano-inject').inject;
 global._ = require('lodash');
 global.Promise = require('bluebird');
 
-let Logger = require('./logger');
+let Logger = require('../src/release-manager/logger');
 
 const logger =Logger('shepherd');
 
@@ -46,8 +45,8 @@ if(process.env.SHEPHERD_PG_HOST){
 }
 
 const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore;
-const HerdLoader = require('./herd-loader');
-const ReleasePlanModule = require('./release-plan');
+const HerdLoader = require('../src/release-manager/herd-loader');
+const ReleasePlanModule = require('../src/release-manager/release-plan');
 const exec = require('@shepherdorg/exec');
 
 

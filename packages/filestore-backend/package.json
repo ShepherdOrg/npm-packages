@@ -10,12 +10,12 @@
     "lodash": "^4.17.15"
   },
   "peerDependencies": {
-    "@shepherdorg/metadata": "^0.0.7",
+    "@shepherdorg/metadata": "^0.0.10",
     "@shepherdorg/state-store": "^0.0.5"
   },
   "devDependencies": {
     "@shepherdorg/state-store": "^0.0.5",
-    "@shepherdorg/metadata": "^0.0.7",
+    "@shepherdorg/metadata": "^0.0.10",
     "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.11",

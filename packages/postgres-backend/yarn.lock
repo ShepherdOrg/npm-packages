@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@shepherdorg/metadata@^0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/metadata/-/metadata-0.0.7.tgz#13599de4c3c7c3a15d2a020958f88c63150984d0"
-  integrity sha512-0KKlT2bkhEL/sRur8TnTo/+WmmZfiHL5Z24XIvVND2Y2m0J2tCBnbAhOP6oF2NpL7/2pnlzXK8gbbAZzbaZvVQ==
+"@shepherdorg/metadata@^0.0.10":
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/metadata/-/metadata-0.0.10.tgz#b1528bb6714e67504ba9398bb59e582cb769e0c3"
+  integrity sha512-rHx8Dr0kal9l0uNvmNjawa6Kr7rtgDEoddjCn1S11L1utdyX0qGRMcFeTrmwinH/evJpQ1KtdDLUzMiWCS5lMg==
   dependencies:
     ajv "^6.10.2"
     fluture "^11.0.3"

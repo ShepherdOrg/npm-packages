@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@shepherdorg/docker-image-metadata-loader": "^0.0.2",
-    "@shepherdorg/metadata": "^0.0.8",
+    "@shepherdorg/metadata": "^0.0.10",
     "@shepherdorg/nano-inject": "^0.0.6"
   },
   "devDependencies": {

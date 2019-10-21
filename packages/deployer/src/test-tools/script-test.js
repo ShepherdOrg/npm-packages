@@ -57,7 +57,7 @@ module.exports = {
                 expect(errCode).to.equal(execution.expectedExitCode);
                 execution.processOutput = stdout;
                 execution.processStderr = err.trim();
-                execution.checkExpecations();
+                execution.checkExpectations();
                 execution.callback(stdout);
             }else{
                 console.error("Process error in test, error code:", errCode, " stderr:", err);
@@ -65,7 +65,7 @@ module.exports = {
             }
         }, function (output) {
             execution.processOutput = output;
-            execution.checkExpecations();
+            execution.checkExpectations();
             execution.callback(output);
         }, logfn);
 
@@ -112,7 +112,7 @@ module.exports = {
             done(callback){
                 execution.callback = callback;
             },
-            checkExpecations(){
+            checkExpectations(){
                 if(execution.actualFromStderr){
                     if(! (execution.processStderr === execution.expectedOutputFileOrDir)){
                         expect().fail("Standard err " + execution.processStderr + " does not match expected " + execution.expectedOutputFileOrDir + " error output");
@@ -131,7 +131,7 @@ module.exports = {
                     let difference = JsDiff.diffTrimmedLines(expectedOutput.trim(), execution.processOutput.trim());
                     if (containsDifference(difference)) {
 
-                        fs.writeFileSync('/testdata/expected/actualoutput.log', execution.processOutput);
+                        fs.writeFileSync('./e2etest/expected/actualoutput.log', execution.processOutput);
                         expect().fail("Expected stdout \n" + expectedOutput + "\n differs from actual stdout \n" + execution.processOutput + "\n Differences found:" + renderDifferences(difference));
                     }
                 } else {

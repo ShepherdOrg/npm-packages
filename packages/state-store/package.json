@@ -13,10 +13,10 @@
     "md5-file": "^4.0.0"
   },
   "peerDependencies": {
-    "@shepherdorg/metadata": "^0.0.7"
+    "@shepherdorg/metadata": "^0.0.10"
   },
   "devDependencies": {
-    "@shepherdorg/metadata": "^0.0.7",
+    "@shepherdorg/metadata": "^0.0.10",
     "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.11.1",

@@ -1,8 +1,12 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Deployer application",
-  "main": "src/release-manager/shepherd.js",
+  "main": "bin/shepherd.js",
+  "bin": {
+    "shepherd": "bin/shepherd.js",
+    "classify-deployment-document": "bin/deploymentdocument-classifier.js"
+  },
   "files": [
     "src"
   ],
@@ -10,7 +14,7 @@
     "@shepherdorg/docker-image-metadata-loader": "^0.1.0",
     "@shepherdorg/exec": "0.0.1",
     "@shepherdorg/filestore-backend": "^0.0.2",
-    "@shepherdorg/metadata": "^0.0.8",
+    "@shepherdorg/metadata": "^0.0.10",
     "@shepherdorg/nano-inject": "^0.0.6",
     "@shepherdorg/postgres-backend": "^0.0.2",
     "@shepherdorg/state-store": "^0.0.3",
@@ -38,8 +42,8 @@
     "test": "npm run specs",
     "specs": "mocha --exit --recursive 'src/**/*.spec.js'",
     "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch 'src/**/*.spec.js'",
-    "integrationtest": "mocha --exit --recursive 'src/**/*.integrationtest.js'",
-    "itdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch 'src/**/*.integrationtest.js'",
+    "e2etest": "mocha --exit --recursive 'src/**/*.e2etest.js'",
+    "e2etdd": "mocha --exit -R dot --recursive --watch-extensions js,json,sh --watch 'src/**/*.e2etest.js'",
     "prepublishOnly": "yarn install --frozen-lockfile && npm test",
     "start-postgres": "docker run --rm --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres",
     "kill-postgres": "docker stop postgres"

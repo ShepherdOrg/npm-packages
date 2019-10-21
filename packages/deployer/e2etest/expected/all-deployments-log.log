@@ -1,0 +1,88 @@
+Applying deployments in  /deployments/images.yaml
+-------------------------------------------------------- infrastructure test-infrastructure:0.0.1 >
+Test infrastructure deployed
+<  infrastructure test-infrastructure:0.0.1 -------------------------------------------------------
+
+----------------------------------------------------------------------------------k8s folders /./ >
+--------------------------------------------/deployments//./ >
+< /deployments//./ -------------------------------------------
+--------------------------------------------/deployments//./www-icelandair-com >
+simulating kubectl apply deployment_www-icelandair-com-fromdir.yaml
+simulating kubectl apply service_www-icelandair-com-fromdir.yaml
+simulating kubectl apply configmap_www-icelandair-com-nginx-acls-fromdir.yaml
+simulating kubectl apply service_www-icelandair-com-internal-fromdir.yaml
+< /deployments//./www-icelandair-com -------------------------------------------
+--------------------------------------------/deployments//./namespaces >
+simulating kubectl delete namespace_monitors.yaml
+< /deployments//./namespaces -------------------------------------------
+< k8s folders /./ ---------------------------------------------------------------------------------
+
+testenvimage:0.0.0  triggering deployment of  testenvimage-migrations:0.0.0
+---------------------------------------------------------------------k8s image testenvimage:0.0.0 >
+simulating kubectl apply deployment_www-icelandair-com.yaml
+simulating kubectl apply service_www-icelandair-com.yaml
+simulating kubectl apply service_www-icelandair-com-internal.yaml
+simulating kubectl apply configmap_www-icelandair-com-nginx-acls.yaml
+< k8s image testenvimage:0.0.0 --------------------------------------------------------------------
+
+Delete deployment test-image-to-delete
+---------------------------------------------------------------------k8s image testenvimage:0.0.0 >
+simulating kubectl delete deployment_www-icelandair-com.yaml
+simulating kubectl delete service_www-icelandair-com.yaml
+simulating kubectl delete service_www-icelandair-com-internal.yaml
+simulating kubectl delete configmap_www-icelandair-com-nginx-acls.yaml
+< k8s image testenvimage:0.0.0 --------------------------------------------------------------------
+
+testenvimage:0.0.0  triggering deployment of  testenvimage-migrations:0.0.0
+Feature deployment test1
+---------------------------------------------------------------------k8s image testenvimage:0.0.0 >
+SHEPHERD: Modifying k8s deployment files for feature deployment - test1
+Changing CPU request www-icelandair-com-test1 from 0.4 to 50m
+Changing CPU request www-icelandair-com-ssr-test1 from 0.4 to 50m
+simulating kubectl apply deployment_www-icelandair-com-test1.yaml
+simulating kubectl apply service_www-icelandair-com-test1.yaml
+simulating kubectl apply service_www-icelandair-com-internal-test1.yaml
+simulating kubectl apply configmap_www-icelandair-com-nginx-acls-test1.yaml
+< k8s image testenvimage:0.0.0 --------------------------------------------------------------------
+
+---------------------------------------------------------- deployer testenvimage-migrations:0.0.0 >
+bin
+dev
+etc
+home
+lib
+linuxrc
+media
+mnt
+proc
+root
+run
+sbin
+srv
+sys
+tmp
+usr
+var
+<  deployer testenvimage-migrations:0.0.0 ---------------------------------------------------------
+
+---------------------------------------------------------- deployer testenvimage-migrations:0.0.0 >
+bin
+dev
+etc
+home
+lib
+linuxrc
+media
+mnt
+proc
+root
+run
+sbin
+srv
+sys
+tmp
+usr
+var
+<  deployer testenvimage-migrations:0.0.0 ---------------------------------------------------------
+
+All images processed.

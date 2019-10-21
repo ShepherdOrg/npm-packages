@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: www-icelandair-com-test1
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+  labels:
+    name: www-icelandair-com-test1
+    subdomain: test1
+    team: flip
+    ttl-hours: '48'
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 81
+      name: http-proxy-protocol
+    - port: 443
+      targetPort: 444
+      name: https-proxy-protocol
+  selector:
+    name: www-icelandair-com-test1
+    tier: frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: www-icelandair-com-test1
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+  labels:
+    name: www-icelandair-com-test1
+    subdomain: test1
+    team: flip
+    ttl-hours: '48'
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 81
+      name: http-proxy-protocol
+    - port: 443
+      targetPort: 444
+      name: https-proxy-protocol
+  selector:
+    name: www-icelandair-com-test1
+    tier: frontend

@@ -52,7 +52,6 @@ export type TImageMetadata = {
     gitCommit?: string
     dockerImageTag?: string
     buildHostName?: string
-// TODO: Support e2e test command
     e2eTestCommand?: string
     hyperlinks?: Array<THref>
 }
