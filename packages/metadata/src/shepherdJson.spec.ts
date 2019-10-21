@@ -6,6 +6,7 @@ import {
     renderValidationMessage,
     validateAndCombineFullProps
 } from './shepherdJson'
+import {TDeploymentType, TK8sMetadata} from './index'
 
 
 describe('shepherd json load and validation', function () {
@@ -86,6 +87,21 @@ describe('shepherd json load and validation', function () {
                 expect(err.message).to.contain('someAdditionalField')
             }
 
+        });
+
+        it('should derive deployment type from presence of k8s deployment data', () => {
+
+            let generatedPropsFile = './testdata/shepherd-json/generated-props.json'
+            let userPropsFile = './testdata/shepherd-json/user-props.json'
+
+            const generatedProps = readJsonFileRelative(generatedPropsFile)
+            const userProps = readJsonFileRelative(userPropsFile)
+
+            const combinedProps = validateAndCombineFullProps(userProps, generatedProps) as TK8sMetadata
+
+            expect(combinedProps.semanticVersion).to.equal('1.1.1')
+            expect(combinedProps.gitBranch).to.equal('master')
+            expect(combinedProps.deploymentType).to.equal(TDeploymentType.Deployer)
         });
 
     });

@@ -1,6 +1,7 @@
 import Ajv from 'ajv'
 import fs from "fs"
 import path from "path"
+import {TDeploymentType, TImageMetadata} from './index'
 
 
 export function readJsonFile(absolutePath) {
@@ -78,7 +79,7 @@ function compileGeneratedPropertiesSchema() {
     return ajv.compile(schema)
 }
 
-export function validateAndCombineFullProps(userProps, generatedProps) {
+export function validateAndCombineFullProps(userProps, generatedProps): TImageMetadata {
     const validateUserProps = compileUserPropertiesSchema()
 
     validateUserProps(userProps)
@@ -92,5 +93,15 @@ export function validateAndCombineFullProps(userProps, generatedProps) {
         throw new Error(`Generated properties did not pass validation: ${renderValidationMessage(validateGeneratedProps)}`)
     }
 
-    return Object.assign({}, generatedProps, userProps)
+    let validatedProps = Object.assign({}, generatedProps, userProps)
+
+    if (!validatedProps.deploymentType) {
+        if (Boolean(validatedProps.kubeConfigB64)) {
+            validatedProps.deploymentType = TDeploymentType.Kubernetes
+        } else {
+            validatedProps.deploymentType = TDeploymentType.Deployer
+
+        }
+    }
+    return validatedProps
 }

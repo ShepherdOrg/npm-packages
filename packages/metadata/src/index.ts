@@ -41,11 +41,13 @@ export type TDeploymentState = {
 
 export type TImageMetadata = {
     displayName: string
+    semanticVersion: string
     deploymentType: TDeploymentType
     migrationImage?: string
     lastCommits: string
     gitUrl: string
     gitHash: string
+    gitBranch: string
     buildDate: Date
     gitCommit?: string
     dockerImageTag?: string
@@ -68,16 +70,16 @@ export type TK8sMetadata = TImageMetadata & {
     kubeDeploymentFiles?: TTarFolderStructure
     kubeConfigB64?: string
 }
+//
+// export type THerdMetadata ={
+//     id: string
+//     herdSpec: THerdSpec
+//     deploymentState: TDeploymentState
+//     timestamp?: Date;
+// }
 
-export type THerdMetadata ={
-    id: string
-    herdSpec: THerdSpec
-    deploymentState: TDeploymentState
-    timestamp?: Date;
-}
-
-export type THerdDeployerMetadata = TDeployerMetadata & THerdMetadata
-
-export type TK8sDeployerMetadata = TK8sMetadata & THerdMetadata
-
-
+// export type THerdDeployerMetadata = TDeployerMetadata & THerdMetadata
+//
+// export type THerdK8sMetadata = TK8sMetadata & THerdMetadata
+//
+//
