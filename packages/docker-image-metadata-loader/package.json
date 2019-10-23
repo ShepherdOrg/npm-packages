@@ -41,7 +41,7 @@
   "dependencies": {
     "@shepherdorg/exec": "0.0.1",
     "@shepherdorg/nano-inject": "0.0.6",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.13",
     "superagent": "^5.1.0"
   },
   "devDependencies": {
