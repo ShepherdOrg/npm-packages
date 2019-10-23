@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/docker-image-metadata-loader",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Retrieve docker image metadata efficiently from (private) docker registry, or alternatively by using docker pull and inspect",
   "keywords": [
     "docker",
@@ -32,26 +32,28 @@
     "format": "prettier --ignore-path ../../.prettierignore --write 'lib/**/*.{ts,js}'",
     "format-verify": "prettier  --ignore-path ../../.prettierignore -l 'lib/**/*.{ts,js}'",
     "start-local-registry": "docker run -d -p 5000:5000 --restart always --name registry registry:2",
-    "start-local-secure-registry": "./testing/run-basicauth-registry.sh",
+    "start-local-secure-registry": "(cd ./testing && ./run-basicauth-registry.sh)",
+    "start-local-registries": "npm run start-local-registry && npm run start-local-secure-registry && npm run populate-local-registries",
+    "kill-local-registries": "docker kill registry && docker rm registry && docker kill basicauth-registry && docker rm basicauth-registry",
     "populate-local-registries": "./testing/populate-local-registries.sh",
     "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
   },
   "dependencies": {
     "@shepherdorg/exec": "0.0.1",
     "@shepherdorg/nano-inject": "0.0.6",
-    "lodash": "4.17.11",
-    "superagent": "5.0.2"
+    "lodash": "^4.17.15",
+    "superagent": "^5.1.0"
   },
   "devDependencies": {
-    "@types/chai": "^4.1.7",
-    "@types/lodash": "^4.14.123",
-    "@types/mocha": "^5.2.6",
-    "@types/node": "^11.13.5",
+    "@types/chai": "^4.2.4",
+    "@types/lodash": "^4.14.144",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.11.5",
     "chai": "^4.2.0",
-    "mocha": "^6.1.4",
+    "mocha": "^6.2.2",
     "mocha-typescript": "^1.1.17",
-    "prettier": "^1.17.0",
-    "ts-node": "^8.1.0",
-    "typescript": "^3.4.4"
+    "prettier": "^1.18.2",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.4"
   }
 }

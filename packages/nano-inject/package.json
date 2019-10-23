@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/nano-inject",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Minimalistic dependency injection library...",
   "keywords": [
     "dependency injection",
@@ -31,13 +31,13 @@
     "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^10.11.4",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.11.5",
     "chai": "^4.2.0",
-    "mocha": "^5.2.0",
+    "mocha": "^6.2.2",
     "mocha-typescript": "^1.1.17",
-    "prettier": "^1.14.2",
-    "ts-node": "^7.0.1",
-    "typescript": "^3.1.1"
+    "prettier": "^1.18.2",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.4"
   }
 }

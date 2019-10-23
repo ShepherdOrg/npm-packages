@@ -15,13 +15,13 @@ describe("Image metadata loading", function(){
 
   it("should pull and inspect icelandair/shepherd image", () => {
     return imageMetadataLoader.inspectImage({image:"icelandair/shepherd", imagetag:"latest"}).then((imageMetadata:TDockerInspectMetadata)=>{
-      expect(imageMetadata.dockerLabels["is.icelandairlabs.name"]).to.equal("Shepherd agent");
+      expect(imageMetadata.dockerLabels["shepherd.name"]).to.equal("Shepherd agent");
     });
   });
 
   it("should pull and inspect icelandair/shepherd image labels", () => {
     return imageMetadataLoader.inspectImageLabels({image:"icelandair/shepherd", imagetag:"latest"}).then((imageLabels:TDockerImageLabels)=>{
-      expect(imageLabels["is.icelandairlabs.name"]).to.equal("Shepherd agent");
+      expect(imageLabels["shepherd.name"]).to.equal("Shepherd agent");
     });
   });
 });

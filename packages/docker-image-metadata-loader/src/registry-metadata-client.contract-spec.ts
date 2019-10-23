@@ -38,7 +38,8 @@ describe("Registry metadata API against localhost on http", function() {
     return api
       .getImageManifestLabels("localhost:5000/shepherd", "latest")
       .then((dockerTags: TDockerImageLabels) => {
-        expect(dockerTags["is.icelandairlabs.name"]).to.equal("Shepherd agent");
+        // console.log('dockerTags', dockerTags)
+        expect(dockerTags["shepherd.name"]).to.equal("Shepherd agent");
       });
   });
 
@@ -101,7 +102,7 @@ describe("Registry metadata API against localhost with basicauth on https", func
     return api
       .getImageManifestLabels(`${dockerHost}/shepherd`, "latest")
       .then((dockerTags: TDockerImageLabels) => {
-        expect(dockerTags["is.icelandairlabs.name"]).to.equal("Shepherd agent");
+        expect(dockerTags["shepherd.name"]).to.equal("Shepherd agent");
       });
   });
 

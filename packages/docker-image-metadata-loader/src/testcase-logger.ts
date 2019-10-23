@@ -17,7 +17,7 @@ export function getTestCaseLogger(options: {
     infoEntries: infoEntries,
     debug: (_msg: string) => {
       debugEntries.push(_msg);
-      options.debugOutput && console.log("DEBUG " + _msg);
+      options.debugOutput && console.debug("DEBUG " + _msg);
     },
     info: (_msg: string) => {
       infoEntries.push(_msg);

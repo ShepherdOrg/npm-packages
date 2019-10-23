@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo Running from `pwd`
+
 docker run -d \
   -p 5500:5000 \
   --restart=always \

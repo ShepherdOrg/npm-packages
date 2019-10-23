@@ -27,7 +27,7 @@ function loadAuth(registry) {
 // This file contains experiments with docker registry API
 
 function httpsRequest(url, basicAuth, path, accept, headers, done) {
-  console.log(`Requesting ${url} ${path}`);
+  console.debug(`Requesting ${url} ${path}`);
   accept = accept || "*";
   path = path || ``;
   let options: any = {
@@ -47,15 +47,15 @@ function httpsRequest(url, basicAuth, path, accept, headers, done) {
     _.extend(options.headers, headers);
   }
   let resbuf = "";
-  console.log("Making request", JSON.stringify(options));
+  console.debug("Making request", JSON.stringify(options));
   const req = https.request(options, function(res) {
-    console.log(res.statusCode);
+    console.debug(res.statusCode);
     res.on("data", function(d) {
       resbuf += d;
     });
     res.on("end", function(/*enddata*/) {
-      console.log("END OF REQUEST RESPONSE");
-      console.log(JSON.stringify(res.headers));
+      console.debug("END OF REQUEST RESPONSE");
+      console.debug(JSON.stringify(res.headers));
       done(resbuf, res);
     });
   });
@@ -82,20 +82,20 @@ xdescribe("Docker registry API - get manifest - basicauth", function() {
     // Just checking for a wiring/injection error
     //  done();
     //  return;
-    console.log("Using auth", basicAuth);
+    console.debug("Using auth", basicAuth);
     httpsRequest(REGISTRY_URL, basicAuth, `/v2/${IMAGE}/manifests/${IMAGE_TAG}`, "application/vnd.docker.distribution.manifest.v2+json", null, function(resbuf) {
       let manifestobj = JSON.parse(resbuf);
 
 
-      console.log("Have response", manifestobj);
+      console.debug("Have response", manifestobj);
       fs.writeFileSync("../response.json", resbuf);
       let configdigest = manifestobj.config.digest;
-      console.log("configdigest", configdigest);
+      console.debug("configdigest", configdigest);
 
-      console.log("Next request");
+      console.debug("Next request");
       httpsRequest(REGISTRY_URL, basicAuth, `/v2/${IMAGE}/blobs/${configdigest}`, "*", null, function(resbuffer, res) {
         if (res.statusCode === 307) {
-          console.log("Redirect...");
+          console.debug("Redirect...");
           let redirectHeaders = res.headers;
           let redirectUrl = redirectHeaders.location;
           let parsedUrl = url.parse(redirectUrl, true);
@@ -103,7 +103,7 @@ xdescribe("Docker registry API - get manifest - basicauth", function() {
           let path = parsedUrl.path;
           let host = parsedUrl.host;
           httpsRequest(host, undefined, path, undefined, undefined, function(buffer, response) {
-            console.log("Redirect response", response.statusCode, buffer);
+            console.debug("Redirect response", response.statusCode, buffer);
 
             fs.writeFileSync("./metadata.json", buffer);
 
@@ -133,19 +133,19 @@ describe("Get docker info from local registry using superagent", function() {
     let ApiUrl = `${PROTOCOL}://${REGISTRY_HOST}/v2/${IMAGE}/manifests/${IMAGE_TAG}`;
     return agent.get(ApiUrl).set("Host", REGISTRY_HOST).then((result) => {
       let imageManifest = JSON.parse(result.body);
-      // console.log('Have result', Object.getOwnPropertyNames(imageManifest.history[0].v1Compatibility))
+      // console.debug('Have result', Object.getOwnPropertyNames(imageManifest.history[0].v1Compatibility))
 
       let layerZero = JSON.parse(imageManifest.history[0].v1Compatibility);
-      // console.log('layerZero', layerZero)
+      // console.debug('layerZero', layerZero)
 
       let labels = layerZero.config.Labels;
 
       return labels;
 
-      console.log("Labels", labels);
+      console.debug("Labels", labels);
     }).catch((err) => {
-      console.log("FULL ERRROR", JSON.stringify(err, undefined, 2));
-      console.log("Error status", err.status);
+      console.debug("FULL ERRROR", JSON.stringify(err, undefined, 2));
+      console.debug("Error status", err.status);
       throw new Error(ApiUrl + " :-> " + err.status);
     });
 
@@ -172,9 +172,9 @@ describe("Get docker info from local registry using superagent", function() {
 
   it("Should list all shepherd labelled images", () => {
     let ApiUrl = `${PROTOCOL}://${REGISTRY_HOST}/v2/_catalog/?n=10000`;
-    console.log('Query catalog', ApiUrl)
+    console.debug('Query catalog', ApiUrl)
     return agent.get(ApiUrl).then((result) => {
-      console.log("Have result", result.body);
+      console.debug("Have result", result.body);
 
       const imageTagPromises = result.body.repositories.map((imageName) => {
         return getImageTags(imageName);
@@ -184,17 +184,17 @@ describe("Get docker info from local registry using superagent", function() {
       return Promise.all(imageTagPromises);
     }).then((imagesWithTags) => {
       const imageManifestPromises = imagesWithTags.map((imageWithTag:any) => {
-        console.log("Getting manifest for ", imageWithTag.displayName, imageWithTag.tags[0]);
+        console.debug("Getting manifest for ", imageWithTag.displayName, imageWithTag.tags[0]);
         return getImageManifest(imageWithTag.displayName, imageWithTag.tags[0]);
       });
       // @ts-ignore
       return Promise.all(imageManifestPromises);
 
     }).then((imagesWithManifests) => {
-//            console.log('HAVE images with manifests', imagesWithManifests)
+//            console.debug('HAVE images with manifests', imagesWithManifests)
       return imagesWithManifests.filter(current => current && current["shepherd.displayName"]);
     }).then((filtered) => {
-      console.log("FILTERED", filtered);
+      console.debug("FILTERED", filtered);
     });
   });
 
@@ -202,10 +202,10 @@ describe("Get docker info from local registry using superagent", function() {
   it("Should list my images", () => {
     let ApiUrl = `${PROTOCOL}://${REGISTRY_HOST}/v2/_catalog/?n=10000`;
     return agent.get(ApiUrl).then((result) => {
-      console.log("Have result", result.body);
+      console.debug("Have result", result.body);
 
       result.body.repositories.map((imageName) => {
-        console.log("IMAGE: ", imageName);
+        console.debug("IMAGE: ", imageName);
       });
 
       return result.body;
@@ -216,7 +216,7 @@ describe("Get docker info from local registry using superagent", function() {
   it("should get tags", () => {
 
     let ApiUrl = `${PROTOCOL}://${REGISTRY_HOST}/v2/${IMAGE}/tags/list/?page_size=10`;
-    console.log("ApiUrl", ApiUrl);
+    console.debug("ApiUrl", ApiUrl);
     return agent.get(ApiUrl).set("Host", REGISTRY_HOST).then((result) => {
       expect(result.body.displayName).to.equal(`${IMAGE}`);
       return result.body;
@@ -229,17 +229,17 @@ describe("Get docker info from local registry using superagent", function() {
     let ApiUrl = `${PROTOCOL}://${REGISTRY_HOST}/v2/${IMAGE}/manifests/${IMAGE_TAG}`;
     return agent.get(ApiUrl).set("Host", REGISTRY_HOST).then((result) => {
       let imageManifest = JSON.parse(result.body);
-      // console.log('Have result', Object.getOwnPropertyNames(imageManifest.history[0].v1Compatibility))
+      // console.debug('Have result', Object.getOwnPropertyNames(imageManifest.history[0].v1Compatibility))
 
       let layerZero = JSON.parse(imageManifest.history[0].v1Compatibility);
-      // console.log('layerZero', layerZero)
+      // console.debug('layerZero', layerZero)
 
       let labels = layerZero.config.Labels;
 
-      console.log("Labels", labels);
+      console.debug("Labels", labels);
     }).catch((err) => {
-      console.log("FULL ERRROR", JSON.stringify(err, undefined, 2));
-      console.log("Error status", err.status);
+      console.debug("FULL ERRROR", JSON.stringify(err, undefined, 2));
+      console.debug("Error status", err.status);
       throw new Error(ApiUrl + " :-> " + err.status);
     });
 
@@ -272,7 +272,7 @@ xdescribe("Get docker info from hub.docker.com registry using superagent (not wo
     const ORGNAME = "icelandair";
     let ApiUrl = `https://hub.docker.com/v2/repositories/${ORGNAME}/?page_size=10000`;
     return agent.get(ApiUrl).set("Authorization", "JWT " + loginToken).then((result) => {
-      console.log("Have result", result.body);
+      console.debug("Have result", result.body);
       return result.body;
     });
 
@@ -281,9 +281,9 @@ xdescribe("Get docker info from hub.docker.com registry using superagent (not wo
   it("should get tags", () => {
 
     let ApiUrl = `https://${REGISTRY_HOST}/v2/repositories/${IMAGE}/tags/?page_size=10`;
-    console.log("ApiUrl", ApiUrl);
+    console.debug("ApiUrl", ApiUrl);
     return agent.get(ApiUrl).set("Host", REGISTRY_HOST).set("Authorization", "JWT " + loginToken).then((result) => {
-      console.log("Have result", result.body);
+      console.debug("Have result", result.body);
       return result.body;
     });
 
@@ -294,17 +294,17 @@ xdescribe("Get docker info from hub.docker.com registry using superagent (not wo
     let ApiUrl = `https://${REGISTRY_HOST}/v2/repositories/${IMAGE}/manifests/${IMAGE_TAG}`;
     return agent.get(ApiUrl).set("Host", REGISTRY_HOST).then((result) => {
       let imageManifest = JSON.parse(result.body);
-      // console.log('Have result', Object.getOwnPropertyNames(imageManifest.history[0].v1Compatibility))
+      // console.debug('Have result', Object.getOwnPropertyNames(imageManifest.history[0].v1Compatibility))
 
       let layerZero = JSON.parse(imageManifest.history[0].v1Compatibility);
-      // console.log('layerZero', layerZero)
+      // console.debug('layerZero', layerZero)
 
       let labels = layerZero.config.Labels;
 
-      console.log("Labels", labels);
+      console.debug("Labels", labels);
     }).catch((err) => {
-      console.log("FULL ERRROR", JSON.stringify(err, undefined, 2));
-      console.log("Error status", err.status);
+      console.debug("FULL ERRROR", JSON.stringify(err, undefined, 2));
+      console.debug("Error status", err.status);
       throw new Error(ApiUrl + " :-> " + err.status);
     });
 
