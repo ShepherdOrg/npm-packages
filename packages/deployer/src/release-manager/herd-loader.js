@@ -54,11 +54,11 @@ module.exports = function (injected) {
     }
 
     return {
-        loadHerd (fileName) {
+        loadHerd (fileName, environment) {
             return new Promise(function (resolve, reject) {
                 try {
                     if (fs.existsSync(fileName)) {
-                        let releasePlan = ReleasePlan();
+                        let releasePlan = ReleasePlan(environment);
 
                         let infrastructurePromises = [];
                         let allDeploymentPromises = [];

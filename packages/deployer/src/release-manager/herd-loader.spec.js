@@ -21,7 +21,6 @@ describe('herd.yaml loading', function () {
         delete process.env.PREFIXED_TOP_DOMAIN_NAME;
         delete process.env.MICROSERVICES_POSTGRES_RDS_HOST;
         delete process.env.MICRO_SITES_DB_PASSWORD;
-        delete process.env.INFRASTRUCTURE_IMPORTED_ENV;
         delete process.env.WWW_ICELANDAIR_IP_WHITELIST;
         delete process.env.EXPORT1;
         delete process.env.EXPORT2;
@@ -33,7 +32,6 @@ describe('herd.yaml loading', function () {
         process.env.PREFIXED_TOP_DOMAIN_NAME = 'testing123';
         process.env.MICROSERVICES_POSTGRES_RDS_HOST = 'testing123';
         process.env.MICRO_SITES_DB_PASSWORD = 'testing123';
-        process.env.INFRASTRUCTURE_IMPORTED_ENV = 'thatsme';
         process.env.WWW_ICELANDAIR_IP_WHITELIST = 'YnVsbHNoaXRsaXN0Cg==';
         delete process.env.TPL_DOCKER_IMAGE;
 

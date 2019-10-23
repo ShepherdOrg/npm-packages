@@ -42,9 +42,6 @@ module.exports = {
     execute: function (command, args, options) {
         let logfn = undefined;
 
-        if(!options.debug){
-            console.log('stdout captured by script-test. Pass in debug option to see it.')
-        }
         options.stdoutLineHandler = function (line) {
             if (options.debug) {
                 console.log(line.trim());

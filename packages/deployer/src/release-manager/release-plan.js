@@ -12,12 +12,17 @@ module.exports = function (injected) {
     const cmd = injected('cmd');
     const logger = injected('logger');
 
-    return function () {
+    return function (forEnv) {
+
+        if(!forEnv){
+            throw new Error( 'must specify environment you are creating a deployment plan for')
+        }
+
         const k8sDeploymentPlan = {};
         const dockerDeploymentPlan = {};
         const k8sDeploymentsByIdentifier = {};
 
-        function addK8sDeployment(deployment) {
+        function addK8sDeployment (deployment) {
             k8sDeploymentPlan[deployment.origin] = k8sDeploymentPlan[deployment.origin] || {
                 herdName: deployment.herdName,
                 deployments: []
@@ -31,13 +36,13 @@ module.exports = function (injected) {
             k8sDeploymentsByIdentifier[deployment.identifier] = deployment;
         }
 
-        function addDockerDeployer(deployment) {
+        function addDockerDeployer (deployment) {
             dockerDeploymentPlan[deployment.origin] = dockerDeploymentPlan[deployment.origin] || {
                 herdName: deployment.herdName,
                 deployments: []
             };
 
-            function allButImageParameter(params) {
+            function allButImageParameter (params) {
                 return params.slice(0, params.length - 1);
             }
 
@@ -45,43 +50,44 @@ module.exports = function (injected) {
             dockerDeploymentPlan[deployment.origin].deployments.push(deployment);
         }
 
-        function saveDeploymentState(deployment) {
+        function saveDeploymentState (deployment) {
+
             return stateStore.saveDeploymentState(deployment.state);
         }
 
-        function getDeploymentState(deployment) {
+        function getDeploymentStateFromStore (deployment) {
+
+
             logger.debug('Get deployment state ', {deployment});
             if (deployment.type === 'k8s') {
                 addK8sDeployment(deployment);
             } else if (deployment.type === 'deployer') {
                 addDockerDeployer(deployment);
             }
-            return new Promise(function (resolve, reject) {
-                return stateStore.getDeploymentState(deployment).then(function (state) {
-                    if (!deployment.type) {
-                        let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deployment);
-                        reject(message);
-                    }
-                    if (!deployment.identifier) {
-                        let message = "Illegal deployment, no identifier attribute in " + JSON.stringify(deployment);
-                        reject(message);
-                    }
 
+            return stateStore.getDeploymentState(deployment).then(function (state) {
+                if (!deployment.type) {
+                    let message = 'Illegal deployment, no deployment type attribute in ' + JSON.stringify(deployment);
+                    reject(message);
+                }
+                if (!deployment.identifier) {
+                    let message = 'Illegal deployment, no identifier attribute in ' + JSON.stringify(deployment);
+                    reject(message);
+                }
 
-                    deployment.state = state;
-                    resolve(deployment);
-                }).catch(reject);
+                deployment.state = state;
+                return deployment;
             });
         }
 
-        function K8sDeploymentPromises() {
+        function K8sDeploymentPromises () {
             return _.map(k8sDeploymentPlan, function (deploymentPlan, identifier) {
                 return Promise.map(deploymentPlan.deployments, function (deployment) {
                     if (deployment.state.modified) {
 
                         return new Promise(function (resolve, reject) {
                             // console.debug('Executing kubectl on deployment descriptor ', deployment.descriptor);
-                            cmd.extendedExec("kubectl",
+                            cmd.extendedExec('kubectl',
                                 [deployment.operation, '-f', '-'],
                                 {
                                     env: process.env,
@@ -89,7 +95,7 @@ module.exports = function (injected) {
                                     debug: true
                                 },
                                 function (err, errCode, stdOut) {
-                                    if(deployment.operation === 'delete'){
+                                    if (deployment.operation === 'delete') {
                                         try {
                                             logger.info('kubectl ' + deployment.operation + ' deployments in ' + deployment.origin + '/' + deployment.identifier);
                                             logger.info('Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows.');
@@ -104,7 +110,7 @@ module.exports = function (injected) {
                                                 resolve(savedState, stdOut);
 
                                             }).catch(function (err) {
-                                                reject("Failed to save state after error in deleting deployment! " + deployment.origin + '/' + deployment.identifier + '\n' + err)
+                                                reject('Failed to save state after error in deleting deployment! ' + deployment.origin + '/' + deployment.identifier + '\n' + err);
                                             });
 
                                         } catch (e) {
@@ -112,7 +118,7 @@ module.exports = function (injected) {
                                         }
 
                                     } else {
-                                        let message = "Failed to deploy from label for image " + JSON.stringify(deployment);
+                                        let message = 'Failed to deploy from label for image ' + JSON.stringify(deployment);
                                         message += '\n' + err;
                                         message += '\nCode:' + errCode;
                                         message += '\nStdOut:' + stdOut;
@@ -129,14 +135,14 @@ module.exports = function (injected) {
                                             resolve(savedState, stdout);
 
                                         }).catch(function (err) {
-                                            reject("Failed to save state after successful deployment! " + deployment.origin + '/' + deployment.identifier + '\n' + err)
+                                            reject('Failed to save state after successful deployment! ' + deployment.origin + '/' + deployment.identifier + '\n' + err);
                                         });
 
                                     } catch (e) {
                                         reject(e);
                                     }
-                                })
-                        })
+                                });
+                        });
 
                     } else {
                         logger.debug(deployment.identifier + ' not modified, not deploying.');
@@ -147,18 +153,18 @@ module.exports = function (injected) {
             });
         }
 
-        function DeployerPromises() {
+        function DeployerPromises () {
             return _.map(dockerDeploymentPlan, function (deploymentPlan, identifier) {
                 return Promise.map(deploymentPlan.deployments, function (deployment) {
                     if (deployment.state.modified) {
                         return new Promise(function (resolve, reject) {
-                            cmd.extendedExec("docker",
+                            cmd.extendedExec('docker',
                                 ['run'].concat(deployment.dockerParameters),
                                 {
                                     env: process.env
                                 },
                                 function (err) {
-                                    let message = "Failed to run docker deployer " + JSON.stringify(deployment);
+                                    let message = 'Failed to run docker deployer ' + JSON.stringify(deployment);
                                     message += err;
                                     reject(message);
                                 },
@@ -173,15 +179,15 @@ module.exports = function (injected) {
                                             resolve(savedState, stdout);
 
                                         }).catch(function (err) {
-                                            reject("Failed to save state after successful deployment! " + deployment.origin + '/' + deployment.identifier + '\n' + err)
+                                            reject('Failed to save state after successful deployment! ' + deployment.origin + '/' + deployment.identifier + '\n' + err);
                                         });
 
                                     } catch (e) {
                                         console.error('Error running docker run' + JSON.stringify(deployment));
                                         reject(e);
                                     }
-                                })
-                        })
+                                });
+                        });
 
                     } else {
                         return undefined;
@@ -191,7 +197,7 @@ module.exports = function (injected) {
             });
         }
 
-        function executePlan() {
+        function executePlan () {
 
             let combinedPlan = {dockerDeploymentPlan: dockerDeploymentPlan, k8sDeploymentPlan: k8sDeploymentPlan};
 
@@ -200,20 +206,20 @@ module.exports = function (injected) {
                 fs.writeFileSync('/tmp/executingPlan.json', JSON.stringify(combinedPlan));
                 return new Promise(function (resolve, reject) {
                     resolve(combinedPlan);
-                })
+                });
             } else {
                 return new Promise(function (resolve, reject) {
                     let deploymentPromises = K8sDeploymentPromises();
                     deploymentPromises = deploymentPromises.concat(DeployerPromises());
                     Promise.all(deploymentPromises).then(function (deployments) {
-                        resolve(deployments)
+                        resolve(deployments);
                     }).catch(reject);
-                })
+                });
             }
 
         }
 
-        function printPlan(logger) {
+        function printPlan (logger) {
             _.each(k8sDeploymentPlan, function (plan) {
                 let modified = false;
                 if (plan.deployments) {
@@ -250,10 +256,10 @@ module.exports = function (injected) {
                 if (!modified) {
                     logger.info('No modifications to ' + plan.herdName);
                 }
-            })
+            });
         }
 
-        function exportDeploymentDocuments(exportDirectory) {
+        function exportDeploymentDocuments (exportDirectory) {
             return new Promise(function (resolve, reject) {
                 let fileWrites = [];
 
@@ -277,17 +283,18 @@ module.exports = function (injected) {
                     });
                 });
                 Promise.all(fileWrites).then(resolve).catch(reject);
-            })
+            });
         }
 
         return {
-            addDeployment(deployment) {
-                return getDeploymentState(deployment);
+            addDeployment (deployment) {
+                deployment.env = forEnv;
+                return getDeploymentStateFromStore(deployment);
             },
             executePlan: executePlan,
             printPlan: printPlan,
             exportDeploymentDocuments: exportDeploymentDocuments
-        }
+        };
 
     };
 };

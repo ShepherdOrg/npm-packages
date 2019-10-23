@@ -43,7 +43,7 @@ spec:
             - name: RUNTIME_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
-                  name: value1
+                  name: nowhardcoded
                   key: ENV
         - image: DOCKER_IMAGE_SSR
           name: www-icelandair-com-ssr

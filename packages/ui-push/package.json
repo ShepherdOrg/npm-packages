@@ -1,0 +1,30 @@
+{
+  "name": "@shepherdorg/ui-push",
+  "version": "1.0.0",
+  "description": "Push information about deployments to Shepherd UI",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && cp ./src/*.json ./dist && chmod +x ./dist/join-metadata-files.js",
+    "e2etest": "mocha --exit --require ts-node/register --recursive 'e2etest/**/*.e2etest.ts'",
+    "e2etdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,json --watch 'e2etest/**/*.e2etest.js'",
+    "test": "mocha --exit --require ts-node/register --recursive './**/*.spec.ts'",
+    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,json --watch './**/*.spec.ts'",
+    "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test",
+    "testupdate": "ts-node src/upload.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@shepherdorg/metadata": "^0.0.10",
+    "@shepherdorg/ui-graphql-client": "^1.0.0",
+    "add": "^2.0.6"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.4",
+    "@types/mocha": "^5.2.7",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.2",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.4"
+  }
+}

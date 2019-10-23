@@ -5,8 +5,22 @@ let path = require('path');
 /*
 This is the main entry point for shepherd deployer agent
 
-Usage: shepherd.js /somewhere/is/a/herd.yaml
  */
+
+
+function printUsage () {
+    console.log(`Usage: shepherd.js /path/to/a/herd.yaml ENVIRONMENT <options>
+
+Supported options:
+
+    --testrun-mode
+    
+`)
+}
+
+
+// parse options - Accept dry-run flags
+
 global.inject = require('@shepherdorg/nano-inject').inject;
 global._ = require('lodash');
 global.Promise = require('bluebird');
@@ -21,10 +35,10 @@ console.debug = function () {
 };
 
 
-const testMode = process.argv.indexOf('testrun-mode') > 0;
+const testMode = process.argv.indexOf('--testrun-mode') > 0;
 let testOutputDir;
 if(testMode){
-    testOutputDir = process.argv[process.argv.indexOf('testrun-mode') + 1];
+    testOutputDir = process.argv[process.argv.indexOf('--testrun-mode') + 1];
     logger.info('Running in test-mode. Writing deployment documents to ' + testOutputDir);
 }
 
@@ -38,7 +52,7 @@ if(process.env.SHEPHERD_PG_HOST){
 } else{
     const FileStore = require('@shepherdorg/filestore-backend').FileStore;
     let homedir = require('os').homedir();
-    let shepherdStoreDir = path.join(homedir,'.shepherdstore',process.env.ENV || 'default');
+    let shepherdStoreDir = process.env.SHEPHERD_FILESTORE_DIR ||  path.join(homedir,'.shepherdstore',process.env.ENV || 'default');
     console.log('Using shepherd store directory ', shepherdStoreDir);
     stateStoreBackend = FileStore({directory: shepherdStoreDir})
 
@@ -74,9 +88,15 @@ stateStoreBackend.connect().then(function () {
     }));
 
     let herdFilePath = process.argv[2];
+    let environment = process.argv[3];
 
-    logger.info('Shepherding herd from file ' + herdFilePath);
-    loader.loadHerd(herdFilePath).then(function (plan) {
+
+    if(!environment){
+        return printUsage()
+    }
+
+    logger.info('Shepherding herd from file ' + herdFilePath + " for environment " + environment);
+    loader.loadHerd(herdFilePath, environment).then(function (plan) {
         plan.printPlan(logger);
         if(testMode){
             logger.info('Testrun mode set - exporting all deployment documents to ' + testOutputDir);

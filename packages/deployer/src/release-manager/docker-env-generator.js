@@ -13,9 +13,9 @@ module.exports=function(){
 
     let dockerEnvGenerator={
         generateEnvString(env) {
-            let censored = _.omit(env, reservedNames);
+            let retracted = _.omit(env, reservedNames);
             let buffer = [];
-            _.each(censored, function (value, key) {
+            _.each(retracted, function (value, key) {
                 buffer.push(key);
                 buffer.push('=');
                 buffer.push(value);

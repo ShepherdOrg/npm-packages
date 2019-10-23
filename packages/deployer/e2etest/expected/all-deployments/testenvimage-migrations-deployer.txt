@@ -1,1 +1,1 @@
-docker run -i --rm -e ENV=testit -e EXPORT1=value1 -e DB_HOST=postgres-local -e DB_PASS=somedbpass -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:[image_version] ls
+docker run -i --rm -e ENV=testit -e EXPORT1=nowhardcoded -e DB_HOST=postgres-local -e DB_PASS=somedbpass -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:[image_version] ls
