@@ -45,8 +45,12 @@ module.exports = function (injected) {
     const dockerRegistries = labelsLoader.getDockerRegistryClientsFromConfig();
     const loader = labelsLoader.imageLabelsLoader(inject({'dockerRegistries': dockerRegistries, logger: logger}));
 
-    function calculateFoldersPlan (imagesPath, herdFolder) {
-        return scanDir(path.resolve(imagesPath + '/' + herdFolder.path));
+    function calculateFoldersPlan (herdFilePath, herdFolder) {
+        let resolvedPath = path.resolve(herdFilePath, herdFolder.path);
+
+        logger.info(`Scanning ${resolvedPath} for kubernetes deployment documents`);
+
+        return scanDir(resolvedPath);
     }
 
     function loadImageMetadata (imageDef) {

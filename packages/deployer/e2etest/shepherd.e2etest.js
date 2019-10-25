@@ -158,7 +158,7 @@ describe('run all deployers with infrastructure', function () {
 
         it('should export deployment documents directly', function (done) {
             let expectedOutputFileOrDir = process.cwd() + '/e2etest/expected/all-deployments';
-            script.execute('./bin/shepherd.js',
+            script.execute('./src/shepherd.js',
                 ['./src/deployment-manager/testdata/happypath/herd.yaml', 'e2etestenv', '--export', '--outputDir', '.build/testexport'], {
                     env: _.extend({}, testEnv, process.env),
                     debug: false // debug:false suppresses stdout of process

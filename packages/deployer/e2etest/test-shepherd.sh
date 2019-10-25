@@ -52,6 +52,6 @@ fi
  MICRO_SITES_DB_PASSWORD=somedbpass \
  ENV=testit \
  EXPORT1=nowhardcoded \
- ./bin/shepherd.js "$(pwd)/src/deployment-manager/testdata/happypath/herd.yaml" e2etestenv ${DRYRUN_PARAM} ${DRYRUN_OUTPUT_DIR_PARAM}
+ ./src/shepherd.js "$(pwd)/src/deployment-manager/testdata/happypath/herd.yaml" e2etestenv ${DRYRUN_PARAM} ${DRYRUN_OUTPUT_DIR_PARAM}
 
 sleep 1s

@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 'use strict';
 let path = require('path');
+let fs = require('fs');
 
 /*
 This is the main entry point for shepherd deployer agent
-
  */
 
 
 function printUsage () {
-    console.log(`Usage: shepherd.js /path/to/a/herd.yaml ENVIRONMENT <options>
+    console.log(`Usage: shepherd /path/to/a/herd.yaml ENVIRONMENT <options>
 
 Supported options:
 
@@ -29,7 +29,7 @@ global.inject = require('@shepherdorg/nano-inject').inject;
 global._ = require('lodash');
 global.Promise = require('bluebird');
 
-let Logger = require('../src/deployment-manager/logger');
+let Logger = require('./deployment-manager/logger');
 
 const logger =Logger(console);
 
@@ -44,9 +44,18 @@ const exportDocuments = process.argv.indexOf('--export') > 0;
 
 let outputDirectory;
 
+if(process.argv.indexOf('--help') > 0) {
+    printUsage();
+    process.exit(0)
+}
+
 if(process.argv.indexOf('--outputDir') > 0){
     outputDirectory = process.argv[process.argv.indexOf('--outputDir') + 1];
     logger.info('Writing deployment documents to ' + outputDirectory);
+
+    if (!fs.existsSync(outputDirectory)) {
+        fs.mkdirSync(outputDirectory);
+    }
 
 }
 
@@ -55,26 +64,23 @@ if((exportDocuments || dryRun) && !outputDirectory){
     process.exit(-1)
 }
 
-
 let stateStoreBackend;
 
 if(process.env.SHEPHERD_PG_HOST){
     const pgConfig = require('@shepherdorg/postgres-backend').PgConfig();
     const PostgresStore = require('@shepherdorg/postgres-backend').PostgresStore;
     stateStoreBackend = PostgresStore(pgConfig);
-
 } else{
     const FileStore = require('@shepherdorg/filestore-backend').FileStore;
     let homedir = require('os').homedir();
     let shepherdStoreDir = process.env.SHEPHERD_FILESTORE_DIR ||  path.join(homedir,'.shepherdstore',process.env.ENV || 'default');
-    console.log('Using shepherd store directory ', shepherdStoreDir);
+    logger.info('WARNING: Falling back to file based state store directory in ', shepherdStoreDir);
     stateStoreBackend = FileStore({directory: shepherdStoreDir})
-
 }
 
 const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore;
-const HerdLoader = require('../src/deployment-manager/herd-loader');
-const ReleasePlanModule = require('../src/deployment-manager/release-plan');
+const HerdLoader = require('./deployment-manager/herd-loader');
+const ReleasePlanModule = require('./deployment-manager/release-plan');
 const exec = require('@shepherdorg/exec');
 
 

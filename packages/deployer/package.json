@@ -1,10 +1,10 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Deployer application",
-  "main": "bin/shepherd.js",
+  "main": "src/shepherd.js",
   "bin": {
-    "shepherd": "bin/shepherd.js",
+    "shepherd.js": "src/shepherd.js",
     "classify-k8s-document": "bin/deploymentdocument-classifier.js"
   },
   "dependencies": {
