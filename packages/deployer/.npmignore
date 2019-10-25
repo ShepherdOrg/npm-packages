@@ -1,0 +1,9 @@
+*.tgz
+**/*.spec.*
+**/*.e2etest.*
+**/testdata/**/*
+.testdata/
+.testrun/
+.build/
+e2etest/
+yamrt.json
