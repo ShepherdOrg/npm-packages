@@ -23,7 +23,6 @@ export function PostgresStore(config):IPostgresStorageBackend {
                         // execute a query on our database
                         client.query('SELECT count(*) from deployments', [], function (err, result) {
                             if (err) {
-                                console.debug("Barbaric built-in migration...attempt to create deployments table");
                                 client.query("CREATE TABLE deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL);", [], function (err) {
                                     if (err) {
                                         // console.debug("ERROR creating table", err);

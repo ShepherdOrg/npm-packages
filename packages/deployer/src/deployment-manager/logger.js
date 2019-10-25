@@ -8,22 +8,21 @@ if(!globalwatch){
 const padleft = require('../padleft');
 const timePrefix = '         ';
 
-module.exports=function(){
+module.exports=function(consoleInstance){
     let buildLogger = {
         log:'',
         logStatements: [],
         info() {
             Array.prototype.unshift.call(arguments, padleft(timePrefix, `${globalwatch.ms}`));
-            console.log.apply(console, arguments);
-
+            consoleInstance.log.apply(consoleInstance, arguments);
         },
         debug() {
 //            Array.prototype.unshift.call(arguments, 'DEBUG   ');
-//            console.log.apply(console, arguments);
+//            consoleInstance.log.apply(consoleInstance, arguments);
         },
         error() {
             Array.prototype.unshift.call(arguments, 'ERROR   ');
-            console.log.apply(console, arguments);
+            consoleInstance.log.apply(consoleInstance, arguments);
         }
     };
     return buildLogger

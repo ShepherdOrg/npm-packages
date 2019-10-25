@@ -3,17 +3,19 @@ set -e
 
 THISDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+TESTMODE=$1
+
 export PATH=$(pwd)/e2etest/testbin:$(pwd)/bin:${PATH}
 
-if [ -z "${KUBECTL_OUTPUT_FOLDER}" ]; then
-	export KUBECTL_OUTPUT_FOLDER=./.testdata/.build/kubeapply
+if [ -z "${DRYRUN_OUTPUT_FOLDER}" ]; then
+	export DRYRUN_OUTPUT_FOLDER=./.testdata/.build/kubeapply
 fi
 
-mkdir -p ${KUBECTL_OUTPUT_FOLDER}
-rm -rf ${KUBECTL_OUTPUT_FOLDER}/*
+mkdir -p ${DRYRUN_OUTPUT_FOLDER}
+rm -rf ${DRYRUN_OUTPUT_FOLDER}/*
 
-if [ ! -d "${KUBECTL_OUTPUT_FOLDER}" ]; then
-  echo "${KUBECTL_OUTPUT_FOLDER} not created !!"
+if [ ! -d "${DRYRUN_OUTPUT_FOLDER}" ]; then
+  echo "${DRYRUN_OUTPUT_FOLDER} not created !!"
   exit 44
 fi
 
@@ -21,11 +23,23 @@ mkdir -p /tmp/infrastructure-exports/
 rm -rf /tmp/infrastructure-exports/*
 
 
-export TESTRUN_MODE=$1
-if [ ! -z "${TESTRUN_MODE}" ]; then
-	mkdir -p "$(pwd)/.testdata/.build/testexport"
-	export TESTOUTPUT_DIR=$(pwd)/.testdata/.build/testexport
+if [ "${TESTMODE}" = "--dryrun" ]; then
+  export DRYRUN_MODE=$TESTMODE
 fi
+
+if [ "${TESTMODE}" = "--dryrun" ]; then
+	mkdir -p "${DRYRUN_OUTPUT_FOLDER}"
+	DRYRUN_PARAM="--dryrun"
+	export DRYRUN_OUTPUT_DIR_PARAM="--outputDir ${DRYRUN_OUTPUT_FOLDER}"
+fi
+
+if [ "${TESTMODE}" = "--testrun-mode" ]; then
+	mkdir -p "${DRYRUN_OUTPUT_FOLDER}"
+	DRYRUN_PARAM="--dryrun"
+	export DRYRUN_OUTPUT_DIR_PARAM="--outputDir ${DRYRUN_OUTPUT_FOLDER}"
+fi
+
+
 
  SHEPHERD_FILESTORE_DIR="./.build/.shepherdstore" \
  www_icelandair_com_image=www-image:99 \
@@ -33,12 +47,11 @@ fi
  SUB_DOMAIN_PREFIX=testSDP \
  WWW_ICELANDAIR_IP_WHITELIST=$(echo teststring | base64) \
  DEBUG_MODE=false \
- KUBECTL_DEBUG_LOG=false \
  PERFORMANCE_LOG=false \
  MICROSERVICES_POSTGRES_RDS_HOST=postgres-local \
  MICRO_SITES_DB_PASSWORD=somedbpass \
  ENV=testit \
  EXPORT1=nowhardcoded \
- shepherd.js "$(pwd)/src/release-manager/testdata/happypath/herd.yaml" e2etest ${TESTRUN_MODE} ${TESTOUTPUT_DIR}
+ ./bin/shepherd.js "$(pwd)/src/deployment-manager/testdata/happypath/herd.yaml" e2etestenv ${DRYRUN_PARAM} ${DRYRUN_OUTPUT_DIR_PARAM}
 
 sleep 1s

@@ -18,10 +18,10 @@ function renderDifferences(diffArray) {
     let result = "";
     for (let diffObj of diffArray) {
         if (diffObj.added) {
-            result += "+ " + diffObj.value;
+            result += "\n        not expecting: " + diffObj.value;
         }
         if (diffObj.removed) {
-            result += "- " + diffObj.value;
+            result += "\nexpecting but missing: " + diffObj.value;
         }
     }
     return result;
@@ -140,7 +140,7 @@ module.exports = {
                         if (actualIsDir) {
                             let actualFiles = _.sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir));
                             if(actualFiles.length > 0){
-                                expect().fail("Actual directory is not empty, contains following files: ", actualFiles.join(","))
+                                expect().fail(`Directory ${execution.actualOutputFileOrDir} is not empty, contains following files: ${actualFiles.join(", ")}`)
                             }
 
                         } else {

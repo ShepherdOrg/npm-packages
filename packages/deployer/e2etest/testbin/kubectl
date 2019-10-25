@@ -3,10 +3,6 @@
 # echo $@ >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 export KUBEOP=${1}
 
-if [ "${KUBECTL_DEBUG_LOG}" = "true" ]; then
-	echo "kubectl writing to KUBECTL_OUTPUT_FOLDER=${KUBECTL_OUTPUT_FOLDER}" >> ./kubectl.log
-fi
-
 if [ -z "${KUBECTL_OUTPUT_FOLDER}" ]; then
 	KUBECTL_OUTPUT_FOLDER="./.testrun"
 fi

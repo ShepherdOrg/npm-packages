@@ -13,7 +13,11 @@ function printUsage () {
 
 Supported options:
 
-    --testrun-mode
+    --export
+    --dryrun
+    
+Both will write to directory specified by 
+    --outputDir <directory>
     
 `)
 }
@@ -25,22 +29,32 @@ global.inject = require('@shepherdorg/nano-inject').inject;
 global._ = require('lodash');
 global.Promise = require('bluebird');
 
-let Logger = require('../src/release-manager/logger');
+let Logger = require('../src/deployment-manager/logger');
 
-const logger =Logger('shepherd');
+const logger =Logger(console);
 
 console.debug = function () {
     // Array.prototype.unshift.call(arguments, 'SHEPDEBUG ');
     // console.log.apply(console, arguments);
 };
 
+let dryRun = process.argv.indexOf('--dryrun') > 0;
 
-const testMode = process.argv.indexOf('--testrun-mode') > 0;
-let testOutputDir;
-if(testMode){
-    testOutputDir = process.argv[process.argv.indexOf('--testrun-mode') + 1];
-    logger.info('Running in test-mode. Writing deployment documents to ' + testOutputDir);
+const exportDocuments = process.argv.indexOf('--export') > 0;
+
+let outputDirectory;
+
+if(process.argv.indexOf('--outputDir') > 0){
+    outputDirectory = process.argv[process.argv.indexOf('--outputDir') + 1];
+    logger.info('Writing deployment documents to ' + outputDirectory);
+
 }
+
+if((exportDocuments || dryRun) && !outputDirectory){
+    console.error('Must specify output dir in export and dryrun modes with --outputDir parameter')
+    process.exit(-1)
+}
+
 
 let stateStoreBackend;
 
@@ -59,8 +73,8 @@ if(process.env.SHEPHERD_PG_HOST){
 }
 
 const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore;
-const HerdLoader = require('../src/release-manager/herd-loader');
-const ReleasePlanModule = require('../src/release-manager/release-plan');
+const HerdLoader = require('../src/deployment-manager/herd-loader');
+const ReleasePlanModule = require('../src/deployment-manager/release-plan');
 const exec = require('@shepherdorg/exec');
 
 
@@ -76,13 +90,13 @@ stateStoreBackend.connect().then(function () {
 
     const ReleasePlan = ReleasePlanModule(inject({
         cmd: exec,
-        logger: Logger('execution'),
+        logger: Logger(console),
         stateStore: releaseStateStore
     }));
 
 
     let loader = HerdLoader(inject({
-        logger: Logger('planning'),
+        logger: Logger(console),
         ReleasePlan: ReleasePlan,
         exec: exec
     }));
@@ -98,10 +112,10 @@ stateStoreBackend.connect().then(function () {
     logger.info('Shepherding herd from file ' + herdFilePath + " for environment " + environment);
     loader.loadHerd(herdFilePath, environment).then(function (plan) {
         plan.printPlan(logger);
-        if(testMode){
-            logger.info('Testrun mode set - exporting all deployment documents to ' + testOutputDir);
+        if(exportDocuments){
+            logger.info('Testrun mode set - exporting all deployment documents to ' + outputDirectory);
             logger.info('Testrun mode set - no deployments will be performed');
-            plan.exportDeploymentDocuments(testOutputDir).then(function () {
+            plan.exportDeploymentDocuments(outputDirectory).then(function () {
                     terminateProcess(0);
                 }
             ).catch(function (writeError) {
@@ -109,9 +123,11 @@ stateStoreBackend.connect().then(function () {
                 terminateProcess(-1);
             })
         } else {
-            plan.executePlan().then(function () {
-                logger.info('Plan execution complete.');
-                terminateProcess(0);
+            plan.executePlan({dryRun:dryRun, dryRunOutputDir:outputDirectory}).then(function () {
+                logger.info('Plan execution complete. Exiting shepherd.');
+                setTimeout(()=>{
+                    terminateProcess(0);
+                }, 1000)
             }).catch(function(err){
                 logger.error('Plan execution error', err);
                 terminateProcess(-1);

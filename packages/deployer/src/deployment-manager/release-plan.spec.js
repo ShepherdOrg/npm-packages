@@ -6,6 +6,8 @@ const inject = require('@shepherdorg/nano-inject').inject;
 const _ = require('lodash');
 const expect = require('chai').expect;
 
+const fs = require('fs');
+
 const k8sDeployments = {
     'ConfigMap_www-icelandair-com-nginx-acls': {
         'herdName': 'image:www-icelandair-com',
@@ -29,7 +31,7 @@ const k8sDeployments = {
         'version': 'immutable',
         'descriptor': 'apiVersion: v1\nkind: Namespace\nmetadata:\n  name: monitors\n',
         'herdName': 'folders:namespaces',
-        'origin': '/code/lib/release-manager/testdata/happypath/namespaces/',
+        'origin': '/code/lib/deployment-manager/testdata/happypath/namespaces/',
         'type': 'k8s'
     },
 
@@ -124,16 +126,11 @@ describe('Release plan', function () {
 
         describe('dry-run', function () {
             beforeEach(function () {
-                process.env.DRYRUN_MODE = 'true';
 
                 fakeStateStore.nextState = {'new': false, 'modified': true};
                 return releasePlan.addDeployment(k8sDeployments['ConfigMap_www-icelandair-com-nginx-acls']).then(function (deploymentState) {
-                    return releasePlan.executePlan();
+                    return releasePlan.executePlan({dryRun:true, dryRunOutputDir: '/tmp/'});
                 });
-            });
-
-            afterEach(function () {
-                delete process.env.DRYRUN_MODE;
             });
 
             it('should not execute plan ', function () {
