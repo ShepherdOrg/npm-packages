@@ -1,77 +1,105 @@
-
 const JSYAML = require('js-yaml');
 const YAMLload = require('./multipart-yaml-load');
+const _ = require('lodash');
 
+// const path = require('path');
 
-function modifyRawDocument(filecontents, options) {
+function modifyRawDocument (filecontents, options) {
 
-    function addTimeToLive(deploymentDoc) {
+    let cleanedName = options.newName.replace(/\//g, '-').toLowerCase();
+
+    if (!Boolean(cleanedName)) {
+        throw new Error('Must provide a feature name for document modifications');
+    }
+
+    options.nameChangeIndex = options.nameChangeIndex || {};
+
+    function addTimeToLive (deploymentDoc) {
         if (!deploymentDoc.metadata) {
             deploymentDoc.metadata = {};
         }
         if (!deploymentDoc.metadata.labels) {
             deploymentDoc.metadata.labels = {};
         }
-        deploymentDoc.metadata.labels["ttl-hours"] = `${options.ttlHours}`;
+        if (!options.ttlHours) {
+            throw new Error('ttlHours is a required parameter!');
+        }
+        deploymentDoc.metadata.labels['ttl-hours'] = `${options.ttlHours}`;
     }
 
-    function adjustNames(deploymentDoc) {
+    function adjustNames (deploymentSection) {
 
-        deploymentDoc.name && (deploymentDoc.name += "-" + options.newName);
+        deploymentSection.name && (deploymentSection.name += '-' + cleanedName);
 
-        if (deploymentDoc.metadata ) {
-            deploymentDoc.metadata.name && ( deploymentDoc.metadata.name += "-" + options.newName );
-            if( deploymentDoc.metadata.labels){
-                if(deploymentDoc.metadata.labels.name) {
-                    deploymentDoc.metadata.labels.name += "-" +options.newName;
+        if (deploymentSection.metadata) {
+            deploymentSection.metadata.name && (deploymentSection.metadata.name += '-' + cleanedName);
+            if (deploymentSection.metadata.labels) {
+                if (deploymentSection.metadata.labels.app) {
+                    deploymentSection.metadata.labels.app += '-' + cleanedName;
                 }
-                if (deploymentDoc.metadata.labels.topdomain) {
-                    delete deploymentDoc.metadata.labels.topdomain;
-                }
-                if (deploymentDoc.metadata.labels.subdomain) {
-                    deploymentDoc.metadata.labels.subdomain =  options.newName;
+                if (deploymentSection.metadata.labels.name) {
+                    deploymentSection.metadata.labels.name += '-' + cleanedName;
                 }
             }
         }
-        if (deploymentDoc.spec){
-            if( deploymentDoc.spec.template) {
-                let template = deploymentDoc.spec.template;
-                if(template.metadata && template.metadata.labels && template.metadata.labels.name){
-                    template.metadata.labels.name += "-" +options.newName;
+        if (deploymentSection.spec) {
+            if (deploymentSection.spec.containers) {
+                for (let container of deploymentSection.spec.containers) {
+                    adjustNames(container);
                 }
+            }
 
-                if(template.spec.containers){
-                    for(let container of template.spec.containers){
-                        container.name += "-" +options.newName;
-                    }
-                }
+            let template = deploymentSection.spec.template;
+            if (template) {
+                adjustNames(deploymentSection.spec.template);
 
-                if(template.spec.volumes){
-                    for(let volume of template.spec.volumes){
-                        if(volume.configMap && volume.configMap.name && volume.configMap.name === options.configMapName){
-                            volume.configMap.name += "-" + options.newName;
+                if (template.spec.volumes) {
+                    for (let volume of template.spec.volumes) {
+                        if (volume.configMap && volume.configMap.name && volume.configMap.name === options.configMapName) {
+                            volume.configMap.name += '-' + cleanedName;
                         }
-                        if(volume.configMap && volume.configMap.name && options.nameReferenceChanges['ConfigMap']  && options.nameReferenceChanges['ConfigMap'][volume.configMap.name] ){
-                            volume.configMap.name = options.nameReferenceChanges['ConfigMap'][volume.configMap.name];
+                        if (volume.configMap && volume.configMap.name && options.nameChangeIndex['ConfigMap'] && options.nameChangeIndex['ConfigMap'][volume.configMap.name]) {
+                            volume.configMap.name = options.nameChangeIndex['ConfigMap'][volume.configMap.name];
                         }
                     }
                 }
             }
-            if( deploymentDoc.spec.selector) {
-                deploymentDoc.spec.selector.name += "-" +options.newName;
+            if (deploymentSection.spec.selector) {
+                adjustNames(deploymentSection.spec.selector);
+                if (Boolean(deploymentSection.spec.selector.app)) {
+                    deploymentSection.spec.selector.app += '-' + cleanedName;
+                }
             }
-            if(deploymentDoc.kind==="HorizontalPodAutoscaler"){
-                deploymentDoc.spec.minReplicas=1;
-                deploymentDoc.spec.maxReplicas=1;
-                if( deploymentDoc.spec.scaleTargetRef && deploymentDoc.spec.scaleTargetRef.name ){
-                    deploymentDoc.spec.scaleTargetRef.name += "-" +options.newName;
+
+            if (deploymentSection.kind === 'HorizontalPodAutoscaler') {
+                deploymentSection.spec.minReplicas = 1;
+                deploymentSection.spec.maxReplicas = 1;
+                if (deploymentSection.spec.scaleTargetRef && deploymentSection.spec.scaleTargetRef.name) {
+                    deploymentSection.spec.scaleTargetRef.name += '-' + cleanedName;
                 }
 
             }
         }
     }
 
-    function setOneReplica(deploymentDoc){
+    function adjustIngressNames (deploymentDoc) {
+
+        if (deploymentDoc.kind && deploymentDoc.kind === 'Ingress' && deploymentDoc.spec) {
+            if (deploymentDoc.spec.rules && deploymentDoc.spec.rules[0] && deploymentDoc.spec.rules[0].host) {
+                deploymentDoc.spec.rules[0].host = `${cleanedName}-${deploymentDoc.spec.rules[0].host}`;
+                const http = deploymentDoc.spec.rules[0].http;
+                if (http && http.paths)
+                    _.each(http.paths, (path) => {
+                        if (path && path.backend && path.backend.serviceName) {
+                            path.backend.serviceName = cleanedName + '-' + path.backend.serviceName;
+                        }
+                    });
+
+            }
+        }
+    }
+
+    function setOneReplica (deploymentDoc) {
         if (deploymentDoc.spec && deploymentDoc.spec.replicas) {
             deploymentDoc.spec.replicas = 1;
         }
@@ -79,8 +107,7 @@ function modifyRawDocument(filecontents, options) {
 
     let yamlFiles = YAMLload(filecontents);
 
-
-    let outfiles = "";
+    let outfiles = '';
     for (let parsedDocument of yamlFiles) {
 
         addTimeToLive(parsedDocument);
@@ -89,16 +116,26 @@ function modifyRawDocument(filecontents, options) {
 
         setOneReplica(parsedDocument);
 
-        let yml = JSYAML.safeDump(parsedDocument);
-        if (outfiles.length > 0) {
-            outfiles += "\n---\n"
+        adjustIngressNames(parsedDocument);
+
+        try {
+            let yml = JSYAML.safeDump(parsedDocument);
+            if (outfiles.length > 0) {
+                outfiles += '\n---\n';
+            }
+            outfiles += yml.trim();
+
+        } catch (err) {
+
+            console.error('Error dumping', parsedDocument);
+            throw err;
         }
-        outfiles += yml.trim()
+
     }
     return outfiles;
 }
 
 module.exports = {
-    modifyRawDocument:modifyRawDocument
+    modifyRawDocument: modifyRawDocument
 
 };

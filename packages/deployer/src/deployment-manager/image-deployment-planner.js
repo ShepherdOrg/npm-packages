@@ -1,17 +1,16 @@
-const untarBase64String = require('../untar-string');
 const identifyDocument = require('../k8s-deployment-document-identifier');
 
 const expandEnv = require('../expandenv');
 const expandtemplate = require('../expandtemplate');
 
 const applyClusterPolicies = require('../apply-k8s-policy').applyPoliciesToDoc;
-const yamlLoad = require('../k8s-feature-deployment/multipart-yaml-load');
 const modifyDeploymentDocument = require('../k8s-feature-deployment/modify-deployment-document').modifyRawDocument;
 const base64EnvSubst = require('../base64-env-subst').processLine;
 const options = require('./options');
 const path = require('path');
 const _ = require('lodash');
 
+const createResourceNameChangeIndex = require('../k8s-feature-deployment/create-name-change-index')
 
 module.exports = function (injected) {
     const kubeSupportedExtensions = injected('kubeSupportedExtensions');
@@ -60,11 +59,7 @@ module.exports = function (injected) {
                 return;
             }
             if (featureDeploymentConfig.isFeatureDeployment) {
-                fileContents = modifyDeploymentDocument(fileContents, {
-                    ttlHours: imageMetadata.imageDefinition.timeToLiveHours,
-                    newName: featureDeploymentConfig.newName,
-                    nameReferenceChanges: featureDeploymentConfig.nameReferenceChanges
-                });
+                fileContents = modifyDeploymentDocument(fileContents, featureDeploymentConfig);
                 origin = featureDeploymentConfig.origin;
             }
 
@@ -146,13 +141,12 @@ module.exports = function (injected) {
                         plan.deployments = {};
                         plan.dockerLabels = imageInformation.dockerLabels;
                         let planPromises = [];
-                        let nameReferenceChanges = {};
                         let featureDeploymentConfig = {
                             isFeatureDeployment: false
                         };
 
                         if (process.env.UPSTREAM_IMAGE_NAME === imageInformation.imageDefinition.herdName && process.env.FEATURE_NAME) {
-                            let cleanedName = process.env.FEATURE_NAME.replace(/\//g, '--').toLowerCase();
+                            let cleanedName = process.env.FEATURE_NAME.replace(/\//g, '-').toLowerCase();
                             featureDeploymentConfig.isFeatureDeployment = true;
                             featureDeploymentConfig.ttlHours = process.env.FEATURE_TTL_HOURS;
                             featureDeploymentConfig.newName = cleanedName;
@@ -161,35 +155,25 @@ module.exports = function (injected) {
 
                         if (imageInformation.imageDefinition.featureDeployment) {
                             featureDeploymentConfig.isFeatureDeployment = true;
-                            featureDeploymentConfig.ttlHours = imageInformation.imageDefinition.timeToLiveHours;
+                            featureDeploymentConfig.ttlHours = imageInformation.imageDefinition.timeToLiveHours || featureDeploymentConfig.ttlHours;
                             featureDeploymentConfig.newName = imageInformation.imageDefinition.herdName;
                             featureDeploymentConfig.origin = imageInformation.imageDefinition.herdName + '::feature';
                         }
 
                         if (featureDeploymentConfig.isFeatureDeployment) {
-                            _.forEach(plan.files, function (deploymentFileContent, fileName) {
-                                let fileExtension = path.extname(fileName);
-                                if(!fileExtension){
-                                    return
-                                }
-                                if (!kubeSupportedExtensions[fileExtension]) {
-                                    console.debug(`Unsupported extension ${fileExtension} on file ${fileName}`);
-                                    return;
-                                }
 
-                                if (deploymentFileContent.content) {
-                                    let parsedMultiContent = yamlLoad(deploymentFileContent.content);
-                                    _.forEach(parsedMultiContent, function (parsedContent) {
-                                        if (parsedContent) {
-                                            nameReferenceChanges[parsedContent.kind] = nameReferenceChanges[parsedContent.kind] || {};
-                                            nameReferenceChanges[parsedContent.kind][parsedContent.metadata.name] = parsedContent.metadata.name + '-' + featureDeploymentConfig.newName;
-                                        } else {
-                                            console.warn('Parsed content is NULL!!!', deploymentFileContent.content);
-                                        }
-                                    });
+                            if(!Boolean(featureDeploymentConfig.ttlHours)){
+                                throw new Error(`${imageInformation.imageDefinition.herdName}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`)
+                            }
+                            try{
+                                if(typeof featureDeploymentConfig.ttlHours === 'string'){
+                                    featureDeploymentConfig.ttlHours= parseInt(featureDeploymentConfig.ttlHours, 10)
                                 }
-                            });
-                            featureDeploymentConfig.nameReferenceChanges = nameReferenceChanges;
+                            }catch(err){
+                                throw new Error(`Error parsing time-to-live-hours setting ${featureDeploymentConfig.ttlHours}, must be an integer`)
+                            }
+
+                            featureDeploymentConfig.nameChangeIndex = createResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploymentConfig);
                         }
 
                         _.forEach(plan.files, function (deploymentFileContent, fileName) {

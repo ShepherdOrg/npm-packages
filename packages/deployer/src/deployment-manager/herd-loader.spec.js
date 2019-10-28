@@ -112,7 +112,7 @@ describe('herd.yaml loading', function () {
     it('should not log any execution after herd load.', function () {
         return loader.loadHerd(__dirname + '/testdata/happypath/herd.yaml').then(function (plan) {
             expect(plan).not.to.equal(undefined);
-            expect(loaderLogger.infoLogEntries.length).to.equal(3); // CPU Change requests
+            expect(loaderLogger.infoLogEntries.length).to.equal(4);
         });
     });
 

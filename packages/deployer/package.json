@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Deployer application",
   "main": "src/shepherd.js",
   "bin": {
@@ -38,7 +38,7 @@
   "scripts": {
     "test": "npm run specs",
     "specs": "mocha --exit --recursive 'src/**/*.spec.js'",
-    "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch 'src/**/*.spec.js'",
+    "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json,yaml --watch 'src/**/*.spec.js'",
     "e2etest": "mocha --exit --recursive 'e2etest/**/*.e2etest.js'",
     "e2etdd": "mocha --exit -R dot --recursive --watch-extensions js,json,sh --watch 'e2etest/**/*.e2etest.js'",
     "prepublishOnly": "yarn install --frozen-lockfile && npm test",

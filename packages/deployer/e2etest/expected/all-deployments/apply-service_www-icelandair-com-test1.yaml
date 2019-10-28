@@ -6,7 +6,8 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
   labels:
     name: www-icelandair-com-test1
-    subdomain: test1
+    subdomain: testSDPbeta
+    topdomain: testtopdomain
     team: flip
     ttl-hours: '48'
 spec:
@@ -30,7 +31,8 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
   labels:
     name: www-icelandair-com-test1
-    subdomain: test1
+    subdomain: testSDPbeta
+    topdomain: testtopdomain
     team: flip
     ttl-hours: '48'
 spec:

@@ -226,7 +226,10 @@ describe('Docker image plan loader', function () {
             });
 
             it('should expand handlebars template', () => {
+                const configMapPlan = loadedPlans.find((plan)=>{return  plan.identifier === 'ConfigMap_www-icelandair-com-nginx-acls' })
 
+                expect(configMapPlan.descriptor).not.to.contain('WWW_ICELANDAIR_IP_WHITELIST')
+                expect(configMapPlan.descriptor).to.contain('bullshitlist')
             });
 
             it('should have loaded plan', function () {
@@ -342,7 +345,7 @@ describe('Docker image plan loader', function () {
             });
 
             it('should modify deployment identifier ', function () {
-                expect(loadedPlan.identifier).to.equal('Deployment_www-icelandair-com-thisIsFeatureDeploymentOne');
+                expect(loadedPlan.identifier).to.equal('Deployment_www-icelandair-com-thisisfeaturedeploymentone');
             });
 
         });
@@ -373,6 +376,7 @@ describe('Docker image plan loader', function () {
                 before(function () {
                     process.env.UPSTREAM_IMAGE_NAME = 'deployment-one';
                     process.env.FEATURE_NAME = 'some-branch/name';
+                    process.env.FEATURE_TTL_HOURS = '99';
                     process.env.EXPORT1 = 'na';
                     process.env.SUB_DOMAIN_PREFIX = 'na';
                     process.env.PREFIXED_TOP_DOMAIN_NAME = 'na';
@@ -389,23 +393,32 @@ describe('Docker image plan loader', function () {
                 });
 
                 it('should have feature deployment in origin', function () {
-                    expect(loadedPlan.origin).to.contain('deployment-one::some-branch--name');
+                    expect(loadedPlan.origin).to.contain('deployment-one::some-branch-name');
                 });
 
                 it('should modify deployment descriptor', function () {
-                    expect(loadedPlan.descriptor).to.contain('www-icelandair-com-some-branch--name');
+                    expect(loadedPlan.descriptor).to.contain('www-icelandair-com-some-branch-name');
                 });
 
                 it('should modify deployment identifier ', function () {
-                    expect(loadedPlan.identifier).to.equal('Deployment_www-icelandair-com-some-branch--name');
+                    expect(loadedPlan.identifier).to.equal('Deployment_www-icelandair-com-some-branch-name');
                 });
 
                 it('should modify configmap identifier ', function () {
-                    expect(loadedPlan.descriptor).to.contain('www-icelandair-com-some-branch--name');
+                    expect(loadedPlan.descriptor).to.contain('www-icelandair-com-some-branch-name');
                 });
 
                 it('should modify configmap references ', function () {
-                    expect(loadedPlan.descriptor).to.contain('www-icelandair-com-nginx-acls-some-branch--name');
+                    expect(loadedPlan.descriptor).to.contain('www-icelandair-com-nginx-acls-some-branch-name');
+                });
+
+                it('should set time to live', () => {
+                    expect(loadedPlan.descriptor).to.contain(' ttl-hours:');
+
+                });
+
+                it('should set time to live as quoted value', () => {
+                    expect(loadedPlan.descriptor).to.contain(" ttl-hours: '99'");
                 });
 
             });
