@@ -155,7 +155,7 @@ done
 
 echo "Retrieving changelog for ${DOCKERDIR}"
 LASTFIVECOMMITS=$(git log -5 --pretty=format:" %aD by %an. --- %s %n" -- ${DOCKERDIR} > ${DOCKERDIR}/.build/gitlog.log && cat ${DOCKERDIR}/.build/gitlog.log)
-LAST_COMMITS_B64="$(echo "${LASTFIVECOMMITS}" | base64)"
+LAST_COMMITS_B64="$(echo "${LASTFIVECOMMITS}" | tr '\n' ' ' | sed 's/ //g' )"
 
 pushd .
 
@@ -214,7 +214,7 @@ if [[ -d ./.build/deployment/ ]]; then
 	set -e
 
 
-	KUBECONFIG_B64=$(cd ./.build && tar -b 1 -zcv ./deployment/ 2>/dev/null | base64 )
+	KUBECONFIG_B64=$(cd ./.build && tar -b 1 -zcv ./deployment/ 2>/dev/null | base64 | tr '\n' ' ' | sed 's/ //g' )
 fi
 
 if [ ! -z "${KUBECONFIG_B64}" ]; then
@@ -240,7 +240,7 @@ fi
 
 join-metadata-files ./.build/metadata/userdata.json ./.build/metadata/builddata.json > ./.build/metadata/shepherd.json
 
-SHEPHERD_METADATA=$(cd ./.build/metadata && tar  -b 1 -zcv shepherd.json 2>/dev/null | base64 )
+SHEPHERD_METADATA=$(cd ./.build/metadata && tar  -b 1 -zcv shepherd.json 2>/dev/null | base64 | tr '\n' ' ' | sed 's/ //g' )
 
 docker build -t ${DOCKER_IMAGE} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_GITHASH} \
 	--build-arg SHEPHERD_METADATA=${SHEPHERD_METADATA} \
