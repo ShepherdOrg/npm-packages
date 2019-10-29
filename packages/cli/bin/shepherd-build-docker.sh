@@ -155,7 +155,7 @@ done
 
 echo "Retrieving changelog for ${DOCKERDIR}"
 LASTFIVECOMMITS=$(git log -5 --pretty=format:" %aD by %an. --- %s %n" -- ${DOCKERDIR} > ${DOCKERDIR}/.build/gitlog.log && cat ${DOCKERDIR}/.build/gitlog.log)
-LAST_COMMITS_B64="$(echo "${LASTFIVECOMMITS}" | tr '\n' ' ' | sed 's/ //g' )"
+LAST_COMMITS_B64="$(echo "${LASTFIVECOMMITS}" | base64  | tr '\n' ' ' | sed 's/ //g' )"
 
 pushd .
 
