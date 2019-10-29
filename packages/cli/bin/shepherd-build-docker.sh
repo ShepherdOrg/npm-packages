@@ -29,6 +29,7 @@ Usage (bash):
 	If push parameter is present, docker push will be performed at end of successful build.
 
 Options:
+  IMAGE_NAME:              Specify image name. Defaults to directory name containing the dockerfile if not specified.
 	DOCKER_REGISTRY_HOST:    Set if using self-hosted docker registry. Will be prepended to docker name along with a /
 	DOCKER_REPOSITORY_ORG:   Docker repository organization/namespace. If not provided, defaults to no organization / no namespace.
 	DOCKER_REPOSITORY_NAME:  Docker repository name used to tag the docker image. Defaults to the directory name containing the dockerfile if not provided.
@@ -52,7 +53,7 @@ export THISDIR=$(installationDir ${BASH_SOURCE[0]})
 
 . ${THISDIR}/deploy/functions.sh
 
-
+DOCKER_REPOSITORY_NAME=${IMAGE_NAME}
 
 if [[ "${1}" = "" ]]; then
 	outputUsage
@@ -264,7 +265,9 @@ else
 	echo "Not pushing ${DOCKER_IMAGE}"
 fi
 
+
 # TODO Error if docker image produced is not configured with enough information to deploy
+# Create command shepherd-validate-image
 # TODO Add SHEPHERD_METADATA arg and label to Dockerfile if missing.
 
 popd >/dev/null
