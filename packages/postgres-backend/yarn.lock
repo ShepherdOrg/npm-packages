@@ -12,10 +12,10 @@
     glob "^7.1.4"
     tar "^5.0.5"
 
-"@shepherdorg/state-store@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/state-store/-/state-store-0.0.5.tgz#759c445b4d923748c64edd712197e0a844affd8b"
-  integrity sha512-rZRzGKrskeEQq8QHWDYRD+TSKQAdjS4bQ4RVEpMU07xiny82Tynr5FuGizyTgrhbQ3HE072QpJGwEbadP+Hqlg==
+"@shepherdorg/state-store@0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/state-store/-/state-store-0.0.6.tgz#94ec1601fce7453eef320abb7ada5586dfc22015"
+  integrity sha512-lcOpE4c6XHr84MOR7UEILLfUlf2aneFWCXWoUNoMOJlSjx5CnQBH9+pQGv15huHKcP+un3Frc1MExUnEJfT4Cg==
   dependencies:
     bluebird "^3.7.1"
     lodash "^4.17.15"

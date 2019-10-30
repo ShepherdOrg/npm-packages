@@ -1,155 +1,113 @@
 import { IStorageBackend } from "@shepherdorg/state-store"
+import { PGConnectionConfig } from "./pg-config"
 
 export { PgConfig } from "./pg-config"
 
-const pg = require("pg")
+import * as pg from "pg"
 
 export interface IPostgresStorageBackend extends IStorageBackend {
   resetAllDeploymentStates()
 }
 
-export function PostgresStore(config): IPostgresStorageBackend {
+const Client = (client: pg.Client) => ({
+  connect() {
+    return new Promise((resolve, reject) => {
+      client.connect(function(err) {
+        if (err) reject(err)
+        else resolve()
+      })
+    })
+  },
+  query(query: string, variables: any[] = []) {
+    return new Promise((resolve, reject) => {
+      client.query(query, variables, (err, result) =>
+        err ? reject(err) : resolve(result)
+      )
+    })
+  },
+})
+
+export function PostgresStore(
+  config: PGConnectionConfig
+): IPostgresStorageBackend {
   let client
 
   return {
-    connect: function() {
-      return new Promise(function(resolve, reject) {
-        try {
-          client = new pg.Client(config)
-
-          client.connect(function(err) {
-            if (err) throw err
-
-            // execute a query on our database
-            client.query("SELECT count(*) from deployments", [], function(
-              err,
-              result
-            ) {
-              if (err) {
-                client.query(
-                  "CREATE TABLE deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL);",
-                  [],
-                  function(err) {
-                    if (err) {
-                      // console.debug("ERROR creating table", err);
-                      reject("Error creating deployments table" + err)
-                    } else {
-                      console.debug("Created deployments table")
-                      resolve(0)
-                    }
-                  }
-                )
-              } else {
-                // just print the result to the console
-                resolve(result.rows[0].count)
-              }
-            })
-          })
-        } catch (e) {
-          // console.debug("Caught exception", e);
-          reject(e)
-        }
-      })
+    async connect() {
+      client = Client(new pg.Client(config))
+      await client.connect()
+      if (config.schema) {
+        await client.query(
+          `CREATE SCHEMA IF NOT EXISTS ${config.schema} AUTHORIZATION ${config.user};`
+        )
+        await client.query(`SET search_path TO ${config.schema}`)
+      }
+      await client.query(
+        "CREATE TABLE IF NOT EXISTS deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL)"
+      )
     },
     disconnect() {
       client.end()
     },
-    resetAllDeploymentStates() {
-      return new Promise(function(resolve, reject) {
-        if (
-          !(
-            process.env.RESET_FOR_REAL ===
-            "yes-i-really-want-to-drop-deployments-table"
+    async resetAllDeploymentStates() {
+      if (
+        !(
+          process.env.RESET_FOR_REAL ===
+          "yes-i-really-want-to-drop-deployments-table"
+        )
+      ) {
+        throw "RESET_FOR_REAL must be set to true"
+      } else {
+        return client.query("DROP TABLE deployments")
+      }
+    },
+    async set(key, value) {
+      const result = await client.query(
+        "SELECT identifier, data FROM deployments WHERE identifier=$1::text",
+        [key]
+      )
+      if (result.rows.length === 0) {
+        try {
+          await client.query(
+            "INSERT INTO deployments (data, identifier, lastdeployment) VALUES ($1::jsonb, $2::text, $3::timestamp)",
+            [value, key, new Date()]
           )
-        ) {
-          reject("RESET_FOR_REAL must be set to true")
-        } else {
-          client.query("DROP TABLE deployments", [], function(err) {
-            if (err) {
-              reject(err)
-            } else {
-              resolve()
-            }
-          })
+          return { key, value }
+        } catch (err) {
+          console.error("Error INSERTING value ", key, value)
+          throw err
         }
-      })
-    },
-    set: function(key, value) {
-      return new Promise(function(resolve, reject) {
-        // console.debug("Setting value", key, value);
-        client.query(
-          "SELECT identifier, data FROM deployments WHERE identifier=$1::text",
-          [key],
-          function(err, result) {
-            if (err) {
-              // console.debug("Error checking value of ", key, value);
-              reject(err)
-            } else {
-              // console.debug("SELECT result is", result);
-              if (result.rows.length === 0) {
-                client.query(
-                  "INSERT INTO deployments (data, identifier, lastdeployment) VALUES ($1::jsonb, $2::text, $3::timestamp)",
-                  [value, key, new Date()],
-                  function(err) {
-                    if (err) {
-                      console.error("Error INSERTING value ", key, value)
-                      reject(err)
-                    } else {
-                      // console.debug("INSERT successful");
-                      resolve({ key: key, value: value })
-                    }
-                  }
-                )
-              } else if (result.rows.length === 1) {
-                client.query(
-                  "UPDATE deployments SET data = $1::jsonb, lastdeployment = $3::timestamp WHERE identifier = $2::text",
-                  [value, key, new Date()],
-                  function(err) {
-                    if (err) {
-                      console.error("Error UPDATING value of ", key, value)
-                      reject(err)
-                    } else {
-                      // console.debug("UPDATE successful");
-                      resolve({ key: key, value: value })
-                    }
-                  }
-                )
-              } else {
-                reject(
-                  new Error(
-                    `Too many rows with identifer ${key} : ${result.rows.length}`
-                  )
-                )
-              }
-            }
-          }
+      } else if (result.rows.length === 1) {
+        try {
+          await client.query(
+            "UPDATE deployments SET data = $1::jsonb, lastdeployment = $3::timestamp WHERE identifier = $2::text",
+            [value, key, new Date()]
+          )
+          return { key, value }
+        } catch (err) {
+          console.error("Error UPDATING value of ", key, value)
+          throw err
+        }
+      } else {
+        throw new Error(
+          `Too many rows with identifer ${key} : ${result.rows.length}`
         )
-      })
+      }
     },
-    get: function(key) {
-      return new Promise(function(resolve, reject) {
-        client.query(
-          "SELECT identifier, data FROM deployments WHERE identifier=$1::text",
-          [key],
-          function(err, result) {
-            if (err) {
-              reject(err)
-            } else {
-              if (result.rows.length === 0) {
-                resolve({ key: key, value: undefined })
-              } else if (result.rows.length === 1) {
-                resolve({ key: key, value: result.rows[0].data })
-              } else {
-                reject(
-                  new Error(
-                    `Too many rows with identifer ${key} : ${result.rows.length}`
-                  )
-                )
-              }
-            }
-          }
+    async get(key) {
+      const result = await client.query(
+        "SELECT identifier, data FROM deployments WHERE identifier=$1::text",
+        [key]
+      )
+      if (result.rows.length === 0) {
+        return { key: key, value: undefined }
+      } else if (result.rows.length === 1) {
+        return { key: key, value: result.rows[0].data }
+      } else {
+        throw new Error(
+          `Too many rows with identifer ${key} : ${result.rows.length}`
         )
-      })
+      }
     },
   }
 }

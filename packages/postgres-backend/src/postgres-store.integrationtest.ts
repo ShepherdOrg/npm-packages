@@ -1,21 +1,15 @@
 import { PostgresStore } from "./index"
 
 import { expect } from "chai"
+import { PgConfig } from "./pg-config"
 
 describe("postgres object store backend", function() {
   let store
 
   beforeEach(function() {
-    let pgPort = process.env.SHEPHERD_PG_PORT || 5432
-    let pgHost = process.env.SHEPHERD_PG_HOST || "localhost"
+    const config = PgConfig()
     // console.debug(`Connecting to postgres on ${pgHost}:${pgPort}`)
-    store = PostgresStore({
-      user: "postgres",
-      host: pgHost,
-      database: "postgres",
-      password: process.env.SHEPHERD_PG_PASSWORD || "mysecretpassword",
-      port: pgPort,
-    })
+    store = PostgresStore(config)
   })
 
   it("should persist object", function() {
