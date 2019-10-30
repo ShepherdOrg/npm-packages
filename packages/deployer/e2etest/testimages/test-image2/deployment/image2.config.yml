@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: image2-config
+  labels:
+    team: flip
+data:
+  whitelist: |-
+    ${Base64Decode:WWW_ICELANDAIR_IP_WHITELIST}

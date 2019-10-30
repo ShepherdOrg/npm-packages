@@ -27,6 +27,7 @@
     "tmp": "0.0.33"
   },
   "devDependencies": {
+    "@shepherdorg/cli": "^0.0.13",
     "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.11",
@@ -38,9 +39,10 @@
   "scripts": {
     "test": "npm run specs",
     "specs": "mocha --exit --recursive 'src/**/*.spec.js'",
-    "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json,yaml --watch 'src/**/*.spec.js'",
+    "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch 'src/**/*.spec.js'",
+    "build-test-images": "cd e2etest/testimages && ./build-test-images.sh",
     "e2etest": "mocha --exit --recursive 'e2etest/**/*.e2etest.js'",
-    "e2etdd": "mocha --exit -R dot --recursive --watch-extensions js,json,sh --watch 'e2etest/**/*.e2etest.js'",
+    "e2etdd": "mocha --exit -R dot --recursive --watch-extensions js,json,sh,json --watch 'e2etest/**/*.e2etest.js'",
     "prepublishOnly": "yarn install --frozen-lockfile && npm test",
     "start-postgres": "docker run --rm --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres",
     "kill-postgres": "docker stop postgres"

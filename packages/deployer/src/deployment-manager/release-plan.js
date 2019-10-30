@@ -173,7 +173,7 @@ module.exports = function (injected) {
 
                                 let writePromise = writeFile(writePath, cmdLine);
 
-                                resolve(writePromise.then(()=> deployment.state));
+                                resolve(writePromise.then(()=> deployment));
                             } else {
                                 cmd.extendedExec('docker',
                                     ['run'].concat(deployment.dockerParameters),
@@ -193,7 +193,8 @@ module.exports = function (injected) {
 
                                             saveDeploymentState(deployment).then(function (savedState) {
 
-                                                resolve(savedState, stdout);
+                                                deployment.state = savedState;
+                                                resolve(deployment);
 
                                             }).catch(function (err) {
                                                 reject('Failed to save state after successful deployment! ' + deployment.origin + '/' + deployment.identifier + '\n' + err);
