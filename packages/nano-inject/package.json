@@ -35,7 +35,6 @@
     "@types/node": "^12.11.5",
     "chai": "^4.2.0",
     "mocha": "^6.2.2",
-    "mocha-typescript": "^1.1.17",
     "prettier": "^1.18.2",
     "ts-node": "^8.4.1",
     "typescript": "^3.6.4"
