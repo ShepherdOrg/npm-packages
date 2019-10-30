@@ -1,10 +1,13 @@
 {
   "name": "@shepherdorg/storage-backend-tester",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Test shepherd storage backend",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "MIT",
+  "files": [
+    "dist/"
+  ],
   "dependencies": {},
   "devDependencies": {
     "@shepherdorg/metadata": "^0.0.11",
@@ -18,5 +21,9 @@
     "@shepherdorg/metadata": "^0.0.11",
     "@shepherdorg/state-store": "^0.0.6",
     "chai": "^4.2.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
   }
 }
