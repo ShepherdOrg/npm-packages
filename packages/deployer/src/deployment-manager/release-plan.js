@@ -7,7 +7,18 @@ const writeFile = Promise.promisify(fs.writeFile)
 const _ = require("lodash")
 
 const extendedExec = cmd => (...args) =>
-  new Promise((res, rej) => cmd.extendedExec(...args, rej, res))
+  new Promise((res, rej) =>
+    cmd.extendedExec(
+      ...args,
+      (error, errCode, stdOut) => {
+        const err = new Error(error)
+        err.errCode = errCode
+        err.stdOut = stdOut
+        rej(err)
+      },
+      res
+    )
+  )
 
 module.exports = function(injected) {
   const stateStore = injected("stateStore")
@@ -97,124 +108,105 @@ module.exports = function(injected) {
     }
 
     function K8sDeploymentPromises(deploymentOptions) {
-      return _.map(k8sDeploymentPlan, function(deploymentPlan, identifier) {
-        return Promise.map(
-          deploymentPlan.deployments,
-          function(deployment) {
+      return Object.values(k8sDeploymentPlan).map(deploymentPlan => {
+        return Promise.all(
+          deploymentPlan.deployments.map(async deployment => {
             if (deployment.state.modified) {
-              return new Promise(function(resolve, reject) {
-                // console.debug('Executing kubectl on deployment descriptor ', deployment.descriptor);
-                if (deploymentOptions.dryRun) {
-                  let writePath = path.join(
-                    deploymentOptions.dryRunOutputDir,
-                    deployment.operation +
-                      "-" +
-                      deployment.identifier.toLowerCase() +
-                      ".yaml"
-                  )
-                  let writePromise = writeFile(
-                    writePath,
-                    deployment.descriptor.trim()
-                  )
-                  writePromise.then(() => resolve(deployment.state))
-                } else {
-                  cmd.extendedExec(
+              if (deploymentOptions.dryRun) {
+                const writePath = path.join(
+                  deploymentOptions.dryRunOutputDir,
+                  deployment.operation +
+                    "-" +
+                    deployment.identifier.toLowerCase() +
+                    ".yaml"
+                )
+                await writeFile(writePath, deployment.descriptor.trim())
+                return deployment
+              } else {
+                try {
+                  const stdOut = await extendedExec(cmd)(
                     "kubectl",
                     [deployment.operation, "-f", "-"],
                     {
                       env: process.env,
                       stdin: deployment.descriptor,
                       debug: true,
-                    },
-                    function(err, errCode, stdOut) {
-                      if (deployment.operation === "delete") {
-                        try {
-                          logger.info(
-                            "kubectl " +
-                              deployment.operation +
-                              " deployments in " +
-                              deployment.origin +
-                              "/" +
-                              deployment.identifier
-                          )
-                          logger.info(
-                            "Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows."
-                          )
-                          logger.info(err || "[empty error]")
-                          logger.info(stdOut || "[empty output]")
-
-                          deployment.state.stdout = stdOut
-                          deployment.state.stderr = err
-
-                          saveDeploymentState(deployment)
-                            .then(function(savedState) {
-                              resolve(savedState, stdOut)
-                            })
-                            .catch(function(err) {
-                              reject(
-                                "Failed to save state after error in deleting deployment! " +
-                                  deployment.origin +
-                                  "/" +
-                                  deployment.identifier +
-                                  "\n" +
-                                  err
-                              )
-                            })
-                        } catch (e) {
-                          reject(e)
-                        }
-                      } else {
-                        let message =
-                          "Failed to deploy from label for image " +
-                          JSON.stringify(deployment)
-                        message += "\n" + err
-                        message += "\nCode:" + errCode
-                        message += "\nStdOut:" + stdOut
-                        reject(message)
-                      }
-                    },
-                    function(stdout) {
-                      try {
-                        logger.info(
-                          "kubectl " +
-                            deployment.operation +
-                            " deployments in " +
-                            deployment.origin +
-                            "/" +
-                            deployment.identifier
-                        )
-                        logger.info(stdout || "[empty output]")
-
-                        saveDeploymentState(deployment)
-                          .then(function(savedState) {
-                            resolve(savedState, stdout)
-                          })
-                          .catch(function(err) {
-                            reject(
-                              "Failed to save state after successful deployment! " +
-                                deployment.origin +
-                                "/" +
-                                deployment.identifier +
-                                "\n" +
-                                err
-                            )
-                          })
-                      } catch (e) {
-                        reject(e)
-                      }
                     }
                   )
+                  logger.info(
+                    "kubectl " +
+                      deployment.operation +
+                      " deployments in " +
+                      deployment.origin +
+                      "/" +
+                      deployment.identifier
+                  )
+                  logger.info(stdOut || "[empty output]")
+
+                  try {
+                    const state = await saveDeploymentState(deployment)
+                    deployment.state = state
+                    return deployment
+                  } catch (err) {
+                    throw "Failed to save state after successful deployment! " +
+                      deployment.origin +
+                      "/" +
+                      deployment.identifier +
+                      "\n" +
+                      err
+                  }
+                } catch (error) {
+                  if (typeof error === "string") throw error
+                  const { errCode, stdOut, message: err } = error
+                  if (deployment.operation === "delete") {
+                    logger.info(
+                      "kubectl " +
+                        deployment.operation +
+                        " deployments in " +
+                        deployment.origin +
+                        "/" +
+                        deployment.identifier
+                    )
+                    logger.info(
+                      "Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows."
+                    )
+                    logger.info(err || "[empty error]")
+                    logger.info(stdOut || "[empty output]")
+
+                    deployment.state.stdout = stdOut
+                    deployment.state.stderr = err
+
+                    try {
+                      const state = await saveDeploymentState(deployment)
+                      deployment.state = state
+                      return deployment
+                    } catch (err) {
+                      throw "Failed to save state after error in deleting deployment! " +
+                        deployment.origin +
+                        "/" +
+                        deployment.identifier +
+                        "\n" +
+                        err
+                    }
+                  } else {
+                    let message =
+                      "Failed to deploy from label for image " +
+                      JSON.stringify(deployment)
+                    message += "\n" + err
+                    message += "\nCode:" + errCode
+                    message += "\nStdOut:" + stdOut
+                    throw message
+                  }
                 }
-              })
+              }
             } else {
               logger.debug(
                 deployment.identifier + " not modified, not deploying."
               )
               return undefined
             }
-          },
-          { concurrency: 8 }
-        ) // TODO: Allow configurable concurrency ???
+          })
+        )
       })
     }
 
