@@ -15,9 +15,15 @@ Supported options:
     --export
     --dryrun
     
+    
 Both will write to directory specified by 
     --outputDir <directory>
-    
+ 
+Options through environment variables:
+
+    SHEPHERD_PG_HOST         - Postgres host
+    SHEPHERD_FILESTORE_DIR   - Directory if using filestore (not recommended for production)
+    SHEPHERD_UI_API_ENDPOINT - GraphQL endpoint for shepherd UI API
 `)
 }
 
@@ -81,6 +87,11 @@ if (process.env.SHEPHERD_PG_HOST) {
   )
   stateStoreBackend = FileStore({ directory: shepherdStoreDir })
 }
+if(Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)){
+  require('@shepherdorg/ui-push').createClient
+  const uiBackend = createUI
+}
+
 
 const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
 const HerdLoader = require("./deployment-manager/herd-loader")

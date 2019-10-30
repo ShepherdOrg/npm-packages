@@ -2,7 +2,11 @@
   "name": "@shepherdorg/ui-push",
   "version": "1.0.0",
   "description": "Push information about deployments to Shepherd UI",
-  "main": "index.js",
+  "types": "dist/upload.d.ts",
+  "main": "dist/upload.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "mocha --exit --require ts-node/register --recursive './**/*.spec.ts'",
