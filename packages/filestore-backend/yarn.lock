@@ -21,6 +21,11 @@
     lodash "^4.17.15"
     md5-file "^4.0.0"
 
+"@shepherdorg/storage-backend-tester@0.0.2":
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/storage-backend-tester/-/storage-backend-tester-0.0.2.tgz#99211bda97607edc0e185ff7ce18ba917ef191f1"
+  integrity sha512-47jScssuzOPcJ8bqy058GMqFdqcAaT24cHe8WC0UqDMj5mvunK/7OjUCK/EdMRU2F9hL7N+b92olADguKSAOFQ==
+
 "@types/chai@^4.2.3":
   version "4.2.4"
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.2.4.tgz#8936cffad3c96ec470a2dc26a38c3ba8b9b6f619"

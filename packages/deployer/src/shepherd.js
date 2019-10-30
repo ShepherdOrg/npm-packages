@@ -64,9 +64,7 @@ if (process.argv.indexOf("--outputDir") > 0) {
 }
 
 if ((exportDocuments || dryRun) && !outputDirectory) {
-  console.error(
-    "Must specify output dir in export and dryrun modes with --outputDir parameter"
-  )
+  console.error("Must specify output dir in export and dryrun modes with --outputDir parameter")
   process.exit(-1)
 }
 
@@ -80,12 +78,8 @@ if (process.env.SHEPHERD_PG_HOST) {
   const FileStore = require("@shepherdorg/filestore-backend").FileStore
   let homedir = require("os").homedir()
   let shepherdStoreDir =
-    process.env.SHEPHERD_FILESTORE_DIR ||
-    path.join(homedir, ".shepherdstore", process.env.ENV || "default")
-  logger.info(
-    "WARNING: Falling back to file based state store directory in ",
-    shepherdStoreDir
-  )
+    process.env.SHEPHERD_FILESTORE_DIR || path.join(homedir, ".shepherdstore", process.env.ENV || "default")
+  logger.info("WARNING: Falling back to file based state store directory in ", shepherdStoreDir)
   stateStoreBackend = FileStore({ directory: shepherdStoreDir })
 }
 if(Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)){
@@ -133,21 +127,13 @@ stateStoreBackend
       return printUsage()
     }
 
-    logger.info(
-      "Shepherding herd from file " +
-        herdFilePath +
-        " for environment " +
-        environment
-    )
+    logger.info("Shepherding herd from file " + herdFilePath + " for environment " + environment)
     loader
       .loadHerd(herdFilePath, environment)
       .then(function(plan) {
         plan.printPlan(logger)
         if (exportDocuments) {
-          logger.info(
-            "Testrun mode set - exporting all deployment documents to " +
-              outputDirectory
-          )
+          logger.info("Testrun mode set - exporting all deployment documents to " + outputDirectory)
           logger.info("Testrun mode set - no deployments will be performed")
           plan
             .exportDeploymentDocuments(outputDirectory)

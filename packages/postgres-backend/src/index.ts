@@ -18,18 +18,17 @@ const Client = (client: pg.Client) => ({
       })
     })
   },
+  end() {
+    return client.end()
+  },
   query(query: string, variables: any[] = []) {
     return new Promise((resolve, reject) => {
-      client.query(query, variables, (err, result) =>
-        err ? reject(err) : resolve(result)
-      )
+      client.query(query, variables, (err, result) => (err ? reject(err) : resolve(result)))
     })
   },
 })
 
-export function PostgresStore(
-  config: PGConnectionConfig
-): IPostgresStorageBackend {
+export function PostgresStore(config: PGConnectionConfig): IPostgresStorageBackend {
   let client
 
   return {
@@ -37,9 +36,7 @@ export function PostgresStore(
       client = Client(new pg.Client(config))
       await client.connect()
       if (config.schema) {
-        await client.query(
-          `CREATE SCHEMA IF NOT EXISTS ${config.schema} AUTHORIZATION ${config.user};`
-        )
+        await client.query(`CREATE SCHEMA IF NOT EXISTS ${config.schema} AUTHORIZATION ${config.user};`)
         await client.query(`SET search_path TO ${config.schema}`)
       }
       await client.query(
@@ -50,22 +47,14 @@ export function PostgresStore(
       client.end()
     },
     async resetAllDeploymentStates() {
-      if (
-        !(
-          process.env.RESET_FOR_REAL ===
-          "yes-i-really-want-to-drop-deployments-table"
-        )
-      ) {
+      if (!(process.env.RESET_FOR_REAL === "yes-i-really-want-to-drop-deployments-table")) {
         throw "RESET_FOR_REAL must be set to true"
       } else {
         return client.query("DROP TABLE deployments")
       }
     },
     async set(key, value) {
-      const result = await client.query(
-        "SELECT identifier, data FROM deployments WHERE identifier=$1::text",
-        [key]
-      )
+      const result = await client.query("SELECT identifier, data FROM deployments WHERE identifier=$1::text", [key])
       if (result.rows.length === 0) {
         try {
           await client.query(
@@ -89,24 +78,17 @@ export function PostgresStore(
           throw err
         }
       } else {
-        throw new Error(
-          `Too many rows with identifer ${key} : ${result.rows.length}`
-        )
+        throw new Error(`Too many rows with identifer ${key} : ${result.rows.length}`)
       }
     },
     async get(key) {
-      const result = await client.query(
-        "SELECT identifier, data FROM deployments WHERE identifier=$1::text",
-        [key]
-      )
+      const result = await client.query("SELECT identifier, data FROM deployments WHERE identifier=$1::text", [key])
       if (result.rows.length === 0) {
         return { key: key, value: undefined }
       } else if (result.rows.length === 1) {
         return { key: key, value: result.rows[0].data }
       } else {
-        throw new Error(
-          `Too many rows with identifer ${key} : ${result.rows.length}`
-        )
+        throw new Error(`Too many rows with identifer ${key} : ${result.rows.length}`)
       }
     },
   }
