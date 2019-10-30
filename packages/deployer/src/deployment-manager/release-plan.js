@@ -93,13 +93,13 @@ module.exports = function(injected) {
           let message =
             "Illegal deployment, no deployment type attribute in " +
             JSON.stringify(deployment)
-          reject(message)
+          throw new Error(message)
         }
         if (!deployment.identifier) {
           let message =
             "Illegal deployment, no identifier attribute in " +
             JSON.stringify(deployment)
-          reject(message)
+          throw new Error(message)
         }
 
         deployment.state = state
@@ -203,7 +203,7 @@ module.exports = function(injected) {
               logger.debug(
                 deployment.identifier + " not modified, not deploying."
               )
-              return undefined
+              return deployment
             }
           })
         )

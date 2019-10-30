@@ -29,6 +29,7 @@ module.exports = function(injected) {
   }
 
   let scanDir = function(dir) {
+
     return new Promise(function(resolve, reject) {
       let planPromises = []
 
@@ -73,6 +74,7 @@ module.exports = function(injected) {
                   if (err) reject(err)
 
                   let dirName = path.basename(path.dirname(resolvedPath))
+                  const fileName = path.basename(resolvedPath)
                   let imageVariableName = dirName.replace(/-/g, "_") + "_image"
                   if (process.env.hasOwnProperty(imageVariableName)) {
                     process.env.TPL_DOCKER_IMAGE =
@@ -116,6 +118,7 @@ module.exports = function(injected) {
                     descriptor: deploymentDescriptor,
                     origin: path.dirname(resolvedPath),
                     type: "k8s",
+                    fileName: fileName
                   }
                   resolve(deployment)
                 })

@@ -142,6 +142,19 @@ module.exports = function(injected) {
                         .then(function(plans) {
                           return Promise.each(plans, function(deploymentPlan) {
                             deploymentPlan.herdName = `${herdFolder.herdName} - ${deploymentPlan.origin}`
+                            deploymentPlan.herdSpec = {
+                              herdName: herdFolder.herdName,
+                              path: herdFolder.path,
+                              description: herdFolder.description
+
+                            }
+                            deploymentPlan.metadata = {
+                              displayName: deploymentPlan.fileName,
+                              semanticVersion: "0",
+                              deploymentType: 'k8s',
+                              buildDate: new Date(0), // Might make sense to extract change timestamp on file from filesystem or git
+                              hyperlinks: []
+                            }
                             return releasePlan.addDeployment(deploymentPlan)
                           })
                         })

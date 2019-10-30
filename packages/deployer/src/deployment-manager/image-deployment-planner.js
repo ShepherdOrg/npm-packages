@@ -83,6 +83,8 @@ module.exports = function(injected) {
       let documentIdentifier = identifyDocument(deploymentDescriptor)
 
       let plan = {
+        herdSpec: imageMetadata.imageDefinition,
+        metadata: imageMetadata.shepherdMetadata,
         operation: imageMetadata.imageDefinition.delete ? "delete" : "apply",
         identifier: documentIdentifier,
         version: imageMetadata.imageDefinition.imagetag,
@@ -103,7 +105,7 @@ module.exports = function(injected) {
       return Promise.resolve().then(() => {
         let plan = {
           displayName: shepherdMetadata.displayName,
-          herdName: imageInformation.imageDefinition.herdName, // TODO Rename imageDefinition -> herdDeclaration
+          herdName: imageInformation.imageDefinition.herdName, // TODO Rename imageDefinition -> herdSpec
         }
 
         if (shepherdMetadata.deploymentType === "deployer") {
@@ -114,6 +116,8 @@ module.exports = function(injected) {
               imageInformation.imageDefinition.imagetag
 
           Object.assign(plan, {
+            metadata: shepherdMetadata,
+            herdSpec: imageInformation.imageDefinition,
             dockerParameters: ["-i", "--rm", "-e", expandEnv("ENV=${ENV}")],
             forTestParameters: undefined,
             imageWithoutTag: dockerImageWithVersion.replace(/:.*/g, ""), // For regression testing

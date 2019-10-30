@@ -97,6 +97,16 @@ describe("Docker image plan loader", function() {
       it("should have herdName", function() {
         expect(loadedPlan.herdName).to.equal("testimage")
       })
+
+      it("should have metadata", () => {
+        expect(loadedPlan.metadata).not.to.equal(undefined)
+        expect(loadedPlan.metadata.displayName).to.equal('Testimage')
+      })
+
+      it("should have herdspec", () => {
+        expect(loadedPlan.herdSpec.herdName).to.equal('testimage')
+
+      })
     })
 
     describe("no command specified", function() {

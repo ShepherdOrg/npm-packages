@@ -27,7 +27,7 @@ const k8sDeployments = {
     origin: "testenvimage:0.0.0:shepherd.kube.config.tar.base64",
     type: "k8s",
   },
-  Namespace_monitors: {
+  "Namespace_monitors": {
     operation: "delete",
     identifier: "Namespace_monitors",
     version: "immutable",
@@ -140,7 +140,7 @@ describe("Release plan", function() {
           .addDeployment(
             k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]
           )
-          .then(function(deploymentState) {
+          .then(function(deployment) {
             return releasePlan.executePlan({
               dryRun: true,
               dryRunOutputDir: "/tmp/",
@@ -279,13 +279,14 @@ describe("Release plan", function() {
     })
 
     describe("modified, delete deployment and kubectl responds with not found", function() {
-      let saveError, executedPlan
+      let saveError, executedPlan, deploymentState
 
       beforeEach(function() {
         fakeExec.nextResponse.err = "not found"
         return releasePlan
           .addDeployment(k8sDeployments["Namespace_monitors"])
-          .then(function(deploymentState) {
+          .then(function(_deploymentState) {
+            deploymentState = _deploymentState
             return releasePlan
               .executePlan()
               .then(function(executionResults) {
@@ -336,12 +337,15 @@ describe("Release plan", function() {
     })
 
     describe("modified parameters", function() {
+      let deployment
+
       beforeEach(function() {
         fakeExec.nextResponse.success = "this would be docker run output"
         fakeStateStore.nextState = { new: false, modified: true }
         return releasePlan
           .addDeployment(dockerDeployers["testenvimage-migrations:0.0.0"])
-          .then(function(deploymentState) {
+          .then(function(ds) {
+            deployment = ds
             return releasePlan.executePlan()
           })
       })
