@@ -4,6 +4,7 @@ interface IInMemoryStorageBackend extends IStorageBackend {
   store(): any
   resetAllDeploymentStates()
 }
+const wait = (ms: number) => new Promise(res => setTimeout(res, ms))
 
 export function InMemoryStore(): IInMemoryStorageBackend {
   let store = {}
@@ -17,20 +18,14 @@ export function InMemoryStore(): IInMemoryStorageBackend {
     resetAllDeploymentStates() {
       store = {}
     },
-    set: function(key, value) {
-      return new Promise(function(resolve, _reject) {
-        store[key] = value
-        setTimeout(function() {
-          resolve({ key: key, value: value })
-        }, 0)
-      })
+    async set(key, value) {
+      await wait(0)
+      store[key] = value
+      return { key, value }
     },
-    get: function(key) {
-      return new Promise(function(resolve, _reject) {
-        setTimeout(function() {
-          resolve({ key: key, value: store[key] })
-        }, 0)
-      })
+    async get(key) {
+      await wait(0)
+      return { key, value: store[key] }
     },
     store: function() {
       return store

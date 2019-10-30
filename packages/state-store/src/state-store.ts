@@ -1,11 +1,9 @@
 import { TStateStoreDependencies } from "./index"
 import { TDeploymentState } from "@shepherdorg/metadata/dist"
-
-const fs = require("fs")
-const path = require("path")
-const _ = require("lodash")
-const md5File = require("md5-file")
-const crypto = require("crypto")
+import fs from "fs"
+import path from "path"
+import md5File from "md5-file"
+import crypto from "crypto"
 
 export function DeploymentDir(operation, parameterizedDir) {
   if (!parameterizedDir) {
@@ -18,11 +16,12 @@ export function DeploymentDir(operation, parameterizedDir) {
 
   return {
     signature() {
-      let files = fs.readdirSync(parameterizedDir)
-      let aggregatedSignatures = ""
-      _.each(files, function(file) {
-        aggregatedSignatures += md5File.sync(path.join(parameterizedDir, file))
-      })
+      const files = fs.readdirSync(parameterizedDir)
+      const aggregatedSignatures = files.reduce(
+        (signature, file) =>
+          signature + md5File.sync(path.join(parameterizedDir, file)),
+        ""
+      )
 
       return crypto
         .createHash("md5")
@@ -35,73 +34,58 @@ export function DeploymentDir(operation, parameterizedDir) {
 export function ReleaseStateStore(injected: TStateStoreDependencies) {
   let storageBackend = injected.storageBackend
 
-  function getStateSignature(
-    env,
-    deploymentIdentifier,
-    operation,
-    deploymentVersion,
-    newSignature
+  async function getStateSignature(
+    env: string,
+    deploymentIdentifier: string,
+    operation: string,
+    deploymentVersion: string,
+    newSignature: string
   ) {
-    return new Promise(function(resolve, reject) {
-      try {
-        let envIdentifier = env + "-" + deploymentIdentifier
-        storageBackend.get(envIdentifier).then(
-          function(keyValue) {
-            let existingState = keyValue.value
-            let newState: TDeploymentState = {
-              key: envIdentifier,
-              new: true,
-              modified: true,
-              operation: operation,
-              version: deploymentVersion,
-              lastVersion: undefined,
-              signature: newSignature,
-              env: env,
-            }
-            if (existingState) {
-              newState.new = false
-              newState.lastVersion = existingState.version
-              newState.modified =
-                operation !== existingState.operation ||
-                existingState.signature !== newSignature ||
-                existingState.version !== deploymentVersion
-            }
+    const envIdentifier = `${env}-${deploymentIdentifier}`
+    const keyValue = await storageBackend.get(envIdentifier)
 
-            resolve(newState)
-          },
-          function(err) {
-            reject(err)
-          }
-        )
-      } catch (e) {
-        reject(e)
-      }
-    })
+    const existingState = keyValue.value
+    const newState: TDeploymentState = {
+      key: envIdentifier,
+      new: true,
+      modified: true,
+      operation: operation,
+      version: deploymentVersion,
+      lastVersion: undefined,
+      signature: newSignature,
+      env: env,
+    }
+    if (existingState) {
+      newState.new = false
+      newState.lastVersion = existingState.version
+      newState.modified =
+        operation !== existingState.operation ||
+        existingState.signature !== newSignature ||
+        existingState.version !== deploymentVersion
+    }
+
+    return newState
   }
 
-  function saveDeploymentState(stateSignatureObject) {
-    return new Promise(function(resolve, reject) {
-      if (stateSignatureObject.modified) {
-        let timestampedObject = _.extend(
-          { timestamp: new Date().toISOString() },
-          stateSignatureObject
-        )
-        storageBackend.set(stateSignatureObject.key, timestampedObject).then(
-          function(storedValueKeyPair) {
-            resolve(storedValueKeyPair.value)
-          },
-          function(err) {
-            reject(err)
-          }
-        )
-      } else {
-        resolve(stateSignatureObject)
+  async function saveDeploymentState(stateSignatureObject) {
+    if (stateSignatureObject.modified) {
+      const timestampedObject = {
+        ...stateSignatureObject,
+        timestamp: new Date().toISOString(),
       }
-    })
+
+      const storedKeyValuePair = await storageBackend.set(
+        stateSignatureObject.key,
+        timestampedObject
+      )
+      return storedKeyValuePair.value
+    } else {
+      return stateSignatureObject
+    }
   }
 
   return {
-    getDeploymentState: function(deployment) {
+    getDeploymentState(deployment) {
       let deploymentSignature = crypto
         .createHash("md5")
         .update(deployment.operation + deployment.descriptor)
@@ -114,8 +98,8 @@ export function ReleaseStateStore(injected: TStateStoreDependencies) {
         deploymentSignature
       )
     },
-    saveDeploymentState: saveDeploymentState,
-    storeDeploymentDirState: function(deployment) {
+    saveDeploymentState,
+    storeDeploymentDirState(deployment) {
       let deploymentSignature = DeploymentDir(
         deployment.operation,
         deployment.directory

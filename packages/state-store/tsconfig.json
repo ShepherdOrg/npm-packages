@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "es6"
-    ],
+    "lib": ["es6"],
     "alwaysStrict": true,
     "types": ["node", "mocha"],
     "declaration": true,
@@ -18,13 +16,6 @@
     "sourceMap": true,
     "esModuleInterop": true
   },
-  "exclude": [
-    "node_modules",
-    "dist"
-  ],
-  "types": [
-    "@types/node",
-    "@types/mocha",
-    "@types/chai"
-  ]
+  "exclude": ["node_modules", "dist"],
+  "types": ["@types/node", "@types/mocha", "@types/chai"]
 }
