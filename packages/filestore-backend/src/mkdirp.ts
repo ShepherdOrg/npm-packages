@@ -1,19 +1,20 @@
 // Code hijacked from https://stackoverflow.com/questions/31645738/how-to-create-full-path-with-nodes-fs-mkdirsync
-const fs = require("fs")
-const path = require("path")
+import fs from "fs"
+import path from "path"
 
-export function mkDirByPathSync(
-  targetDir,
-  { isRelativeToScript = false } = {}
-) {
+const mkdir = (path: fs.PathLike) =>
+  new Promise((res, rej) => fs.mkdir(path, err => (err ? rej(err) : res())))
+
+export function mkdirp(targetDir, { isRelativeToScript = false } = {}) {
   const sep = path.sep
   const initDir = path.isAbsolute(targetDir) ? sep : ""
   const baseDir = isRelativeToScript ? __dirname : "."
 
-  return targetDir.split(sep).reduce((parentDir, childDir) => {
+  return targetDir.split(sep).reduce(async (parentPromise, childDir) => {
+    const parentDir = await parentPromise
     const curDir = path.resolve(baseDir, parentDir, childDir)
     try {
-      fs.mkdirSync(curDir)
+      await mkdir(curDir)
     } catch (err) {
       if (err.code === "EEXIST") {
         // curDir already exists!
@@ -26,12 +27,12 @@ export function mkDirByPathSync(
         throw new Error(`EACCES: permission denied, mkdir '${parentDir}'`)
       }
 
-      const caughtErr = ["EACCES", "EPERM", "EISDIR"].indexOf(err.code) > -1
+      const caughtErr = ["EACCES", "EPERM", "EISDIR"].includes(err.code)
       if (!caughtErr || (caughtErr && targetDir === curDir)) {
         throw err // Throw if it's just the last created dir.
       }
     }
 
     return curDir
-  }, initDir)
+  }, Promise.resolve(initDir))
 }
