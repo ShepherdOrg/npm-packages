@@ -19,7 +19,7 @@ if [ "${1}" = "delete" ]; then
 #		echo -n "-------------- delete stdin ----------------------->>>>" >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 #		echo -n "${input}" >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 #		echo "<<<<-------------- delete stdin -----------------------" >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
-		filename=$(echo "${input}" | classify-k8s-document)
+		filename=$(echo "${input}" | bin/deploymentdocument-classifier.js)
 		if [ -e "${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml" ]; then
 			echo "ERROR: ${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml already deployed. Probably means that deployment descriptor exists both in folders and is being extracted from image metadata"
 			exit 255
@@ -45,7 +45,7 @@ elif [ -e "${3}" ]; then
 #	cat ${3} >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 #    echo "<<<<-------------   ${3} contents --------------"  >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 
-	filename=$(cat ${3} | classify-k8s-document)
+	filename=$(cat ${3} | bin/deploymentdocument-classifier.js)
 
 	if [ -e "${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml" ]; then
 		echo "ERROR: ${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml already exists. Probably means that deployment descriptor exists both in aws-environment and is being extracted from image metadata"
@@ -59,7 +59,7 @@ else
 #		echo "apply -f - specified, reading stdin"
 	input=$(cat)
 
-	filename=$(echo "${input}" | classify-k8s-document)
+	filename=$(echo "${input}" | bin/deploymentdocument-classifier.js)
 
 	if [ -e "${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml" ]; then
 		echo "ERROR: ${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml already exists. Probably means that deployment descriptor exists both in aws-environment and is being extracted from image metadata"

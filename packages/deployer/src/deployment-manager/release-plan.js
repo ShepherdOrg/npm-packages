@@ -6,6 +6,9 @@ const options = require("./options")
 const writeFile = Promise.promisify(fs.writeFile)
 const _ = require("lodash")
 
+const extendedExec = cmd => (...args) =>
+  new Promise((res, rej) => cmd.extendedExec(...args, rej, res))
+
 module.exports = function(injected) {
   const stateStore = injected("stateStore")
   const cmd = injected("cmd")
@@ -216,94 +219,77 @@ module.exports = function(injected) {
     }
 
     function DeployerPromises(deploymentOptions) {
-      return _.map(dockerDeploymentPlan, function(deploymentPlan, identifier) {
-        return Promise.map(
-          deploymentPlan.deployments,
-          function(deployment) {
+      return Object.values(dockerDeploymentPlan).map(deploymentPlan =>
+        Promise.all(
+          deploymentPlan.deployments.map(async deployment => {
             if (deployment.state.modified) {
-              return new Promise(function(resolve, reject) {
-                if (deploymentOptions.dryRun) {
-                  let writePath = path.join(
-                    deploymentOptions.dryRunOutputDir,
-                    deployment.imageWithoutTag.replace(/\//g, "_") +
-                      "-deployer.txt"
-                  )
+              if (deploymentOptions.dryRun) {
+                let writePath = path.join(
+                  deploymentOptions.dryRunOutputDir,
+                  deployment.imageWithoutTag.replace(/\//g, "_") +
+                    "-deployer.txt"
+                )
 
-                  let cmdLine = `docker run ${deployment.forTestParameters.join(
-                    " "
-                  )}`
+                let cmdLine = `docker run ${deployment.forTestParameters.join(
+                  " "
+                )}`
 
-                  let writePromise = writeFile(writePath, cmdLine)
-
-                  resolve(writePromise.then(() => deployment))
-                } else {
-                  cmd.extendedExec(
+                await writeFile(writePath, cmdLine)
+                return deployment
+              } else {
+                try {
+                  const stdout = await extendedExec(cmd)(
                     "docker",
                     ["run"].concat(deployment.dockerParameters),
                     {
                       env: process.env,
-                    },
-                    function(err) {
-                      let message =
-                        "Failed to run docker deployer " +
-                        JSON.stringify(deployment)
-                      message += err
-                      reject(message)
-                    },
-                    function(stdout) {
-                      try {
-                        // logger.enterDeployment(deployment.origin + '/' + deployment.identifier);
-                        logger.info(stdout)
-                        // logger.exitDeployment(deployment.origin + '/' + deployment.identifier);
-
-                        saveDeploymentState(deployment)
-                          .then(function(savedState) {
-                            deployment.state = savedState
-                            resolve(deployment)
-                          })
-                          .catch(function(err) {
-                            reject(
-                              "Failed to save state after successful deployment! " +
-                                deployment.origin +
-                                "/" +
-                                deployment.identifier +
-                                "\n" +
-                                err
-                            )
-                          })
-                      } catch (e) {
-                        console.error(
-                          "Error running docker run" +
-                            JSON.stringify(deployment)
-                        )
-                        reject(e)
-                      }
                     }
                   )
+                  try {
+                    // logger.enterDeployment(deployment.origin + '/' + deployment.identifier);
+                    logger.info(stdout)
+                    // logger.exitDeployment(deployment.origin + '/' + deployment.identifier);
+
+                    try {
+                      const state = await saveDeploymentState(deployment)
+                      deployment.state = state
+                    } catch (err) {
+                      throw "Failed to save state after successful deployment! " +
+                        deployment.origin +
+                        "/" +
+                        deployment.identifier +
+                        "\n" +
+                        err
+                    }
+                  } catch (e) {
+                    console.error(
+                      "Error running docker run" + JSON.stringify(deployment)
+                    )
+                    throw e
+                  }
+                } catch (err) {
+                  let message =
+                    "Failed to run docker deployer " +
+                    JSON.stringify(deployment)
+                  message += err
+                  throw message
                 }
-              })
+              }
             } else {
               return undefined
             }
-          },
-          { concurrency: 1 }
+          })
         )
-      })
+      )
     }
 
     function executePlan(runOptions) {
       runOptions = runOptions || { dryRun: false, dryRunOutputDir: undefined }
-      return new Promise(function(resolve, reject) {
-        let deploymentPromises = K8sDeploymentPromises(runOptions)
-        deploymentPromises = deploymentPromises.concat(
-          DeployerPromises(runOptions)
-        )
-        Promise.all(deploymentPromises)
-          .then(function(deployments) {
-            resolve(deployments)
-          })
-          .catch(reject)
-      })
+      let deploymentPromises = K8sDeploymentPromises(runOptions)
+      deploymentPromises = deploymentPromises.concat(
+        DeployerPromises(runOptions)
+      )
+      return Promise.all(deploymentPromises)
     }
 
     function printPlan(logger) {
