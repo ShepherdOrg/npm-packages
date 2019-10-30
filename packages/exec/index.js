@@ -1,1 +1,1 @@
-module.exports=require('./exec');
+module.exports = require("./exec")

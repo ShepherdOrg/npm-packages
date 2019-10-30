@@ -1,1 +1,1 @@
-export { inject } from "./inject";
+export { inject } from "./inject"

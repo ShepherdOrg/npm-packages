@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/ShepherdOrg/shepherd#readme",
   "devDependencies": {
+    "prettier": "^1.18.2",
     "yamrt": "0.2.2"
   }
 }
