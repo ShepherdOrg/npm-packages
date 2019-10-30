@@ -42,15 +42,9 @@ export function PostgresStore(
         )
         await client.query(`SET search_path TO ${config.schema}`)
       }
-      try {
-        const result = await client.query("SELECT count(*) FROM deployments")
-        return result.rows[0].count
-      } catch (err) {
-        await client.query(
-          "CREATE TABLE deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL)"
-        )
-        return 0
-      }
+      await client.query(
+        "CREATE TABLE IF NOT EXISTS deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL)"
+      )
     },
     disconnect() {
       client.end()
