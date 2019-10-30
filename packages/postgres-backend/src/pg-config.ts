@@ -4,7 +4,7 @@ export interface PGConnectionConfig {
   database: string
   password: string
   port: number
-  idleTimeoutMillis: number
+  idleTimeoutMillis?: number
   ssl?: boolean
   schema?: string
 }

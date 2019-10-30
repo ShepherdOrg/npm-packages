@@ -37,7 +37,10 @@ export function PostgresStore(
       client = Client(new pg.Client(config))
       await client.connect()
       if (config.schema) {
-        await client.query(`SET search_path TO '${config.schema}';`)
+        await client.query(
+          `CREATE SCHEMA IF NOT EXISTS ${config.schema} AUTHORIZATION ${config.user};`
+        )
+        await client.query(`SET search_path TO ${config.schema}`)
       }
       try {
         const result = await client.query("SELECT count(*) FROM deployments")
