@@ -20,7 +20,8 @@
   },
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "e2etest"
   ],
   "types": [
     "@types/node",

@@ -15,7 +15,7 @@
     "@shepherdorg/nano-inject": "^0.0.6",
     "@shepherdorg/postgres-backend": "^0.0.2",
     "@shepherdorg/state-store": "^0.0.3",
-    "@shepherdorg/ui-push": "^1.0.0",
+    "@shepherdorg/ui-push": "^1.0.1",
     "bluebird": "^3.7.1",
     "bunyan": "^1.8.12",
     "db-migrate": "^0.11.6",

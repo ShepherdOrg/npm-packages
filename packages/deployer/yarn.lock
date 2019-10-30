@@ -124,10 +124,10 @@
     node-fetch "^2.6.0"
     ramda "^0.26.1"
 
-"@shepherdorg/ui-push@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/ui-push/-/ui-push-1.0.0.tgz#59a745d2b9ee72cc29939a00afb5f09ed78b9c99"
-  integrity sha512-k7QKqQgtk6+Jt6ua2sr7RatZPYOdplrgVHWPs4SzKKabC7/X/jh0tJAdQiM7quzeoblaUb5YC9MdWOM0qSxB4g==
+"@shepherdorg/ui-push@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/ui-push/-/ui-push-1.0.1.tgz#a9c63d1eccaa296c3105ffd2b67f3388853b5c97"
+  integrity sha512-Ya4dh6kUi2CA/FvmQY5f++CjzXNItwH28QkU9vJ4FatJBmC5qClvkqyWG2xVb40DkTp6gXnekZi+Sfp4JJirZQ==
   dependencies:
     "@shepherdorg/metadata" "^0.0.11"
     "@shepherdorg/ui-graphql-client" "3.0.6"

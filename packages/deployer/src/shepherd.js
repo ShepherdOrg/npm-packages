@@ -3,6 +3,7 @@
 let path = require("path")
 let fs = require("fs")
 
+let UiPush = require('@shepherdorg/ui-push/dist')
 /*
 This is the main entry point for shepherd deployer agent
  */
@@ -88,7 +89,7 @@ if (process.env.SHEPHERD_PG_HOST) {
   stateStoreBackend = FileStore({ directory: shepherdStoreDir })
 }
 if(Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)){
-  require('@shepherdorg/ui-push').createClient
+  .
   const uiBackend = createUI
 }
 

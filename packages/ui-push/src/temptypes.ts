@@ -2,8 +2,8 @@ import {
   TDeployerMetadata,
   TDeploymentState,
   THerdSpec,
-} from "../../metadata/src"
-import { TK8sMetadata } from "../../metadata/src"
+} from "@shepherdorg/metadata"
+import { TK8sMetadata } from "@shepherdorg/metadata"
 
 export type THerdMetadata = {
   herdSpec: THerdSpec
