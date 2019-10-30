@@ -1,8 +1,7 @@
 before(() => {
-    process.env.ENV = 'testenv';
-});
+  process.env.ENV = "testenv"
+})
 
 after(() => {
-    delete process.env.ENV;
-});
-
+  delete process.env.ENV
+})
