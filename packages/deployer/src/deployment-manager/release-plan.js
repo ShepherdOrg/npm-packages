@@ -245,6 +245,7 @@ module.exports = function(injected) {
                     try {
                       const state = await saveDeploymentState(deployment)
                       deployment.state = state
+                      return deployment
                     } catch (err) {
                       throw "Failed to save state after successful deployment! " +
                         deployment.origin +
