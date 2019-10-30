@@ -1,7 +1,7 @@
 {
-  "name": "@shepherdorg/filestore-backend",
-  "version": "0.0.3",
-  "description": "State store for persisting shepherd deployment state using a provided backend.",
+  "name": "@shepherdorg/s3-backend",
+  "version": "0.0.1",
+  "description": "Shepherd S3 state store",
   "files": [
     "dist"
   ],
