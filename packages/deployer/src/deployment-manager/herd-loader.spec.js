@@ -146,14 +146,13 @@ describe("herd.yaml loading", function() {
     it("should add k8s deployment found in scanned directory", function() {
       // expect().fail('LOADED PLAN' + JSON.stringify(loadedPlan, null, 2))
 
-      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].origin).to.contain("testdata/happypath/namespaces")
+      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].origin).to.equal("namespaces")
     })
 
-    it("should have herd name", function() {
+    it("loaded plan should have herd name", function() {
       // expect().fail('LOADED PLAN' + JSON.stringify(loadedPlan, null, 2))
 
-      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdName).to.contain("kube-config")
-      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdName).to.contain("testdata/happypath/namespaces")
+      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdName).to.contain("kube-config - namespaces")
     })
 
     it("should have herdspec", () => {

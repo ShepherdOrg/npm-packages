@@ -108,8 +108,8 @@ module.exports = function(injected) {
     }
 
     function K8sDeploymentPromises(deploymentOptions) {
-      return Object.values(k8sDeploymentPlan).map(deploymentPlan => {
-        return Promise.all(
+      return Object.values(k8sDeploymentPlan).flatMap(deploymentPlan => {
+        return (
           deploymentPlan.deployments.map(async deployment => {
             if (deployment.state.modified) {
               if (deploymentOptions.dryRun) {
@@ -211,8 +211,8 @@ module.exports = function(injected) {
     }
 
     function DeployerPromises(deploymentOptions) {
-      return Object.values(dockerDeploymentPlan).map(deploymentPlan =>
-        Promise.all(
+      return Object.values(dockerDeploymentPlan).flatMap(deploymentPlan =>
+        (
           deploymentPlan.deployments.map(async deployment => {
             if (deployment.state.modified) {
               if (deploymentOptions.dryRun) {
@@ -282,8 +282,21 @@ module.exports = function(injected) {
       deploymentPromises = deploymentPromises.concat(
         DeployerPromises(runOptions)
       )
+        .map((promise)=>{
+          // console.log("PROMISE IS", promise)
+          console.log('runOptions.uiBackend', runOptions.uiBackend)
+        return promise.then(runOptions.uiBackend)
+      })
 
-      const deployments = (await Promise.all(deploymentPromises)).flat()
+
+
+      // console.log('deploymentPromises', deploymentPromises)
+
+      const deployments = (await Promise.all(deploymentPromises))
+      // deployments.forEach((deployment)=>{
+      //   runOptions.uiBackend(deployment)
+      // })
+      // console.log('deployments', deployments)
       return deployments
     }
 

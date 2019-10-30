@@ -73,10 +73,10 @@ describe("k8s deployment file directory structure release plan loader", function
       ).to.contain("secondaryImage: 'www-icelandair-image:1.0'")
     })
 
-    it("should add origin to plan", function() {
+    it("should add origin dir to plan", function() {
       expect(
         plan.addedK8sDeployments["Service_www-icelandair-com-fromdir"].origin
-      ).to.contain("/testdata/deployment-dirs/www-icelandair-com")
+      ).to.contain("www-icelandair-com")
     })
 
     it("should result in exactly those plans", function() {

@@ -25,7 +25,7 @@ function loadAuth(registry) {
 // This file contains experiments with docker registry API
 
 function httpsRequest(url, basicAuth, path, accept, headers, done) {
-  console.debug(`Requesting ${url} ${path}`)
+  // console.debug(`Requesting ${url} ${path}`)
   accept = accept || "*"
   path = path || ``
   let options: any = {

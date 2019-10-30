@@ -28,6 +28,7 @@ module.exports = function(injected) {
     return kubeSupportedExtensions[path.extname(filePath)]
   }
 
+  let initialDir
   let scanDir = function(dir) {
 
     return new Promise(function(resolve, reject) {
@@ -53,6 +54,7 @@ module.exports = function(injected) {
       }
 
       if (!dir.path) {
+        initialDir = dir
         dir = initDir(dir)
         dir.deploymentRoot = true
       }
@@ -116,7 +118,7 @@ module.exports = function(injected) {
                     identifier: documentIdentifier,
                     version: "immutable",
                     descriptor: deploymentDescriptor,
-                    origin: path.dirname(resolvedPath),
+                    origin: path.relative(initialDir, path.dirname(resolvedPath)),
                     type: "k8s",
                     fileName: fileName
                   }

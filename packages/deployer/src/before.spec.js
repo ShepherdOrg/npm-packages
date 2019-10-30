@@ -5,3 +5,6 @@ before(() => {
 after(() => {
   delete process.env.ENV
 })
+
+
+testDebug = console.log

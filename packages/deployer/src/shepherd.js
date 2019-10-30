@@ -3,7 +3,7 @@
 let path = require("path")
 let fs = require("fs")
 
-let UiPush = require('@shepherdorg/ui-push/dist')
+let CreatePushApi = require('@shepherdorg/ui-push').CreatePushApi
 /*
 This is the main entry point for shepherd deployer agent
  */
@@ -89,8 +89,7 @@ if (process.env.SHEPHERD_PG_HOST) {
   stateStoreBackend = FileStore({ directory: shepherdStoreDir })
 }
 if(Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)){
-  .
-  const uiBackend = createUI
+  const uiBackend = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT)
 }
 
 
@@ -161,7 +160,7 @@ stateStoreBackend
             })
         } else {
           plan
-            .executePlan({ dryRun: dryRun, dryRunOutputDir: outputDirectory })
+            .executePlan({ dryRun: dryRun, dryRunOutputDir: outputDirectory, uiBackend: uiBackend })
             .then(function() {
               logger.info("Plan execution complete. Exiting shepherd.")
               setTimeout(() => {
