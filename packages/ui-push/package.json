@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/ui-push",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Push information about deployments to Shepherd UI",
   "types": "dist/upload.d.ts",
   "main": "dist/upload.js",

@@ -43,7 +43,7 @@ export function mapToUiVersion(deployerInfo: THerdDeployerMetadata): DeploymentU
     return {
       versionInfo: {
         build_host_name: deployerInfo.buildHostName || "build host is unknown",
-        built_at: deployerInfo.buildDate.toISOString(),
+        built_at: deployerInfo.buildDate && deployerInfo.buildDate.toISOString(),
         deployed_at: deployedAt,
         deployment_id: deployerInfo.deploymentState.env + deployerInfo.herdSpec.key,
         docker_image: deployerInfo.dockerImageTag || "missing docker image", // TODO Must fix in metadata library

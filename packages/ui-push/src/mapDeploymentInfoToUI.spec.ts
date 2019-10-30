@@ -1,7 +1,12 @@
 import { expect } from "chai"
 import { getValidHerdDeployerMetadata } from "./testdata"
 import { mapToUiVersion } from "./mapDeploymentInfoToUI"
-import { DeploymentVersion, Deployment } from "@shepherdorg/ui-graphql-client"
+import { Deployment, DeploymentVersion } from "@shepherdorg/ui-graphql-client"
+import { expectedDeploymentUiInfo } from "./testdata/expecteddata"
+import { getDataArrayAsPushedFromShepherd } from "./testdata/pushedDataArray"
+import { mapUntypedDeploymentData } from "./mapUntypedDeploymentData"
+// import fs from 'fs'
+
 
 describe("mapping", function() {
   it("should map deployer info to UI", () => {
@@ -47,5 +52,15 @@ describe("mapping", function() {
     let deploymentUIInfo = mapToUiVersion(input)
     expect(deploymentUIInfo.versionInfo).to.deep.equal(expectedVersionInfo)
     expect(deploymentUIInfo.deploymentInfo).to.deep.equal(expectedDeploymentInfo)
+  })
+
+  it("should map untyped pushed data array correctly", () => {
+    const testDataArray =  getDataArrayAsPushedFromShepherd()
+    const interimMap = testDataArray.map(mapUntypedDeploymentData)
+    let mappedDeployments =  interimMap.map(mapToUiVersion)
+    let expectedData = expectedDeploymentUiInfo()
+    // fs.writeFileSync('expecteddata.json', JSON.stringify(mappedDeployments))
+
+    expect(mappedDeployments).to.deep.equal(expectedData)
   })
 })
