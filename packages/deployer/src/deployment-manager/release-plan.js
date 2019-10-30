@@ -276,13 +276,15 @@ module.exports = function(injected) {
       )
     }
 
-    function executePlan(runOptions) {
+    async function executePlan(runOptions) {
       runOptions = runOptions || { dryRun: false, dryRunOutputDir: undefined }
       let deploymentPromises = K8sDeploymentPromises(runOptions)
       deploymentPromises = deploymentPromises.concat(
         DeployerPromises(runOptions)
       )
-      return Promise.all(deploymentPromises)
+
+      const deployments = (await Promise.all(deploymentPromises)).flat()
+      return deployments
     }
 
     function printPlan(logger) {

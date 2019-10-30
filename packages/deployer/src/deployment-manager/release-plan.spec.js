@@ -305,8 +305,8 @@ describe("Release plan", function() {
       })
 
       it("should save call log with state", function() {
-        expect(executedPlan[0].state.stdout).to.equal(undefined)
-        expect(executedPlan[0].state.stderr).to.equal("not found")
+        expect(executedPlan.state.stdout).to.equal(undefined)
+        expect(executedPlan.state.stderr).to.equal("not found")
       })
     })
   })
