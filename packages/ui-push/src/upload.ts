@@ -10,6 +10,7 @@ export function CreatePushApi(endPoint: string, logger: typeof console) {
     if(uiVersion){
       await shepherdUiClient.upsertDeployment([uiVersion.deploymentInfo])
       await shepherdUiClient.upsertDeploymentVersion([uiVersion.versionInfo])
+      logger.info(`${deploymentState.displayName} from ${deploymentState.gitUrl} deployment info pushed to UI.`)
     } else {
       logger.info(`${deploymentState.displayName} from ${deploymentState.gitUrl} deployment info not pushed. Modified: ${deploymentState.deploymentState.modified}, timestamp: ${deploymentState.deploymentState.timestamp}`)
     }
