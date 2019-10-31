@@ -54,5 +54,5 @@ export function getValidHerdDeployerMetadata() {
       },
     ],
   }
-  return input
+  return {...input}
 }

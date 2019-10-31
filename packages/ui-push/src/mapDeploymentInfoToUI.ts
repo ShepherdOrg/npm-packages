@@ -27,7 +27,7 @@ function mapDeployerRole(deployerRole: TDeployerRole): string {
   }
 }
 
-export function mapToUiVersion(deployerInfo: THerdDeployerMetadata): DeploymentUIInfo {
+export function mapToUiVersion(deployerInfo: THerdDeployerMetadata): DeploymentUIInfo | undefined {
   function mapLinks() {
     if (deployerInfo.hyperlinks) {
       return deployerInfo.hyperlinks.map(link => {
@@ -38,7 +38,7 @@ export function mapToUiVersion(deployerInfo: THerdDeployerMetadata): DeploymentU
     }
   }
 
-  if (deployerInfo.deploymentState.timestamp) {
+  if (deployerInfo.deploymentState.modified && deployerInfo.deploymentState.timestamp) {
     let deployedAt = deployerInfo.deploymentState.timestamp.toISOString()
     return {
       versionInfo: {
@@ -75,6 +75,6 @@ export function mapToUiVersion(deployerInfo: THerdDeployerMetadata): DeploymentU
       },
     }
   } else {
-    throw new Error("Deployment lacks sufficient information for pushing to UI!")
+    return undefined;
   }
 }
