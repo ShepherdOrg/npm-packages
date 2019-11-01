@@ -259,12 +259,8 @@ module.exports = function(injected) {
       deploymentPromises = deploymentPromises.concat(DeployerPromises(runOptions)).map(promise => {
         if (shouldPush) {
           return promise
-            // .then(writeJsonToFile(`deployment-${i++}.json`))
             .then(mapUntypedDeploymentData)
             .then(uiDataPusher.pushDeploymentStateToUI)
-            .then(pushedData => {
-              console.log("Push to UI complete", pushedData)
-            })
         } else {
           return promise.then()
         }
