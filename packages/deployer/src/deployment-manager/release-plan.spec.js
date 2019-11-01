@@ -16,10 +16,20 @@ describe("Release plan", function() {
   let fakeStateStore
   let fakeExec
   let fakeLogger
+  let fakeUiDataPusher
+
 
   beforeEach(function() {
     checkedStates = []
+    fakeUiDataPusher={
+      pushedData:[],
+      pushDeploymentStateToUI:async (data)=>{
+        fakeUiDataPusher.pushedData.push(data)
+        return data
+      }
+    }
     fakeStateStore = {
+      fixedTimestamp: "2001-01-10T00:00:00.000Z",
       nextState: {},
       savedStates: [],
       getDeploymentState: function(deployment) {
@@ -36,6 +46,7 @@ describe("Release plan", function() {
               signature: "fakesignature",
               origin: deployment.origin,
               env: "UNITTEST",
+              timestamp: fakeStateStore.fixedTimestamp
             },
             fakeStateStore.nextState
           )
@@ -61,6 +72,7 @@ describe("Release plan", function() {
         stateStore: fakeStateStore,
         cmd: fakeExec,
         logger: fakeLogger,
+        uiDataPusher: fakeUiDataPusher
       })
     )("planSpecEnv")
   })
@@ -99,6 +111,10 @@ describe("Release plan", function() {
       it("should not execute plan ", function() {
         expect(fakeExec.executedCommands.length).to.equal(0)
       })
+
+      it("should not push any data to UI", () => {
+        expect(true).to.equal(false)
+      })
     })
 
     describe("unmodified", function() {
@@ -117,6 +133,10 @@ describe("Release plan", function() {
         expect(fakeExec.executedCommands.length).to.equal(0)
       })
 
+      it("should not push any data to UI", () => {
+        expect(true).to.equal(false)
+      })
+
       it("should print plan stating no changes", function() {
         let outputLogger = new FakeLogger()
         releasePlan.printPlan(outputLogger)
@@ -127,8 +147,9 @@ describe("Release plan", function() {
       })
     })
 
-    describe("modified deployment docs", function() {
+    describe.only("modified deployment docs", function() {
       beforeEach(function() {
+        fakeStateStore.fixedTimestamp = "2019-10-31T11:03:52.381Z"
         fakeExec.nextResponse.success = "applied"
         return releasePlan
           .addDeployment(
@@ -154,6 +175,20 @@ describe("Release plan", function() {
         expect(fakeExec.executedCommands[0].options.stdin).to.contain(
           "name: www-icelandair-com-nginx-acls"
         )
+      })
+
+      it("should push data to UI", () => {
+
+        // testDebug('WROTE DATA ARRAY TO ' )
+        // fs.writeFileSync('./pushedDataArray.json', JSON.stringify(fakeUiDataPusher.pushedData))
+        expect(fakeUiDataPusher.pushedData.length).to.equal(3)
+
+        expect(fakeUiDataPusher.pushedData[0].displayName).to.equal('Testimage')
+        expect(fakeUiDataPusher.pushedData[1].displayName).to.equal('Testimage')
+        expect(fakeUiDataPusher.pushedData[2].displayName).to.equal('monitors-namespace.yml')
+        expect(fakeUiDataPusher.pushedData[2].deploymentState.timestamp).to.eql(new Date('2019-10-31T11:03:52.381Z'))
+
+
       })
 
       it("should store state kubectl", function() {

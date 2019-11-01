@@ -79,6 +79,10 @@ describe("deployment state store", function() {
     it("should return a signature", function() {
       expect(state.signature).to.be.a("string")
     })
+
+    it("should add a timestamp", () => {
+      expect(state.timestamp).not.to.equal(undefined)
+    })
   })
 
   describe("two deployments with no modifications", function() {

@@ -1,3 +1,5 @@
+
+const mapUntypedDeploymentData = require("@shepherdorg/metadata/dist/map-untyped-deployment-data").mapUntypedDeploymentData
 const Promise = require("bluebird")
 
 const path = require("path")
@@ -20,16 +22,25 @@ const extendedExec = cmd => (...args) =>
     )
   )
 
+function writeJsonToFile (path1 = "./shepherd-pushed.json") {
+  return shepherdMetadata => {
+    fs.writeFile(path1, JSON.stringify(shepherdMetadata), ()=>{
+      console.log('WROTE JSON TO ' + path1)
+    })
+    return shepherdMetadata
+  }
+}
+
 module.exports = function(injected) {
   const stateStore = injected("stateStore")
+
   const cmd = injected("cmd")
   const logger = injected("logger")
+  const uiDataPusher = injected("uiDataPusher", true)
 
   return function(forEnv) {
     if (!forEnv) {
-      throw new Error(
-        "must specify environment you are creating a deployment plan for"
-      )
+      throw new Error("must specify environment you are creating a deployment plan for")
     }
 
     const k8sDeploymentPlan = {}
@@ -37,9 +48,7 @@ module.exports = function(injected) {
     const k8sDeploymentsByIdentifier = {}
 
     function addK8sDeployment(deployment) {
-      k8sDeploymentPlan[deployment.origin] = k8sDeploymentPlan[
-        deployment.origin
-      ] || {
+      k8sDeploymentPlan[deployment.origin] = k8sDeploymentPlan[deployment.origin] || {
         herdName: deployment.herdName,
         deployments: [],
       }
@@ -59,9 +68,7 @@ module.exports = function(injected) {
     }
 
     function addDockerDeployer(deployment) {
-      dockerDeploymentPlan[deployment.origin] = dockerDeploymentPlan[
-        deployment.origin
-      ] || {
+      dockerDeploymentPlan[deployment.origin] = dockerDeploymentPlan[deployment.origin] || {
         herdName: deployment.herdName,
         deployments: [],
       }
@@ -70,9 +77,7 @@ module.exports = function(injected) {
         return params.slice(0, params.length - 1)
       }
 
-      deployment.descriptor = allButImageParameter(
-        deployment.dockerParameters
-      ).join(" ")
+      deployment.descriptor = allButImageParameter(deployment.dockerParameters).join(" ")
       dockerDeploymentPlan[deployment.origin].deployments.push(deployment)
     }
 
@@ -90,15 +95,11 @@ module.exports = function(injected) {
 
       return stateStore.getDeploymentState(deployment).then(function(state) {
         if (!deployment.type) {
-          let message =
-            "Illegal deployment, no deployment type attribute in " +
-            JSON.stringify(deployment)
+          let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deployment)
           throw new Error(message)
         }
         if (!deployment.identifier) {
-          let message =
-            "Illegal deployment, no identifier attribute in " +
-            JSON.stringify(deployment)
+          let message = "Illegal deployment, no identifier attribute in " + JSON.stringify(deployment)
           throw new Error(message)
         }
 
@@ -109,30 +110,48 @@ module.exports = function(injected) {
 
     function K8sDeploymentPromises(deploymentOptions) {
       return Object.values(k8sDeploymentPlan).flatMap(deploymentPlan => {
-        return (
-          deploymentPlan.deployments.map(async deployment => {
-            if (deployment.state.modified) {
-              if (deploymentOptions.dryRun) {
-                const writePath = path.join(
-                  deploymentOptions.dryRunOutputDir,
-                  deployment.operation +
-                    "-" +
-                    deployment.identifier.toLowerCase() +
-                    ".yaml"
+        return deploymentPlan.deployments.map(async deployment => {
+          if (deployment.state.modified) {
+            if (deploymentOptions.dryRun) {
+              const writePath = path.join(
+                deploymentOptions.dryRunOutputDir,
+                deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml"
+              )
+              await writeFile(writePath, deployment.descriptor.trim())
+              return deployment
+            } else {
+              try {
+                const stdOut = await extendedExec(cmd)("kubectl", [deployment.operation, "-f", "-"], {
+                  env: process.env,
+                  stdin: deployment.descriptor,
+                  debug: true,
+                })
+                logger.info(
+                  "kubectl " +
+                    deployment.operation +
+                    " deployments in " +
+                    deployment.origin +
+                    "/" +
+                    deployment.identifier
                 )
-                await writeFile(writePath, deployment.descriptor.trim())
-                return deployment
-              } else {
+                logger.info(stdOut || "[empty output]")
+
                 try {
-                  const stdOut = await extendedExec(cmd)(
-                    "kubectl",
-                    [deployment.operation, "-f", "-"],
-                    {
-                      env: process.env,
-                      stdin: deployment.descriptor,
-                      debug: true,
-                    }
-                  )
+                  const state = await saveDeploymentState(deployment)
+                  deployment.state = state
+                  return deployment
+                } catch (err) {
+                  throw "Failed to save state after successful deployment! " +
+                    deployment.origin +
+                    "/" +
+                    deployment.identifier +
+                    "\n" +
+                    err
+                }
+              } catch (error) {
+                if (typeof error === "string") throw error
+                const { errCode, stdOut, message: err } = error
+                if (deployment.operation === "delete") {
                   logger.info(
                     "kubectl " +
                       deployment.operation +
@@ -141,7 +160,67 @@ module.exports = function(injected) {
                       "/" +
                       deployment.identifier
                   )
+                  logger.info(
+                    "Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows."
+                  )
+                  logger.info(err || "[empty error]")
                   logger.info(stdOut || "[empty output]")
+
+                  deployment.state.stdout = stdOut
+                  deployment.state.stderr = err
+
+                  try {
+                    const state = await saveDeploymentState(deployment)
+                    deployment.state = state
+                    return deployment
+                  } catch (err) {
+                    throw "Failed to save state after error in deleting deployment! " +
+                      deployment.origin +
+                      "/" +
+                      deployment.identifier +
+                      "\n" +
+                      err
+                  }
+                } else {
+                  let message = "Failed to deploy from label for image " + JSON.stringify(deployment)
+                  message += "\n" + err
+                  message += "\nCode:" + errCode
+                  message += "\nStdOut:" + stdOut
+                  throw message
+                }
+              }
+            }
+          } else {
+            logger.debug(deployment.identifier + " not modified, not deploying.")
+            return deployment
+          }
+        })
+      })
+    }
+
+    function DeployerPromises(deploymentOptions) {
+      return Object.values(dockerDeploymentPlan).flatMap(deploymentPlan =>
+        deploymentPlan.deployments.map(async deployment => {
+          if (deployment.state.modified) {
+            if (deploymentOptions.dryRun) {
+              let writePath = path.join(
+                deploymentOptions.dryRunOutputDir,
+                deployment.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt"
+              )
+
+              let cmdLine = `docker run ${deployment.forTestParameters.join(" ")}`
+
+              await writeFile(writePath, cmdLine)
+              return deployment
+            } else {
+              try {
+                const stdout = await extendedExec(cmd)("docker", ["run"].concat(deployment.dockerParameters), {
+                  env: process.env,
+                })
+                try {
+                  // logger.enterDeployment(deployment.origin + '/' + deployment.identifier);
+                  logger.info(stdout)
+                  // logger.exitDeployment(deployment.origin + '/' + deployment.identifier);
 
                   try {
                     const state = await saveDeploymentState(deployment)
@@ -155,144 +234,45 @@ module.exports = function(injected) {
                       "\n" +
                       err
                   }
-                } catch (error) {
-                  if (typeof error === "string") throw error
-                  const { errCode, stdOut, message: err } = error
-                  if (deployment.operation === "delete") {
-                    logger.info(
-                      "kubectl " +
-                        deployment.operation +
-                        " deployments in " +
-                        deployment.origin +
-                        "/" +
-                        deployment.identifier
-                    )
-                    logger.info(
-                      "Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows."
-                    )
-                    logger.info(err || "[empty error]")
-                    logger.info(stdOut || "[empty output]")
-
-                    deployment.state.stdout = stdOut
-                    deployment.state.stderr = err
-
-                    try {
-                      const state = await saveDeploymentState(deployment)
-                      deployment.state = state
-                      return deployment
-                    } catch (err) {
-                      throw "Failed to save state after error in deleting deployment! " +
-                        deployment.origin +
-                        "/" +
-                        deployment.identifier +
-                        "\n" +
-                        err
-                    }
-                  } else {
-                    let message =
-                      "Failed to deploy from label for image " +
-                      JSON.stringify(deployment)
-                    message += "\n" + err
-                    message += "\nCode:" + errCode
-                    message += "\nStdOut:" + stdOut
-                    throw message
-                  }
+                } catch (e) {
+                  console.error("Error running docker run" + JSON.stringify(deployment))
+                  throw e
                 }
+              } catch (err) {
+                let message = "Failed to run docker deployer " + JSON.stringify(deployment)
+                message += err
+                throw message
               }
-            } else {
-              logger.debug(
-                deployment.identifier + " not modified, not deploying."
-              )
-              return deployment
             }
-          })
-        )
-      })
-    }
-
-    function DeployerPromises(deploymentOptions) {
-      return Object.values(dockerDeploymentPlan).flatMap(deploymentPlan =>
-        (
-          deploymentPlan.deployments.map(async deployment => {
-            if (deployment.state.modified) {
-              if (deploymentOptions.dryRun) {
-                let writePath = path.join(
-                  deploymentOptions.dryRunOutputDir,
-                  deployment.imageWithoutTag.replace(/\//g, "_") +
-                    "-deployer.txt"
-                )
-
-                let cmdLine = `docker run ${deployment.forTestParameters.join(
-                  " "
-                )}`
-
-                await writeFile(writePath, cmdLine)
-                return deployment
-              } else {
-                try {
-                  const stdout = await extendedExec(cmd)(
-                    "docker",
-                    ["run"].concat(deployment.dockerParameters),
-                    {
-                      env: process.env,
-                    }
-                  )
-                  try {
-                    // logger.enterDeployment(deployment.origin + '/' + deployment.identifier);
-                    logger.info(stdout)
-                    // logger.exitDeployment(deployment.origin + '/' + deployment.identifier);
-
-                    try {
-                      const state = await saveDeploymentState(deployment)
-                      deployment.state = state
-                      return deployment
-                    } catch (err) {
-                      throw "Failed to save state after successful deployment! " +
-                        deployment.origin +
-                        "/" +
-                        deployment.identifier +
-                        "\n" +
-                        err
-                    }
-                  } catch (e) {
-                    console.error(
-                      "Error running docker run" + JSON.stringify(deployment)
-                    )
-                    throw e
-                  }
-                } catch (err) {
-                  let message =
-                    "Failed to run docker deployer " +
-                    JSON.stringify(deployment)
-                  message += err
-                  throw message
-                }
-              }
-            } else {
-              return undefined
-            }
-          })
-        )
+          } else {
+            return undefined
+          }
+        })
       )
     }
 
     async function executePlan(runOptions) {
-      runOptions = runOptions || { dryRun: false, dryRunOutputDir: undefined }
+      // let i = 0
+      runOptions = runOptions || { dryRun: false, dryRunOutputDir: undefined, forcePush: false }
+      const shouldPush = !runOptions.dryRun || runOptions.forcePush
       let deploymentPromises = K8sDeploymentPromises(runOptions)
-      deploymentPromises = deploymentPromises.concat(
-        DeployerPromises(runOptions)
-      )
-        .map((promise)=>{
-          // console.log("PROMISE IS", promise)
-          console.log('runOptions.uiBackend', runOptions.uiBackend)
-        return promise.then(runOptions.uiBackend)
+      deploymentPromises = deploymentPromises.concat(DeployerPromises(runOptions)).map(promise => {
+        if (shouldPush) {
+          return promise
+            // .then(writeJsonToFile(`deployment-${i++}.json`))
+            .then(mapUntypedDeploymentData)
+            .then(uiDataPusher.pushDeploymentStateToUI)
+            .then(pushedData => {
+              console.log("Push to UI complete", pushedData)
+            })
+        } else {
+          return promise.then()
+        }
       })
-
-
 
       // console.log('deploymentPromises', deploymentPromises)
 
-      const deployments = (await Promise.all(deploymentPromises))
+      const deployments = await Promise.all(deploymentPromises)
       // deployments.forEach((deployment)=>{
       //   runOptions.uiBackend(deployment)
       // })
@@ -314,9 +294,7 @@ module.exports = function(injected) {
                 }
               }
               modified = true
-              logger.info(
-                `  -  will ${deployment.operation} ${deployment.identifier}`
-              )
+              logger.info(`  -  will ${deployment.operation} ${deployment.identifier}`)
             }
           })
         }
@@ -330,9 +308,7 @@ module.exports = function(injected) {
           _.each(plan.deployments, function(deployment) {
             if (deployment.state.modified) {
               logger.info(`${plan.herdName} deployer`)
-              logger.info(
-                `  -  will run ${deployment.identifier} ${deployment.command}`
-              )
+              logger.info(`  -  will run ${deployment.identifier} ${deployment.command}`)
               modified = true
             }
           })
@@ -351,15 +327,9 @@ module.exports = function(injected) {
           _.each(plan.deployments, function(deployment) {
             let writePath = path.join(
               exportDirectory,
-              deployment.operation +
-                "-" +
-                deployment.identifier.toLowerCase() +
-                ".yaml"
+              deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml"
             )
-            let writePromise = writeFile(
-              writePath,
-              deployment.descriptor.trim()
-            )
+            let writePromise = writeFile(writePath, deployment.descriptor.trim())
             fileWrites.push(writePromise)
           })
         })
@@ -367,10 +337,7 @@ module.exports = function(injected) {
           _.each(plan.deployments, function(deployment) {
             let cmdLine = `docker run ${deployment.forTestParameters.join(" ")}`
 
-            let writePath = path.join(
-              exportDirectory,
-              deployment.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt"
-            )
+            let writePath = path.join(exportDirectory, deployment.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt")
             let writePromise = writeFile(writePath, cmdLine)
             fileWrites.push(writePromise)
           })

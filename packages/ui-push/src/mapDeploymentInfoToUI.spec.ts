@@ -1,6 +1,6 @@
 import { expect } from "chai"
-import { getValidHerdDeployerMetadata } from "./testdata"
-import { mapToUiVersion } from "./mapDeploymentInfoToUI"
+import { getValidHerdDeployerMetadata, getValidHerdK8sMetadata } from "./testdata/testdata"
+import { DeploymentUIInfo, mapToUiVersion } from "./mapDeploymentInfoToUI"
 import { Deployment, DeploymentVersion } from "@shepherdorg/ui-graphql-client"
 
 
@@ -58,5 +58,16 @@ describe("mapping", function() {
     input.deploymentState.modified = false
     expect(mapToUiVersion(input)).to.equal(undefined)
   })
+
+  it("should map k8s deployment data", () => {
+    const input = getValidHerdK8sMetadata()
+    let deploymentUIInfo = mapToUiVersion(input) as DeploymentUIInfo
+
+    expect(deploymentUIInfo.deploymentInfo.deployer_role).to.equal('Install')
+    expect(deploymentUIInfo.deploymentInfo.id).to.equal('devshepherd-ui-api')
+    expect(deploymentUIInfo.versionInfo.deployment_id).to.equal('devshepherd-ui-api')
+
+  })
+
 
 })

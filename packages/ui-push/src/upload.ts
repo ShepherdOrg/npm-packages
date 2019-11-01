@@ -2,17 +2,30 @@ import { createClient } from "@shepherdorg/ui-graphql-client"
 import { THerdDeployerMetadata } from "./temptypes"
 import { mapToUiVersion } from "./mapDeploymentInfoToUI"
 
+interface DeploymentStatePushResults {
+  deploymentResult: any,
+  deploymentVersionResult: any,
+}
+
 export function CreatePushApi(endPoint: string, logger: typeof console) {
   const shepherdUiClient = createClient(endPoint)
 
   async function pushDeploymentStateToUI(deploymentState: THerdDeployerMetadata) {
     let uiVersion = mapToUiVersion(deploymentState)
     if(uiVersion){
-      await shepherdUiClient.upsertDeployment([uiVersion.deploymentInfo])
-      await shepherdUiClient.upsertDeploymentVersion([uiVersion.versionInfo])
+      logger.info('Pushing deployment data to UI ', JSON.stringify(uiVersion))
+      const pushResults:DeploymentStatePushResults = {
+        deploymentResult: undefined,
+        deploymentVersionResult: undefined
+      }
+      pushResults.deploymentResult = await shepherdUiClient.upsertDeployment([uiVersion.deploymentInfo])
+      pushResults.deploymentVersionResult = await shepherdUiClient.upsertDeploymentVersion([uiVersion.versionInfo])
+
       logger.info(`${deploymentState.displayName} from ${deploymentState.gitUrl} deployment info pushed to UI.`)
+      return pushResults
     } else {
       logger.info(`${deploymentState.displayName} from ${deploymentState.gitUrl} deployment info not pushed. Modified: ${deploymentState.deploymentState.modified}, timestamp: ${deploymentState.deploymentState.timestamp}`)
+      return undefined
     }
   }
 

@@ -1,4 +1,4 @@
-import { THerdDeployerMetadata } from "./temptypes"
+import { isHerdDeployerMetadata, isHerdK8sMetadata, THerdDeployerMetadata, THerdK8sMetadata } from "./temptypes"
 import { TDeployerRole, TDeploymentType } from "@shepherdorg/metadata"
 import { DeploymentVersion, Deployment } from "@shepherdorg/ui-graphql-client"
 
@@ -16,18 +16,27 @@ function mapDeploymentType(deploymentType: TDeploymentType): string {
   }
 }
 
-function mapDeployerRole(deployerRole: TDeployerRole): string {
-  switch (deployerRole) {
-    case TDeployerRole.Infrastructure:
-      return "Infrastructure"
-    case TDeployerRole.Install:
-      return "Install"
-    case TDeployerRole.Migration:
-      return "Migration"
+function mapDeployerRole(deployerInfo: THerdDeployerMetadata | THerdK8sMetadata): string {
+
+  if(isHerdDeployerMetadata(deployerInfo) ){
+    switch (deployerInfo.deployerRole) {
+      case TDeployerRole.Infrastructure:
+        return "Infrastructure"
+      case TDeployerRole.Install:
+        return "Install"
+      case TDeployerRole.Migration:
+        return "Migration"
+      default:
+        throw new Error("Don't know how to map " + deployerInfo.deployerRole + " to deployer role for UI")
+    }
+  } else if(isHerdK8sMetadata(deployerInfo)){
+    return "Install"
+  } else {
+    throw new Error("Unable to determine deployer role for " + JSON.stringify(deployerInfo))
   }
 }
 
-export function mapToUiVersion(deployerInfo: THerdDeployerMetadata): DeploymentUIInfo | undefined {
+export function mapToUiVersion(deployerInfo: THerdDeployerMetadata | THerdK8sMetadata): DeploymentUIInfo | undefined {
   function mapLinks() {
     if (deployerInfo.hyperlinks) {
       return deployerInfo.hyperlinks.map(link => {
@@ -67,7 +76,7 @@ export function mapToUiVersion(deployerInfo: THerdDeployerMetadata): DeploymentU
         display_name: deployerInfo.herdSpec.description || deployerInfo.displayName,
         description: deployerInfo.herdSpec.description,
         deployment_type: mapDeploymentType(deployerInfo.deploymentType),
-        deployer_role: mapDeployerRole(deployerInfo.deployerRole),
+        deployer_role: mapDeployerRole(deployerInfo),
         db_migration_image: deployerInfo.migrationImage,
         hyperlinks: mapLinks(),
         last_deployment_timestamp: deployedAt,

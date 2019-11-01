@@ -13,8 +13,9 @@ function printUsage() {
 
 Supported options:
 
-    --export
-    --dryrun
+    --export             Export deployment documents to outputDir
+    --dryrun             Run without actually deploying. Exports documents to outputDir. 
+    --force-push         Force push of deployment data to consumers during --dryrun
     
     
 Both will write to directory specified by 
@@ -22,10 +23,23 @@ Both will write to directory specified by
  
 Options through environment variables:
 
-    SHEPHERD_PG_HOST         - Postgres host
     SHEPHERD_FILESTORE_DIR   - Directory if using filestore (not recommended for production)
     SHEPHERD_UI_API_ENDPOINT - GraphQL endpoint for shepherd UI API
+        Example: SHEPHERD_UI_API_ENDPOINT=ws://localhost:8080/v1/graphql
+
+Postgres config:
+    SHEPHERD_PG_HOST         - Postgres host
+    SHEPHERD_PG_PORT         - Postgres port, default: 5432
+    SHEPHERD_PG_USER         - Postgres user 
+    SHEPHERD_PG_DATABASE     - Postgres database
+    SHEPHERD_PG_PASSWORD     - Postgres password
+
 `)
+}
+
+if(process.argv.indexOf("--help") > 0){
+  printUsage()
+  process.exit(0)
 }
 
 // parse options - Accept dry-run flags
@@ -44,6 +58,7 @@ console.debug = function() {
 }
 
 let dryRun = process.argv.indexOf("--dryrun") > 0
+let forcePush = process.argv.indexOf("--force-push") > 0
 
 const exportDocuments = process.argv.indexOf("--export") > 0
 
@@ -69,6 +84,7 @@ if ((exportDocuments || dryRun) && !outputDirectory) {
 }
 
 let stateStoreBackend
+let uiDataPusher
 
 if (process.env.SHEPHERD_PG_HOST) {
   const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
@@ -83,7 +99,7 @@ if (process.env.SHEPHERD_PG_HOST) {
   stateStoreBackend = FileStore({ directory: shepherdStoreDir })
 }
 if(Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)){
-  const uiBackend = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT)
+  uiDataPusher = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT, console)
 }
 
 
@@ -109,6 +125,7 @@ stateStoreBackend
         cmd: exec,
         logger: Logger(console),
         stateStore: releaseStateStore,
+        uiDataPusher: uiDataPusher
       })
     )
 
@@ -124,7 +141,8 @@ stateStoreBackend
     let environment = process.argv[3]
 
     if (!environment) {
-      return printUsage()
+      printUsage()
+      process.exit(0)
     }
 
     logger.info("Shepherding herd from file " + herdFilePath + " for environment " + environment)
@@ -146,7 +164,7 @@ stateStoreBackend
             })
         } else {
           plan
-            .executePlan({ dryRun: dryRun, dryRunOutputDir: outputDirectory, uiBackend: uiBackend })
+            .executePlan({ dryRun: dryRun, dryRunOutputDir: outputDirectory, forcePush: forcePush })
             .then(function() {
               logger.info("Plan execution complete. Exiting shepherd.")
               setTimeout(() => {

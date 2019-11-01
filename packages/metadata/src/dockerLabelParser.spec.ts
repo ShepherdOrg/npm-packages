@@ -85,6 +85,7 @@ describe("Shepherd metadata reading", function() {
 
     it("should uncompress string in kubeConfigB64", () => {
       expect(
+        // @ts-ignore
         metaData.kubeDeploymentFiles["./deployment/kube.yaml"].content
       ).to.be.a("string")
     })
@@ -117,6 +118,7 @@ describe("Shepherd metadata reading", function() {
 
     it("should uncompress kubeConfiB64Files", () => {
       expect(metaData.kubeDeploymentFiles).to.be.a("object")
+      // @ts-ignore
       expect(metaData.kubeDeploymentFiles["./deployment/"]).to.be.a("object")
     })
 

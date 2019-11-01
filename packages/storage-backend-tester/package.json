@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/storage-backend-tester",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Test shepherd storage backend",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

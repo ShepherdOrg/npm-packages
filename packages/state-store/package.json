@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/state-store",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "State store for persisting shepherd deployment state using a provided backend.",
   "files": [
     "dist"

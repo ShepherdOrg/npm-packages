@@ -1,7 +1,12 @@
 export type TDockerImageInspection = any
 export type TCompressedMetadata = string
 
-type TTarFolderStructure = any
+type TarFile ={
+  path: string
+  content: string
+}
+
+type TTarFolderStructure =  { [path:string]:TarFile; }
 
 export type THref = {
   title: string
@@ -68,16 +73,16 @@ export type TK8sMetadata = TImageMetadata & {
   kubeDeploymentFiles?: TTarFolderStructure
   kubeConfigB64?: string
 }
-//
-// export type THerdMetadata ={
-//     id: string
-//     herdSpec: THerdSpec
-//     deploymentState: TDeploymentState
-//     timestamp?: Date;
-// }
 
-// export type THerdDeployerMetadata = TDeployerMetadata & THerdMetadata
-//
-// export type THerdK8sMetadata = TK8sMetadata & THerdMetadata
-//
-//
+
+export type THerdMetadata ={
+  herdSpec: THerdSpec
+  deploymentState: TDeploymentState
+  timestamp?: Date
+}
+
+export type THerdDeployerMetadata = TDeployerMetadata & THerdMetadata
+
+export type THerdK8sMetadata = TK8sMetadata & THerdMetadata
+
+

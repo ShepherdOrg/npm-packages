@@ -27,6 +27,12 @@ if [ -f "${PWD}/deployments.env" ]; then
 	. "${PWD}/deployments.env"
 fi
 
+if [[ "$*" == *--help*  ]]
+then
+  shepherd.js "$@"
+  exit 0
+fi
+
 export HERDFILE=$1
 HERDFILE_DIR=$(dirname ${HERDFILE})
 

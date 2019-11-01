@@ -63,7 +63,6 @@ export function ReleaseStateStore(injected: TStateStoreDependencies) {
         existingState.signature !== newSignature ||
         existingState.version !== deploymentVersion
     }
-
     return newState
   }
 
