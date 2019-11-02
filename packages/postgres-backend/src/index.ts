@@ -3,13 +3,13 @@ import { PGConnectionConfig } from "./pg-config"
 
 export { PgConfig } from "./pg-config"
 
-import * as pg from "pg"
+import {Client} from "pg"
 
 export interface IPostgresStorageBackend extends IStorageBackend {
   resetAllDeploymentStates()
 }
 
-const Client = (client: pg.Client) => ({
+const StoreClient = (client: Client) => ({
   connect() {
     return new Promise((resolve, reject) => {
       client.connect(function(err) {
@@ -33,7 +33,7 @@ export function PostgresStore(config: PGConnectionConfig): IPostgresStorageBacke
 
   return {
     async connect() {
-      client = Client(new pg.Client(config))
+      client = StoreClient(new Client(config))
       await client.connect()
       if (config.schema) {
         await client.query(`CREATE SCHEMA IF NOT EXISTS ${config.schema} AUTHORIZATION ${config.user};`)

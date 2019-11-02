@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/postgres-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Postgres backend for shepherd state store",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,12 +33,12 @@
   "scripts": {
     "build": "tsc",
     "pretest": "npm run start-postgres",
-    "test": "SHEPHERD_PG_PORT=54321 npm run integrationtest",
+    "test": "npm run integrationtest",
     "posttest": "npm run kill-postgres",
-    "integrationtest": "mocha --exit --require ts-node/register --recursive './**/*.integrationtest.ts'",
-    "itdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,json --watch './**/*.integrationtest.ts'",
+    "integrationtest": "SHEPHERD_PG_PORT=54321 mocha --exit --require ts-node/register --recursive './**/*.integrationtest.ts'",
+    "itdd": "SHEPHERD_PG_PORT=54321 mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,json --watch './**/*.integrationtest.ts'",
     "prepublishOnly": "yarn install --frozen-lockfile && npm run build",
-    "start-postgres": "docker run --rm --name postgres-it -e POSTGRES_PASSWORD=mysecretpassword -d -p 54321:5432 postgres",
+    "start-postgres": "docker run --rm --name postgres-it -e POSTGRES_PASSWORD=mysecretpassword -d -p 54321:5432 postgres && sleep 1",
     "kill-postgres": "docker rm -f postgres-it"
   }
 }
