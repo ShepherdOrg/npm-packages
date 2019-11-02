@@ -25,6 +25,7 @@ describe("herd.yaml loading", function() {
     delete process.env.WWW_ICELANDAIR_IP_WHITELIST
     delete process.env.EXPORT1
     delete process.env.EXPORT2
+    delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
   })
 
   beforeEach(() => {
@@ -34,6 +35,8 @@ describe("herd.yaml loading", function() {
     process.env.MICROSERVICES_POSTGRES_RDS_HOST = "testing123"
     process.env.MICRO_SITES_DB_PASSWORD = "testing123"
     process.env.WWW_ICELANDAIR_IP_WHITELIST = "YnVsbHNoaXRsaXN0Cg=="
+    process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "anotherValue"
+
     delete process.env.TPL_DOCKER_IMAGE
 
     process.env.EXPORT1 = "NotFromInfrastructureAnyMore"
@@ -137,6 +140,14 @@ describe("herd.yaml loading", function() {
   describe("directory execution plan", function() {
     let loadedPlan
 
+    before(() => {
+      process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "anotherValue"
+    })
+
+    after(() => {
+      delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
+    })
+
     beforeEach(function() {
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
         loadedPlan = plan
@@ -176,12 +187,22 @@ describe("herd.yaml loading", function() {
   describe("images execution plan", function() {
     let loadedPlan
 
-    beforeEach(function() {
+    before(() => {
       process.env.CLUSTER_POLICY_MAX_CPU_REQUEST = "25m"
+      process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "anotherValue"
+    })
+
+    beforeEach(function() {
 
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
         loadedPlan = plan
       })
+    })
+
+    after(() => {
+      delete process.env.CLUSTER_POLICY_MAX_CPU_REQUEST
+      delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
+
     })
 
     it("should base64decode and untar deployment files under file path", function() {
@@ -247,9 +268,14 @@ describe("herd.yaml loading", function() {
     let loadedPlan
 
     beforeEach(function() {
+      process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "happyValueOne"
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
         loadedPlan = plan
       })
+    })
+
+    afterEach(() => {
+      delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
     })
 
     it("should  have herdSpec and metadata on all loaded plans", () => {

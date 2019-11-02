@@ -257,10 +257,13 @@ module.exports = function(injected) {
       const shouldPush = !runOptions.dryRun || runOptions.forcePush
       let deploymentPromises = K8sDeploymentPromises(runOptions)
       deploymentPromises = deploymentPromises.concat(DeployerPromises(runOptions)).map(promise => {
+        let unmapped
         if (shouldPush) {
           return promise
+            .then((value)=>unmapped=value)
             .then(mapUntypedDeploymentData)
-            .then(uiDataPusher.pushDeploymentStateToUI)
+            .then(uiDataPusher && uiDataPusher.pushDeploymentStateToUI)
+            .then(()=>unmapped)
         } else {
           return promise.then()
         }

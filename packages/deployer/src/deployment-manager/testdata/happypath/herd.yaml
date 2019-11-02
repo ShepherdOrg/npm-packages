@@ -19,6 +19,11 @@ images:
         imagetag: 0.0.0
         featureDeployment: true
         timeToLiveHours: 48
+    test-migration-image-newformat:
+        image: test-migration-image-newformat
+        imagetag: 0.0.66
+        description: New metadata format, testing env variable expansion in herd execution
+
 #    test2:
 #        image: testenvimage
 #        imagetag: 0.0.0

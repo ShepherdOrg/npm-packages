@@ -137,8 +137,8 @@ if [ -z "${FORCE_REBUILD}" ]; then
 		echo ${DOCKER_IMAGE_GITHASH} is up to date.
 		exit 0
 	else
-		echo ${DOCKER_IMAGE_GITHASH}: ${PULLRESULT}, building.
-		echo ""
+		echo ${DOCKER_IMAGE_GITHASH}: ${PULLRESULT}
+		echo "Image ${DOCKER_IMAGE_GITHASH} not pulled. Building."
 	fi
 	set -e
 fi

@@ -5,8 +5,9 @@
             "alpine:latest",
             "insufficient-deployment-data:latest",
             "insufficient-deployment-data:latest-NOT_IN_GIT",
-            "plain-deployer-repo:latest",
+            "insufficient-deployment-data:latest-feb1335",
             "plain-deployer-repo:latest-031a5f1",
+            "plain-deployer-repo:latest-feb1335",
             "public-repo-with-kube-yaml:latest-NOT_IN_GIT"
         ],
         "RepoDigests": [
@@ -88,7 +89,7 @@
             ]
         },
         "Metadata": {
-            "LastTagTime": "2019-10-05T13:29:59.7961776Z"
+            "LastTagTime": "2019-10-09T13:51:51.9014341Z"
         }
     }
 ]

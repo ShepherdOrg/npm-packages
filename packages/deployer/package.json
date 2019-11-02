@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "0.0.12",
+  "version": "0.1.1",
   "description": "Deployer application",
   "main": "src/shepherd.js",
   "bin": {
@@ -11,10 +11,10 @@
     "@shepherdorg/docker-image-metadata-loader": "^0.1.0",
     "@shepherdorg/exec": "0.0.1",
     "@shepherdorg/filestore-backend": "^0.0.2",
-    "@shepherdorg/nano-inject": "^0.0.6",
-    "@shepherdorg/postgres-backend": "^0.0.2",
-    "@shepherdorg/state-store": "^0.0.3",
     "@shepherdorg/metadata": "^0.0.12",
+    "@shepherdorg/nano-inject": "^0.0.6",
+    "@shepherdorg/postgres-backend": "^1.0.0",
+    "@shepherdorg/state-store": "^0.0.3",
     "@shepherdorg/ui-push": "^1.0.2",
     "bluebird": "^3.7.1",
     "bunyan": "^1.8.12",

@@ -1,0 +1,12 @@
+{
+  "displayName": "Migration testimage newformat using environment value",
+  "environment": {
+    "MIGRATION_ENV_VARIABLE_ONE": "{{ GLOBAL_MIGRATION_ENV_VARIABLE_ONE }}",
+    "MIGRATION_ENV_VARIABLE_TWO": "fixedValue"
+  },
+  "deployCommand": "ls",
+  "rollbackCommand": "cat",
+  "hyperlinks":[
+    {"title": "Sources for this", "url": "https://github.com/shepherdorg/npm-packages/packages/deployer/e2etest/testimages/test-migration-image-newformat"}
+  ]
+}

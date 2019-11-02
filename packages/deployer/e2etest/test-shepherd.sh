@@ -50,6 +50,7 @@ fi
  PERFORMANCE_LOG=false \
  MICROSERVICES_POSTGRES_RDS_HOST=postgres-local \
  MICRO_SITES_DB_PASSWORD=somedbpass \
+ GLOBAL_MIGRATION_ENV_VARIABLE_ONE=justAValue \
  ENV=testit \
  EXPORT1=nowhardcoded \
  ./src/shepherd.js "$(pwd)/src/deployment-manager/testdata/happypath/herd.yaml" e2etestenv ${DRYRUN_PARAM} ${DRYRUN_OUTPUT_DIR_PARAM}

@@ -75,7 +75,7 @@ describe("Shepherd metadata reading", function() {
 
     it("should decode lastCommits base64 string", () => {
       expect(metaData.lastCommits).to.contain(
-        "Introducing npm installable build docker script"
+        "Metadata updates and a few more fixes"
       )
     })
 
@@ -128,7 +128,7 @@ describe("Shepherd metadata reading", function() {
 
     it("should decode shepherd.lastcommits", () => {
       expect(metaData.lastCommits).to.include(
-        "Rewrite labels in metadata rather than using or statements"
+        "Fix base64 encode on last five commits"
       )
     })
 

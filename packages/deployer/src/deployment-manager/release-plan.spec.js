@@ -113,7 +113,7 @@ describe("Release plan", function() {
       })
 
       it("should not push any data to UI", () => {
-        expect(true).to.equal(false)
+        expect(fakeUiDataPusher.pushedData.length).to.equal(0)
       })
     })
 
@@ -133,8 +133,8 @@ describe("Release plan", function() {
         expect(fakeExec.executedCommands.length).to.equal(0)
       })
 
-      it("should not push any data to UI", () => {
-        expect(true).to.equal(false)
+      it("should push unmodified data to UI", () => {
+        expect(fakeUiDataPusher.pushedData[0].deploymentState.modified).to.equal(false)
       })
 
       it("should print plan stating no changes", function() {
@@ -147,7 +147,7 @@ describe("Release plan", function() {
       })
     })
 
-    describe.only("modified deployment docs", function() {
+    describe("modified deployment docs", function() {
       beforeEach(function() {
         fakeStateStore.fixedTimestamp = "2019-10-31T11:03:52.381Z"
         fakeExec.nextResponse.success = "applied"

@@ -1,23 +1,17 @@
 [
     {
-        "Id": "sha256:cdf98d1859c1beb33ec70507249d34bacf888d59c24df3204057f9a6c758dddb",
+        "Id": "sha256:5c5f3b5aa3967ae0df11923777c10a0bbf6f507793055fe1dfd7a74905b874d8",
         "RepoTags": [
-            "alpine:latest",
-            "insufficient-deployment-data:latest",
-            "insufficient-deployment-data:latest-NOT_IN_GIT",
             "plain-deployer-repo:latest",
-            "plain-deployer-repo:latest-031a5f1",
-            "public-repo-with-kube-yaml:latest-NOT_IN_GIT"
+            "plain-deployer-repo:latest-b210a06"
         ],
-        "RepoDigests": [
-            "alpine@sha256:28ef97b8686a0b5399129e9b763d5b7e5ff03576aa5580d6f4182a49c5fe1913"
-        ],
-        "Parent": "",
+        "RepoDigests": [],
+        "Parent": "sha256:0bce59b5ebc3f403079b9b6f246b10ccba63423603d70ea3ce6e2a3fe5d9dd7f",
         "Comment": "",
-        "Created": "2019-04-09T23:20:18.391201481Z",
-        "Container": "17551f3be084475a267672aa096b8613660da1e59d2d7e897006386e45d3d2de",
+        "Created": "2019-11-02T10:40:12.7882027Z",
+        "Container": "9474083e122cc97d962eaef37686c5b568b3479e85ffb1c1bda1c7a043af3809",
         "ContainerConfig": {
-            "Hostname": "17551f3be084",
+            "Hostname": "9474083e122c",
             "Domainname": "",
             "User": "",
             "AttachStdin": false,
@@ -33,17 +27,19 @@
                 "/bin/sh",
                 "-c",
                 "#(nop) ",
-                "CMD [\"/bin/sh\"]"
+                "LABEL shepherd.metadata=H4sIAAtdvV0AA+1VbW/iOBDez/crEF9voc4LdOHTkQCJWwJtEkLJ6VQ5TuoEnJfNS9NQ7X+/CdDtdaWrdB9Wp5U6kmVn/IznmRmPU4RBFga5398VafLp5whCaCjLnXa+HA6OMxJP38fl8FLsCNJgcCkOhrIgdZAgo4H8qYN+Ep83UhUlyYEKqziP3sEB7OHhnf1TLJ3v8y8iz12virg/JWXQHXdFJIx6gtBDoi2gsYzGgvA7QmOEup9POD0tyiWJW6xWcVKxKi96BqFKmu57N3na5yklHNB+SvdBjmPCApswgGecREnPDzKeNkHey4MsHXPwWpRv0VpUhqQI37XoeaKACBqCJYtK/QR/o1NyktBWG5OiDPKTcp1z0MDiDxhh5fVpGo+tcwOscnaRZHEvI3QPNIo+YE5mahrHsB53CREFiYqS6JMHn4wCIRBkT3wg8oNH6aX/xfMl6vvSFzDj4PZkV4AhnvvcVWtmHCbMFpcIT3Ft2Htm2HhoTA0YmF0fJrUxnbBtsmfmhlfbO8zseNS4mvvVk672i2hSLizEqH4FZTAzF/ZVljJ7M6oW6qQxLOVmK90yYzd5WlmTp6Wd1jCalTrJ4dzaUJUosBTdp6va0+aCKzkNnhsVnjkJ2TwdqAjnnH2sxZBTDUZ8y8hmcKCas/NVpfIk2vp/dHVnB/oEa8IjjdeMik5FRR552pp5koOo7iA8Sa/xfCl4Ud1y+iFuOlza66FxYG/jlu6mhfYU+htfoJFiLyJl7oq8oNLy0YtkBtxKPBO4r8332zszxLpTu9ocuXcG224Ge6zNmBs70gsvN+Yy7FUnLqcarH7Ik3FIBWOXCsvov+fJjHlD4SyqzQ+0UYCjciCaU8NoXFXIvGRZu5slWhxzB7jYCV19z7Z3t8D3qcC6mUK+EqLK/6ylhGcjyDfUdDob4OkMrXZYXu3WNVaLNlc11q4GeOYL9aVSbO+cxIe7sG5kuDd+5unLgyfKFVYRcFQUVzMzL6aMJMsjvy3U1tu0eRo1WHdDT+NtLo8Y+lr36ozfeeIgJhva5rJwrck1XO4iiElSRtQJ8iJKE7jgr40cFdC2zfmJuGk7uFOcO6zz0sot7rw0U94CowSeV96+G0HyGOVpEgcJdNxzd6rc6yvLBoiBVXNlzUwHqzPr/gaUmgkLc2qdEJ9b7M3Esl6w9xa2AXDWblbmtPvtxXHbmiTxW+YFWOYp5x70/auakjaasMmCnEfJHpr4z+duGZVHtjbE2mpXSQCg6viqhGWZFeOLi1bfL9N+ktYQcwAu39otYN+u03+1C3gRnC3/emHbJsMGKgD/nsJvv/3ff44P+ZAP+dXlb7Po6t8ADAAAAAAAAAAAAAAAAA=="
             ],
             "ArgsEscaped": true,
-            "Image": "sha256:3e4931917957608ce24efef27c24e999b6c4ecc112d4ad11e6c4bb9ec6bfb2ee",
+            "Image": "sha256:0bce59b5ebc3f403079b9b6f246b10ccba63423603d70ea3ce6e2a3fe5d9dd7f",
             "Volumes": null,
             "WorkingDir": "",
             "Entrypoint": null,
             "OnBuild": null,
-            "Labels": {}
+            "Labels": {
+                "shepherd.metadata": "H4sIAAtdvV0AA+1VbW/iOBDez/crEF9voc4LdOHTkQCJWwJtEkLJ6VQ5TuoEnJfNS9NQ7X+/CdDtdaWrdB9Wp5U6kmVn/IznmRmPU4RBFga5398VafLp5whCaCjLnXa+HA6OMxJP38fl8FLsCNJgcCkOhrIgdZAgo4H8qYN+Ep83UhUlyYEKqziP3sEB7OHhnf1TLJ3v8y8iz12virg/JWXQHXdFJIx6gtBDoi2gsYzGgvA7QmOEup9POD0tyiWJW6xWcVKxKi96BqFKmu57N3na5yklHNB+SvdBjmPCApswgGecREnPDzKeNkHey4MsHXPwWpRv0VpUhqQI37XoeaKACBqCJYtK/QR/o1NyktBWG5OiDPKTcp1z0MDiDxhh5fVpGo+tcwOscnaRZHEvI3QPNIo+YE5mahrHsB53CREFiYqS6JMHn4wCIRBkT3wg8oNH6aX/xfMl6vvSFzDj4PZkV4AhnvvcVWtmHCbMFpcIT3Ft2Htm2HhoTA0YmF0fJrUxnbBtsmfmhlfbO8zseNS4mvvVk672i2hSLizEqH4FZTAzF/ZVljJ7M6oW6qQxLOVmK90yYzd5WlmTp6Wd1jCalTrJ4dzaUJUosBTdp6va0+aCKzkNnhsVnjkJ2TwdqAjnnH2sxZBTDUZ8y8hmcKCas/NVpfIk2vp/dHVnB/oEa8IjjdeMik5FRR552pp5koOo7iA8Sa/xfCl4Ud1y+iFuOlza66FxYG/jlu6mhfYU+htfoJFiLyJl7oq8oNLy0YtkBtxKPBO4r8332zszxLpTu9ocuXcG224Ge6zNmBs70gsvN+Yy7FUnLqcarH7Ik3FIBWOXCsvov+fJjHlD4SyqzQ+0UYCjciCaU8NoXFXIvGRZu5slWhxzB7jYCV19z7Z3t8D3qcC6mUK+EqLK/6ylhGcjyDfUdDob4OkMrXZYXu3WNVaLNlc11q4GeOYL9aVSbO+cxIe7sG5kuDd+5unLgyfKFVYRcFQUVzMzL6aMJMsjvy3U1tu0eRo1WHdDT+NtLo8Y+lr36ozfeeIgJhva5rJwrck1XO4iiElSRtQJ8iJKE7jgr40cFdC2zfmJuGk7uFOcO6zz0sot7rw0U94CowSeV96+G0HyGOVpEgcJdNxzd6rc6yvLBoiBVXNlzUwHqzPr/gaUmgkLc2qdEJ9b7M3Esl6w9xa2AXDWblbmtPvtxXHbmiTxW+YFWOYp5x70/auakjaasMmCnEfJHpr4z+duGZVHtjbE2mpXSQCg6viqhGWZFeOLi1bfL9N+ktYQcwAu39otYN+u03+1C3gRnC3/emHbJsMGKgD/nsJvv/3ff44P+ZAP+dXlb7Po6t8ADAAAAAAAAAAAAAAAAA=="
+            }
         },
-        "DockerVersion": "18.06.1-ce",
+        "DockerVersion": "19.03.2",
         "Author": "",
         "Config": {
             "Hostname": "",
@@ -62,12 +58,14 @@
                 "/bin/sh"
             ],
             "ArgsEscaped": true,
-            "Image": "sha256:3e4931917957608ce24efef27c24e999b6c4ecc112d4ad11e6c4bb9ec6bfb2ee",
+            "Image": "sha256:0bce59b5ebc3f403079b9b6f246b10ccba63423603d70ea3ce6e2a3fe5d9dd7f",
             "Volumes": null,
             "WorkingDir": "",
             "Entrypoint": null,
             "OnBuild": null,
-            "Labels": null
+            "Labels": {
+                "shepherd.metadata": "H4sIAAtdvV0AA+1VbW/iOBDez/crEF9voc4LdOHTkQCJWwJtEkLJ6VQ5TuoEnJfNS9NQ7X+/CdDtdaWrdB9Wp5U6kmVn/IznmRmPU4RBFga5398VafLp5whCaCjLnXa+HA6OMxJP38fl8FLsCNJgcCkOhrIgdZAgo4H8qYN+Ep83UhUlyYEKqziP3sEB7OHhnf1TLJ3v8y8iz12virg/JWXQHXdFJIx6gtBDoi2gsYzGgvA7QmOEup9POD0tyiWJW6xWcVKxKi96BqFKmu57N3na5yklHNB+SvdBjmPCApswgGecREnPDzKeNkHey4MsHXPwWpRv0VpUhqQI37XoeaKACBqCJYtK/QR/o1NyktBWG5OiDPKTcp1z0MDiDxhh5fVpGo+tcwOscnaRZHEvI3QPNIo+YE5mahrHsB53CREFiYqS6JMHn4wCIRBkT3wg8oNH6aX/xfMl6vvSFzDj4PZkV4AhnvvcVWtmHCbMFpcIT3Ft2Htm2HhoTA0YmF0fJrUxnbBtsmfmhlfbO8zseNS4mvvVk672i2hSLizEqH4FZTAzF/ZVljJ7M6oW6qQxLOVmK90yYzd5WlmTp6Wd1jCalTrJ4dzaUJUosBTdp6va0+aCKzkNnhsVnjkJ2TwdqAjnnH2sxZBTDUZ8y8hmcKCas/NVpfIk2vp/dHVnB/oEa8IjjdeMik5FRR552pp5koOo7iA8Sa/xfCl4Ud1y+iFuOlza66FxYG/jlu6mhfYU+htfoJFiLyJl7oq8oNLy0YtkBtxKPBO4r8332zszxLpTu9ocuXcG224Ge6zNmBs70gsvN+Yy7FUnLqcarH7Ik3FIBWOXCsvov+fJjHlD4SyqzQ+0UYCjciCaU8NoXFXIvGRZu5slWhxzB7jYCV19z7Z3t8D3qcC6mUK+EqLK/6ylhGcjyDfUdDob4OkMrXZYXu3WNVaLNlc11q4GeOYL9aVSbO+cxIe7sG5kuDd+5unLgyfKFVYRcFQUVzMzL6aMJMsjvy3U1tu0eRo1WHdDT+NtLo8Y+lr36ozfeeIgJhva5rJwrck1XO4iiElSRtQJ8iJKE7jgr40cFdC2zfmJuGk7uFOcO6zz0sot7rw0U94CowSeV96+G0HyGOVpEgcJdNxzd6rc6yvLBoiBVXNlzUwHqzPr/gaUmgkLc2qdEJ9b7M3Esl6w9xa2AXDWblbmtPvtxXHbmiTxW+YFWOYp5x70/auakjaasMmCnEfJHpr4z+duGZVHtjbE2mpXSQCg6viqhGWZFeOLi1bfL9N+ktYQcwAu39otYN+u03+1C3gRnC3/emHbJsMGKgD/nsJvv/3ff44P+ZAP+dXlb7Po6t8ADAAAAAAAAAAAAAAAAA=="
+            }
         },
         "Architecture": "amd64",
         "Os": "linux",
@@ -88,7 +86,7 @@
             ]
         },
         "Metadata": {
-            "LastTagTime": "2019-10-05T13:29:59.7961776Z"
+            "LastTagTime": "2019-11-02T10:40:12.8787352Z"
         }
     }
 ]

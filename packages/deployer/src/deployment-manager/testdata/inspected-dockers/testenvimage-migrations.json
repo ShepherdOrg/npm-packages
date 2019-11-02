@@ -1,16 +1,16 @@
 [
     {
-        "Id": "sha256:9e433c55e734dfcfd52a063dbec8a517158a0682481d33632a35b562dd427cd0",
+        "Id": "sha256:f9eca29ec4ccf15d781c252e571240b27f89bf48e77d947bfa41654689cea5d3",
         "RepoTags": [
             "testenvimage-migrations:0.0.0"
         ],
         "RepoDigests": [],
-        "Parent": "sha256:a394b867ba8406e6cecc86ff06697f9f2333a82c4ed32e42f82ac403ca53863a",
+        "Parent": "sha256:5b0fe8b7885e5cfd7449d3dd58aba76a2fd44a3c4d1cef399145d0eb42b0add8",
         "Comment": "",
-        "Created": "2019-10-06T16:51:26.5714449Z",
-        "Container": "bee1319fed082245a0f8f01ca307d4333544d6d78eaff6552e2a3b5feb65ea2f",
+        "Created": "2019-10-30T11:38:51.2148234Z",
+        "Container": "adc8a5b00f402e582c46f5467facd3ab3018fe3f609fcd833df74b3f45e91583",
         "ContainerConfig": {
-            "Hostname": "bee1319fed08",
+            "Hostname": "adc8a5b00f40",
             "Domainname": "",
             "User": "",
             "AttachStdin": false,
@@ -29,21 +29,20 @@
                 "LABEL shepherd.deployer.command=ls"
             ],
             "ArgsEscaped": true,
-            "Image": "sha256:a394b867ba8406e6cecc86ff06697f9f2333a82c4ed32e42f82ac403ca53863a",
+            "Image": "sha256:5b0fe8b7885e5cfd7449d3dd58aba76a2fd44a3c4d1cef399145d0eb42b0add8",
             "Volumes": null,
             "WorkingDir": "",
             "Entrypoint": null,
             "OnBuild": null,
             "Labels": {
-                "shepherd.builddate": "Sun Oct  6 16:51:24 GMT 2019",
+                "shepherd.builddate": "Wed Oct 30 11:38:49 GMT 2019",
                 "shepherd.deployer": "true",
                 "shepherd.deployer.command": "ls",
-                "shepherd.rollback.command": "cat",
-                "shepherd.environment.variables": "DB_HOST=${MICROSERVICES_POSTGRES_RDS_HOST},DB_PASS=$MICRO_SITES_DB_PASSWORD,THIS_IS_DEPLOYER_ONE=true",
+                "shepherd.environment.variables": "EXPORT1=${EXPORT1},DB_HOST=${MICROSERVICES_POSTGRES_RDS_HOST},DB_PASS=$MICRO_SITES_DB_PASSWORD,THIS_IS_DEPLOYER_ONE=true",
                 "shepherd.git.branch": "master",
-                "shepherd.git.hash": "751e58e71bc6be274c40487df9afd576969437e5",
-                "shepherd.git.url": "git@github.com:ShepherdOrg/shepherd.git",
-                "shepherd.lastcommits": "U2F0LCAyOSBKdW4gMjAxOSAxNzozMjo0NCArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gUmV3cml0ZSBsYWJlbHMgaW4gbWV0YWRhdGEgcmF0aGVyIHRoYW4gdXNpbmcgb3Igc3RhdGVtZW50cy4gU2F0LCA0IE1heSAyMDE5IDIzOjA2OjExICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBTdXBwb3J0IGhhbmRsZWJhcnMgdGVtcGxhdGUgZXhwYW5zaW9uIGluIGt1YmUgZGVwbG95bWVudCBmaWxlcyBTYXQsIDIwIEFwciAyMDE5IDA4OjAwOjM0ICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBVc2UgcHVibGlzaGVkIHBhY2thZ2VzIGZyb20gbnBtLXBhY2thZ2VzIG1vbm9yZXBvIEZyaSwgMTkgQXByIDIwMTkgMTI6MDY6MTQgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIE1vdmluZyBkb2NrZXItaW1hZ2UtbWV0YWRhdGEtbG9hZGVyIHRvIHB1Ymxpc2hlZCBucG0gcGFja2FnZXMuIEZyaSwgMTkgQXByIDIwMTkgMTE6MTQ6MTkgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIFRyeWluZyB0byByZXNvbHZlIHdlaXJkIGVycm9yCg==",
+                "shepherd.git.hash": "0aa28463d74e9d0fc1c74eb1c9646c0c2d3f308e",
+                "shepherd.git.url": "git@github.com:ShepherdOrg/npm-packages.git",
+                "shepherd.lastcommits": "VHVlLCAyOSBPY3QgMjAxOSAxMTozNTowNyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRml4IGJhc2U2NCBlbmNvZGUgb24gbGFzdCBmaXZlIGNvbW1pdHMuIFR1ZSwgMjkgT2N0IDIwMTkgMTE6MDE6NTMgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIERlZmVuZCBhZ2FpbnN0IG5ld2xpbmVzIGluIGJhc2U2NCBvdXRwdXQgVHVlLCAyOSBPY3QgMjAxOSAxMDowNDo0MyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRml4IG1ldGFkYXRhIGRlcGVuZGVuY3kgVHVlLCAyOSBPY3QgMjAxOSAwOTo1OTowNSArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRXhwb3J0IHR5cGVzLiBUdWUsIDI5IE9jdCAyMDE5IDA5OjUxOjUzICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBFbmFibGUgc3BlY2lmeSBpbWFnZSBuYW1lIHRocm91Z2ggSU1BR0VfTkFNRQo=",
                 "shepherd.name": "Testimage",
                 "shepherd.version": "0.0.0"
             }
@@ -67,20 +66,20 @@
                 "/bin/sh"
             ],
             "ArgsEscaped": true,
-            "Image": "sha256:a394b867ba8406e6cecc86ff06697f9f2333a82c4ed32e42f82ac403ca53863a",
+            "Image": "sha256:5b0fe8b7885e5cfd7449d3dd58aba76a2fd44a3c4d1cef399145d0eb42b0add8",
             "Volumes": null,
             "WorkingDir": "",
             "Entrypoint": null,
             "OnBuild": null,
             "Labels": {
-                "shepherd.builddate": "Sun Oct  6 16:51:24 GMT 2019",
+                "shepherd.builddate": "Wed Oct 30 11:38:49 GMT 2019",
                 "shepherd.deployer": "true",
                 "shepherd.deployer.command": "ls",
-                "shepherd.environment.variables": "DB_HOST=${MICROSERVICES_POSTGRES_RDS_HOST},DB_PASS=$MICRO_SITES_DB_PASSWORD,THIS_IS_DEPLOYER_ONE=true",
+                "shepherd.environment.variables": "EXPORT1=${EXPORT1},DB_HOST=${MICROSERVICES_POSTGRES_RDS_HOST},DB_PASS=$MICRO_SITES_DB_PASSWORD,THIS_IS_DEPLOYER_ONE=true",
                 "shepherd.git.branch": "master",
-                "shepherd.git.hash": "751e58e71bc6be274c40487df9afd576969437e5",
-                "shepherd.git.url": "git@github.com:ShepherdOrg/shepherd.git",
-                "shepherd.lastcommits": "U2F0LCAyOSBKdW4gMjAxOSAxNzozMjo0NCArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gUmV3cml0ZSBsYWJlbHMgaW4gbWV0YWRhdGEgcmF0aGVyIHRoYW4gdXNpbmcgb3Igc3RhdGVtZW50cy4gU2F0LCA0IE1heSAyMDE5IDIzOjA2OjExICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBTdXBwb3J0IGhhbmRsZWJhcnMgdGVtcGxhdGUgZXhwYW5zaW9uIGluIGt1YmUgZGVwbG95bWVudCBmaWxlcyBTYXQsIDIwIEFwciAyMDE5IDA4OjAwOjM0ICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBVc2UgcHVibGlzaGVkIHBhY2thZ2VzIGZyb20gbnBtLXBhY2thZ2VzIG1vbm9yZXBvIEZyaSwgMTkgQXByIDIwMTkgMTI6MDY6MTQgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIE1vdmluZyBkb2NrZXItaW1hZ2UtbWV0YWRhdGEtbG9hZGVyIHRvIHB1Ymxpc2hlZCBucG0gcGFja2FnZXMuIEZyaSwgMTkgQXByIDIwMTkgMTE6MTQ6MTkgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIFRyeWluZyB0byByZXNvbHZlIHdlaXJkIGVycm9yCg==",
+                "shepherd.git.hash": "0aa28463d74e9d0fc1c74eb1c9646c0c2d3f308e",
+                "shepherd.git.url": "git@github.com:ShepherdOrg/npm-packages.git",
+                "shepherd.lastcommits": "VHVlLCAyOSBPY3QgMjAxOSAxMTozNTowNyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRml4IGJhc2U2NCBlbmNvZGUgb24gbGFzdCBmaXZlIGNvbW1pdHMuIFR1ZSwgMjkgT2N0IDIwMTkgMTE6MDE6NTMgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIERlZmVuZCBhZ2FpbnN0IG5ld2xpbmVzIGluIGJhc2U2NCBvdXRwdXQgVHVlLCAyOSBPY3QgMjAxOSAxMDowNDo0MyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRml4IG1ldGFkYXRhIGRlcGVuZGVuY3kgVHVlLCAyOSBPY3QgMjAxOSAwOTo1OTowNSArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRXhwb3J0IHR5cGVzLiBUdWUsIDI5IE9jdCAyMDE5IDA5OjUxOjUzICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBFbmFibGUgc3BlY2lmeSBpbWFnZSBuYW1lIHRocm91Z2ggSU1BR0VfTkFNRQo=",
                 "shepherd.name": "Testimage",
                 "shepherd.version": "0.0.0"
             }
@@ -104,7 +103,7 @@
             ]
         },
         "Metadata": {
-            "LastTagTime": "2019-10-06T16:51:26.6348716Z"
+            "LastTagTime": "2019-10-30T11:38:51.317294Z"
         }
     }
 ]

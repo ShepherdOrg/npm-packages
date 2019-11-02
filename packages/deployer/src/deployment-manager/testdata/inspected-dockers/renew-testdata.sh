@@ -9,3 +9,4 @@ docker inspect public-repo-with-deployment-dir:latest > public-repo-with-deploym
 docker inspect public-repo-with-kube-yaml:latest > public-repo-with-kube-yaml.json
 docker inspect plain-deployer-repo:latest > plain-deployer-repo.json
 docker inspect alpine:latest > alpine.json
+docker inspect test-migration-image-newformat:0.0.66  > test-migration-image-newformat.json

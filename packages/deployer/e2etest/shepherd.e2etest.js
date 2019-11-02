@@ -46,7 +46,7 @@ describe("run all deployers with infrastructure", function() {
             NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
           }),
-          debug: false, // debug:false suppresses stdout of process
+          debug: true, // debug:false suppresses stdout of process
         })
         .output("./.testdata/.build/kubeapply")
         .shouldEqual("./e2etest/expected/all-deployments")
@@ -176,7 +176,9 @@ describe("run all deployers with infrastructure", function() {
             ".build/testexport",
           ],
           {
-            env: _.extend({}, testEnv, process.env),
+            env: _.extend({
+              GLOBAL_MIGRATION_ENV_VARIABLE_ONE:'justAValue'
+            }, testEnv, process.env),
             debug: false, // debug:false suppresses stdout of process
           }
         )

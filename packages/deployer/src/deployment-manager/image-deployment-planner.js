@@ -1,7 +1,7 @@
 const identifyDocument = require("../k8s-deployment-document-identifier")
 
 const expandEnv = require("../expandenv")
-const expandtemplate = require("../expandtemplate")
+const expandTemplate = require("../expandtemplate")
 
 const applyClusterPolicies = require("../apply-k8s-policy").applyPoliciesToDoc
 const modifyDeploymentDocument = require("../k8s-feature-deployment/modify-deployment-document")
@@ -17,7 +17,7 @@ module.exports = function(injected) {
   const kubeSupportedExtensions = injected("kubeSupportedExtensions")
   const logger = injected("logger")
 
-  function calculateFileDeploymentPlan(
+  function createK8sFileDeploymentPlan(
     deploymentFileContent,
     imageMetadata,
     fileName,
@@ -54,7 +54,7 @@ module.exports = function(injected) {
           }
         })
         fileContents = lines.join("\n")
-        fileContents = expandtemplate(fileContents)
+        fileContents = expandTemplate(fileContents)
 
         delete process.env.TPL_DOCKER_IMAGE
       } catch (error) {
@@ -98,7 +98,7 @@ module.exports = function(injected) {
     })
   }
 
-  function calculateImagePlan(imageInformation) {
+  function createImageDeployerPlan(imageInformation) {
     if (imageInformation.shepherdMetadata) {
       const shepherdMetadata = imageInformation.shepherdMetadata
 
@@ -118,7 +118,7 @@ module.exports = function(injected) {
           Object.assign(plan, {
             metadata: shepherdMetadata,
             herdSpec: imageInformation.imageDefinition,
-            dockerParameters: ["-i", "--rm", "-e", expandEnv("ENV=${ENV}")],
+            dockerParameters: ["-i", "--rm"],
             forTestParameters: undefined,
             imageWithoutTag: dockerImageWithVersion.replace(/:.*/g, ""), // For regression testing
             origin: plan.herdName,
@@ -128,7 +128,7 @@ module.exports = function(injected) {
             identifier: plan.herdName,
           })
 
-          let envList = []
+          let envList = ["ENV={{ ENV }}"]
 
           plan.command = shepherdMetadata.deployCommand || plan.command
           if (shepherdMetadata.environmentVariablesExpansionString) {
@@ -137,10 +137,13 @@ module.exports = function(injected) {
             )
             envList = envList.concat(envLabel.split(","))
           }
+          if(shepherdMetadata.environment){
+            envList = envList.concat(_.map(shepherdMetadata.environment, (value, key)=>`${key}=${value}`))
+          }
 
           envList.forEach(function(env_item) {
             plan.dockerParameters.push("-e")
-            plan.dockerParameters.push(env_item)
+            plan.dockerParameters.push(expandTemplate(env_item))
           })
 
           plan.forTestParameters = plan.dockerParameters.slice(0) // Clone array
@@ -229,7 +232,7 @@ module.exports = function(injected) {
                   //
                   // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
                   planPromises.push(
-                    calculateFileDeploymentPlan(
+                    createK8sFileDeploymentPlan(
                       deploymentFileContent,
                       imageInformation,
                       fileName,
@@ -255,5 +258,5 @@ module.exports = function(injected) {
     }
   }
 
-  return calculateImagePlan
+  return createImageDeployerPlan
 }
