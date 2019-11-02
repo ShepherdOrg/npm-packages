@@ -1,0 +1,95 @@
+[
+    {
+        "Id": "sha256:d2e6edc49399a4143e3e4919eea1e7e1940b1f042dd1f949ddc51c07cca99996",
+        "RepoTags": [
+            "test-migration-image-newformat:0.0.66",
+            "test-migration-image-newformat:0.0.66-NOT_IN_GIT",
+            "test-migration-image-newformat:latest"
+        ],
+        "RepoDigests": [],
+        "Parent": "sha256:a4ec0c78feec37c117f714280b8fbd34368c7eaeae886f618c17f9856a38e278",
+        "Comment": "",
+        "Created": "2019-11-02T13:13:52.4703537Z",
+        "Container": "e19314e8f2214fdd2f0d9ffc3585e5a39d7d41d47843c2883370cdaa95cbacb9",
+        "ContainerConfig": {
+            "Hostname": "e19314e8f221",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "/bin/sh",
+                "-c",
+                "#(nop) ",
+                "ENTRYPOINT [\"./entrypoint.sh\"]"
+            ],
+            "Image": "sha256:a4ec0c78feec37c117f714280b8fbd34368c7eaeae886f618c17f9856a38e278",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": [
+                "./entrypoint.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "shepherd.metadata": "H4sIAA6BvV0AA+1TUW/aMBDu836FldctxCEERqRKg66iSIVMbcYepgk5jkk8nDiynW4I8d93JpSuldo+VdMkPiWyc/fd+e67WBesLpjKOj+1rM7eBhjjfq+H7Droh/sVd9tvCz/sDpAfhOEgwLjn9xH2e7gXnCH8RvU8QqMNUVBK3gjBX+ABbbV6wd/2go7rf4KtkzZcZJ+JYU7kdLE/dH3fxd3EDyJ4Qvwe4whj50PLu5LazElpuZNGkCZvlHZnhI6lXLtflOwISYkAdibpmqlpSXKWkBzohmnjljxXxHBZudx63Ir9WklVEhMJYgmPAyfcFEQXrwfjDu70++48TpbT+XIyTSBPzs1VG/zUPFakotZREm2Yao1flQALbD7BWzRph8oyuj1cjljlXlWXbk3oGk7WHeC0YReyLGEfOatVmoa9lA0oXWVZmKVhOkyHAe1mWZ/hgH5kFA8DP4UwAce2cRoCL/LzczBqVpLKcLpgSkOL4GibsopwXQuyOcg+u1cBWVH2SqCjEqjRvMoRq+64klXJKoPuiGgYZPnL5kRbZzad3IySaTxfXs4Xy8XoZjoaX18u4/klnLHdosl1PB5dL5+nod0Osj7jT77FVhP+m2WL/fk7aIPVQm5s46TKwCs0xCspRAqqPpgpsdIWm5opwas1SPR96xhuhG3+VjaKMo2gW2QKbjM0+8EVxtQ68ryH4Xn6MDz5ZHjecdNWxJTHusyK6R0V1d7Lf5yz+3HfkBU0gWqhiPt8zu7dv77WJ5xwwgmv4g9l6uW+AAoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+        },
+        "DockerVersion": "19.03.2",
+        "Author": "",
+        "Config": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": null,
+            "Image": "sha256:a4ec0c78feec37c117f714280b8fbd34368c7eaeae886f618c17f9856a38e278",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": [
+                "./entrypoint.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "shepherd.metadata": "H4sIAA6BvV0AA+1TUW/aMBDu836FldctxCEERqRKg66iSIVMbcYepgk5jkk8nDiynW4I8d93JpSuldo+VdMkPiWyc/fd+e67WBesLpjKOj+1rM7eBhjjfq+H7Droh/sVd9tvCz/sDpAfhOEgwLjn9xH2e7gXnCH8RvU8QqMNUVBK3gjBX+ABbbV6wd/2go7rf4KtkzZcZJ+JYU7kdLE/dH3fxd3EDyJ4Qvwe4whj50PLu5LazElpuZNGkCZvlHZnhI6lXLtflOwISYkAdibpmqlpSXKWkBzohmnjljxXxHBZudx63Ir9WklVEhMJYgmPAyfcFEQXrwfjDu70++48TpbT+XIyTSBPzs1VG/zUPFakotZREm2Yao1flQALbD7BWzRph8oyuj1cjljlXlWXbk3oGk7WHeC0YReyLGEfOatVmoa9lA0oXWVZmKVhOkyHAe1mWZ/hgH5kFA8DP4UwAce2cRoCL/LzczBqVpLKcLpgSkOL4GibsopwXQuyOcg+u1cBWVH2SqCjEqjRvMoRq+64klXJKoPuiGgYZPnL5kRbZzad3IySaTxfXs4Xy8XoZjoaX18u4/klnLHdosl1PB5dL5+nod0Osj7jT77FVhP+m2WL/fk7aIPVQm5s46TKwCs0xCspRAqqPpgpsdIWm5opwas1SPR96xhuhG3+VjaKMo2gW2QKbjM0+8EVxtQ68ryH4Xn6MDz5ZHjecdNWxJTHusyK6R0V1d7Lf5yz+3HfkBU0gWqhiPt8zu7dv77WJ5xwwgmv4g9l6uW+AAoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 4815293,
+        "VirtualSize": 4815293,
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/b02186d753d9299d6cf4c83e2364d7c4b5ab31106524baf82eaa795a6d67e81b/diff",
+                "MergedDir": "/var/lib/docker/overlay2/088f26df9d635aac0eab1d8abf2bcf3869f4912eceffd906a99e6f53c6ed06e7/merged",
+                "UpperDir": "/var/lib/docker/overlay2/088f26df9d635aac0eab1d8abf2bcf3869f4912eceffd906a99e6f53c6ed06e7/diff",
+                "WorkDir": "/var/lib/docker/overlay2/088f26df9d635aac0eab1d8abf2bcf3869f4912eceffd906a99e6f53c6ed06e7/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:a120b7c9a693292190f50bc37e5847c7da5428e1852995e303bb1c718ed567d6",
+                "sha256:d580a33e76be087279d949d083ebae5fe671758c9aa45cea2447f6386cb9813e"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2019-11-02T13:13:52.5747513Z"
+        }
+    }
+]

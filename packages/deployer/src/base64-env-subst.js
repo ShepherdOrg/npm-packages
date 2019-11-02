@@ -13,10 +13,10 @@ function processLine(line, options) {
 
   let KEYWORDS = {
     Base64Encode: function(str) {
-      return new Buffer(str + postfix).toString("base64")
+      return Buffer.from(str + postfix).toString("base64")
     },
     Base64Decode: function(str) {
-      return new Buffer.from(str, "base64").toString()
+      return Buffer.from(str, "base64").toString()
     },
   }
 

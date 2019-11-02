@@ -8,7 +8,7 @@ Handlebars.registerHelper("Base64Encode", (str, param) => {
   } else {
     postfix = ""
   }
-  return Buffer(str + postfix).toString("base64")
+  return Buffer.from(str + postfix).toString("base64")
 })
 
 Handlebars.registerHelper("Base64Decode", str => {
