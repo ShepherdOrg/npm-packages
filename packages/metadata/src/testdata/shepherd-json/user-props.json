@@ -1,14 +1,24 @@
 {
   "displayName": "plain-deployer-repo",
   "deployerRole": "install",
-  "environment": {
-    "DB_HOST": "MICROSERVICES_POSTGRES_RDS_HOST",
-    "DB_PASS": "MICRO_SITES_DB_PASSWORD"
-  },
+  "environment": [
+    {
+      "name": "DB_HOST",
+      "value": "MICROSERVICES_POSTGRES_RDS_HOST"
+    },
+    {
+      "name": "DB_PASS",
+      "value": "MICRO_SITES_DB_PASSWORD",
+      "secret": true
+    }
+  ],
   "deployCommand": "ls",
   "rollbackCommand": "cat",
-  "hyperlinks":[
-    {"title": "TestlinkOne", "url": "https://link.to.nowhere"}
+  "hyperlinks": [
+    {
+      "title": "TestlinkOne",
+      "url": "https://link.to.nowhere"
+    }
   ]
 }
 
