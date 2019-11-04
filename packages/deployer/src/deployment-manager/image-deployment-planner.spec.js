@@ -12,26 +12,29 @@ const loader = require("./image-deployment-planner")(
     logger: {
       info: () => {},
     },
-  })
+  }),
 )
 
 describe("Docker image plan loader", function() {
   before(() => {
     process.env.ENV = "testenv"
+    process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "global_migration_env_value_one"
   })
 
   after(() => {
     delete process.env.ENV
+    delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
   })
 
   let loadedPlan, loadedPlans
 
-  function loadPlan(dockerDeployerMetadata) {
+  function loadPlan (dockerDeployerMetadata) {
     return addShepherdMetadata(dockerDeployerMetadata)
       .then(loader)
       .then(function(plans) {
         loadedPlan = plans[0]
         loadedPlans = plans
+        return loadedPlans
       })
   }
 
@@ -39,7 +42,7 @@ describe("Docker image plan loader", function() {
     expect(loader).not.to.equal(undefined)
   })
 
-  describe("image deployer", function() {
+  describe("image deployer, old style docker labels", function() {
     let dockerDeployerMetadata = {
       imageDefinition: {
         herdName: "testimage",
@@ -80,7 +83,7 @@ describe("Docker image plan loader", function() {
 
       it("should have image", function() {
         expect(loadedPlan.dockerParameters).to.contain(
-          "testenvimage-migrations:0.0.0"
+          "testenvimage-migrations:0.0.0",
         )
       })
 
@@ -90,7 +93,7 @@ describe("Docker image plan loader", function() {
 
       it("should add plan command as last parameter", function() {
         expect(
-          loadedPlan.dockerParameters[loadedPlan.dockerParameters.length - 1]
+          loadedPlan.dockerParameters[loadedPlan.dockerParameters.length - 1],
         ).to.equal("ls")
       })
 
@@ -100,11 +103,11 @@ describe("Docker image plan loader", function() {
 
       it("should have metadata", () => {
         expect(loadedPlan.metadata).not.to.equal(undefined)
-        expect(loadedPlan.metadata.displayName).to.equal('Testimage')
+        expect(loadedPlan.metadata.displayName).to.equal("Testimage")
       })
 
       it("should have herdspec", () => {
-        expect(loadedPlan.herdSpec.herdName).to.equal('testimage')
+        expect(loadedPlan.herdSpec.herdName).to.equal("testimage")
 
       })
     })
@@ -145,7 +148,7 @@ describe("Docker image plan loader", function() {
 
       it("should use deploy as default command", function() {
         expect(
-          loadedPlan.dockerParameters[loadedPlan.dockerParameters.length - 1]
+          loadedPlan.dockerParameters[loadedPlan.dockerParameters.length - 1],
         ).to.equal("deploy")
       })
     })
@@ -158,12 +161,35 @@ describe("Docker image plan loader", function() {
           })
           .catch(function(err) {
             expect(err.toString()).to.contain(
-              "Reference to environment variable"
+              "Reference to environment variable",
             )
             done()
           })
       })
     })
+  })
+
+  describe("docker deployer, shepherd.json labels", () => {
+    let dockerDeployerMetadata = {
+      imageDefinition: {
+        herdName: "testimage-shepherd-json",
+        image: "testenvimage-shepherd-json",
+        imagetag: "0.0.5",
+      },
+      dockerLabels: {
+          "shepherd.metadata": "H4sIAIvzv10AA+1U0W6bMBTd874C8bqRmCSQgjRpkLYEKYGtyeiWaaqMccCNwZltmqZV/n0mZO06ad3LpmlSjoTsXM65vtfnElHgdYF51rkWrHrxdwAAsAcDrVmHtrVfQa/9vd8C29TMvmUNh0PTNvsaMAfAAi808JfqeYJaSMhVKXlNKXmGp2jL5TPv2160h/U/wb2e1oRmp1Bi3dV7wHQM0zTAYA4cd2C7lvkKABcA/XXLGzMhI1g23KCmsM5rLowpRD5jK+MdZx3KEKSKnTG0wjwsYY7nMFd0iYU0SpJzKAmrDNK8MSq8WTJeQulS2BCeCgMiCyiK34tBB3Rs24BDkJ04Ta05keNW+STmc1ihJlpCITFvgx84VRG1eaueok47iJXu7PBZxDzvVuvSWEO0UmeKjuK0shErS7V3dcc2wcC2rOUQ9WxzOUwhAEuYOelJH5040LGsLBta4ETJqDq21QklDM+jIhtt8inx47T/KZ9ee7fxzLuNTtldPGebaOvx6am3mY58gmf+OEPxJg3OzUU/2Ybn0zo8Syp4eXuHek49IZ6czEB+UdIafoxYOI5MNPZvUPU+X5TONgySOivpNu1ZcnFpgTBwCCyT62zkr1Pi38Eg2ahnuxhZX5t8YbC4QcRfLT76Iu1TiqppPsrfvFFNCFzCShKUYC6UGaqR9vob74hYU7g9DMj0u19aY9/eM+3BM60WpMo1XN0QzqoSV1K7gbTGKssPMd39fK9Xh3RhcOHNwzi6OouSq8S7CD1/cnYVR2dK02pd/f5eCyax702ufk3Xdjt99/p3eeeX8Q95l+QWZ8mhQIERx6o2yWu8+6LaxmvKto2xsMoUmQpF4ozSVE3NYxjBZnSK7RpzSqqV2DcniaTNATNWc4SFpm5HkwVpMtT7wSykXAu3230czq44DCf7aTi7D5u2Isy7uIeby+8+OCC6z39L+mNDjQFzVa0q4ns+fffyX/9hHXHEEUcc8UfwDW0OlrUADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+      }
+
+    }
+
+    it("should load image with new environment format", () => {
+      return loadPlan(dockerDeployerMetadata)
+        .then(function(loadedPlans) {
+          expect( loadedPlans[0].dockerParameters[4]).to.equal('-e')
+          expect( loadedPlans[0].dockerParameters[5]).to.equal('MIGRATION_ENV_VARIABLE_ONE=global_migration_env_value_one')
+        })
+    })
+
   })
 
   describe("is.icelandairlabs backwards compatibility", function() {
@@ -247,7 +273,7 @@ describe("Docker image plan loader", function() {
         })
 
         expect(configMapPlan.descriptor).not.to.contain(
-          "WWW_ICELANDAIR_IP_WHITELIST"
+          "WWW_ICELANDAIR_IP_WHITELIST",
         )
         expect(configMapPlan.descriptor).to.contain("bullshitlist")
       })
@@ -262,7 +288,7 @@ describe("Docker image plan loader", function() {
 
       it("should contain origin in plan", function() {
         expect(loadedPlan.origin).to.equal(
-          "testenvimage-migrations:0.0.0:kube.config.tar.base64"
+          "testenvimage-migrations:0.0.0:kube.config.tar.base64",
         )
       })
 
@@ -295,7 +321,7 @@ describe("Docker image plan loader", function() {
 
       it("should report filename in error", function() {
         expect(loadError.message).to.contain(
-          "./deployment/www-icelandair-com.deployment.yml"
+          "./deployment/www-icelandair-com.deployment.yml",
         )
       })
 
@@ -309,7 +335,7 @@ describe("Docker image plan loader", function() {
       })
 
       it("should report variable in error", function() {
-        expect(loadError.message).to.contain('"EXPORT1" not defined')
+        expect(loadError.message).to.contain("\"EXPORT1\" not defined")
       })
     })
   })
@@ -372,7 +398,7 @@ describe("Docker image plan loader", function() {
 
       it("should modify deployment identifier ", function() {
         expect(loadedPlan.identifier).to.equal(
-          "Deployment_www-icelandair-com-thisisfeaturedeploymentone"
+          "Deployment_www-icelandair-com-thisisfeaturedeploymentone",
         )
       })
     })
@@ -421,31 +447,31 @@ describe("Docker image plan loader", function() {
 
         it("should have feature deployment in origin", function() {
           expect(loadedPlan.origin).to.contain(
-            "deployment-one::some-branch-name"
+            "deployment-one::some-branch-name",
           )
         })
 
         it("should modify deployment descriptor", function() {
           expect(loadedPlan.descriptor).to.contain(
-            "www-icelandair-com-some-branch-name"
+            "www-icelandair-com-some-branch-name",
           )
         })
 
         it("should modify deployment identifier ", function() {
           expect(loadedPlan.identifier).to.equal(
-            "Deployment_www-icelandair-com-some-branch-name"
+            "Deployment_www-icelandair-com-some-branch-name",
           )
         })
 
         it("should modify configmap identifier ", function() {
           expect(loadedPlan.descriptor).to.contain(
-            "www-icelandair-com-some-branch-name"
+            "www-icelandair-com-some-branch-name",
           )
         })
 
         it("should modify configmap references ", function() {
           expect(loadedPlan.descriptor).to.contain(
-            "www-icelandair-com-nginx-acls-some-branch-name"
+            "www-icelandair-com-nginx-acls-some-branch-name",
           )
         })
 
@@ -475,7 +501,7 @@ describe("Docker image plan loader", function() {
 
       it("should report filename in error", function() {
         expect(loadError.message).to.contain(
-          "./deployment/www-icelandair-com.deployment.yml"
+          "./deployment/www-icelandair-com.deployment.yml",
         )
       })
 
@@ -511,7 +537,7 @@ describe("Docker image plan loader", function() {
 
       it("should report filename in error", function() {
         expect(loadError.message).to.contain(
-          "/deployment/www-icelandair-com.config.yml"
+          "/deployment/www-icelandair-com.config.yml",
         )
       })
 

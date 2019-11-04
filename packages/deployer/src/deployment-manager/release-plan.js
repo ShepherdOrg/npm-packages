@@ -251,19 +251,28 @@ module.exports = function(injected) {
       )
     }
 
+    async function mapDeploymentDataAndPush(deploymentData){
+      if(!deploymentData){
+        return deploymentData
+      } else{
+        const mappedData = mapUntypedDeploymentData(deploymentData)
+        uiDataPusher && await uiDataPusher.pushDeploymentStateToUI(mappedData)
+        return deploymentData
+      }
+    }
+
     async function executePlan(runOptions) {
       // let i = 0
       runOptions = runOptions || { dryRun: false, dryRunOutputDir: undefined, forcePush: false }
       const shouldPush = !runOptions.dryRun || runOptions.forcePush
       let deploymentPromises = K8sDeploymentPromises(runOptions)
-      deploymentPromises = deploymentPromises.concat(DeployerPromises(runOptions)).map(promise => {
-        let unmapped
+      let allPromises = deploymentPromises.concat(DeployerPromises(runOptions))
+
+      console.log('allPromises.length', allPromises.length)
+
+      deploymentPromises = allPromises.map(promise => {
         if (shouldPush) {
-          return promise
-            .then((value)=>unmapped=value)
-            .then(mapUntypedDeploymentData)
-            .then(uiDataPusher && uiDataPusher.pushDeploymentStateToUI)
-            .then(()=>unmapped)
+          return promise.then(mapDeploymentDataAndPush)
         } else {
           return promise.then()
         }

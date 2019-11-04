@@ -1,9 +1,5 @@
 {
   "displayName": "Test image using Json Metadata",
-  "environment": {
-    "HOST_ONE": "hostnameone",
-    "PASS_ONE": "passwordone"
-  },
   "deployCommand": "ls",
   "rollbackCommand": "cat",
   "hyperlinks":[

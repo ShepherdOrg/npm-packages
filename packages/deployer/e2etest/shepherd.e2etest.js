@@ -46,7 +46,7 @@ describe("run all deployers with infrastructure", function() {
             NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
           }),
-          debug: true, // debug:false suppresses stdout of process
+          debug: false, // debug:false suppresses stdout of process
         })
         .output("./.testdata/.build/kubeapply")
         .shouldEqual("./e2etest/expected/all-deployments")

@@ -138,7 +138,7 @@ module.exports = function(injected) {
             envList = envList.concat(envLabel.split(","))
           }
           if(shepherdMetadata.environment){
-            envList = envList.concat(_.map(shepherdMetadata.environment, (value, key)=>`${key}=${value}`))
+            envList = envList.concat(_.map(shepherdMetadata.environment, (value)=>`${value.name}=${value.value}`))
           }
 
           envList.forEach(function(env_item) {
