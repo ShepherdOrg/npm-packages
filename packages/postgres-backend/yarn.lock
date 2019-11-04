@@ -2,20 +2,20 @@
 # yarn lockfile v1
 
 
-"@shepherdorg/metadata@^0.0.10":
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/metadata/-/metadata-0.0.10.tgz#b1528bb6714e67504ba9398bb59e582cb769e0c3"
-  integrity sha512-rHx8Dr0kal9l0uNvmNjawa6Kr7rtgDEoddjCn1S11L1utdyX0qGRMcFeTrmwinH/evJpQ1KtdDLUzMiWCS5lMg==
+"@shepherdorg/metadata@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/metadata/-/metadata-1.0.0.tgz#16aadd98732a0143f1f781392b24a7d6f73b187c"
+  integrity sha512-1kTFuoGHzRqUmUnXlYkc/rriYBBQVLDotJ2jZEJpsIZM9bumVF6WdkUUpAZ9AXa7wIZa9D4hd3YDDYDab7+HZw==
   dependencies:
     ajv "^6.10.2"
     fluture "^11.0.3"
     glob "^7.1.4"
     tar "^5.0.5"
 
-"@shepherdorg/state-store@0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/state-store/-/state-store-0.0.6.tgz#94ec1601fce7453eef320abb7ada5586dfc22015"
-  integrity sha512-lcOpE4c6XHr84MOR7UEILLfUlf2aneFWCXWoUNoMOJlSjx5CnQBH9+pQGv15huHKcP+un3Frc1MExUnEJfT4Cg==
+"@shepherdorg/state-store@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/state-store/-/state-store-1.0.0.tgz#41d0ac350773258d0257d74899097fa8b6ffada4"
+  integrity sha512-VY/2ZOXlbHcEpUErrN9EmjrphWLZoN5MrSoxtm/5pz4EDvmqIdPdjQwZ+gVQv4tuJ1tOmEUyKXUyBD8jYr7i0Q==
   dependencies:
     bluebird "^3.7.1"
     lodash "^4.17.15"

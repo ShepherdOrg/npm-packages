@@ -17,7 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@shepherdorg/metadata": "^0.0.11",
+    "@shepherdorg/metadata": "^1.0.0",
     "@shepherdorg/ui-graphql-client": "^3.0.7",
     "add": "^2.0.6"
   },

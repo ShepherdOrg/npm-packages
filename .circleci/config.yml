@@ -7,11 +7,11 @@ jobs:
 
     steps:
     - checkout
-#    - restore_cache:
-#        keys:
-#          - yarn-{{ .Branch }}
-#        paths:
-#          - ~/.cache/yarn
+    - restore_cache:
+        keys:
+          - yarn-{{ .Branch }}
+        paths:
+          - ~/.cache/yarn
     - run:
         name: Place NPM registry token
         command: echo -e "//registry.npmjs.org/:_authToken=$NPMTOKEN \nscope=shepherdorg \naccess=public" > ~/.npmrc
