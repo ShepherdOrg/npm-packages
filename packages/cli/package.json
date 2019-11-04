@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Command line interfaces for Shepherd",
   "keywords": [],
   "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
@@ -30,8 +30,9 @@
     "prepublishOnly": "yarn install --frozen-lockfile && npm run build"
   },
   "dependencies": {
-    "@shepherdorg/docker-image-metadata-loader": "^0.1.2",
-    "@shepherdorg/metadata": "^1.0.0",
+    "@shepherdorg/deployer": "1.0.0",
+    "@shepherdorg/docker-image-metadata-loader": "0.1.2",
+    "@shepherdorg/metadata": "1.0.0",
     "@shepherdorg/nano-inject": "0.0.7"
   },
   "devDependencies": {
