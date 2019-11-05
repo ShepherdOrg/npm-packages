@@ -1,0 +1,6 @@
+images:
+  test-migration-image-newformat:
+    image: test-migration-image-newformat
+    imagetag: 0.0.66
+    description: 'New metadata format, testing env variable expansion in herd execution'
+

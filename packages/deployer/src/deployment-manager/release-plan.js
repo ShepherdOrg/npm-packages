@@ -150,7 +150,7 @@ module.exports = function(injected) {
                 }
               } catch (error) {
                 if (typeof error === "string") throw error
-                const { errCode, stdOut, message: err } = error
+                const { errCode, stdOut, stdErr, message: err } = error
                 if (deployment.operation === "delete") {
                   logger.info(
                     "kubectl " +
@@ -267,8 +267,6 @@ module.exports = function(injected) {
       const shouldPush = !runOptions.dryRun || runOptions.forcePush
       let deploymentPromises = K8sDeploymentPromises(runOptions)
       let allPromises = deploymentPromises.concat(DeployerPromises(runOptions))
-
-      console.log('allPromises.length', allPromises.length)
 
       deploymentPromises = allPromises.map(promise => {
         if (shouldPush) {

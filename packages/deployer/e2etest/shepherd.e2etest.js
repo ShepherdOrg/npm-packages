@@ -21,16 +21,16 @@ describe("run all deployers with infrastructure", function() {
   this.timeout(40000)
 
   beforeEach(function() {
-    if (!fs.existsSync("./.testdata")) {
-      fs.mkdirSync("./.testdata")
+    if (!fs.existsSync("./.build/.testdata")) {
+      fs.mkdirSync("./.build/.testdata")
     }
-    if (!fs.existsSync("./.testdata/.build")) {
-      fs.mkdirSync("./.testdata/.build")
+    if (!fs.existsSync("./.build/.testdata")) {
+      fs.mkdirSync("./.build/.testdata")
     }
-    if (!fs.existsSync("./.testdata/.build/actual")) {
-      fs.mkdirSync("./.testdata/.build/actual")
+    if (!fs.existsSync("./.build/.testdata/actual")) {
+      fs.mkdirSync("./.build/.testdata/actual")
     }
-    cleanDir("./.testdata/.build/actual", false)
+    cleanDir("./.build/.testdata/actual", false)
   })
 
   describe("default state storage", function() {
@@ -48,9 +48,47 @@ describe("run all deployers with infrastructure", function() {
           }),
           debug: false, // debug:false suppresses stdout of process
         })
-        .output("./.testdata/.build/kubeapply")
+        .output("./.build/.testdata/kubeapply")
         .shouldEqual("./e2etest/expected/all-deployments")
         .done(function(stdout) {
+          done()
+        })
+    })
+  })
+
+  describe("adding to herd", function() {
+
+    let tempHerdFilePath = path.resolve('./.build/herd-for-editing.yaml')
+
+    beforeEach(() => {
+      let shepherdStoreDir = "./.build/.shepherdstore"
+      cleanDir(shepherdStoreDir)
+      cleanDir("./.build/.testdata/testexport", false)
+
+      fs.copyFileSync('./src/deployment-manager/testdata/herd-editing/herd.yaml', tempHerdFilePath)
+    })
+
+
+    it("should add deployment to herd", (done) => {
+      script
+        .execute(shepherdTestHarness, ["--dryrun", tempHerdFilePath], {
+          env: _.extend({}, process.env, {
+            NO_REBUILD_IMAGES: true,
+            SHEPHERD_PG_HOST: "",
+            UPSTREAM_IMAGE_NAME:"testenvimage",
+            UPSTREAM_IMAGE_TAG:"0.0.0",
+            UPSTREAM_HERD_KEY:'addedimage',
+            UPSTREAM_HERD_DESCRIPTION:'Just a casual e2e test'
+          }),
+          debug: false, // debug:false suppresses stdout of process
+        })
+        .stdout()
+        .shouldContain('Adding addedimage')
+        .stdout()
+        .shouldContain('From addedimage')
+        .stdout()
+        .shouldContain('Plan execution complete')
+        .done(function() {
           done()
         })
     })
@@ -114,7 +152,7 @@ describe("run all deployers with infrastructure", function() {
       process.env.RESET_FOR_REAL = "yes-i-really-want-to-drop-deployments-table"
       let pgBackend = PgBackend(PgConfig())
 
-      cleanDir("./.testdata/.build/testexport", false)
+      cleanDir("./.build/.testdata/testexport", false)
 
       return pgBackend
         .connect()
@@ -128,7 +166,6 @@ describe("run all deployers with infrastructure", function() {
           debug: false, // debug:false suppresses stdout of process
         })
         .done(function(stdout) {
-          // process.env.DRYRUN_OUTPUT_FOLDER = './.testdata/.build/kubeapply-secondround';
           done()
         })
     })

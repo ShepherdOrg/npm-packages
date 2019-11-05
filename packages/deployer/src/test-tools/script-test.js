@@ -99,6 +99,7 @@ module.exports = {
     )
 
     let execution = {
+      expectedPartialStrings:[],
       output: function(actualOutputFileOrDir) {
         execution.actualOutputFileOrDir = actualOutputFileOrDir
         return {
@@ -119,6 +120,10 @@ module.exports = {
             execution.expectedStdOutput = expectedStdOutputRefFile
             return execution
           },
+          shouldContain(partialString){
+            execution.expectedPartialStrings.push(partialString)
+            return execution
+          }
         }
       },
       stderr: function() {
@@ -157,6 +162,10 @@ module.exports = {
           return
         }
 
+        execution.expectedPartialStrings.forEach((partialString)=>{
+          expect(execution.processOutput).to.contain(partialString)
+        })
+
         if (execution.actualFromStdout) {
           let expectedOutput
           if (fs.existsSync(execution.expectedStdOutput)) {
@@ -168,23 +177,25 @@ module.exports = {
             expectedOutput = execution.expectedStdOutput
           }
 
-          let difference = JsDiff.diffTrimmedLines(
-            expectedOutput.trim(),
-            execution.processOutput.trim()
-          )
-          if (containsDifference(difference)) {
-            fs.writeFileSync(
-              "./e2etest/expected/actualoutput.log",
-              execution.processOutput
+          if(expectedOutput){
+            let difference = JsDiff.diffTrimmedLines(
+              expectedOutput.trim(),
+              execution.processOutput.trim()
             )
-            expect().fail(
-              "Expected stdout \n" +
+            if (containsDifference(difference)) {
+              fs.writeFileSync(
+                "./e2etest/expected/actualoutput.log",
+                execution.processOutput
+              )
+              expect().fail(
+                "Expected stdout \n" +
                 expectedOutput +
                 "\n differs from actual stdout \n" +
                 execution.processOutput +
                 "\n Differences found:" +
                 renderDifferences(difference)
-            )
+              )
+            }
           }
         } else {
           if (

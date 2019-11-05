@@ -3,19 +3,20 @@
 let path = require("path")
 let fs = require("fs")
 
-let CreatePushApi = require('@shepherdorg/ui-push').CreatePushApi
+let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
+
 /*
 This is the main entry point for shepherd deployer agent
  */
 
-function printUsage() {
+function printUsage () {
   console.log(`Usage: shepherd /path/to/a/herd.yaml ENVIRONMENT <options>
 
 Supported options:
 
     --export             Export deployment documents to outputDir
     --dryrun             Run without actually deploying. Exports documents to outputDir. 
-    --force-push         Force push of deployment data to consumers during --dryrun
+    --force-push         Force push of deployment data to consumers during --dryrun (this is not git push)
     
     
 Both will write to directory specified by 
@@ -23,11 +24,22 @@ Both will write to directory specified by
  
 Options through environment variables:
 
-    SHEPHERD_FILESTORE_DIR   - Directory if using filestore (not recommended for production)
-    SHEPHERD_UI_API_ENDPOINT - GraphQL endpoint for shepherd UI API
-        Example: SHEPHERD_UI_API_ENDPOINT=ws://localhost:8080/v1/graphql
+Upstream build job input. The first three must be provided together or all skipped.    
+    UPSTREAM_HERD_KEY           - Herd key from upstream trigger. Equivalent to key in images section in herd.yaml
+    UPSTREAM_IMAGE_NAME         - Docker image name from upstream. Always without tag. 
+    UPSTREAM_IMAGE_TAG          - Docker image tag from upstream trigger. 
+    UPSTREAM_HERD_DESCRIPTION   - Short description that would otherwise be in the herd.yaml file.
 
-Postgres config:
+Push ata Shepherd UI:
+    SHEPHERD_UI_API_ENDPOINT - GraphQL endpoint for shepherd UI API
+        Example: SHEPHERD_UI_API_ENDPOINT=http://localhost:8080/v1/graphql
+
+Deployment state store configuration
+
+  When using file store:
+    SHEPHERD_FILESTORE_DIR   - Directory if using filestore (not recommended for production)
+
+  When using postgres state store config:
     SHEPHERD_PG_HOST         - Postgres host
     SHEPHERD_PG_PORT         - Postgres port, default: 5432
     SHEPHERD_PG_USER         - Postgres user 
@@ -37,7 +49,8 @@ Postgres config:
 `)
 }
 
-if(process.argv.indexOf("--help") > 0){
+
+if (process.argv.indexOf("--help") > 0) {
   printUsage()
   process.exit(0)
 }
@@ -98,19 +111,34 @@ if (process.env.SHEPHERD_PG_HOST) {
   logger.info("WARNING: Falling back to file based state store directory in ", shepherdStoreDir)
   stateStoreBackend = FileStore({ directory: shepherdStoreDir })
 }
-if(Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)){
+if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
+  console.info(`Shepherd UI API endpoint configured ${process.env.SHEPHERD_UI_API_ENDPOINT}`)
   uiDataPusher = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT, console)
 }
-
 
 const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
 const HerdLoader = require("./deployment-manager/herd-loader")
 const ReleasePlanModule = require("./deployment-manager/release-plan")
 const exec = require("@shepherdorg/exec")
 
-function terminateProcess(exitCode) {
+const upgradeOrAddDeploymentInFile = require('./herd-file/herd-edit').upgradeOrAddDeploymentInFile
+
+function terminateProcess (exitCode) {
   stateStoreBackend.disconnect()
   process.exit(exitCode)
+}
+
+let herdFilePath = process.argv[2]
+let environment = process.argv[3]
+
+if (process.env.UPSTREAM_IMAGE_NAME && process.env.UPSTREAM_IMAGE_TAG && process.env.UPSTREAM_HERD_KEY) {
+  upgradeOrAddDeploymentInFile({
+    imageFileName: herdFilePath,
+    upstreamHerdKey: process.env.UPSTREAM_HERD_KEY,
+    upstreamImageName: process.env.UPSTREAM_IMAGE_NAME,
+    upstreamImageTag: process.env.UPSTREAM_IMAGE_TAG,
+    upstreamHerdDescription:process.env.UPSTREAM_HERD_DESCRIPTION
+  }, logger)
 }
 
 stateStoreBackend
@@ -125,8 +153,8 @@ stateStoreBackend
         cmd: exec,
         logger: Logger(console),
         stateStore: releaseStateStore,
-        uiDataPusher: uiDataPusher
-      })
+        uiDataPusher: uiDataPusher,
+      }),
     )
 
     let loader = HerdLoader(
@@ -134,11 +162,8 @@ stateStoreBackend
         logger: Logger(console),
         ReleasePlan: ReleasePlan,
         exec: exec,
-      })
+      }),
     )
-
-    let herdFilePath = process.argv[2]
-    let environment = process.argv[3]
 
     if (!environment) {
       printUsage()
