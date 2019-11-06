@@ -9,10 +9,10 @@
   dependencies:
     yargs "^11.0.0"
 
-"@shepherdorg/deployer@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/deployer/-/deployer-1.0.0.tgz#fbad90bccb59aa36533016901106945e51575378"
-  integrity sha512-imTDkGEfTYJ13cgVfGKJxt8Nu+a7d4JrMEylPhGw32umpFo+zM3TWLtE/uHaq7O4j3BHwHPSFsDBnNMLdsTEIA==
+"@shepherdorg/deployer@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/deployer/-/deployer-1.0.1.tgz#756d5a865330e92af23870c600a404d32451f66f"
+  integrity sha512-ALbULUAB3VfT7qoypxFkPO+ZfReZCCnZ10F28PrXYinCrCB64AVx3kdwzgZTuRXT8Pr55WeGSJmqyD/nzeTEfw==
   dependencies:
     "@shepherdorg/docker-image-metadata-loader" "^0.1.2"
     "@shepherdorg/exec" "0.0.1"
@@ -32,10 +32,20 @@
     timer-stopwatch "^0.2.0"
     tmp "^0.1.0"
 
-"@shepherdorg/docker-image-metadata-loader@0.1.2", "@shepherdorg/docker-image-metadata-loader@^0.1.2":
+"@shepherdorg/docker-image-metadata-loader@^0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@shepherdorg/docker-image-metadata-loader/-/docker-image-metadata-loader-0.1.2.tgz#eb16bd16dcd916fe2f7bb2fe3b594dfac1216cfc"
   integrity sha512-NCXbbE3KbUXJTH/96/bDUt1yfuuucJ0brY0QZhxXvrSSmKTVosTR8wGPfYpee/juid+QrmakP9dmVoVhfxOViQ==
+  dependencies:
+    "@shepherdorg/exec" "0.0.1"
+    "@shepherdorg/nano-inject" "0.0.6"
+    lodash "^4.17.15"
+    superagent "^5.1.0"
+
+"@shepherdorg/docker-image-metadata-loader@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/docker-image-metadata-loader/-/docker-image-metadata-loader-1.0.0.tgz#a6e500d83f0b5d178a8d535b412ffb7e7fc23ab9"
+  integrity sha512-eNA7xocvX+Q/TRrDce3Gfj8NEmktij0cU+itqxrc5PrIV9kn/dsZJBtqd6OwDMPkzil1enb/vvZ2jCnJwcarmQ==
   dependencies:
     "@shepherdorg/exec" "0.0.1"
     "@shepherdorg/nano-inject" "0.0.6"
@@ -151,10 +161,15 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node@*", "@types/node@^12.7.11":
+"@types/node@*":
   version "12.12.5"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.5.tgz#66103d2eddc543d44a04394abb7be52506d7f290"
   integrity sha512-KEjODidV4XYUlJBF3XdjSH5FWoMCtO0utnhtdLf1AgeuZLOrRbvmU/gaRCVg7ZaQDjVf3l84egiY0mRNe5xE4A==
+
+"@types/node@^12.12.6":
+  version "12.12.6"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.6.tgz#a47240c10d86a9a57bb0c633f0b2e0aea9ce9253"
+  integrity sha512-FjsYUPzEJdGXjwKqSpE0/9QEh6kzhTAeObA54rn6j3rR4C/mzpI9L0KNfoeASSPMMdxIsoJuCLDWcM/rVjIsSA==
 
 add@^2.0.6:
   version "2.0.6"
@@ -1815,10 +1830,15 @@ type-detect@^4.0.0, type-detect@^4.0.5:
   resolved "https://registry.yarnpkg.com/type-detect/-/type-detect-4.0.8.tgz#7646fb5f18871cfbb7749e69bd39a6388eb7450c"
   integrity sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==
 
-typescript@^3.6.3, typescript@^3.6.4:
+typescript@^3.6.4:
   version "3.6.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.6.4.tgz#b18752bb3792bc1a0281335f7f6ebf1bbfc5b91d"
   integrity sha512-unoCll1+l+YK4i4F8f22TaNVPRHcD9PA3yCuZ8g5e0qGqlVlJ/8FSateOLLSagn+Yg5+ZwuPkL8LFUc0Jcvksg==
+
+typescript@^3.7.2:
+  version "3.7.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.7.2.tgz#27e489b95fa5909445e9fef5ee48d81697ad18fb"
+  integrity sha512-ml7V7JfiN2Xwvcer+XAf2csGO1bPBdRbFCkYBczNZggrBZ9c7G3riSUeJmqEU5uOtXNPMhE3n+R4FA/3YOAWOQ==
 
 uglify-js@^3.1.4:
   version "3.6.7"
