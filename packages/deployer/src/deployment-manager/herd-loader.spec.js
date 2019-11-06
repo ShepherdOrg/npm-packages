@@ -6,7 +6,6 @@ const expect = require("chai").expect
 
 const path = require("path")
 const fs = require("fs")
-const _ = require("lodash")
 
 /// Inject a mock image metadata loader with fake image information
 
@@ -280,11 +279,11 @@ describe("herd.yaml loading", function() {
 
     it("should  have herdSpec and metadata on all loaded plans", () => {
 
-      _.each(loadedPlan.addedK8sDeployments, function(deployment) {
+      Object.entries(loadedPlan.addedK8sDeployments).forEach(function([_dname, deployment]) {
         expect(deployment.herdSpec.herdName).not.to.equal(undefined)
         expect(deployment.metadata.displayName).not.to.equal(undefined)
       })
-      _.each(loadedPlan.addedDockerDeployers, function(deployment) {
+      Object.entries(loadedPlan.addedDockerDeployers).forEach(function([_dname, deployment]) {
         expect(deployment.herdSpec.herdName).not.to.equal(undefined)
         expect(deployment.metadata.displayName).not.to.equal(undefined)
       })

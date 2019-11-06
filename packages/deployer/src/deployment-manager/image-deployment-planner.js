@@ -9,7 +9,6 @@ const modifyDeploymentDocument = require("../k8s-feature-deployment/modify-deplo
 const base64EnvSubst = require("../base64-env-subst").processLine
 const options = require("./options")
 const path = require("path")
-const _ = require("lodash")
 
 const createResourceNameChangeIndex = require("../k8s-feature-deployment/create-name-change-index")
 
@@ -43,7 +42,7 @@ module.exports = function(injected) {
             ":" +
             imageMetadata.imageDefinition.imagetag
         }
-        _.each(lines, function(line, idx) {
+        lines.forEach(function(line, idx) {
           try {
             lines[idx] = expandEnv(line)
             lines[idx] = base64EnvSubst(lines[idx], {})
@@ -95,7 +94,7 @@ module.exports = function(injected) {
         herdName: imageMetadata.imageDefinition.herdName,
       }
       resolve(plan)
-    })
+    });
   }
 
   function createImageDeployerPlan(imageInformation) {
@@ -138,7 +137,7 @@ module.exports = function(injected) {
             envList = envList.concat(envLabel.split(","))
           }
           if(shepherdMetadata.environment){
-            envList = envList.concat(_.map(shepherdMetadata.environment, (value)=>`${value.name}=${value.value}`))
+            envList = envList.concat(shepherdMetadata.environment.map((value)=>`${value.name}=${value.value}`))
           }
 
           envList.forEach(function(env_item) {
@@ -220,7 +219,7 @@ module.exports = function(injected) {
               )
             }
 
-            _.forEach(plan.files, function(deploymentFileContent, fileName) {
+            Object.entries(plan.files).forEach(([fileName, deploymentFileContent])=>{
               if (!kubeSupportedExtensions[path.extname(fileName)]) {
                 // console.debug('Unsupported extension ', path.extname(fileName));
                 return
@@ -232,12 +231,12 @@ module.exports = function(injected) {
                   //
                   // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
                   planPromises.push(
-                    createK8sFileDeploymentPlan(
-                      deploymentFileContent,
-                      imageInformation,
-                      fileName,
-                      featureDeploymentConfig
-                    )
+                      createK8sFileDeploymentPlan(
+                          deploymentFileContent,
+                          imageInformation,
+                          fileName,
+                          featureDeploymentConfig
+                      )
                   )
                 }
               } catch (e) {
@@ -254,7 +253,7 @@ module.exports = function(injected) {
         }
 
         return [plan]
-      })
+      });
     }
   }
 

@@ -1,4 +1,3 @@
-const _ = require("lodash")
 const fs = require("fs")
 const path = require("path")
 const expandEnv = require("../expandenv")
@@ -39,7 +38,7 @@ module.exports = function(injected) {
           .then(function(plans) {
             function flatten(arrayOfArrays) {
               let flattened = []
-              _.each(arrayOfArrays, function(arrayOrObject) {
+              arrayOfArrays.forEach(function(arrayOrObject) {
                 if (Array.isArray(arrayOrObject)) {
                   flattened = flattened.concat(flatten(arrayOrObject))
                 } else {
@@ -87,7 +86,7 @@ module.exports = function(injected) {
                   }
 
                   let lines = data.split("\n")
-                  _.each(lines, function(line, idx) {
+                  lines.forEach(function(line, idx) {
                     try {
                       lines[idx] = expandEnv(line, idx + 1)
                       lines[idx] = base64EnvSubst(lines[idx], {})
@@ -124,7 +123,7 @@ module.exports = function(injected) {
                   }
                   resolve(deployment)
                 })
-              })
+              });
             }
 
             if (stat && stat.isDirectory()) {
@@ -179,7 +178,7 @@ module.exports = function(injected) {
           })
         })
       })
-    })
+    });
   }
 
   return scanDir

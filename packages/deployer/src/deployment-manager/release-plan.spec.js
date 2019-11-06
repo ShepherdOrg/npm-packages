@@ -3,7 +3,7 @@ const FakeExec = require("../test-tools/fake-exec.js")
 const FakeLogger = require("../test-tools/fake-logger.js")
 
 const inject = require("@shepherdorg/nano-inject").inject
-const _ = require("lodash")
+const { extend } = require( 'lodash');
 const expect = require("chai").expect
 
 const fs = require("fs")
@@ -35,22 +35,19 @@ describe("Release plan", function() {
       getDeploymentState: function(deployment) {
         checkedStates.push(JSON.parse(JSON.stringify(deployment)))
         return Promise.resolve(
-          _.extend(
-            {
-              testState: true,
-              new: true,
-              modified: true,
-              operation: "apply",
-              version: "0.0.0",
-              lastVersion: undefined,
-              signature: "fakesignature",
-              origin: deployment.origin,
-              env: "UNITTEST",
-              timestamp: fakeStateStore.fixedTimestamp
-            },
-            fakeStateStore.nextState
-          )
-        )
+          extend({
+            testState: true,
+            new: true,
+            modified: true,
+            operation: "apply",
+            version: "0.0.0",
+            lastVersion: undefined,
+            signature: "fakesignature",
+            origin: deployment.origin,
+            env: "UNITTEST",
+            timestamp: fakeStateStore.fixedTimestamp
+          }, fakeStateStore.nextState)
+        );
       },
       saveDeploymentState: function(deploymentState) {
         return new Promise(function(resolve, reject) {

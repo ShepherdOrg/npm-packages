@@ -21,7 +21,7 @@ export function CreatePushApi(endPoint: string, logger: typeof console) {
       pushResults.deploymentResult = await shepherdUiClient.upsertDeployment([uiVersion.deploymentInfo])
       pushResults.deploymentVersionResult = await shepherdUiClient.upsertDeploymentVersion([uiVersion.versionInfo])
 
-      logger.info(`${deploymentState.displayName} from ${deploymentState.gitUrl} deployment info pushed to UI.`)
+      logger.info(`${deploymentState.displayName} from ${deploymentState.gitUrl} deployment info pushed to UI @ ${endPoint}`)
       return pushResults
     } else {
       logger.info(`${deploymentState.displayName} from ${deploymentState.gitUrl} deployment info not pushed. Modified: ${deploymentState.deploymentState.modified}, timestamp: ${deploymentState.deploymentState.timestamp}`)

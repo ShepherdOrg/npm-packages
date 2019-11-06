@@ -1,6 +1,5 @@
 const JSYAML = require("js-yaml")
 const YAMLload = require("./multipart-yaml-load")
-const _ = require("lodash")
 
 // const path = require('path');
 
@@ -107,7 +106,7 @@ function modifyRawDocument(filecontents, options) {
         deploymentDoc.spec.rules[0].host = `${cleanedName}-${deploymentDoc.spec.rules[0].host}`
         const http = deploymentDoc.spec.rules[0].http
         if (http && http.paths)
-          _.each(http.paths, path => {
+          http.paths.forEach(path => {
             if (path && path.backend && path.backend.serviceName) {
               path.backend.serviceName =
                 cleanedName + "-" + path.backend.serviceName

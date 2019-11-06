@@ -1,7 +1,6 @@
 const fs = require("fs")
 const path = require("path")
 const YAML = require("js-yaml")
-const _ = require("lodash")
 const inject = require("@shepherdorg/nano-inject").inject
 
 const Promise = require("bluebird").Promise
@@ -100,9 +99,8 @@ module.exports = function(injected) {
             let infrastructureLoader = function(infrastructureImages) {
               return new Promise(function(resolve) {
                 resolve(
-                  _.map(infrastructureImages, function(
-                    herdDefinition,
-                    herdName
+                  Object.entries(infrastructureImages).map(function(
+                    [herdName, herdDefinition]
                   ) {
                     herdDefinition.herdName = herdName
                     return loadImageMetadata(herdDefinition)
@@ -120,7 +118,7 @@ module.exports = function(injected) {
                       })
                   })
                 )
-              })
+              });
             }
 
             infrastructurePromises.push(
@@ -135,7 +133,7 @@ module.exports = function(injected) {
               folders: function(folders) {
                 return new Promise(function(resolve) {
                   resolve(
-                    _.map(folders, function(herdFolder, herdFolderName) {
+                    Object.entries(folders).map(function([ herdFolderName, herdFolder]) {
                       herdFolder.herdName = herdFolderName
 
                       return calculateFoldersPlan(imagesPath, herdFolder)
@@ -169,12 +167,12 @@ module.exports = function(injected) {
                         })
                     })
                   )
-                })
+                });
               },
               images: function(images) {
                 return new Promise(function(resolve) {
                   resolve(
-                    _.map(images, function(imgObj, imgName) {
+                     Object.entries(images).map(function([ imgName, imgObj]) {
                       imgObj.herdName = imgName
                       logger.debug(
                         "Deployment image - loading image meta data for docker image",
@@ -208,23 +206,24 @@ module.exports = function(injected) {
                         })
                     })
                   )
-                })
+                });
               },
             }
 
             Promise.resolve({}).then(function() {
-              _.each(herd, function(herderDefinition, herdType) {
+              Object.entries(herd).forEach(([herdType, herderDefinition])=>{
                 if (loaders[herdType]) {
                   allDeploymentPromises.push(
-                    loaders[herdType](herderDefinition)
-                      .then(function(addedPromises) {
-                        return Promise.all(addedPromises).catch(function(e) {
-                          reject(e)
-                        })
-                      })
-                      .catch(reject)
+                      loaders[herdType](herderDefinition)
+                          .then(function(addedPromises) {
+                            return Promise.all(addedPromises).catch(function(e) {
+                              reject(e)
+                            })
+                          })
+                          .catch(reject)
                   )
                 }
+
               })
 
               Promise.all(allDeploymentPromises)
@@ -251,7 +250,7 @@ module.exports = function(injected) {
         } catch (e) {
           reject(e)
         }
-      })
+      });
     },
-  }
+  };
 }

@@ -1,5 +1,5 @@
 const fs = require("fs")
-const _ = require("lodash")
+const omit = require('lodash').omit
 
 module.exports = function() {
   let reservedNames = []
@@ -24,13 +24,15 @@ module.exports = function() {
 
   let dockerEnvGenerator = {
     generateEnvString(env) {
-      let retracted = _.omit(env, reservedNames)
+      let retracted = omit(env, reservedNames)
       let buffer = []
-      _.each(retracted, function(value, key) {
-        buffer.push(key)
-        buffer.push("=")
-        buffer.push(value)
-        buffer.push("\n")
+      Object.entries(retracted).forEach(([key, value])=>{
+        {
+          buffer.push(key)
+          buffer.push("=")
+          buffer.push(value)
+          buffer.push("\n")
+        }
       })
       return buffer.join("")
     },

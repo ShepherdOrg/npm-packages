@@ -1,7 +1,6 @@
 const JsDiff = require("diff")
 const fs = require("fs")
 const expect = require("expect.js")
-const _ = require("lodash")
 
 const modifyRawDoc = require("./modify-deployment-document").modifyRawDocument
 

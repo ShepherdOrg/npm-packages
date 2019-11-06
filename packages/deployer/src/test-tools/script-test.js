@@ -1,7 +1,7 @@
 const JsDiff = require("diff")
 const fs = require("fs")
 const expect = require("expect.js")
-const _ = require("lodash")
+const { extend, sortedUniq } = require('lodash');
 
 const exec = require("@shepherdorg/exec")
 
@@ -56,7 +56,7 @@ module.exports = {
         console.log(line.trim())
       }
     }
-    options.env = _.extend({}, options.env, { PATH: process.env.PATH })
+    options.env = extend({}, options.env, { PATH: process.env.PATH })
 
     exec.extendedExec(
       command,
@@ -209,9 +209,7 @@ module.exports = {
             .isDirectory()
           if (execution.dirShouldBeEmpty) {
             if (actualIsDir) {
-              let actualFiles = _.sortedUniq(
-                fs.readdirSync(execution.actualOutputFileOrDir)
-              )
+              let actualFiles = sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir))
               if (actualFiles.length > 0) {
                 expect().fail(
                   `Directory ${
@@ -238,12 +236,8 @@ module.exports = {
             )
           }
           if (expectedIsDir) {
-            let expectedFiles = _.sortedUniq(
-              fs.readdirSync(execution.expectedOutputFileOrDir)
-            )
-            let actualFiles = _.sortedUniq(
-              fs.readdirSync(execution.actualOutputFileOrDir)
-            )
+            let expectedFiles = sortedUniq(fs.readdirSync(execution.expectedOutputFileOrDir))
+            let actualFiles = sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir))
             let expectedFilesString = expectedFiles.join("\n")
             let actualFilesString = actualFiles.join("\n")
 
@@ -261,7 +255,7 @@ module.exports = {
                   renderDifferences(difference)
               )
             }
-            _.each(actualFiles, function(file) {
+            actualFiles.forEach(function(file) {
               compareActualVsExpected(
                 execution.expectedOutputFileOrDir + "/" + file,
                 execution.actualOutputFileOrDir + "/" + file

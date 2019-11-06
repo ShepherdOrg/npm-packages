@@ -6,7 +6,6 @@ const path = require("path")
 const fs = require("fs")
 const options = require("./options")
 const writeFile = Promise.promisify(fs.writeFile)
-const _ = require("lodash")
 
 const extendedExec = cmd => (...args) =>
   new Promise((res, rej) =>
@@ -287,10 +286,10 @@ module.exports = function(injected) {
     }
 
     function printPlan(logger) {
-      _.each(k8sDeploymentPlan, function(plan) {
+      Object.entries(k8sDeploymentPlan).forEach(([key, plan])=>{
         let modified = false
         if (plan.deployments) {
-          _.each(plan.deployments, function(deployment) {
+          plan.deployments.forEach(function(deployment) {
             if (deployment.state.modified) {
               if (!modified) {
                 if (plan.herdName) {
@@ -308,10 +307,10 @@ module.exports = function(injected) {
           logger.info("No modified deployments in " + plan.herdName)
         }
       })
-      _.each(dockerDeploymentPlan, function(plan) {
+      Object.entries(dockerDeploymentPlan).forEach(([key, plan])=>{
         let modified = false
         if (plan.deployments) {
-          _.each(plan.deployments, function(deployment) {
+          plan.deployments.forEach(function(deployment) {
             if (deployment.state.modified) {
               logger.info(`${plan.herdName} deployer`)
               logger.info(`  -  will run ${deployment.identifier} ${deployment.command}`)
@@ -322,6 +321,7 @@ module.exports = function(injected) {
         if (!modified) {
           logger.info("No modifications to " + plan.herdName)
         }
+
       })
     }
 
@@ -329,8 +329,8 @@ module.exports = function(injected) {
       return new Promise(function(resolve, reject) {
         let fileWrites = []
 
-        _.each(k8sDeploymentPlan, function(plan) {
-          _.each(plan.deployments, function(deployment) {
+        Object.entries(k8sDeploymentPlan).forEach(function([_key, plan]) {
+          plan.deployments.forEach(function(deployment) {
             let writePath = path.join(
               exportDirectory,
               deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml"
@@ -339,8 +339,8 @@ module.exports = function(injected) {
             fileWrites.push(writePromise)
           })
         })
-        _.each(dockerDeploymentPlan, function(plan) {
-          _.each(plan.deployments, function(deployment) {
+        Object.entries(dockerDeploymentPlan).forEach(function([_key, plan]) {
+          plan.deployments.forEach(function(deployment) {
             let cmdLine = `docker run ${deployment.forTestParameters.join(" ")}`
 
             let writePath = path.join(exportDirectory, deployment.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt")
@@ -351,7 +351,7 @@ module.exports = function(injected) {
         Promise.all(fileWrites)
           .then(resolve)
           .catch(reject)
-      })
+      });
     }
 
     return {
@@ -363,5 +363,5 @@ module.exports = function(injected) {
       printPlan: printPlan,
       exportDeploymentDocuments: exportDeploymentDocuments,
     }
-  }
+  };
 }
