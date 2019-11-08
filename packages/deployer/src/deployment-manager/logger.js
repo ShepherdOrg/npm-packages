@@ -1,12 +1,11 @@
-const Stopwatch = require("timer-stopwatch")
-let globalwatch
-if (!globalwatch) {
-  globalwatch = new Stopwatch()
-  globalwatch.start()
-}
-
 const padleft = require("../padleft")
-const timePrefix = "         "
+
+let initialTime = new Date().getTime()
+const timePrefix = "        "
+
+function elapsedTime () {
+  return new Date().getTime() - initialTime
+}
 
 module.exports = function(consoleInstance) {
   let buildLogger = {
@@ -15,11 +14,12 @@ module.exports = function(consoleInstance) {
     info() {
       Array.prototype.unshift.call(
         arguments,
-        padleft(timePrefix, `${globalwatch.ms}`)
+        padleft(timePrefix, `${elapsedTime()}`)
       )
       consoleInstance.log.apply(consoleInstance, arguments)
     },
     debug() {
+      // Disabled by commenting.
       //            Array.prototype.unshift.call(arguments, 'DEBUG   ');
       //            consoleInstance.log.apply(consoleInstance, arguments);
     },
