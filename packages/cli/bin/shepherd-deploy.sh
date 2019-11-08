@@ -64,3 +64,7 @@ then
 fi
 
 shepherd.js "$@"
+
+if [ "${SHEPHERD_ENABLE_TTL_CLEANUP}" = "true" ]; then
+  ${THISDIR}/delete-expired-resources.sh "$@"
+fi
