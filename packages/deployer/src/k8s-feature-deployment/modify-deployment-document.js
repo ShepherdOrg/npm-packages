@@ -3,7 +3,7 @@ const YAMLload = require("./multipart-yaml-load")
 
 // const path = require('path');
 
-function modifyRawDocument(filecontents, options) {
+function modifyRawDocument(fileContents, options) {
   let cleanedName = options.newName.replace(/\//g, "-").toLowerCase()
 
   if (!Boolean(cleanedName)) {
@@ -29,8 +29,7 @@ function modifyRawDocument(filecontents, options) {
     deploymentSection.name && (deploymentSection.name += "-" + cleanedName)
 
     if (deploymentSection.metadata) {
-      deploymentSection.metadata.name &&
-        (deploymentSection.metadata.name += "-" + cleanedName)
+      deploymentSection.metadata.name && (deploymentSection.metadata.name += "-" + cleanedName)
       if (deploymentSection.metadata.labels) {
         if (deploymentSection.metadata.labels.app) {
           deploymentSection.metadata.labels.app += "-" + cleanedName
@@ -53,11 +52,7 @@ function modifyRawDocument(filecontents, options) {
 
         if (template.spec.volumes) {
           for (let volume of template.spec.volumes) {
-            if (
-              volume.configMap &&
-              volume.configMap.name &&
-              volume.configMap.name === options.configMapName
-            ) {
+            if (volume.configMap && volume.configMap.name && volume.configMap.name === options.configMapName) {
               volume.configMap.name += "-" + cleanedName
             }
             if (
@@ -66,8 +61,7 @@ function modifyRawDocument(filecontents, options) {
               options.nameChangeIndex["ConfigMap"] &&
               options.nameChangeIndex["ConfigMap"][volume.configMap.name]
             ) {
-              volume.configMap.name =
-                options.nameChangeIndex["ConfigMap"][volume.configMap.name]
+              volume.configMap.name = options.nameChangeIndex["ConfigMap"][volume.configMap.name]
             }
           }
         }
@@ -82,10 +76,7 @@ function modifyRawDocument(filecontents, options) {
       if (deploymentSection.kind === "HorizontalPodAutoscaler") {
         deploymentSection.spec.minReplicas = 1
         deploymentSection.spec.maxReplicas = 1
-        if (
-          deploymentSection.spec.scaleTargetRef &&
-          deploymentSection.spec.scaleTargetRef.name
-        ) {
+        if (deploymentSection.spec.scaleTargetRef && deploymentSection.spec.scaleTargetRef.name) {
           deploymentSection.spec.scaleTargetRef.name += "-" + cleanedName
         }
       }
@@ -93,23 +84,14 @@ function modifyRawDocument(filecontents, options) {
   }
 
   function adjustIngressNames(deploymentDoc) {
-    if (
-      deploymentDoc.kind &&
-      deploymentDoc.kind === "Ingress" &&
-      deploymentDoc.spec
-    ) {
-      if (
-        deploymentDoc.spec.rules &&
-        deploymentDoc.spec.rules[0] &&
-        deploymentDoc.spec.rules[0].host
-      ) {
+    if (deploymentDoc.kind && deploymentDoc.kind === "Ingress" && deploymentDoc.spec) {
+      if (deploymentDoc.spec.rules && deploymentDoc.spec.rules[0] && deploymentDoc.spec.rules[0].host) {
         deploymentDoc.spec.rules[0].host = `${cleanedName}-${deploymentDoc.spec.rules[0].host}`
         const http = deploymentDoc.spec.rules[0].http
         if (http && http.paths)
           http.paths.forEach(path => {
             if (path && path.backend && path.backend.serviceName) {
-              path.backend.serviceName =
-                cleanedName + "-" + path.backend.serviceName
+              path.backend.serviceName += `-${cleanedName}`
             }
           })
       }
@@ -122,7 +104,7 @@ function modifyRawDocument(filecontents, options) {
     }
   }
 
-  let yamlFiles = YAMLload(filecontents)
+  let yamlFiles = YAMLload(fileContents)
 
   let outfiles = ""
   for (let parsedDocument of yamlFiles) {

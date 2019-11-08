@@ -75,5 +75,5 @@ spec:
       http:
         paths:
           - backend:
-              serviceName: new-branch-toyota
+              serviceName: toyota-new-branch
               servicePort: 80

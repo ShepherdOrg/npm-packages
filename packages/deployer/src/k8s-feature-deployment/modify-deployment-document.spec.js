@@ -54,7 +54,7 @@ describe("modify k8s deployment document", function() {
     }
   })
 
-  it("should modify all parts in multipart document", () => {
+  it("should modify all parts in multipart document ", () => {
     const rawdoc = fs.readFileSync(__dirname + "/testdata/kube.yaml", "utf-8")
 
     const modifiedRawDoc = modifyRawDoc(rawdoc, {
@@ -71,4 +71,5 @@ describe("modify k8s deployment document", function() {
       modifiedKubeYaml
     )
   })
+
 })
