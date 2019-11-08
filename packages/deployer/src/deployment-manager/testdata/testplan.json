@@ -2,7 +2,7 @@
   "addedDockerDeployers": {
     "testenvimage-migrations:0.0.0": {
       "displayName": "Testimage",
-      "herdName": "testenvimage-migrations:0.0.0",
+      "herdKey": "testenvimage-migrations:0.0.0",
       "metadata": {
         "displayName": "Testimage",
         "buildDate": "Sun Oct  6 16:51:24 GMT 2019",
@@ -19,7 +19,7 @@
       },
       "herdSpec": {
         "dockerImage": "testenvimage-migrations:0.0.0",
-        "herdName": "testenvimage-migrations:0.0.0",
+        "herdKey": "testenvimage-migrations:0.0.0",
         "image": "testenvimage-migrations",
         "imagetag": "0.0.0"
       },
@@ -64,7 +64,7 @@
       "herdSpec": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
-        "herdName": "test-image"
+        "herdKey": "test-image"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -112,14 +112,14 @@
       "origin": "testenvimage:0.0.0:kube.config.tar.base64",
       "type": "k8s",
       "fileName": "./deployment/www-icelandair-com-internal.service.yml",
-      "herdName": "test-image"
+      "herdKey": "test-image"
     },
     "Service_image2": {
       "herdSpec": {
         "image": "testenvimage2",
         "imagetag": "999.999.99999",
         "delete": true,
-        "herdName": "test-image-to-delete"
+        "herdKey": "test-image-to-delete"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -158,7 +158,7 @@
       "origin": "testenvimage2:999.999.99999:kube.config.tar.base64",
       "type": "k8s",
       "fileName": "./deployment/image2.service.yml",
-      "herdName": "test-image-to-delete"
+      "herdKey": "test-image-to-delete"
     },
     "Service_www-icelandair-com-internal-test1": {
       "herdSpec": {
@@ -166,7 +166,7 @@
         "imagetag": "0.0.0",
         "featureDeployment": true,
         "timeToLiveHours": 48,
-        "herdName": "test1"
+        "herdKey": "test1"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -214,13 +214,13 @@
       "origin": "test1::feature",
       "type": "k8s",
       "fileName": "./deployment/www-icelandair-com-internal.service.yml",
-      "herdName": "test1"
+      "herdKey": "test1"
     },
     "ConfigMap_www-icelandair-com-nginx-acls": {
       "herdSpec": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
-        "herdName": "test-image"
+        "herdKey": "test-image"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -268,14 +268,14 @@
       "origin": "testenvimage:0.0.0:kube.config.tar.base64",
       "type": "k8s",
       "fileName": "./deployment/www-icelandair-com.config.yml",
-      "herdName": "test-image"
+      "herdKey": "test-image"
     },
     "Deployment_image2": {
       "herdSpec": {
         "image": "testenvimage2",
         "imagetag": "999.999.99999",
         "delete": true,
-        "herdName": "test-image-to-delete"
+        "herdKey": "test-image-to-delete"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -314,7 +314,7 @@
       "origin": "testenvimage2:999.999.99999:kube.config.tar.base64",
       "type": "k8s",
       "fileName": "./deployment/image2.deployment.yml",
-      "herdName": "test-image-to-delete"
+      "herdKey": "test-image-to-delete"
     },
     "ConfigMap_www-icelandair-com-nginx-acls-test1": {
       "herdSpec": {
@@ -322,7 +322,7 @@
         "imagetag": "0.0.0",
         "featureDeployment": true,
         "timeToLiveHours": 48,
-        "herdName": "test1"
+        "herdKey": "test1"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -370,13 +370,13 @@
       "origin": "test1::feature",
       "type": "k8s",
       "fileName": "./deployment/www-icelandair-com.config.yml",
-      "herdName": "test1"
+      "herdKey": "test1"
     },
     "Deployment_www-icelandair-com": {
       "herdSpec": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
-        "herdName": "test-image"
+        "herdKey": "test-image"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -424,14 +424,14 @@
       "origin": "testenvimage:0.0.0:kube.config.tar.base64",
       "type": "k8s",
       "fileName": "./deployment/www-icelandair-com.deployment.yml",
-      "herdName": "test-image"
+      "herdKey": "test-image"
     },
     "ConfigMap_image2-config": {
       "herdSpec": {
         "image": "testenvimage2",
         "imagetag": "999.999.99999",
         "delete": true,
-        "herdName": "test-image-to-delete"
+        "herdKey": "test-image-to-delete"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -470,7 +470,7 @@
       "origin": "testenvimage2:999.999.99999:kube.config.tar.base64",
       "type": "k8s",
       "fileName": "./deployment/image2.config.yml",
-      "herdName": "test-image-to-delete"
+      "herdKey": "test-image-to-delete"
     },
     "Deployment_www-icelandair-com-test1": {
       "herdSpec": {
@@ -478,7 +478,7 @@
         "imagetag": "0.0.0",
         "featureDeployment": true,
         "timeToLiveHours": 48,
-        "herdName": "test1"
+        "herdKey": "test1"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -526,13 +526,13 @@
       "origin": "test1::feature",
       "type": "k8s",
       "fileName": "./deployment/www-icelandair-com.deployment.yml",
-      "herdName": "test1"
+      "herdKey": "test1"
     },
     "Service_www-icelandair-com": {
       "herdSpec": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
-        "herdName": "test-image"
+        "herdKey": "test-image"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -580,7 +580,7 @@
       "origin": "testenvimage:0.0.0:kube.config.tar.base64",
       "type": "k8s",
       "fileName": "./deployment/www-icelandair-com.service.yml",
-      "herdName": "test-image"
+      "herdKey": "test-image"
     },
     "Service_www-icelandair-com-test1": {
       "herdSpec": {
@@ -588,7 +588,7 @@
         "imagetag": "0.0.0",
         "featureDeployment": true,
         "timeToLiveHours": 48,
-        "herdName": "test1"
+        "herdKey": "test1"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -636,7 +636,7 @@
       "origin": "test1::feature",
       "type": "k8s",
       "fileName": "./deployment/www-icelandair-com.service.yml",
-      "herdName": "test1"
+      "herdKey": "test1"
     },
     "Namespace_monitors": {
       "operation": "delete",
@@ -646,9 +646,9 @@
       "origin": "/Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces",
       "type": "k8s",
       "fileName": "monitors-namespace.yml",
-      "herdName": "kube-config - /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces",
+      "herdKey": "kube-config - /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces",
       "herdSpec": {
-        "herdName": "kube-config",
+        "herdKey": "kube-config",
         "path": "./",
         "description": "Kubernetes pull secrets, namespaces, common config"
       },
@@ -668,9 +668,9 @@
       "origin": "/Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/www-deployment",
       "type": "k8s",
       "fileName": "www.service.yml",
-      "herdName": "kube-config - /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/www-deployment",
+      "herdKey": "kube-config - /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/www-deployment",
       "herdSpec": {
-        "herdName": "kube-config",
+        "herdKey": "kube-config",
         "path": "./",
         "description": "Kubernetes pull secrets, namespaces, common config"
       },

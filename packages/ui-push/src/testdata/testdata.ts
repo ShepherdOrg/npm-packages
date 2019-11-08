@@ -103,7 +103,7 @@ export function getValidHerdK8sMetadata() {
       image: "shepherdorg/shepherd-ui-api",
       imagetag: "3.0.3-c481249",
       description: "Shepherd web UI API",
-      // "herdName": "shepherd-ui-api",
+      // "herdKey": "shepherd-ui-api",
       key: "shepherd-ui-api",
     },
   }

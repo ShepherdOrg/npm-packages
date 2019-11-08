@@ -4,8 +4,7 @@ const expandEnv = require("../expandenv")
 const expandTemplate = require("../expandtemplate")
 
 const applyClusterPolicies = require("../apply-k8s-policy").applyPoliciesToDoc
-const modifyDeploymentDocument = require("../k8s-feature-deployment/modify-deployment-document")
-  .modifyRawDocument
+const modifyDeploymentDocument = require("../k8s-feature-deployment/modify-deployment-document").modifyRawDocument
 const base64EnvSubst = require("../base64-env-subst").processLine
 const options = require("./options")
 const path = require("path")
@@ -15,19 +14,12 @@ const createResourceNameChangeIndex = require("../k8s-feature-deployment/create-
 module.exports = function(injected) {
   const kubeSupportedExtensions = injected("kubeSupportedExtensions")
   const logger = injected("logger")
+  const featureDeploymentData = injected('featureDeploymentData')
 
-  function createK8sFileDeploymentPlan(
-    deploymentFileContent,
-    imageMetadata,
-    fileName,
-    featureDeploymentConfig
-  ) {
+  function createK8sFileDeploymentPlan (deploymentFileContent, imageMetadata, fileName, featureDeploymentConfig) {
     return new Promise(function(resolve, reject) {
       let origin =
-        imageMetadata.imageDefinition.image +
-        ":" +
-        imageMetadata.imageDefinition.imagetag +
-        ":kube.config.tar.base64"
+        imageMetadata.imageDefinition.image + ":" + imageMetadata.imageDefinition.imagetag + ":kube.config.tar.base64"
 
       // Support mustache template expansion as well as envsubst template expansion
 
@@ -38,9 +30,7 @@ module.exports = function(injected) {
           process.env.TPL_DOCKER_IMAGE = "fixed-for-testing-purposes"
         } else {
           process.env.TPL_DOCKER_IMAGE =
-            imageMetadata.imageDefinition.image +
-            ":" +
-            imageMetadata.imageDefinition.imagetag
+            imageMetadata.imageDefinition.image + ":" + imageMetadata.imageDefinition.imagetag
         }
         lines.forEach(function(line, idx) {
           try {
@@ -70,10 +60,7 @@ module.exports = function(injected) {
         return
       }
       if (featureDeploymentConfig.isFeatureDeployment) {
-        fileContents = modifyDeploymentDocument(
-          fileContents,
-          featureDeploymentConfig
-        )
+        fileContents = modifyDeploymentDocument(fileContents, featureDeploymentConfig)
         origin = featureDeploymentConfig.origin
       }
 
@@ -91,28 +78,26 @@ module.exports = function(injected) {
         origin: origin,
         type: "k8s",
         fileName: fileName,
-        herdName: imageMetadata.imageDefinition.herdName,
+        herdKey: imageMetadata.imageDefinition.herdKey,
       }
       resolve(plan)
-    });
+    })
   }
 
-  function createImageDeployerPlan(imageInformation) {
+  function createImageDeployerPlan (imageInformation) {
     if (imageInformation.shepherdMetadata) {
       const shepherdMetadata = imageInformation.shepherdMetadata
 
       return Promise.resolve().then(() => {
         let plan = {
           displayName: shepherdMetadata.displayName,
-          herdName: imageInformation.imageDefinition.herdName, // TODO Rename imageDefinition -> herdSpec
+          herdKey: imageInformation.imageDefinition.herdKey, // TODO Rename imageDefinition -> herdSpec
         }
 
         if (shepherdMetadata.deploymentType === "deployer") {
           let dockerImageWithVersion =
             imageInformation.imageDefinition.dockerImage ||
-            imageInformation.imageDefinition.image +
-              ":" +
-              imageInformation.imageDefinition.imagetag
+            imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
 
           Object.assign(plan, {
             metadata: shepherdMetadata,
@@ -120,24 +105,22 @@ module.exports = function(injected) {
             dockerParameters: ["-i", "--rm"],
             forTestParameters: undefined,
             imageWithoutTag: dockerImageWithVersion.replace(/:.*/g, ""), // For regression testing
-            origin: plan.herdName,
+            origin: plan.herdKey,
             type: "deployer",
             operation: "run",
             command: "deploy",
-            identifier: plan.herdName,
+            identifier: plan.herdKey,
           })
 
           let envList = ["ENV={{ ENV }}"]
 
           plan.command = shepherdMetadata.deployCommand || plan.command
           if (shepherdMetadata.environmentVariablesExpansionString) {
-            const envLabel = expandEnv(
-              shepherdMetadata.environmentVariablesExpansionString
-            )
+            const envLabel = expandEnv(shepherdMetadata.environmentVariablesExpansionString)
             envList = envList.concat(envLabel.split(","))
           }
-          if(shepherdMetadata.environment){
-            envList = envList.concat(shepherdMetadata.environment.map((value)=>`${value.name}=${value.value}`))
+          if (shepherdMetadata.environment) {
+            envList = envList.concat(shepherdMetadata.environment.map(value => `${value.name}=${value.value}`))
           }
 
           envList.forEach(function(env_item) {
@@ -162,64 +145,51 @@ module.exports = function(injected) {
             plan.deployments = {}
             plan.dockerLabels = imageInformation.dockerLabels
             let planPromises = []
-            let featureDeploymentConfig = {
-              isFeatureDeployment: false,
-            }
+            let featureDeploymentConfig = featureDeploymentData
 
             if (
-              process.env.UPSTREAM_IMAGE_NAME ===
-                imageInformation.imageDefinition.herdName &&
+              process.env.UPSTREAM_HERD_KEY === imageInformation.imageDefinition.herdKey &&
               process.env.FEATURE_NAME
             ) {
-              let cleanedName = process.env.FEATURE_NAME.replace(
-                /\//g,
-                "-"
-              ).toLowerCase()
-              featureDeploymentConfig.isFeatureDeployment = true
+              let cleanedFeatureName = process.env.FEATURE_NAME.replace(/\//g, "-").toLowerCase()
               featureDeploymentConfig.ttlHours = process.env.FEATURE_TTL_HOURS
-              featureDeploymentConfig.newName = cleanedName
-              featureDeploymentConfig.origin =
-                imageInformation.imageDefinition.herdName + "::" + cleanedName
+              featureDeploymentConfig.isFeatureDeployment = true
+              featureDeploymentConfig.newName = cleanedFeatureName
+              featureDeploymentConfig.origin = imageInformation.imageDefinition.herdKey + "::" + cleanedFeatureName
             }
 
             if (imageInformation.imageDefinition.featureDeployment) {
               featureDeploymentConfig.isFeatureDeployment = true
               featureDeploymentConfig.ttlHours =
-                imageInformation.imageDefinition.timeToLiveHours ||
-                featureDeploymentConfig.ttlHours
-              featureDeploymentConfig.newName =
-                imageInformation.imageDefinition.herdName
-              featureDeploymentConfig.origin =
-                imageInformation.imageDefinition.herdName + "::feature"
+                imageInformation.imageDefinition.timeToLiveHours || featureDeploymentConfig.ttlHours
+              featureDeploymentConfig.newName = imageInformation.imageDefinition.herdKey
+              featureDeploymentConfig.origin = imageInformation.imageDefinition.herdKey + "::feature"
             }
 
             if (featureDeploymentConfig.isFeatureDeployment) {
               if (!Boolean(featureDeploymentConfig.ttlHours)) {
                 throw new Error(
-                  `${imageInformation.imageDefinition.herdName}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`
+                  `${imageInformation.imageDefinition.herdKey}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`,
                 )
               }
               try {
                 if (typeof featureDeploymentConfig.ttlHours === "string") {
-                  featureDeploymentConfig.ttlHours = parseInt(
-                    featureDeploymentConfig.ttlHours,
-                    10
-                  )
+                  featureDeploymentConfig.ttlHours = parseInt(featureDeploymentConfig.ttlHours, 10)
                 }
               } catch (err) {
                 throw new Error(
-                  `Error parsing time-to-live-hours setting ${featureDeploymentConfig.ttlHours}, must be an integer`
+                  `Error parsing time-to-live-hours setting ${featureDeploymentConfig.ttlHours}, must be an integer`,
                 )
               }
 
               featureDeploymentConfig.nameChangeIndex = createResourceNameChangeIndex(
                 plan,
                 kubeSupportedExtensions,
-                featureDeploymentConfig
+                featureDeploymentConfig,
               )
             }
 
-            Object.entries(plan.files).forEach(([fileName, deploymentFileContent])=>{
+            Object.entries(plan.files).forEach(([fileName, deploymentFileContent]) => {
               if (!kubeSupportedExtensions[path.extname(fileName)]) {
                 // console.debug('Unsupported extension ', path.extname(fileName));
                 return
@@ -231,31 +201,28 @@ module.exports = function(injected) {
                   //
                   // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
                   planPromises.push(
-                      createK8sFileDeploymentPlan(
-                          deploymentFileContent,
-                          imageInformation,
-                          fileName,
-                          featureDeploymentConfig
-                      )
+                    createK8sFileDeploymentPlan(
+                      deploymentFileContent,
+                      imageInformation,
+                      fileName,
+                      featureDeploymentConfig,
+                    ),
                   )
                 }
               } catch (e) {
                 let error = "When processing " + fileName + ":\n"
-                reject(error + e)
+                throw new Error(error + e.message)
               }
             })
             return Promise.all(planPromises)
           } else {
-            throw new Error(
-              `FALLING THROUGH ${shepherdMetadata.displayName} - ${shepherdMetadata.deploymentType}`
-            )
+            throw new Error(`FALLING THROUGH ${shepherdMetadata.displayName} - ${shepherdMetadata.deploymentType}`)
           }
         }
-
         return [plan]
-      });
+      })
     }
   }
 
-  return createImageDeployerPlan
+  return { createImageDeployerPlan }
 }

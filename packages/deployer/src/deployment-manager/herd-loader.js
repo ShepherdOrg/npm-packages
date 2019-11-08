@@ -7,7 +7,7 @@ const Promise = require("bluebird").Promise
 
 const kubeSupportedExtensions = require("./kubeSupportedExtensions")
 
-const CalculateDeploymentPlan = require("./image-deployment-planner")
+const ImageDeployermentPlanner = require("./image-deployment-planner")
 
 const addShepherdMetadata = require("./add-shepherd-metadata")
 
@@ -28,12 +28,17 @@ module.exports = function(injected) {
     require("@shepherdorg/docker-image-metadata-loader")
   const logger = injected("logger")
 
-  const calculateDeploymentPlan = CalculateDeploymentPlan(
+  const featureDeploymentData = {
+    isFeatureDeployment: false,
+  }
+
+  const calculateDeploymentPlan = ImageDeployermentPlanner(
     inject({
       kubeSupportedExtensions,
       logger,
+      featureDeploymentData
     })
-  )
+  ).createImageDeployerPlan
 
   const scanDir = require("./folder-deployment-planner")(
     inject({
@@ -100,16 +105,16 @@ module.exports = function(injected) {
               return new Promise(function(resolve) {
                 resolve(
                   Object.entries(infrastructureImages).map(function(
-                    [herdName, herdDefinition]
+                    [herdKey, herdDefinition]
                   ) {
-                    herdDefinition.herdName = herdName
+                    herdDefinition.herdKey = herdKey
                     return loadImageMetadata(herdDefinition)
                       .then(calculateDeploymentPlan)
                       .catch(function(e) {
                         reject(
                           new Error(
                             "When processing " +
-                              herdName +
+                              herdKey +
                               ": " +
                               e +
                               (e.stack ? e.stack : "")
@@ -134,14 +139,14 @@ module.exports = function(injected) {
                 return new Promise(function(resolve) {
                   resolve(
                     Object.entries(folders).map(function([ herdFolderName, herdFolder]) {
-                      herdFolder.herdName = herdFolderName
+                      herdFolder.herdKey = herdFolderName
 
                       return calculateFoldersPlan(imagesPath, herdFolder)
                         .then(function(plans) {
                           return Promise.each(plans, function(deploymentPlan) {
-                            deploymentPlan.herdName = `${herdFolder.herdName} - ${deploymentPlan.origin}`
+                            deploymentPlan.herdKey = `${herdFolder.herdKey} - ${deploymentPlan.origin}`
                             deploymentPlan.herdSpec = {
-                              herdName: herdFolder.herdName,
+                              herdKey: herdFolder.herdKey,
                               path: herdFolder.path,
                               description: herdFolder.description
 
@@ -173,7 +178,7 @@ module.exports = function(injected) {
                 return new Promise(function(resolve) {
                   resolve(
                      Object.entries(images).map(function([ imgName, imgObj]) {
-                      imgObj.herdName = imgName
+                      imgObj.herdKey = imgName
                       logger.debug(
                         "Deployment image - loading image meta data for docker image",
                         JSON.stringify(imgObj)

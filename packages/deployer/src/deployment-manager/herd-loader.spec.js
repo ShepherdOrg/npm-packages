@@ -162,11 +162,11 @@ describe("herd.yaml loading", function() {
     it("loaded plan should have herd name", function() {
       // expect().fail('LOADED PLAN' + JSON.stringify(loadedPlan, null, 2))
 
-      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdName).to.contain("kube-config - namespaces")
+      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdKey).to.contain("kube-config - namespaces")
     })
 
     it("should have herdspec", () => {
-      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdSpec.herdName).to.equal("kube-config")
+      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdSpec.herdKey).to.equal("kube-config")
       expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdSpec.path).to.equal("./")
       expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdSpec.description).to.equal("Kubernetes pull secrets, namespaces, common config")
     })
@@ -210,8 +210,8 @@ describe("herd.yaml loading", function() {
       )
     })
 
-    it("should extract herdName from herd.yaml", function() {
-      expect(loadedPlan.addedK8sDeployments["Service_www-icelandair-com"].herdName).to.equal("test-image")
+    it("should extract herdKey from herd.yaml", function() {
+      expect(loadedPlan.addedK8sDeployments["Service_www-icelandair-com"].herdKey).to.equal("test-image")
     })
 
     it("should include metadata for k8s plan", function() {
@@ -219,7 +219,7 @@ describe("herd.yaml loading", function() {
       expect(addedK8sDeployment.metadata).not.to.equal(undefined)
 
       expect(addedK8sDeployment.metadata.displayName).to.equal("Testimage")
-      expect(addedK8sDeployment.herdSpec.herdName).to.equal("test-image")
+      expect(addedK8sDeployment.herdSpec.herdKey).to.equal("test-image")
     })
 
     it("should modify deployment documents and file under deployments under k8s service identity", function() {
@@ -280,11 +280,11 @@ describe("herd.yaml loading", function() {
     it("should  have herdSpec and metadata on all loaded plans", () => {
 
       Object.entries(loadedPlan.addedK8sDeployments).forEach(function([_dname, deployment]) {
-        expect(deployment.herdSpec.herdName).not.to.equal(undefined)
+        expect(deployment.herdSpec.herdKey).not.to.equal(undefined)
         expect(deployment.metadata.displayName).not.to.equal(undefined)
       })
       Object.entries(loadedPlan.addedDockerDeployers).forEach(function([_dname, deployment]) {
-        expect(deployment.herdSpec.herdName).not.to.equal(undefined)
+        expect(deployment.herdSpec.herdKey).not.to.equal(undefined)
         expect(deployment.metadata.displayName).not.to.equal(undefined)
       })
     })
@@ -299,7 +299,7 @@ describe("herd.yaml loading", function() {
     it("should forward metadata with execution plan", () => {
       expect(loadedPlan.addedDockerDeployers["testenvimage-migrations:0.0.0"].herdSpec).to.deep.equal({
         dockerImage: "testenvimage-migrations:0.0.0",
-        herdName: "testenvimage-migrations:0.0.0",
+        herdKey: "testenvimage-migrations:0.0.0",
         image: "testenvimage-migrations",
         imagetag: "0.0.0",
       })

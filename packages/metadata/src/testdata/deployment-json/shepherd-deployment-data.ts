@@ -4,7 +4,7 @@ export function deploymentData0(): any {
       "image": "shepherdorg/shepherd-ui-api",
       "imagetag": "3.0.3-c481249",
       "description": "Shepherd web UI API",
-      "herdName": "shepherd-ui-api",
+      "herdKey": "shepherd-ui-api",
     },
     "metadata": {
       "buildDate": "2019-10-29T14:53:42+00:00",
@@ -39,7 +39,7 @@ export function deploymentData0(): any {
     "origin": "shepherdorg/shepherd-ui-api:3.0.3-c481249:kube.config.tar.base64",
     "type": "k8s",
     "fileName": "./deployment/kube.yaml",
-    "herdName": "shepherd-ui-api",
+    "herdKey": "shepherd-ui-api",
     "env": "dev",
     "state": {
       "timestamp": "2019-10-31T14:05:52.716Z",
@@ -62,7 +62,7 @@ export function deploymentData1() {
       "image": "shepherdorg/shepherd-ui",
       "imagetag": "3.0.3-8d75408",
       "description": "Shepherd Web UI",
-      "herdName": "shepherd-ui",
+      "herdKey": "shepherd-ui",
     },
     "metadata": {
       "buildDate": "2019-10-29T15:16:31+00:00",
@@ -97,7 +97,7 @@ export function deploymentData1() {
     "origin": "shepherdorg/shepherd-ui:3.0.3-8d75408:kube.config.tar.base64",
     "type": "k8s",
     "fileName": "./deployment/kube.yaml",
-    "herdName": "shepherd-ui",
+    "herdKey": "shepherd-ui",
     "env": "dev",
     "state": {
       "timestamp": "2019-10-31T15:36:25.956Z",

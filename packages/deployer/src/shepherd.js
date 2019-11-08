@@ -49,7 +49,6 @@ Deployment state store configuration
 `)
 }
 
-
 if (process.argv.indexOf("--help") > 0) {
   printUsage()
   process.exit(0)

@@ -12,7 +12,7 @@ export function mapUntypedDeploymentData(deploymentInfo) {
     herdSpec: deploymentInfo.herdSpec,
   }
 
-  mappedDeploymentInfo.herdSpec.key = deploymentInfo.herdName
+  mappedDeploymentInfo.herdSpec.key = deploymentInfo.herdKey
 
   mappedDeploymentInfo.deploymentState.timestamp =
     mappedDeploymentInfo.deploymentState.timestamp && new Date(mappedDeploymentInfo.deploymentState.timestamp)
@@ -33,7 +33,7 @@ export function mapUntypedDeploymentData(deploymentInfo) {
 
   delete mappedDeploymentInfo.dockerImageGithash
   delete mappedDeploymentInfo.kubeConfigB64
-  delete mappedDeploymentInfo.herdSpec.herdName
+  delete mappedDeploymentInfo.herdSpec.herdKey
 
 
   return mappedDeploymentInfo

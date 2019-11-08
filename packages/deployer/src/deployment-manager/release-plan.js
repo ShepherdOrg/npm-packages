@@ -48,7 +48,7 @@ module.exports = function(injected) {
 
     function addK8sDeployment(deployment) {
       k8sDeploymentPlan[deployment.origin] = k8sDeploymentPlan[deployment.origin] || {
-        herdName: deployment.herdName,
+        herdKey: deployment.herdKey,
         deployments: [],
       }
       k8sDeploymentPlan[deployment.origin].deployments.push(deployment)
@@ -68,7 +68,7 @@ module.exports = function(injected) {
 
     function addDockerDeployer(deployment) {
       dockerDeploymentPlan[deployment.origin] = dockerDeploymentPlan[deployment.origin] || {
-        herdName: deployment.herdName,
+        herdKey: deployment.herdKey,
         deployments: [],
       }
 
@@ -292,10 +292,10 @@ module.exports = function(injected) {
           plan.deployments.forEach(function(deployment) {
             if (deployment.state.modified) {
               if (!modified) {
-                if (plan.herdName) {
-                  logger.info(`From ${plan.herdName}`)
+                if (plan.herdKey) {
+                  logger.info(`From ${plan.herdKey}`)
                 } else {
-                  logger.info("Missing herdName for ", plan)
+                  logger.info("Missing herdKey for ", plan)
                 }
               }
               modified = true
@@ -304,7 +304,7 @@ module.exports = function(injected) {
           })
         }
         if (!modified) {
-          logger.info("No modified deployments in " + plan.herdName)
+          logger.info("No modified deployments in " + plan.herdKey)
         }
       })
       Object.entries(dockerDeploymentPlan).forEach(([key, plan])=>{
@@ -312,14 +312,14 @@ module.exports = function(injected) {
         if (plan.deployments) {
           plan.deployments.forEach(function(deployment) {
             if (deployment.state.modified) {
-              logger.info(`${plan.herdName} deployer`)
+              logger.info(`${plan.herdKey} deployer`)
               logger.info(`  -  will run ${deployment.identifier} ${deployment.command}`)
               modified = true
             }
           })
         }
         if (!modified) {
-          logger.info("No modifications to " + plan.herdName)
+          logger.info("No modifications to " + plan.herdKey)
         }
 
       })

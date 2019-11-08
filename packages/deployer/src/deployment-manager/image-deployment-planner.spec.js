@@ -12,8 +12,9 @@ const loader = require("./image-deployment-planner")(
     logger: {
       info: () => {},
     },
+    featureDeploymentData:{}
   }),
-)
+).createImageDeployerPlan
 
 describe("Docker image plan loader", function() {
   before(() => {
@@ -45,7 +46,7 @@ describe("Docker image plan loader", function() {
   describe("image deployer, old style docker labels", function() {
     let dockerDeployerMetadata = {
       imageDefinition: {
-        herdName: "testimage",
+        herdKey: "testimage",
         image: "testenvimage-migrations",
         imagetag: "0.0.0",
       },
@@ -97,8 +98,8 @@ describe("Docker image plan loader", function() {
         ).to.equal("ls")
       })
 
-      it("should have herdName", function() {
-        expect(loadedPlan.herdName).to.equal("testimage")
+      it("should have herdKey", function() {
+        expect(loadedPlan.herdKey).to.equal("testimage")
       })
 
       it("should have metadata", () => {
@@ -107,7 +108,7 @@ describe("Docker image plan loader", function() {
       })
 
       it("should have herdspec", () => {
-        expect(loadedPlan.herdSpec.herdName).to.equal("testimage")
+        expect(loadedPlan.herdSpec.herdKey).to.equal("testimage")
 
       })
     })
@@ -115,7 +116,7 @@ describe("Docker image plan loader", function() {
     describe("no command specified", function() {
       let dockerDeployerMetadata = {
         imageDefinition: {
-          herdName: "testimage",
+          herdKey: "testimage",
           image: "testenvimage-migrations",
           imagetag: "0.0.0",
         },
@@ -172,7 +173,7 @@ describe("Docker image plan loader", function() {
   describe("docker deployer, shepherd.json labels", () => {
     let dockerDeployerMetadata = {
       imageDefinition: {
-        herdName: "testimage-shepherd-json",
+        herdKey: "testimage-shepherd-json",
         image: "testenvimage-shepherd-json",
         imagetag: "0.0.5",
       },
@@ -195,7 +196,7 @@ describe("Docker image plan loader", function() {
   describe("is.icelandairlabs backwards compatibility", function() {
     let dockerImageMetadata = {
       imageDefinition: {
-        herdName: "testimage",
+        herdKey: "testimage",
         image: "testenvimage-migrations",
         imagetag: "1.2.3",
       },
@@ -233,7 +234,7 @@ describe("Docker image plan loader", function() {
   describe("k8s deployment using base64 tar", function() {
     let dockerImageMetadata = {
       imageDefinition: {
-        herdName: "testimage",
+        herdKey: "testimage",
         image: "testenvimage-migrations",
         imagetag: "0.0.0",
       },
@@ -343,7 +344,7 @@ describe("Docker image plan loader", function() {
   describe("- feature - deployment to k8s using base64 tar", function() {
     let dockerImageMetadata = {
       imageDefinition: {
-        herdName: "thisIsFeatureDeploymentOne",
+        herdKey: "thisIsFeatureDeploymentOne",
         image: "testenvimage-migrations",
         imagetag: "0.0.0",
         featureDeployment: true,
@@ -392,6 +393,7 @@ describe("Docker image plan loader", function() {
         expect(loadedPlan.origin).to.contain("thisIsFeatureDeploymentOne")
       })
 
+
       it("should modify deployment descriptor", function() {
         expect(loadedPlan.descriptor).to.contain("thisIsFeatureDeploymentOne")
       })
@@ -406,7 +408,7 @@ describe("Docker image plan loader", function() {
     describe("FEATURE_NAME - feature deployment to k8s using base64 tar ", function() {
       let dockerImageMetadata = {
         imageDefinition: {
-          herdName: "deployment-one",
+          herdKey: "deployment-one",
           image: "testenvimage-migrations",
           imagetag: "0.0.0",
         },
@@ -427,7 +429,7 @@ describe("Docker image plan loader", function() {
 
       describe("using upstream and featurename env variables", function() {
         before(function() {
-          process.env.UPSTREAM_IMAGE_NAME = "deployment-one"
+          process.env.UPSTREAM_HERD_KEY = "deployment-one"
           process.env.FEATURE_NAME = "some-branch/name"
           process.env.FEATURE_TTL_HOURS = "99"
           process.env.EXPORT1 = "na"
@@ -438,7 +440,7 @@ describe("Docker image plan loader", function() {
         })
 
         after(function() {
-          delete process.env.UPSTREAM_IMAGE_NAME
+          delete process.env.UPSTREAM_HERD_KEY
           delete process.env.FEATURE_NAME
           delete process.env.EXPORT1
           delete process.env.SUB_DOMAIN_PREFIX
@@ -527,7 +529,7 @@ describe("Docker image plan loader", function() {
         delete process.env.WWW_ICELANDAIR_IP_WHITELIST
         loadPlan(dockerImageMetadata)
           .then(function() {
-            expect().fail("Not expected to succeed!")
+            expect.fail("Not expected to succeed!")
           })
           .catch(function(error) {
             loadError = error
