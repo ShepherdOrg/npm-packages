@@ -203,27 +203,6 @@ describe("Release plan", function() {
         expect(fakeLogger.logStatements.length).to.equal(9)
       })
 
-      // it.only("should print info about modified deployments", function() {
-      //   let outputLogger = new FakeLogger()
-      //   releasePlan.printPlan(console)
-      //   releasePlan.printPlan(outputLogger)
-      //   expect(outputLogger.logStatements.length).to.equal(5)
-      //   expect(outputLogger.logStatements[0].data[0]).to.equal(
-      //     "From test-image"
-      //   )
-      //   expect(outputLogger.logStatements[1].data[0]).to.equal(
-      //     "  -  will apply ConfigMap_www-icelandair-com-nginx-acls"
-      //   )
-      //   expect(outputLogger.logStatements[2].data[0]).to.equal(
-      //     "  -  will apply Deployment_www-icelandair-com"
-      //   )
-      //   expect(outputLogger.logStatements[3].data[0]).to.equal(
-      //     "From kube-config:namespaces"
-      //   )
-      //   expect(outputLogger.logStatements[4].data[0]).to.equal(
-      //     "  -  will delete Namespace_monitors"
-      //   )
-      // })
     })
 
     describe("modified, fail to save state", function() {

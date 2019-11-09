@@ -156,11 +156,22 @@ stateStoreBackend
       }),
     )
 
+    const featureDeploymentConfig = {}
+
+    if(process.env.FEATURE_NAME){
+      featureDeploymentConfig.upstreamFeatureDeployment=true
+      featureDeploymentConfig.newName = process.env.FEATURE_NAME.replace(/\//g, "-").toLowerCase()
+      featureDeploymentConfig.ttlHours = process.env.FEATURE_TTL_HOURS
+    }
+
+
+
     let loader = HerdLoader(
       inject({
         logger: Logger(console),
         ReleasePlan: ReleasePlan,
         exec: exec,
+        featureDeploymentConfig
       }),
     )
 

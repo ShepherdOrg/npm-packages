@@ -23,20 +23,18 @@ function splitDockerImageTag(imgObj) {
 module.exports = function(injected) {
   const ReleasePlan = injected("ReleasePlan")
 
+  const featureDeploymentConfig = injected('featureDeploymentConfig');
+
   const labelsLoader =
     injected("labelsLoader", true) ||
     require("@shepherdorg/docker-image-metadata-loader")
   const logger = injected("logger")
 
-  const featureDeploymentData = {
-    isFeatureDeployment: false,
-  }
-
   const calculateDeploymentPlan = ImageDeployermentPlanner(
     inject({
       kubeSupportedExtensions,
       logger,
-      featureDeploymentData
+      featureDeploymentConfig
     })
   ).createImageDeployerPlan
 

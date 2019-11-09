@@ -10,6 +10,7 @@ const fs = require("fs")
 /// Inject a mock image metadata loader with fake image information
 
 describe("herd.yaml loading", function() {
+  let labelsLoader
   let loader
   let modifiedState = false
   let CreateReleasePlan
@@ -26,6 +27,19 @@ describe("herd.yaml loading", function() {
     delete process.env.EXPORT2
     delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
   })
+
+  function createTestHerdLoader (labelsLoader, featureDeploymentConfig) {
+    loader = HerdLoader(
+      inject({
+        logger: loaderLogger,
+        ReleasePlan: CreateReleasePlan,
+        exec: exec,
+        labelsLoader: labelsLoader,
+        featureDeploymentConfig,
+
+      }),
+    )
+  }
 
   beforeEach(() => {
     process.env.www_icelandair_com_image = "testimage123"
@@ -70,7 +84,7 @@ describe("herd.yaml loading", function() {
     modifiedState = false
     loaderLogger = fakeLogger()
 
-    let labelsLoader = {
+    labelsLoader = {
       getDockerRegistryClientsFromConfig () {
         return {}
       },
@@ -102,14 +116,11 @@ describe("herd.yaml loading", function() {
       },
     }
 
-    loader = HerdLoader(
-      inject({
-        logger: loaderLogger,
-        ReleasePlan: CreateReleasePlan,
-        exec: exec,
-        labelsLoader: labelsLoader,
-      }),
-    )
+    const featureDeploymentConfig = {
+      upstreamFeatureDeployment: false,
+    }
+
+    createTestHerdLoader(labelsLoader, featureDeploymentConfig)
   })
 
   it("should load herd.yaml", function() {
@@ -193,6 +204,8 @@ describe("herd.yaml loading", function() {
 
     beforeEach(function() {
 
+      createTestHerdLoader(labelsLoader, {
+      })
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
         loadedPlan = plan
       })
@@ -205,6 +218,7 @@ describe("herd.yaml loading", function() {
     })
 
     it("should base64decode and untar deployment files under file path", function() {
+
       expect(loadedPlan.addedK8sDeployments["Service_www-icelandair-com"].origin).to.equal(
         "testenvimage:0.0.0:kube.config.tar.base64",
       )
@@ -218,8 +232,9 @@ describe("herd.yaml loading", function() {
       let addedK8sDeployment = loadedPlan.addedK8sDeployments["Service_www-icelandair-com"]
       expect(addedK8sDeployment.metadata).not.to.equal(undefined)
 
+
       expect(addedK8sDeployment.metadata.displayName).to.equal("Testimage")
-      expect(addedK8sDeployment.herdSpec.herdKey).to.equal("test-image")
+      expect(addedK8sDeployment.herdSpec.herdKey).to.equal("test-image", 'herdKey')
     })
 
     it("should modify deployment documents and file under deployments under k8s service identity", function() {

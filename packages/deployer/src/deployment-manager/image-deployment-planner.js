@@ -11,216 +11,219 @@ const path = require("path")
 
 const createResourceNameChangeIndex = require("../k8s-feature-deployment/create-name-change-index")
 
+function deployerPlan (imageInformation, plan, shepherdMetadata) {
+  let dockerImageWithVersion =
+    imageInformation.imageDefinition.dockerImage ||
+    imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
+
+  Object.assign(plan, {
+    metadata: shepherdMetadata,
+    herdSpec: imageInformation.imageDefinition,
+    dockerParameters: ["-i", "--rm"],
+    forTestParameters: undefined,
+    imageWithoutTag: dockerImageWithVersion.replace(/:.*/g, ""), // For regression testing
+    origin: plan.herdKey,
+    type: "deployer",
+    operation: "run",
+    command: "deploy",
+    identifier: plan.herdKey,
+  })
+
+  let envList = ["ENV={{ ENV }}"]
+
+  plan.command = shepherdMetadata.deployCommand || plan.command
+  if (shepherdMetadata.environmentVariablesExpansionString) {
+    const envLabel = expandEnv(shepherdMetadata.environmentVariablesExpansionString)
+    envList = envList.concat(envLabel.split(","))
+  }
+  if (shepherdMetadata.environment) {
+    envList = envList.concat(shepherdMetadata.environment.map(value => `${value.name}=${value.value}`))
+  }
+
+  envList.forEach(function(env_item) {
+    plan.dockerParameters.push("-e")
+    plan.dockerParameters.push(expandTemplate(env_item))
+  })
+
+  plan.forTestParameters = plan.dockerParameters.slice(0) // Clone array
+
+  plan.dockerParameters.push(dockerImageWithVersion)
+  plan.forTestParameters.push(plan.imageWithoutTag + ":[image_version]")
+
+  if (plan.command) {
+    plan.dockerParameters.push(plan.command)
+    plan.forTestParameters.push(plan.command)
+  }
+  return [plan]
+}
+
 module.exports = function(injected) {
   const kubeSupportedExtensions = injected("kubeSupportedExtensions")
   const logger = injected("logger")
-  const featureDeploymentData = injected('featureDeploymentData')
+  const featureDeploymentConfig = injected("featureDeploymentConfig")
 
-  function createK8sFileDeploymentPlan (deploymentFileContent, imageMetadata, fileName, featureDeploymentConfig) {
-    return new Promise(function(resolve, reject) {
-      let origin =
-        imageMetadata.imageDefinition.image + ":" + imageMetadata.imageDefinition.imagetag + ":kube.config.tar.base64"
+  async function createK8sFileDeploymentPlan (deploymentFileContent, imageInformation, fileName, featureDeploymentConfig) {
+    let origin =
+      imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag + ":kube.config.tar.base64"
 
-      // Support mustache template expansion as well as envsubst template expansion
+    // Support mustache template expansion as well as envsubst template expansion
 
-      let lines = deploymentFileContent.content.split("\n")
-      let fileContents
-      try {
-        if (options.testRunMode()) {
-          process.env.TPL_DOCKER_IMAGE = "fixed-for-testing-purposes"
-        } else {
-          process.env.TPL_DOCKER_IMAGE =
-            imageMetadata.imageDefinition.image + ":" + imageMetadata.imageDefinition.imagetag
+    let lines = deploymentFileContent.content.split("\n")
+    let fileContents
+    try {
+      if (options.testRunMode()) {
+        process.env.TPL_DOCKER_IMAGE = "fixed-for-testing-purposes"
+      } else {
+        process.env.TPL_DOCKER_IMAGE =
+          imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
+      }
+      lines.forEach(function(line, idx) {
+        try {
+          lines[idx] = expandEnv(line)
+          lines[idx] = base64EnvSubst(lines[idx], {})
+        } catch (error) {
+          let message = `Error expanding variables in line #${idx}: ${line}\n`
+          message += error
+          throw new Error(message)
         }
-        lines.forEach(function(line, idx) {
-          try {
-            lines[idx] = expandEnv(line)
-            lines[idx] = base64EnvSubst(lines[idx], {})
-          } catch (error) {
-            let message = `Error expanding variables in line #${idx}: ${line}\n`
-            message += error
-            throw new Error(message)
-          }
-        })
-        fileContents = lines.join("\n")
-        fileContents = expandTemplate(fileContents)
+      })
+      fileContents = lines.join("\n")
+      fileContents = expandTemplate(fileContents)
 
-        delete process.env.TPL_DOCKER_IMAGE
-      } catch (error) {
-        // console.error( error)
-        // console.log('ORIGINAL MESSAGE', error.message)
+      delete process.env.TPL_DOCKER_IMAGE
+    } catch (error) {
+      // console.error( error)
+      // console.log('ORIGINAL MESSAGE', error.message)
 
-        let message = `In deployment image ${origin}\n In file ${fileName} \n`
-        message += error.message
+      let message = `In deployment image ${origin}\n In file ${fileName} \n`
+      message += error.message
 
-        let augmentedError = new Error(message)
+      let augmentedError = new Error(message)
 
-        augmentedError.cause = error
-        reject(augmentedError)
-        return
-      }
-      if (featureDeploymentConfig.isFeatureDeployment) {
-        fileContents = modifyDeploymentDocument(fileContents, featureDeploymentConfig)
-        origin = featureDeploymentConfig.origin
-      }
+      augmentedError.cause = error
+      throw augmentedError
+    }
+    if (imageInformation.isTargetForFeatureDeployment) {
+      fileContents = modifyDeploymentDocument(fileContents, featureDeploymentConfig)
+      origin = featureDeploymentConfig.origin
+    }
 
-      let deploymentDescriptor = applyClusterPolicies(fileContents, logger)
+    let deploymentDescriptor = applyClusterPolicies(fileContents, logger)
 
-      let documentIdentifier = identifyDocument(deploymentDescriptor)
+    let documentIdentifier = identifyDocument(deploymentDescriptor)
 
-      let plan = {
-        herdSpec: imageMetadata.imageDefinition,
-        metadata: imageMetadata.shepherdMetadata,
-        operation: imageMetadata.imageDefinition.delete ? "delete" : "apply",
-        identifier: documentIdentifier,
-        version: imageMetadata.imageDefinition.imagetag,
-        descriptor: deploymentDescriptor,
-        origin: origin,
-        type: "k8s",
-        fileName: fileName,
-        herdKey: imageMetadata.imageDefinition.herdKey,
-      }
-      resolve(plan)
-    })
+    return {
+      herdSpec: imageInformation.imageDefinition,
+      metadata: imageInformation.shepherdMetadata,
+      operation: imageInformation.imageDefinition.delete ? "delete" : "apply",
+      identifier: documentIdentifier,
+      version: imageInformation.imageDefinition.imagetag,
+      descriptor: deploymentDescriptor,
+      origin: origin,
+      type: "k8s",
+      fileName: fileName,
+      herdKey: imageInformation.imageDefinition.herdKey,
+    }
   }
 
-  function createImageDeployerPlan (imageInformation) {
+  function kubeDeploymentPlan (shepherdMetadata, plan, imageInformation, imageFeatureDeploymentConfig) {
+    plan.files = shepherdMetadata.kubeDeploymentFiles
+    plan.deployments = {}
+    plan.dockerLabels = imageInformation.dockerLabels
+    let planPromises = []
+
+    let featureDeploymentIsEnabled =
+      imageFeatureDeploymentConfig.upstreamFeatureDeployment || imageInformation.imageDefinition.featureDeployment
+    if (featureDeploymentIsEnabled) {
+
+      let isTargetForUpstreamFeatureDeployment = imageFeatureDeploymentConfig.upstreamFeatureDeployment &&
+        imageFeatureDeploymentConfig.upstreamHerdKey === imageInformation.imageDefinition.herdKey
+
+      imageFeatureDeploymentConfig.ttlHours =
+        imageInformation.imageDefinition.timeToLiveHours || imageFeatureDeploymentConfig.ttlHours
+
+      imageInformation.isTargetForFeatureDeployment = isTargetForUpstreamFeatureDeployment || imageInformation.imageDefinition.featureDeployment
+
+      delete imageFeatureDeploymentConfig.upstreamFeatureDeployment
+
+      if (isTargetForUpstreamFeatureDeployment) {
+        imageFeatureDeploymentConfig.origin =
+          imageInformation.imageDefinition.herdKey + "::" + imageFeatureDeploymentConfig.newName
+      } else {
+        // Feature deployment specified in herdfile
+        imageFeatureDeploymentConfig.newName = imageInformation.imageDefinition.herdKey
+        imageFeatureDeploymentConfig.origin =
+          imageInformation.imageDefinition.herdKey + "::" + imageFeatureDeploymentConfig.newName
+      }
+      imageInformation.origin = imageFeatureDeploymentConfig.origin
+    }
+
+    if (imageInformation.isTargetForFeatureDeployment) {
+      if (!Boolean(imageFeatureDeploymentConfig.ttlHours)) {
+        throw new Error(
+          `${imageInformation.imageDefinition.herdKey}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`,
+        )
+      }
+      try {
+        if (typeof imageFeatureDeploymentConfig.ttlHours === "string") {
+          imageFeatureDeploymentConfig.ttlHours = parseInt(imageFeatureDeploymentConfig.ttlHours, 10)
+        }
+      } catch (err) {
+        throw new Error(
+          `Error parsing time-to-live-hours setting ${imageFeatureDeploymentConfig.ttlHours}, must be an integer`,
+        )
+      }
+
+      imageFeatureDeploymentConfig.nameChangeIndex = createResourceNameChangeIndex(
+        plan,
+        kubeSupportedExtensions,
+        imageFeatureDeploymentConfig,
+      )
+    }
+
+    Object.entries(plan.files).forEach(([fileName, deploymentFileContent]) => {
+      if (!kubeSupportedExtensions[path.extname(fileName)]) {
+        // console.debug('Unsupported extension ', path.extname(fileName));
+        return
+      }
+
+      try {
+        if (deploymentFileContent.content) {
+          // let deployment = calculateFileDeploymentPlan();
+          //
+          // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
+          planPromises.push(
+            createK8sFileDeploymentPlan(deploymentFileContent, imageInformation, fileName, imageFeatureDeploymentConfig),
+          )
+        }
+      } catch (e) {
+        let error = "When processing " + fileName + ":\n"
+        throw new Error(error + e.message)
+      }
+    })
+    return Promise.all(planPromises)
+  }
+
+  async function createImageDeployerPlan (imageInformation) {
     if (imageInformation.shepherdMetadata) {
       const shepherdMetadata = imageInformation.shepherdMetadata
 
-      return Promise.resolve().then(() => {
-        let plan = {
-          displayName: shepherdMetadata.displayName,
-          herdKey: imageInformation.imageDefinition.herdKey, // TODO Rename imageDefinition -> herdSpec
-        }
+      let imageFeatureDeploymentConfig = Object.assign({}, featureDeploymentConfig)
 
-        if (shepherdMetadata.deploymentType === "deployer") {
-          let dockerImageWithVersion =
-            imageInformation.imageDefinition.dockerImage ||
-            imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
+      let plan = {
+        displayName: shepherdMetadata.displayName,
+        herdKey: imageInformation.imageDefinition.herdKey, // TODO Rename imageDefinition -> herdSpec
+      }
 
-          Object.assign(plan, {
-            metadata: shepherdMetadata,
-            herdSpec: imageInformation.imageDefinition,
-            dockerParameters: ["-i", "--rm"],
-            forTestParameters: undefined,
-            imageWithoutTag: dockerImageWithVersion.replace(/:.*/g, ""), // For regression testing
-            origin: plan.herdKey,
-            type: "deployer",
-            operation: "run",
-            command: "deploy",
-            identifier: plan.herdKey,
-          })
-
-          let envList = ["ENV={{ ENV }}"]
-
-          plan.command = shepherdMetadata.deployCommand || plan.command
-          if (shepherdMetadata.environmentVariablesExpansionString) {
-            const envLabel = expandEnv(shepherdMetadata.environmentVariablesExpansionString)
-            envList = envList.concat(envLabel.split(","))
-          }
-          if (shepherdMetadata.environment) {
-            envList = envList.concat(shepherdMetadata.environment.map(value => `${value.name}=${value.value}`))
-          }
-
-          envList.forEach(function(env_item) {
-            plan.dockerParameters.push("-e")
-            plan.dockerParameters.push(expandTemplate(env_item))
-          })
-
-          plan.forTestParameters = plan.dockerParameters.slice(0) // Clone array
-
-          plan.dockerParameters.push(dockerImageWithVersion)
-          plan.forTestParameters.push(plan.imageWithoutTag + ":[image_version]")
-
-          if (plan.command) {
-            plan.dockerParameters.push(plan.command)
-            plan.forTestParameters.push(plan.command)
-          }
+      if (shepherdMetadata.deploymentType === "deployer") {
+        return deployerPlan(imageInformation, plan, shepherdMetadata)
+      } else {
+        if (shepherdMetadata.deploymentType === "k8s") {
+          return kubeDeploymentPlan(shepherdMetadata, plan, imageInformation, imageFeatureDeploymentConfig)
         } else {
-          if (shepherdMetadata.deploymentType === "k8s") {
-            const files = shepherdMetadata.kubeDeploymentFiles
-
-            plan.files = files
-            plan.deployments = {}
-            plan.dockerLabels = imageInformation.dockerLabels
-            let planPromises = []
-            let featureDeploymentConfig = featureDeploymentData
-
-            if (
-              process.env.UPSTREAM_HERD_KEY === imageInformation.imageDefinition.herdKey &&
-              process.env.FEATURE_NAME
-            ) {
-              let cleanedFeatureName = process.env.FEATURE_NAME.replace(/\//g, "-").toLowerCase()
-              featureDeploymentConfig.ttlHours = process.env.FEATURE_TTL_HOURS
-              featureDeploymentConfig.isFeatureDeployment = true
-              featureDeploymentConfig.newName = cleanedFeatureName
-              featureDeploymentConfig.origin = imageInformation.imageDefinition.herdKey + "::" + cleanedFeatureName
-            }
-
-            if (imageInformation.imageDefinition.featureDeployment) {
-              featureDeploymentConfig.isFeatureDeployment = true
-              featureDeploymentConfig.ttlHours =
-                imageInformation.imageDefinition.timeToLiveHours || featureDeploymentConfig.ttlHours
-              featureDeploymentConfig.newName = imageInformation.imageDefinition.herdKey
-              featureDeploymentConfig.origin = imageInformation.imageDefinition.herdKey + "::feature"
-            }
-
-            if (featureDeploymentConfig.isFeatureDeployment) {
-              if (!Boolean(featureDeploymentConfig.ttlHours)) {
-                throw new Error(
-                  `${imageInformation.imageDefinition.herdKey}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`,
-                )
-              }
-              try {
-                if (typeof featureDeploymentConfig.ttlHours === "string") {
-                  featureDeploymentConfig.ttlHours = parseInt(featureDeploymentConfig.ttlHours, 10)
-                }
-              } catch (err) {
-                throw new Error(
-                  `Error parsing time-to-live-hours setting ${featureDeploymentConfig.ttlHours}, must be an integer`,
-                )
-              }
-
-              featureDeploymentConfig.nameChangeIndex = createResourceNameChangeIndex(
-                plan,
-                kubeSupportedExtensions,
-                featureDeploymentConfig,
-              )
-            }
-
-            Object.entries(plan.files).forEach(([fileName, deploymentFileContent]) => {
-              if (!kubeSupportedExtensions[path.extname(fileName)]) {
-                // console.debug('Unsupported extension ', path.extname(fileName));
-                return
-              }
-
-              try {
-                if (deploymentFileContent.content) {
-                  // let deployment = calculateFileDeploymentPlan();
-                  //
-                  // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
-                  planPromises.push(
-                    createK8sFileDeploymentPlan(
-                      deploymentFileContent,
-                      imageInformation,
-                      fileName,
-                      featureDeploymentConfig,
-                    ),
-                  )
-                }
-              } catch (e) {
-                let error = "When processing " + fileName + ":\n"
-                throw new Error(error + e.message)
-              }
-            })
-            return Promise.all(planPromises)
-          } else {
-            throw new Error(`FALLING THROUGH ${shepherdMetadata.displayName} - ${shepherdMetadata.deploymentType}`)
-          }
+          throw new Error(`FALLING THROUGH ${shepherdMetadata.displayName} - ${shepherdMetadata.deploymentType}`)
         }
-        return [plan]
-      })
+      }
     }
   }
 
