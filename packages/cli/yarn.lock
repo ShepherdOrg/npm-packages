@@ -9,10 +9,10 @@
   dependencies:
     yargs "^11.0.0"
 
-"@shepherdorg/deployer@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/deployer/-/deployer-1.0.2.tgz#71ce0f06402a0256ebd04e64191c94f1a44606ad"
-  integrity sha512-eZvPCOeq9hQ1zrhBrqs529WNkAEKMPO2IOMfl7Gxnt2fAEwON5rgFwiwZ6FyW1Z+g5rCJ/34zCkgTTwM6PWL6g==
+"@shepherdorg/deployer@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/deployer/-/deployer-1.0.4.tgz#038cdf8d32b22ea7f148cbb48c86a823a9f7b646"
+  integrity sha512-kcB4Nge10n/zwOuodgzis14coUtQ3M829EOieAmzVPEoq1MeWuG6pV5HpIUY0l1XRkDMfplVKtPBlF6zZIDpCg==
   dependencies:
     "@shepherdorg/docker-image-metadata-loader" "^0.1.2"
     "@shepherdorg/exec" "0.0.1"
