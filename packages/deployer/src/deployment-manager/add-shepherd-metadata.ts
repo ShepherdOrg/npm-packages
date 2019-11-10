@@ -1,4 +1,4 @@
-const _ = require("lodash")
+import * as _ from "lodash"
 
 const extractShepherdMetadata = require("@shepherdorg/metadata/dist/dockerLabelParser")
   .extractShepherdMetadata

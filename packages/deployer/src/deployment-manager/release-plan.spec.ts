@@ -1,13 +1,11 @@
+import { expect } from "chai"
+
 const ReleasePlanModule = require("./release-plan")
-const FakeExec = require("../test-tools/fake-exec.js")
-const FakeLogger = require("../test-tools/fake-logger.js")
+const FakeExec = require("../test-tools/fake-exec")
+const FakeLogger = require("../test-tools/fake-logger")
 
 const inject = require("@shepherdorg/nano-inject").inject
 const { extend } = require( 'lodash');
-const expect = require("chai").expect
-
-const fs = require("fs")
-
 const k8sDeployments = require('./testdata/testplan.json').addedK8sDeployments
 const dockerDeployers = require('./testdata/testplan.json').addedDockerDeployers
 
@@ -94,7 +92,7 @@ describe("Release plan", function() {
           .addDeployment(
             k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]
           )
-          .then(function(deployment) {
+          .then(function() {
             return releasePlan.executePlan({
               dryRun: true,
               dryRunOutputDir: "/tmp/",
@@ -121,7 +119,7 @@ describe("Release plan", function() {
           .addDeployment(
             k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]
           )
-          .then(function(deploymentState) {
+          .then(function() {
             return releasePlan.executePlan()
           })
       })
@@ -158,7 +156,7 @@ describe("Release plan", function() {
             )
           )
           .then(releasePlan.addDeployment(k8sDeployments["Namespace_monitors"]))
-          .then(function(deploymentState) {
+          .then(function() {
             return releasePlan.executePlan()
           })
       })
@@ -224,7 +222,7 @@ describe("Release plan", function() {
             )
           )
           .then(releasePlan.addDeployment(k8sDeployments["Namespace_monitors"]))
-          .then(function(deploymentState) {
+          .then(function() {
             return releasePlan.executePlan().catch(function(err) {
               saveError = err
             })
@@ -239,14 +237,13 @@ describe("Release plan", function() {
     })
 
     describe("modified, delete deployment and kubectl responds with not found", function() {
-      let saveError, executedPlan, deploymentState
+      let saveError, executedPlan
 
       beforeEach(function() {
         fakeExec.nextResponse.err = "not found"
         return releasePlan
           .addDeployment(k8sDeployments["Namespace_monitors"])
-          .then(function(_deploymentState) {
-            deploymentState = _deploymentState
+          .then(function() {
             return releasePlan
               .executePlan()
               .then(function(executionResults) {
@@ -297,15 +294,13 @@ describe("Release plan", function() {
     })
 
     describe("modified parameters", function() {
-      let deployment
 
       beforeEach(function() {
         fakeExec.nextResponse.success = "this would be docker run output"
         fakeStateStore.nextState = { new: false, modified: true }
         return releasePlan
           .addDeployment(dockerDeployers["testenvimage-migrations:0.0.0"])
-          .then(function(ds) {
-            deployment = ds
+          .then(function() {
             return releasePlan.executePlan()
           })
       })

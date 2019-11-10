@@ -1,34 +1,50 @@
+import { Oops } from "oops-error"
 
 const mapUntypedDeploymentData = require("@shepherdorg/metadata/dist/map-untyped-deployment-data").mapUntypedDeploymentData
-const Promise = require("bluebird")
 
-const path = require("path")
-const fs = require("fs")
-const options = require("./options")
-const writeFile = Promise.promisify(fs.writeFile)
+import * as path from "path"
+import * as fs from "fs"
+
+import Bluebird = require("bluebird");
+declare var Promise: Bluebird<any>;
+
+import { emptyArray } from "../helpers/ts-functions"
+
+const writeFile = Bluebird.promisify(fs.writeFile)
 
 const extendedExec = cmd => (...args) =>
   new Promise((res, rej) =>
     cmd.extendedExec(
       ...args,
       (error, errCode, stdOut) => {
-        const err = new Error(error)
-        err.errCode = errCode
-        err.stdOut = stdOut
+        const err = new Oops({
+          message:error,
+          category:"OperationalError",
+          context:{
+            errCode,
+            stdOut
+          }
+        })
         rej(err)
       },
       res
     )
   )
 
-function writeJsonToFile (path1 = "./shepherd-pushed.json") {
-  return shepherdMetadata => {
-    fs.writeFile(path1, JSON.stringify(shepherdMetadata), ()=>{
-      console.log('WROTE JSON TO ' + path1)
-    })
-    return shepherdMetadata
-  }
-}
+// function writeJsonToFile (path1 = "./shepherd-pushed.json") {
+//   return shepherdMetadata => {
+//     fs.writeFile(path1, JSON.stringify(shepherdMetadata), ()=>{
+//       console.log('WROTE JSON TO ' + path1)
+//     })
+//     return shepherdMetadata
+//   }
+// }
+
+type TDeploymentPlan = any
+
+type TK8sDeploymentPlan = [string, any]
+
+type TDockerDeploymentPlan = [string, any]
 
 module.exports = function(injected) {
   const stateStore = injected("stateStore")
@@ -108,7 +124,7 @@ module.exports = function(injected) {
     }
 
     function K8sDeploymentPromises(deploymentOptions) {
-      return Object.values(k8sDeploymentPlan).flatMap(deploymentPlan => {
+      return Object.values(k8sDeploymentPlan).flatMap((deploymentPlan:TDeploymentPlan) => {
         return deploymentPlan.deployments.map(async deployment => {
           if (deployment.state.modified) {
             if (deploymentOptions.dryRun) {
@@ -149,7 +165,7 @@ module.exports = function(injected) {
                 }
               } catch (error) {
                 if (typeof error === "string") throw error
-                const { errCode, stdOut, stdErr, message: err } = error
+                const { errCode, stdOut, message: err } = error
                 if (deployment.operation === "delete") {
                   logger.info(
                     "kubectl " +
@@ -198,7 +214,7 @@ module.exports = function(injected) {
     }
 
     function DeployerPromises(deploymentOptions) {
-      return Object.values(dockerDeploymentPlan).flatMap(deploymentPlan =>
+      return Object.values(dockerDeploymentPlan).flatMap((deploymentPlan:TDeploymentPlan) =>
         deploymentPlan.deployments.map(async deployment => {
           if (deployment.state.modified) {
             if (deploymentOptions.dryRun) {
@@ -260,9 +276,8 @@ module.exports = function(injected) {
       }
     }
 
-    async function executePlan(runOptions) {
+    async function executePlan(runOptions = { dryRun: false, dryRunOutputDir: undefined, forcePush: false }) {
       // let i = 0
-      runOptions = runOptions || { dryRun: false, dryRunOutputDir: undefined, forcePush: false }
       const shouldPush = !runOptions.dryRun || runOptions.forcePush
       let deploymentPromises = K8sDeploymentPromises(runOptions)
       let allPromises = deploymentPromises.concat(DeployerPromises(runOptions))
@@ -286,7 +301,7 @@ module.exports = function(injected) {
     }
 
     function printPlan(logger) {
-      Object.entries(k8sDeploymentPlan).forEach(([key, plan])=>{
+      Object.entries(k8sDeploymentPlan as TK8sDeploymentPlan).forEach(([_key, plan])=>{
         let modified = false
         if (plan.deployments) {
           plan.deployments.forEach(function(deployment) {
@@ -307,7 +322,7 @@ module.exports = function(injected) {
           logger.info("No modified deployments in " + plan.herdKey)
         }
       })
-      Object.entries(dockerDeploymentPlan).forEach(([key, plan])=>{
+      Object.entries(dockerDeploymentPlan as TDockerDeploymentPlan).forEach(([_key, plan])=>{
         let modified = false
         if (plan.deployments) {
           plan.deployments.forEach(function(deployment) {
@@ -327,9 +342,9 @@ module.exports = function(injected) {
 
     function exportDeploymentDocuments(exportDirectory) {
       return new Promise(function(resolve, reject) {
-        let fileWrites = []
+        let fileWrites = emptyArray<any>()
 
-        Object.entries(k8sDeploymentPlan).forEach(function([_key, plan]) {
+        Object.entries(k8sDeploymentPlan as TK8sDeploymentPlan).forEach(function([_key, plan]) {
           plan.deployments.forEach(function(deployment) {
             let writePath = path.join(
               exportDirectory,
@@ -339,7 +354,7 @@ module.exports = function(injected) {
             fileWrites.push(writePromise)
           })
         })
-        Object.entries(dockerDeploymentPlan).forEach(function([_key, plan]) {
+        Object.entries(dockerDeploymentPlan as TDockerDeploymentPlan).forEach(function([_key, plan]) {
           plan.deployments.forEach(function(deployment) {
             let cmdLine = `docker run ${deployment.forTestParameters.join(" ")}`
 

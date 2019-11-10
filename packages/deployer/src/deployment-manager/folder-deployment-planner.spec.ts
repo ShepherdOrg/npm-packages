@@ -1,25 +1,24 @@
+import { expect } from "chai"
+
 const DirScan = require("./folder-deployment-planner")
 const inject = require("@shepherdorg/nano-inject").inject
 
 const Path = require("path")
-const Promise = require("bluebird").Promise
-const expect = require("chai").expect
+
+import Bluebird = require("bluebird");
 
 describe("k8s deployment file directory structure release plan loader", function() {
-  let modifiedState, scanDir
+  let  scanDir
 
   let plan = {
     addedK8sDeployments: {},
-    addDeployment(deployment) {
-      return new Promise(function(resolve, reject) {
+    async addDeployment(deployment) {
         plan.addedK8sDeployments[deployment.identifier] = deployment
-        resolve({ fakeState: true })
-      })
+        return { fakeState: true }
     },
   }
 
   beforeEach(function() {
-    modifiedState = undefined
     scanDir = DirScan(
       inject({
         kubeSupportedExtensions: {
@@ -49,7 +48,7 @@ describe("k8s deployment file directory structure release plan loader", function
       )
 
       return scanDir(deploymentDirsPath).then(function(plans) {
-        return Promise.each(plans, function(deploymentPlan) {
+        return Bluebird.each(plans, function(deploymentPlan) {
           plan.addDeployment(deploymentPlan)
         })
       })

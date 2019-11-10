@@ -1,6 +1,6 @@
-const expandtemplate = require("./expandtemplate")
-const expect = require("chai").expect
+import { expect } from "chai"
 
+const expandtemplate = require("./expandtemplate")
 describe("expand environment vars using handlebars template syntax", function() {
   beforeEach(function() {
     process.env.ENVVAR_ONE = "TESTVALUE"

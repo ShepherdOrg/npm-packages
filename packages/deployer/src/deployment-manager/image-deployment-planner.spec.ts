@@ -1,5 +1,6 @@
+import { expect } from "chai"
+
 const inject = require("@shepherdorg/nano-inject").inject
-const expect = require("chai").expect
 const addShepherdMetadata = require("./add-shepherd-metadata")
 
 let ImageDeploymentPlanner = require("./image-deployment-planner")
@@ -32,7 +33,11 @@ function loadFirstTestPlan(dockerDeployerMetadata, featureDeploymentConfig) {
   })
 }
 
-async function setEnv(envObj) {
+type TEnvObject = {
+  [property: string]: string | undefined;
+}
+
+async function setEnv(envObj: TEnvObject) {
   Object.entries(envObj).forEach(([key, value]) => {
     process.env[key] = value
   })

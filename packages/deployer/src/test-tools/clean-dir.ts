@@ -1,7 +1,6 @@
-const fs = require("fs")
+import * as fs from "fs"
 
-const rmDir = function(dirPath, removeSelf) {
-  if (removeSelf === undefined) removeSelf = true
+const rmDir = function(dirPath, removeSelf=true) {
   let files
   try {
     files = fs.readdirSync(dirPath)

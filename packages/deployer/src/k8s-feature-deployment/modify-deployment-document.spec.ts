@@ -1,5 +1,5 @@
 const JsDiff = require("diff")
-const fs = require("fs")
+import * as fs from "fs"
 const expect = require("expect.js")
 
 const modifyRawDoc = require("./modify-deployment-document").modifyRawDocument

@@ -1,10 +1,14 @@
+import { emptyArray } from "../helpers/ts-functions"
+import { expect } from "chai"
+
 module.exports = function() {
   let fakeExec = {
-    executedCommands: [],
+    executedCommands: emptyArray<any>(),
     nextResponse: {
       err: undefined,
       success: undefined,
     },
+    onExec:undefined,
     extendedExec: function(command, params, options, err, success) {
       fakeExec.executedCommands.push({
         command: command,
@@ -13,7 +17,8 @@ module.exports = function() {
         err: err,
         success: success,
       })
-      if (fakeExec.onExec) {
+      if (fakeExec && fakeExec.onExec != undefined) {
+        // @ts-ignore
         fakeExec.onExec(command, params, options, err, success)
       } else if (fakeExec.nextResponse) {
         if (fakeExec.nextResponse.success) {
@@ -26,7 +31,7 @@ module.exports = function() {
           )
         }
       } else {
-        expect().fail("No response defined!!!!")
+        expect.fail("No response defined!!!!")
       }
     },
   }

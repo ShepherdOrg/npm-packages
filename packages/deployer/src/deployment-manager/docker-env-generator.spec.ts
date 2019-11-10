@@ -1,7 +1,7 @@
-const fs = require("fs")
-const dockerEnvGenerator = require("./docker-env-generator")()
-const expect = require("chai").expect
+import * as fs from "fs"
+import { expect } from "chai"
 
+const dockerEnvGenerator = require("./docker-env-generator")()
 describe("docker env file generation", function() {
   beforeEach(function() {
     !fs.existsSync(".build") && fs.mkdirSync(".build")

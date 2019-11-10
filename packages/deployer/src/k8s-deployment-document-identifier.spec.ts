@@ -1,7 +1,7 @@
-const fs = require("fs")
-const identifier = require("./k8s-deployment-document-identifier")
-const expect = require("chai").expect
+import * as fs from "fs"
+import { expect } from "chai"
 
+const identifier = require("./k8s-deployment-document-identifier")
 describe("k8s deployment document identifier", function() {
   it("should be ok with multipart document using LF separator", function() {
     let rawYamlDoc = fs.readFileSync(

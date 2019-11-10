@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 "use strict"
-let path = require("path")
-let fs = require("fs")
+import * as path from "path"
+
+import * as fs from "fs"
+import { inject } from "@shepherdorg/nano-inject/dist"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -56,7 +58,9 @@ if (process.argv.indexOf("--help") > 0) {
 
 // parse options - Accept dry-run flags
 
+// @ts-ignore
 global.inject = require("@shepherdorg/nano-inject").inject
+// @ts-ignore
 global._ = require("lodash")
 global.Promise = require("bluebird")
 
@@ -140,6 +144,12 @@ if (process.env.UPSTREAM_IMAGE_NAME && process.env.UPSTREAM_IMAGE_TAG && process
   }, logger)
 }
 
+type TUpstreamFeatureDeploymentConfig = {
+  ttlHours?: string
+  newName?: string
+  upstreamFeatureDeployment?: boolean
+}
+
 stateStoreBackend
   .connect()
   .then(function() {
@@ -156,7 +166,7 @@ stateStoreBackend
       }),
     )
 
-    const featureDeploymentConfig = {}
+    const featureDeploymentConfig : TUpstreamFeatureDeploymentConfig = {}
 
     if(process.env.FEATURE_NAME){
       featureDeploymentConfig.upstreamFeatureDeployment=true

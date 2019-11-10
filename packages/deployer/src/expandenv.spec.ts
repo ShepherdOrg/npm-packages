@@ -1,5 +1,6 @@
-const expandenv = require("./expandenv")
-const expect = require("chai").expect
+import { expect } from "chai"
+
+import {expandEnv} from "./expandenv"
 
 describe("expand environment vars in string", function() {
   beforeEach(function() {
@@ -13,7 +14,7 @@ describe("expand environment vars in string", function() {
   it("should expand simple variable", function() {
     let rawText = "${ENVVAR_ONE}"
 
-    let expandedText = expandenv(rawText)
+    let expandedText = expandEnv(rawText)
 
     expect(expandedText).to.equal("TESTVALUE")
   })
@@ -22,7 +23,7 @@ describe("expand environment vars in string", function() {
     let rawText = "${ENVVAR_MISSING}"
 
     try {
-      expandenv(rawText)
+      expandEnv(rawText)
     } catch (e) {
       expect(e.message).to.equal(
         "Reference to environment variable ${ENVVAR_MISSING} could not be resolved: ${ENVVAR_MISSING}"
@@ -34,7 +35,7 @@ describe("expand environment vars in string", function() {
     let rawText = "${ENVVAR_MISSING}"
 
     try {
-      expandenv(rawText)
+      expandEnv(rawText)
     } catch (e) {
       expect(e.message).to.equal(
         "Reference to environment variable ${ENVVAR_MISSING} could not be resolved: ${ENVVAR_MISSING}"

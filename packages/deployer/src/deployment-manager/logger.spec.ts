@@ -1,9 +1,9 @@
-const expect = require("chai").expect
+import { expect } from "chai"
 
 describe("logger", function() {
   it("should log nicely", function() {
     let logger = require("./logger")({
-      log: (arg1, arg2) => {
+      log: (_arg1, arg2) => {
         expect(arg2).to.contain("TestLogLine")
       },
     })

@@ -1,13 +1,16 @@
-const identifyDocument = require("../k8s-deployment-document-identifier")
+import { Oops } from "oops-error"
+import * as path from "path"
+import { emptyArray } from "../helpers/ts-functions"
 
-const expandEnv = require("../expandenv")
+import { expandEnv } from "../expandenv"
+
+const identifyDocument = require("../k8s-deployment-document-identifier")
 const expandTemplate = require("../expandtemplate")
 
 const applyClusterPolicies = require("../apply-k8s-policy").applyPoliciesToDoc
 const modifyDeploymentDocument = require("../k8s-feature-deployment/modify-deployment-document").modifyRawDocument
 const base64EnvSubst = require("../base64-env-subst").processLine
 const options = require("./options")
-const path = require("path")
 
 const createResourceNameChangeIndex = require("../k8s-feature-deployment/create-name-change-index")
 
@@ -98,10 +101,7 @@ module.exports = function(injected) {
       let message = `In deployment image ${origin}\n In file ${fileName} \n`
       message += error.message
 
-      let augmentedError = new Error(message)
-
-      augmentedError.cause = error
-      throw augmentedError
+      throw new Oops({ message, category: "OperationalError", cause: error })
     }
     if (imageInformation.isTargetForFeatureDeployment) {
       fileContents = modifyDeploymentDocument(fileContents, featureDeploymentConfig)
@@ -126,11 +126,11 @@ module.exports = function(injected) {
     }
   }
 
-  function kubeDeploymentPlan (shepherdMetadata, plan, imageInformation, imageFeatureDeploymentConfig) {
+  function kubeDeploymentPlan (shepherdMetadata:any, plan, imageInformation, imageFeatureDeploymentConfig) {
     plan.files = shepherdMetadata.kubeDeploymentFiles
     plan.deployments = {}
     plan.dockerLabels = imageInformation.dockerLabels
-    let planPromises = []
+    let planPromises = emptyArray<any>()
 
     let featureDeploymentIsEnabled =
       imageFeatureDeploymentConfig.upstreamFeatureDeployment || imageInformation.imageDefinition.featureDeployment
@@ -181,7 +181,7 @@ module.exports = function(injected) {
       )
     }
 
-    Object.entries(plan.files).forEach(([fileName, deploymentFileContent]) => {
+    Object.entries(plan.files as Array<any>).forEach(([fileName, deploymentFileContent]) => {
       if (!kubeSupportedExtensions[path.extname(fileName)]) {
         // console.debug('Unsupported extension ', path.extname(fileName));
         return

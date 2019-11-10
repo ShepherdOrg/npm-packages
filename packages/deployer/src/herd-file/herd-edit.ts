@@ -1,7 +1,7 @@
 "use strict"
 
 const YAML = require("js-yaml")
-const fs = require("fs")
+import * as fs from "fs"
 
 function upgradeOrAddDeployment ({ herd, upstreamHerdKey, upstreamImageTag, upstreamImageName, imageFileName, upstreamHerdDescription }, logger = console) {
   let imglist = herd.images

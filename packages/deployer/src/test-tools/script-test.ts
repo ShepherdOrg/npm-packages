@@ -1,5 +1,5 @@
 const JsDiff = require("diff")
-const fs = require("fs")
+import * as fs from "fs"
 const expect = require("expect.js")
 const { extend, sortedUniq } = require('lodash');
 
@@ -98,7 +98,7 @@ module.exports = {
       logfn
     )
 
-    let execution = {
+    let execution:any = {
       expectedPartialStrings:[],
       output: function(actualOutputFileOrDir) {
         execution.actualOutputFileOrDir = actualOutputFileOrDir

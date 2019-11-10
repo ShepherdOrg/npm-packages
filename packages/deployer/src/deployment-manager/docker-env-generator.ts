@@ -1,8 +1,9 @@
-const fs = require("fs")
+import * as fs from 'fs'
+
 const omit = require('lodash').omit
 
 module.exports = function() {
-  let reservedNames = []
+  let reservedNames:Array<string> = []
 
   const RESERVED_NAMES = [
     "AWS_DEFAULT_PROFILE",
@@ -25,7 +26,7 @@ module.exports = function() {
   let dockerEnvGenerator = {
     generateEnvString(env) {
       let retracted = omit(env, reservedNames)
-      let buffer = []
+      let buffer:Array<any> = []
       Object.entries(retracted).forEach(([key, value])=>{
         {
           buffer.push(key)

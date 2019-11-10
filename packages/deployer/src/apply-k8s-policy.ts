@@ -1,6 +1,18 @@
-const JSYAML = require("js-yaml")
+import yaml = require("js-yaml")
 
-let policies = {}
+type TK8SClusterPolicy = {
+  removePublicServiceIpRestrictions: boolean
+  maxReplicasPolicy:number
+  clusterPolicyMaxCpuRequest:string | false
+  publicServicesPolicyIpRestrictions: string | false
+}
+
+let policies : TK8SClusterPolicy = {
+  clusterPolicyMaxCpuRequest: false,
+  maxReplicasPolicy: 0,
+  publicServicesPolicyIpRestrictions: false,
+  removePublicServiceIpRestrictions: false
+}
 
 function readPoliciesFromEnv() {
   policies = {
@@ -33,7 +45,7 @@ function applyServicePolicies(serviceDoc, logger) {
       } else {
         logger.info(
           "WARNING: Public service defined in " +
-            deploymentfile +
+            serviceDoc.origin +
             "(" +
             serviceDoc.metadata.name +
             "), but no loadBalancerSourceRanges set. This means that non-production deployments may be publicly accessible."
@@ -143,7 +155,7 @@ function applyHPAPolicies(deploymentDoc, logger) {
         deploymentDoc.spec.template.spec.containers
       ) {
         for (let containerspec of deploymentDoc.spec.template.spec.containers) {
-          applyMaxCpuRequestToContainer(containerspec)
+          applyMaxCpuRequestToContainer(containerspec, logger)
         }
       }
     }
@@ -177,9 +189,9 @@ function applyPoliciesToDoc(rawDoc, logger) {
     let outfiles = ""
     for (let filec of files) {
       if (filec && filec.trim()) {
-        let parsedDoc = JSYAML.safeLoad(filec)
+        let parsedDoc = yaml.safeLoad(filec)
         modified = modified || applyPolicies(parsedDoc, logger)
-        let yml = JSYAML.safeDump(parsedDoc)
+        let yml = yaml.safeDump(parsedDoc)
         if (outfiles.length > 0) {
           outfiles += "\n---\n"
         }

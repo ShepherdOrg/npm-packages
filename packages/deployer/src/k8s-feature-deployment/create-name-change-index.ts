@@ -7,7 +7,7 @@ function createResourceNameChangeIndex (
     featureDeploymentConfig
 ) {
     let nameReferenceChanges = {};
-    Object.entries(plan.files).forEach(([fileName, deploymentFileContent]) => {
+    Object.entries(plan.files as Array<any>).forEach(([fileName, deploymentFileContent]) => {
         let fileExtension = path.extname(fileName);
         if (!fileExtension) {
             return;

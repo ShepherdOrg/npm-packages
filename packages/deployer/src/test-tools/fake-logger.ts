@@ -1,8 +1,10 @@
+import { emptyArray } from "../helpers/ts-functions"
+
 module.exports = function() {
   let fakeLogger = {
     log: "",
-    logStatements: [],
-    infoLogEntries: [],
+    logStatements: emptyArray(),
+    infoLogEntries: emptyArray(),
     info() {
       fakeLogger.log +=
         "info            " + Array.prototype.join.call(arguments, " ") + "\n"

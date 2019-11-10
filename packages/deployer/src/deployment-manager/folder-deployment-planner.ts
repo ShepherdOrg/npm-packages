@@ -1,6 +1,7 @@
-const fs = require("fs")
-const path = require("path")
-const expandEnv = require("../expandenv")
+import * as fs from "fs"
+import * as path from "path"
+import { emptyArray } from "../helpers/ts-functions"
+import { expandEnv } from "../expandenv"
 const expandtemplate = require("../expandtemplate")
 const base64EnvSubst = require("../base64-env-subst").processLine
 
@@ -31,13 +32,13 @@ module.exports = function(injected) {
   let scanDir = function(dir) {
 
     return new Promise(function(resolve, reject) {
-      let planPromises = []
+      let planPromises = emptyArray<any>()
 
       function scanCompleted() {
         Promise.all(planPromises)
           .then(function(plans) {
             function flatten(arrayOfArrays) {
-              let flattened = []
+              let flattened = emptyArray<any>()
               arrayOfArrays.forEach(function(arrayOrObject) {
                 if (Array.isArray(arrayOrObject)) {
                   flattened = flattened.concat(flatten(arrayOrObject))
@@ -57,8 +58,8 @@ module.exports = function(injected) {
         dir = initDir(dir)
         dir.deploymentRoot = true
       }
-      if (!scanCompleted) {
-        throw new Error("Callback required!", scanCompleted)
+      if (!scanCompleted) { // Very dubious code, this should always be true, function declared above
+        throw new Error("Callback required! " + scanCompleted)
       }
       fs.readdir(dir.path, function(err, list) {
         if (err) reject(err)
@@ -68,7 +69,7 @@ module.exports = function(injected) {
         list.forEach(function(unresolvedPath) {
           let resolvedPath = path.resolve(dir.path, unresolvedPath)
 
-          fs.stat(resolvedPath, function(err, stat) {
+          fs.stat(resolvedPath, function(_err, stat) {
             function calculateFileDeploymentPlan(resolvedPath) {
               return new Promise(function(resolve, reject) {
                 fs.readFile(resolvedPath, "utf-8", function(err, data) {
@@ -88,7 +89,7 @@ module.exports = function(injected) {
                   let lines = data.split("\n")
                   lines.forEach(function(line, idx) {
                     try {
-                      lines[idx] = expandEnv(line, idx + 1)
+                      lines[idx] = expandEnv(line)
                       lines[idx] = base64EnvSubst(lines[idx], {})
                     } catch (e) {
                       console.debug("Rejecting!", e)
@@ -148,7 +149,7 @@ module.exports = function(injected) {
 
                   planPromises.push(
                     calculateFileDeploymentPlan(resolvedPath)
-                      .then(function(plan) {
+                      .then(function(plan:any) {
                         dir.files[baseName] = {
                           modified: plan.modified,
                         }
@@ -170,9 +171,9 @@ module.exports = function(injected) {
                 }
               } catch (e) {
                 pending = -1
-                // Not well tested handling of this error
+                // Not well tested handling of this error is
                 console.error("Scan error", e)
-                reject("In file " + resolvedPath + ":\n" + e, dir)
+                reject("In file " + resolvedPath + ":\n" + e + dir)
               }
             }
           })

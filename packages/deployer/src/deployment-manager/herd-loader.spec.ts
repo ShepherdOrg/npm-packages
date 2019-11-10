@@ -1,18 +1,17 @@
+import { expect } from "chai"
+
 const HerdLoader = require("./herd-loader")
 const inject = require("@shepherdorg/nano-inject").inject
 const exec = require("@shepherdorg/exec")
 const fakeLogger = require("../test-tools/fake-logger")
-const expect = require("chai").expect
-
-const path = require("path")
-const fs = require("fs")
+import * as path from "path"
+import * as fs from "fs"
 
 /// Inject a mock image metadata loader with fake image information
 
 describe("herd.yaml loading", function() {
   let labelsLoader
   let loader
-  let modifiedState = false
   let CreateReleasePlan
   let loaderLogger
 
@@ -81,7 +80,6 @@ describe("herd.yaml loading", function() {
       return releasePlan
     }
 
-    modifiedState = false
     loaderLogger = fakeLogger()
 
     labelsLoader = {
@@ -139,8 +137,8 @@ describe("herd.yaml loading", function() {
   it("should fail if file does not exist", function() {
     loader
       .loadHerd(__dirname + "/testdata/does-not-exist.yaml")
-      .then(function(plan) {
-        expect().fail("Should not finish!")
+      .then(function() {
+        expect.fail("Should not finish!")
       })
       .catch(function(error) {
         expect(error).to.contain("/testdata/does-not-exist.yaml does not exist!")
@@ -271,7 +269,6 @@ describe("herd.yaml loading", function() {
         return detect(obj, [])
       }
 
-      const fs = require("fs")
       let serializable = detectRecursion(loadedPlan)
       expect(serializable.join(".")).to.equal("")
       expect(serializable.length).to.equal(0)
@@ -279,7 +276,7 @@ describe("herd.yaml loading", function() {
   })
 
   describe("deployer execution plan", function() {
-    let loadedPlan
+    let loadedPlan:any
 
     beforeEach(function() {
       process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "happyValueOne"
@@ -294,11 +291,11 @@ describe("herd.yaml loading", function() {
 
     it("should  have herdSpec and metadata on all loaded plans", () => {
 
-      Object.entries(loadedPlan.addedK8sDeployments).forEach(function([_dname, deployment]) {
+      Object.entries(loadedPlan.addedK8sDeployments as Array<any>).forEach(function([_dname, deployment]) {
         expect(deployment.herdSpec.herdKey).not.to.equal(undefined)
         expect(deployment.metadata.displayName).not.to.equal(undefined)
       })
-      Object.entries(loadedPlan.addedDockerDeployers).forEach(function([_dname, deployment]) {
+      Object.entries(loadedPlan.addedDockerDeployers as Array<any>).forEach(function([_dname, deployment]) {
         expect(deployment.herdSpec.herdKey).not.to.equal(undefined)
         expect(deployment.metadata.displayName).not.to.equal(undefined)
       })
@@ -322,7 +319,6 @@ describe("herd.yaml loading", function() {
   })
 
   xdescribe("SLOW TEST: non-existing image", function() {
-    let loadedPlan
     let loadError
 
     // beforeEach(function() {
@@ -331,9 +327,7 @@ describe("herd.yaml loading", function() {
     // });
 
     beforeEach(function() {
-      return loader.loadHerd(__dirname + "/testdata/nonexistingimage/herd.yaml").then(function(plan) {
-        loadedPlan = plan
-      })
+      return loader.loadHerd(__dirname + "/testdata/nonexistingimage/herd.yaml")
     })
 
     it("should fail with meaningful error message", function() {

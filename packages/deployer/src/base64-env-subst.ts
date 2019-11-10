@@ -27,7 +27,7 @@ function processLine(line, options) {
     // :keyword: the keyword indicating what to do with :variable:'s value
     // :variable: the variable name that's expected to be in the environment
     // :context: the line from which :variable: was extracted from
-    let value = undefined
+    let value : string | undefined
     if (keyword in KEYWORDS) {
       value = process.env[variable]
       if (value === undefined) {

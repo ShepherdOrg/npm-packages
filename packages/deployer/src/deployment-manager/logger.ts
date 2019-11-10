@@ -1,4 +1,4 @@
-const padleft = require("../padleft")
+import {padleft} from "../padleft"
 
 let initialTime = new Date().getTime()
 const timePrefix = "        "

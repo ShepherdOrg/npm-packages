@@ -1,4 +1,4 @@
-module.exports = function(lineString) {
+export function expandEnv(lineString) {
   if (lineString === undefined || lineString === null) return lineString
 
   return lineString.replace(/\${?[\w]+}?/g, function(match) {
