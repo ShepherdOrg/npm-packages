@@ -54,6 +54,16 @@ if (process.argv.indexOf("--help") > 0) {
   process.exit(0)
 }
 
+function printVersions () {
+  console.log(`deployer v${require('../package.json').version}`)
+  console.log(`metadata v${require('@shepherdorg/metadata/package').version}`)
+}
+
+if (process.argv.indexOf("--version") > 0) {
+  printVersions()
+  process.exit(0)
+}
+
 // parse options - Accept dry-run flags
 
 global.inject = require("@shepherdorg/nano-inject").inject
@@ -159,6 +169,7 @@ stateStoreBackend
     const featureDeploymentConfig = {}
 
     if(process.env.FEATURE_NAME){
+      featureDeploymentConfig.upstreamHerdKey = process.env.UPSTREAM_HERD_KEY
       featureDeploymentConfig.upstreamFeatureDeployment=true
       featureDeploymentConfig.newName = process.env.FEATURE_NAME.replace(/\//g, "-").toLowerCase()
       featureDeploymentConfig.ttlHours = process.env.FEATURE_TTL_HOURS

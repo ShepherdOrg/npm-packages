@@ -27,7 +27,7 @@ if [ -f "${PWD}/deployments.env" ]; then
 	. "${PWD}/deployments.env"
 fi
 
-if [[ "$*" == *--help*  ]]
+if [[ "$*" == *--help*  || "$*" == *--version*  ]]
 then
   shepherd.js "$@"
   exit 0

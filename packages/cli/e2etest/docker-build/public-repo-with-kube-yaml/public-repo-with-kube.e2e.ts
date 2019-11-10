@@ -1,4 +1,4 @@
-import { readJsonFiles } from "../readJsonFiles"
+import { readJsonFiles } from "../../readJsonFiles"
 
 const exec = require("child-process-promise").exec
 const expect = require("chai").expect

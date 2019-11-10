@@ -1,11 +1,11 @@
-import { readJsonFiles } from "../readJsonFiles"
+import { readJsonFiles } from "../../readJsonFiles"
 
 const exec = require("child-process-promise").exec
 const expect = require("chai").expect
 const Future = require("fluture")
 import * as path from "path"
 
-xdescribe("Build docker with insufficient deployment information", function() {
+describe("Build docker with kube.yaml deployment", function() {
   this.timeout(10000)
   let shepherdMeta, buildOutput
   let dockerMeta: any
@@ -33,10 +33,16 @@ xdescribe("Build docker with insufficient deployment information", function() {
     )
   })
 
-  xit("TODO: Implement should exit with error indicating problem", () => {
-    console.log("buildOutput", buildOutput)
+  it("should not have kubeConfigB64", () => {
+    expect(shepherdMeta.kubeConfigB64).to.equal(undefined)
+  })
 
-    expect(buildOutput.indexOf("ERROR")).to.be.gte(0)
+  it("should have metadata for deploy command", () => {
+    expect(shepherdMeta.deployCommand).to.equal("ls")
+  })
+
+  it("should have metadata for rollback command", () => {
+    expect(shepherdMeta.rollbackCommand).to.equal("cat")
   })
 
   xit("should suppress tslint warnings", () => {

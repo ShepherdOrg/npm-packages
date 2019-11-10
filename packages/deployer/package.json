@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Deployer application",
   "main": "src/shepherd.js",
   "bin": {
@@ -26,7 +26,6 @@
     "tmp": "^0.1.0"
   },
   "devDependencies": {
-    "@shepherdorg/cli": "^1.0.0",
     "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.11",
