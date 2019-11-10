@@ -1,13 +1,14 @@
 import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../helpers/ts-functions"
+import { kubeSupportedExtensions } from "./kube-supported-extensions"
+
 const YAML = require("js-yaml")
 const inject = require("@shepherdorg/nano-inject").inject
 
-import Bluebird = require("bluebird");
+import Bluebird = require("bluebird")
 // declare var Promise: Bluebird<any>;
 
-const kubeSupportedExtensions = require("./kubeSupportedExtensions")
 
 const ImageDeployermentPlanner = require("./image-deployment-planner")
 

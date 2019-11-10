@@ -1,5 +1,6 @@
+import * as path from "path"
+
 const yamlLoad = require('../k8s-feature-deployment/multipart-yaml-load');
-const path = require('path');
 
 function createResourceNameChangeIndex (
     plan,

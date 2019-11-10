@@ -6,7 +6,7 @@ THISDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 TESTMODE=$1
 HERDFILE=$2
 
-export PATH=$(pwd)/e2etest/testbin:$(pwd)/bin:${PATH}
+export PATH=$(pwd)/src/e2etest/testbin:$(pwd)/bin:${PATH}
 
 
 if [ -z "${HERDFILE}" ]; then
@@ -59,6 +59,6 @@ fi
  GLOBAL_MIGRATION_ENV_VARIABLE_ONE=justAValue \
  ENV=testit \
  EXPORT1=nowhardcoded \
- ./src/shepherd.js "${HERDFILE}" "e2etestenv" "${DRYRUN_PARAM}" ${DRYRUN_OUTPUT_DIR_PARAM}
+ ./dist/shepherd.js "${HERDFILE}" "e2etestenv" "${DRYRUN_PARAM}" ${DRYRUN_OUTPUT_DIR_PARAM}
 
 sleep 1s

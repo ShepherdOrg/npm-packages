@@ -1,4 +1,4 @@
-const script = require("../src/test-tools/script-test")
+const script = require("../test-tools/script-test")
 const fs = require("fs")
 const path = require("path")
 const _ = require("lodash")
@@ -6,7 +6,7 @@ const _ = require("lodash")
 const PgBackend = require("@shepherdorg/postgres-backend").PostgresStore
 const PgConfig = require("@shepherdorg/postgres-backend").PgConfig
 
-const cleanDir = require("../src/test-tools/clean-dir")
+const cleanDir = require("../test-tools/clean-dir")
 
 function ensureCleanOutputFolder(firstRoundFolder) {
   if (!fs.existsSync(firstRoundFolder)) {
@@ -16,7 +16,7 @@ function ensureCleanOutputFolder(firstRoundFolder) {
 }
 
 describe("run all deployers with infrastructure", function() {
-  let shepherdTestHarness = __dirname + "/test-shepherd.sh"
+  let shepherdTestHarness = process.cwd() + "/src/e2etest/test-shepherd.sh"
 
   this.timeout(40000)
 
@@ -49,8 +49,8 @@ describe("run all deployers with infrastructure", function() {
           debug: false, // debug:false suppresses stdout of process
         })
         .output("./.build/.testdata/kubeapply")
-        .shouldEqual("./e2etest/expected/all-deployments")
-        .done(function(stdout) {
+        .shouldEqual("./src/e2etest/expected/all-deployments")
+        .done(function() {
           done()
         })
     })
@@ -125,8 +125,8 @@ describe("run all deployers with infrastructure", function() {
           debug: false, // debug:false suppresses stdout of process
         })
         .output(firstRoundFolder)
-        .shouldEqual(process.cwd() + "/e2etest/expected/k8s-deployments")
-        .done(function(stdout) {
+        .shouldEqual(process.cwd() + "/src/e2etest/expected/k8s-deployments")
+        .done(function() {
           process.env.KUBECTL_OUTPUT_FOLDER = secondRoundFolder
 
           script
@@ -136,7 +136,7 @@ describe("run all deployers with infrastructure", function() {
             })
             .output(secondRoundFolder)
             .shouldBeEmptyDir()
-            .done(function(stdout) {
+            .done(function(_stdout) {
               done()
             })
         })
@@ -165,7 +165,7 @@ describe("run all deployers with infrastructure", function() {
           env: _.extend({ NO_REBUILD_IMAGES: true }, process.env),
           debug: false, // debug:false suppresses stdout of process
         })
-        .done(function(stdout) {
+        .done(function() {
           done()
         })
     })
@@ -200,11 +200,12 @@ describe("run all deployers with infrastructure", function() {
     })
 
     it("should export deployment documents directly", function(done) {
+      console.log('process.cwd()', process.cwd())
       let expectedOutputFileOrDir =
-        process.cwd() + "/e2etest/expected/all-deployments"
+        process.cwd() + "/src/e2etest/expected/all-deployments"
       script
         .execute(
-          "./src/shepherd.js",
+          "./dist/shepherd.js",
           [
             "./src/deployment-manager/testdata/happypath/herd.yaml",
             "e2etestenv",
@@ -221,7 +222,7 @@ describe("run all deployers with infrastructure", function() {
         )
         .output(".build/testexport")
         .shouldEqual(expectedOutputFileOrDir)
-        .done(function(stdout) {
+        .done(function() {
           done()
         })
     })

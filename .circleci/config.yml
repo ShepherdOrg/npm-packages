@@ -1,10 +1,12 @@
 version: 2
 jobs:
-  build:
+  build-and-publish:
     docker:
       - image: circleci/node:12.0.0
     working_directory: ~/repo
-
+    branches:
+      only:
+        - master
     steps:
     - checkout
     - restore_cache:
@@ -20,8 +22,36 @@ jobs:
         command: yarn install --frozen-lockfile
     - run:
         name: Monorepo build and publish
-        command: npm run publish
+        command: npm run test
     - save_cache:
         key: yarn-{{ .Branch }}-{{ epoch }}
         paths:
         - ~/.cache/yarn
+
+  build-and-test:
+    docker:
+      - image: circleci/node:12.0.0
+    working_directory: ~/repo
+    branches:
+      ignore:
+        - master
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - yarn-{{ .Branch }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: Place NPM registry token
+          command: echo -e "//registry.npmjs.org/:_authToken=$NPMTOKEN \nscope=shepherdorg \naccess=public" > ~/.npmrc
+      - run:
+          name: Yarn install
+          command: yarn install --frozen-lockfile
+      - run:
+          name: Monorepo test modified
+          command: npm run test
+      - save_cache:
+          key: yarn-{{ .Branch }}-{{ epoch }}
+          paths:
+            - ~/.cache/yarn

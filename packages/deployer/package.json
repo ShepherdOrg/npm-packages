@@ -39,16 +39,15 @@
     "typescript": "^3.7.2"
   },
   "scripts": {
-    "build-test-images": "cd e2etest/testimages && ./build-test-images.sh",
+    "build-test-images": "cd src/e2etest/testimages && ./build-test-images.sh",
     "start-postgres": "docker run --rm --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres",
     "kill-postgres": "docker stop postgres",
-    "specs": "mocha --exit --recursive 'dist/**/*.spec.js'",
+    "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
     "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/**/*.spec.ts'",
-    "e2etest": "mocha --exit --recursive 'e2etest/**/*.e2etest.js'",
-    "e2etdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'e2etest/**/*.e2etest.ts'",
+    "e2etest": "npm run build && mocha --exit --recursive 'dist/e2etest/**/*.e2etest.js'",
+    "e2etdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/e2etest/**/*.e2etest.ts'",
     "test": "npm run specs",
-    "e2e-build": "cd e2etest && tsc",
-    "build": "tsc && chmod",
+    "build": "tsc && chmod +x dist/shepherd.js",
     "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
   }
 }

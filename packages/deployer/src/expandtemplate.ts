@@ -1,5 +1,6 @@
+import * as _ from "lodash"
+
 const Handlebars = require("handlebars")
-const _ = require("lodash")
 
 Handlebars.registerHelper("Base64Encode", (str, param) => {
   let postfix
