@@ -12,7 +12,7 @@ fi
 
 if [[ "$*" == *--dryrun* ]]
 then
-  export DELETE_COMMAND='echo DRYRUN deleting "$@"'
+  export DELETE_COMMAND='echo DRYRUN kubectl delete "$@"'
 else
   export DELETE_COMMAND='kubectl delete "$@"'
 fi
@@ -21,19 +21,19 @@ fi
 
 echo "Finding kubernetes resources with expired time-to-live"
 echo "Deployments:"
-kubectl get deployment -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -n 1 -I {} bash -c "$DELETE_COMMAND" _ {}
+kubectl get deployment -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -0 -I {} bash -c "$DELETE_COMMAND" _ {}
 
 echo "Services:"
-kubectl get service -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -n 1 -I {} bash -c "$DELETE_COMMAND" _ {}
+kubectl get service -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -0 -I {} bash -c "$DELETE_COMMAND" _ {}
 
 echo "Secrets:"
-kubectl get secret -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -n 1 -I {} bash -c "$DELETE_COMMAND" _ {}
+kubectl get secret -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -0 -I {} bash -c "$DELETE_COMMAND" _ {}
 
 echo "Configmaps:"
-kubectl get configmap -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -n 1 -I {} bash -c "$DELETE_COMMAND" _ {}
+kubectl get configmap -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -0 -I {} bash -c "$DELETE_COMMAND" _ {}
 
 echo "HorizontalPodAutoscalers:"
-kubectl get hpa -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -n 1 -I {} bash -c "$DELETE_COMMAND" _ {}
+kubectl get hpa -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -0 -I {} bash -c "$DELETE_COMMAND" _ {}
 
 echo "Ingress controllers:"
-kubectl get ingress -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -n 1 -I {} bash -c "$DELETE_COMMAND" _ {}
+kubectl get ingress -l 'ttl-hours' -o json | kube-filter-expired-resources.js | xargs -0 -I {} bash -c "$DELETE_COMMAND" _ {}

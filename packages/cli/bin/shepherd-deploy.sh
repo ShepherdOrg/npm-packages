@@ -21,7 +21,7 @@ function installationDir(){
 
 export THISDIR=$(installationDir ${BASH_SOURCE[0]})
 
-set -e
+set -eo pipefail
 
 if [ -f "${PWD}/deployments.env" ]; then
 	. "${PWD}/deployments.env"
@@ -63,8 +63,12 @@ then
 	source ~/.shepherd/${ENV}.env
 fi
 
+set +e
 shepherd.js "$@"
+SHEPHERD_EXIT_CODE=$?
 
 if [ "${SHEPHERD_ENABLE_TTL_CLEANUP}" = "true" ]; then
   ${THISDIR}/delete-expired-resources.sh "$@"
 fi
+
+exit ${SHEPHERD_EXIT_CODE}

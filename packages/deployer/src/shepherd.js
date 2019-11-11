@@ -102,7 +102,7 @@ if (process.argv.indexOf("--outputDir") > 0) {
 
 if ((exportDocuments || dryRun) && !outputDirectory) {
   console.error("Must specify output dir in export and dryrun modes with --outputDir parameter")
-  process.exit(-1)
+  process.exit(255)
 }
 
 let stateStoreBackend
@@ -206,7 +206,7 @@ stateStoreBackend
             })
             .catch(function(writeError) {
               logger.error("Error exporting deployment document! ", writeError)
-              terminateProcess(-1)
+              terminateProcess(255)
             })
         } else {
           plan
@@ -219,17 +219,17 @@ stateStoreBackend
             })
             .catch(function(err) {
               logger.error("Plan execution error", err)
-              terminateProcess(-1)
+              terminateProcess(255)
             })
         }
       })
       .catch(function(loadError) {
         logger.error("Plan load error.", loadError)
         stateStoreBackend.disconnect()
-        process.exit(-1)
+        process.exit(255)
       })
   })
   .catch(function(err) {
     console.error("Connection/migration error", err)
-    process.exit(-1)
+    process.exit(255)
   })
