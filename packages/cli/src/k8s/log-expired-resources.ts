@@ -1,4 +1,4 @@
-export function logExpiredKubeResources(resourceQueryResult, console1, time: number) {
+export function logExpiredKubeResources(resourceQueryResult, console1, dryRunOn:boolean, time: number) {
   let items = resourceQueryResult.items
 
   for (let item of items) {
@@ -14,7 +14,7 @@ export function logExpiredKubeResources(resourceQueryResult, console1, time: num
       let ageInHours = (Math.abs(time - creationTimestamp) / 36e5)
 
       if (ageInHours > timeToLive) {
-        console1.log(`${item.kind.toLowerCase()} ${item.metadata.name}`)
+        console1.log(`${dryRunOn?'echo DRYRUN ':''}kubectl delete ${item.kind.toLowerCase()} ${item.metadata.name}`)
       }
     }
   }

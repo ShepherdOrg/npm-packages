@@ -29,6 +29,7 @@ fi
 
 if [[ "$*" == *--help*  || "$*" == *--version*  ]]
 then
+  echo "cli v$(npm view ${THISDIR}/../package.json version)"
   shepherd.js "$@"
   exit 0
 fi

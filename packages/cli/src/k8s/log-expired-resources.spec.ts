@@ -78,16 +78,28 @@ describe("resource filtering", function() {
     ],
   }
 
-  it("should filter testService", () => {
+  it("should create dryrun commands testService", () => {
     const logentries:Array<String>=[]
     const logger = {
       log:(logentry:string)=>{
         logentries.push(logentry)
       }
     }
-    logExpiredKubeResources(testData, logger, new Date("2019-11-06T13:29:56Z").getTime())
+    logExpiredKubeResources(testData, logger, true, new Date("2019-11-06T13:29:56Z").getTime())
     expect(logentries.length).to.equal(1)
-    expect(logentries[0]).to.equal('service myservice-internal-expired-service')
+    expect(logentries[0]).to.equal('echo DRYRUN kubectl delete service myservice-internal-expired-service')
+  })
+
+  it("should create delete commands testService", () => {
+    const logentries:Array<String>=[]
+    const logger = {
+      log:(logentry:string)=>{
+        logentries.push(logentry)
+      }
+    }
+    logExpiredKubeResources(testData, logger, false, new Date("2019-11-06T13:29:56Z").getTime())
+    expect(logentries.length).to.equal(1)
+    expect(logentries[0]).to.equal('kubectl delete service myservice-internal-expired-service')
   })
 
 
