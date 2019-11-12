@@ -79,7 +79,13 @@ module.exports = function(injected) {
             let allDeploymentPromises = []
             const imagesPath = path.dirname(fileName)
 
-            let herd = YAML.load(fs.readFileSync(fileName, "utf8"))
+            let herd
+            if(featureDeploymentConfig.isUpstreamFeatureDeployment()){
+              herd = featureDeploymentConfig.asHerd()
+            } else {
+              herd = YAML.load(fs.readFileSync(fileName, "utf8"))
+            }
+
 
             let imageDependencies = {}
 
@@ -200,11 +206,8 @@ module.exports = function(injected) {
                         })
                         .catch(function(e) {
                           let errorMessage =
-                            "When processing image " +
-                            imgName +
-                            "\n" +
-                            e.message +
-                            (e.stack ? e.stack : "")
+                            `When processing image ${imgName}:
+${e.message ? e.message : e }. ${e.stack ? e.stack : "\nNo stacktrace available."}`
                           reject(new Error(errorMessage))
                         })
                     })

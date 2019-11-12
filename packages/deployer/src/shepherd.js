@@ -9,7 +9,7 @@ let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 This is the main entry point for shepherd deployer agent
  */
 
-function printUsage () {
+function printUsage() {
   console.log(`Usage: shepherd /path/to/a/herd.yaml ENVIRONMENT <options>
 
 Supported options:
@@ -54,9 +54,9 @@ if (process.argv.indexOf("--help") > 0) {
   process.exit(0)
 }
 
-function printVersions () {
-  console.log(`deployer v${require('../package.json').version}`)
-  console.log(`metadata v${require('@shepherdorg/metadata/package').version}`)
+function printVersions() {
+  console.log(`deployer v${require("../package.json").version}`)
+  console.log(`metadata v${require("@shepherdorg/metadata/package").version}`)
 }
 
 if (process.argv.indexOf("--version") > 0) {
@@ -129,10 +129,11 @@ const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
 const HerdLoader = require("./deployment-manager/herd-loader")
 const ReleasePlanModule = require("./deployment-manager/release-plan")
 const exec = require("@shepherdorg/exec")
+const { CreateUpstreamTriggerDeploymentConfig } = require("./deployment-manager/create-upstream-trigger-deployment-config")
 
-const upgradeOrAddDeploymentInFile = require('./herd-file/herd-edit').upgradeOrAddDeploymentInFile
+const upgradeOrAddDeploymentInFile = require("./herd-file/herd-edit").upgradeOrAddDeploymentInFile
 
-function terminateProcess (exitCode) {
+function terminateProcess(exitCode) {
   stateStoreBackend.disconnect()
   process.exit(exitCode)
 }
@@ -140,15 +141,6 @@ function terminateProcess (exitCode) {
 let herdFilePath = process.argv[2]
 let environment = process.argv[3]
 
-if (process.env.UPSTREAM_IMAGE_NAME && process.env.UPSTREAM_IMAGE_TAG && process.env.UPSTREAM_HERD_KEY) {
-  upgradeOrAddDeploymentInFile({
-    imageFileName: herdFilePath,
-    upstreamHerdKey: process.env.UPSTREAM_HERD_KEY,
-    upstreamImageName: process.env.UPSTREAM_IMAGE_NAME,
-    upstreamImageTag: process.env.UPSTREAM_IMAGE_TAG,
-    upstreamHerdDescription:process.env.UPSTREAM_HERD_DESCRIPTION
-  }, logger)
-}
 
 stateStoreBackend
   .connect()
@@ -157,33 +149,29 @@ stateStoreBackend
       storageBackend: stateStoreBackend,
     })
 
+    const featureDeploymentConfig = CreateUpstreamTriggerDeploymentConfig(logger)
+    featureDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
+
     const ReleasePlan = ReleasePlanModule(
       inject({
         cmd: exec,
         logger: Logger(console),
         stateStore: releaseStateStore,
         uiDataPusher: uiDataPusher,
-      }),
+      })
     )
 
-    const featureDeploymentConfig = {}
-
-    if(process.env.FEATURE_NAME){
-      featureDeploymentConfig.upstreamHerdKey = process.env.UPSTREAM_HERD_KEY
-      featureDeploymentConfig.upstreamFeatureDeployment=true
-      featureDeploymentConfig.newName = process.env.FEATURE_NAME.replace(/\//g, "-").toLowerCase()
-      featureDeploymentConfig.ttlHours = process.env.FEATURE_TTL_HOURS
+    if(featureDeploymentConfig.herdFileEditNeeded()){
+      upgradeOrAddDeploymentInFile(featureDeploymentConfig, logger)
     }
-
-
 
     let loader = HerdLoader(
       inject({
         logger: Logger(console),
         ReleasePlan: ReleasePlan,
         exec: exec,
-        featureDeploymentConfig
-      }),
+        featureDeploymentConfig,
+      })
     )
 
     if (!environment) {

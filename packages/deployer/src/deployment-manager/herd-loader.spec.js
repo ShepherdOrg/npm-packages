@@ -9,12 +9,16 @@ const fs = require("fs")
 
 /// Inject a mock image metadata loader with fake image information
 
+const CreateFeatureDeploymentConfig = require('./create-upstream-trigger-deployment-config').CreateUpstreamTriggerDeploymentConfig
+
 describe("herd.yaml loading", function() {
   let labelsLoader
   let loader
   let modifiedState = false
   let CreateReleasePlan
   let loaderLogger
+
+  let featureDeploymentConfig = CreateFeatureDeploymentConfig()
 
   afterEach(() => {
     delete process.env.www_icelandair_com_image
@@ -28,7 +32,7 @@ describe("herd.yaml loading", function() {
     delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
   })
 
-  function createTestHerdLoader (labelsLoader, featureDeploymentConfig) {
+  function createTestHerdLoader(labelsLoader, featureDeploymentConfig) {
     loader = HerdLoader(
       inject({
         logger: loaderLogger,
@@ -36,8 +40,7 @@ describe("herd.yaml loading", function() {
         exec: exec,
         labelsLoader: labelsLoader,
         featureDeploymentConfig,
-
-      }),
+      })
     )
   }
 
@@ -59,7 +62,7 @@ describe("herd.yaml loading", function() {
       let releasePlan = {
         addedDockerDeployers: {},
         addedK8sDeployments: {},
-        addDeployment (deployment) {
+        addDeployment(deployment) {
           return new Promise(function(resolve, reject) {
             if (!deployment.type) {
               let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deployment)
@@ -85,39 +88,33 @@ describe("herd.yaml loading", function() {
     loaderLogger = fakeLogger()
 
     labelsLoader = {
-      getDockerRegistryClientsFromConfig () {
+      getDockerRegistryClientsFromConfig() {
         return {}
       },
-      imageLabelsLoader () {
+      imageLabelsLoader() {
         return {
-          getImageLabels (imageDef) {
-            // console.log('imageDef', imageDef);
+          getImageLabels(imageDef) {
             let dockerImageMetadataFile = path.join(
               __dirname,
               "testdata",
               "inspected-dockers",
-              imageDef.image + ".json",
+              imageDef.image + ".json"
             )
             if (fs.existsSync(dockerImageMetadataFile)) {
               const dockerInspection = require(dockerImageMetadataFile)
 
-              // console.log('dockerInspection', dockerInspection[0].ContainerConfig.Labels);
               return Promise.resolve({
                 dockerLabels: dockerInspection[0].ContainerConfig.Labels,
                 imageDefinition: imageDef,
               })
             } else {
               return Promise.reject(
-                new Error(`dockerImageMetadataFile ${dockerImageMetadataFile} not found in testdata`),
+                new Error(`dockerImageMetadataFile ${dockerImageMetadataFile} not found in testdata`)
               )
             }
           },
         }
       },
-    }
-
-    const featureDeploymentConfig = {
-      upstreamFeatureDeployment: false,
     }
 
     createTestHerdLoader(labelsLoader, featureDeploymentConfig)
@@ -179,7 +176,9 @@ describe("herd.yaml loading", function() {
     it("should have herdspec", () => {
       expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdSpec.herdKey).to.equal("kube-config")
       expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdSpec.path).to.equal("./")
-      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdSpec.description).to.equal("Kubernetes pull secrets, namespaces, common config")
+      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].herdSpec.description).to.equal(
+        "Kubernetes pull secrets, namespaces, common config"
+      )
     })
 
     it("should have metadata", () => {
@@ -194,7 +193,48 @@ describe("herd.yaml loading", function() {
     })
   })
 
-  describe("images execution plan", function() {
+  describe("k8s feature deployment plan", function() {
+    let loadedPlan
+
+    before(() => {
+      featureDeploymentConfig.imageFileName = "feature-deployment"
+      featureDeploymentConfig.upstreamHerdKey = "herdkeyone"
+      featureDeploymentConfig.upstreamImageName = "testenvimage"
+      featureDeploymentConfig.upstreamImageTag = "9999"
+      featureDeploymentConfig.upstreamHerdDescription = "Very much a testing image"
+      featureDeploymentConfig.upstreamFeatureDeployment = true
+      featureDeploymentConfig.ttlHours = '22'
+      featureDeploymentConfig.newName = 'feature-XYZ'
+    })
+
+    after(()=>{
+      featureDeploymentConfig.upstreamFeatureDeployment = false
+
+      delete featureDeploymentConfig.imageFileName
+      delete featureDeploymentConfig.upstreamHerdKey
+      delete featureDeploymentConfig.upstreamImageName
+      delete featureDeploymentConfig.upstreamImageTag
+      delete featureDeploymentConfig.upstreamHerdDescription
+      delete featureDeploymentConfig.ttlHours
+      delete featureDeploymentConfig.newName
+    })
+
+    beforeEach(function() {
+      return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
+        loadedPlan = plan
+      })
+    })
+
+    it("should create plan from feature deployment config", () => {
+      let addedK8sDeployments = Object.keys(loadedPlan.addedK8sDeployments)
+      let addedDockerDeployers = Object.keys(loadedPlan.addedDockerDeployers)
+
+      expect(addedK8sDeployments.join(", ")).to.contain("feature-xyz")
+      expect(addedDockerDeployers.join(", ")).to.contain("testenvimage-migrations:0.0.0") // Referred migration image
+    })
+  })
+
+  describe("k8s deployment plan", function() {
     let loadedPlan
 
     before(() => {
@@ -203,9 +243,7 @@ describe("herd.yaml loading", function() {
     })
 
     beforeEach(function() {
-
-      createTestHerdLoader(labelsLoader, {
-      })
+      createTestHerdLoader(labelsLoader, featureDeploymentConfig)
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
         loadedPlan = plan
       })
@@ -214,13 +252,11 @@ describe("herd.yaml loading", function() {
     after(() => {
       delete process.env.CLUSTER_POLICY_MAX_CPU_REQUEST
       delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
-
     })
 
     it("should base64decode and untar deployment files under file path", function() {
-
       expect(loadedPlan.addedK8sDeployments["Service_www-icelandair-com"].origin).to.equal(
-        "testenvimage:0.0.0:kube.config.tar.base64",
+        "testenvimage:0.0.0:kube.config.tar.base64"
       )
     })
 
@@ -232,9 +268,8 @@ describe("herd.yaml loading", function() {
       let addedK8sDeployment = loadedPlan.addedK8sDeployments["Service_www-icelandair-com"]
       expect(addedK8sDeployment.metadata).not.to.equal(undefined)
 
-
       expect(addedK8sDeployment.metadata.displayName).to.equal("Testimage")
-      expect(addedK8sDeployment.herdSpec.herdKey).to.equal("test-image", 'herdKey')
+      expect(addedK8sDeployment.herdSpec.herdKey).to.equal("test-image", "herdKey")
     })
 
     it("should modify deployment documents and file under deployments under k8s service identity", function() {
@@ -247,8 +282,8 @@ describe("herd.yaml loading", function() {
     })
 
     it("should be serializable", function() {
-      function detectRecursion (obj) {
-        function detect (obj, seenObjects) {
+      function detectRecursion(obj) {
+        function detect(obj, seenObjects) {
           if (obj && typeof obj === "object") {
             if (seenObjects.indexOf(obj) !== -1) {
               return ["RECURSION!"]
@@ -293,7 +328,6 @@ describe("herd.yaml loading", function() {
     })
 
     it("should  have herdSpec and metadata on all loaded plans", () => {
-
       Object.entries(loadedPlan.addedK8sDeployments).forEach(function([_dname, deployment]) {
         expect(deployment.herdSpec.herdKey).not.to.equal(undefined)
         expect(deployment.metadata.displayName).not.to.equal(undefined)
@@ -306,7 +340,7 @@ describe("herd.yaml loading", function() {
 
     it("should load deployer plan by migration image reference", function() {
       expect(loadedPlan.addedDockerDeployers["testenvimage-migrations:0.0.0"].dockerParameters).to.contain(
-        "testenvimage-migrations:0.0.0",
+        "testenvimage-migrations:0.0.0"
       )
       expect(Object.keys(loadedPlan.addedDockerDeployers)).to.contain("testenvimage-migrations:0.0.0")
     })
