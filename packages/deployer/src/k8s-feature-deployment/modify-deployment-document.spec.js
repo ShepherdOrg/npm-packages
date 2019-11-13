@@ -3,6 +3,7 @@ const fs = require("fs")
 const expect = require("expect.js")
 
 const modifyRawDoc = require("./modify-deployment-document").modifyRawDocument
+const CreateUpstreamTriggerDeploymentConfig = require('../deployment-manager/create-upstream-trigger-deployment-config').CreateUpstreamTriggerDeploymentConfig
 
 function containsDifference(diffArray) {
   for (let diffObj of diffArray) {
@@ -57,10 +58,12 @@ describe("modify k8s deployment document", function() {
   it("should modify all parts in multipart document ", () => {
     const rawdoc = fs.readFileSync(__dirname + "/testdata/kube.yaml", "utf-8")
 
-    const modifiedRawDoc = modifyRawDoc(rawdoc, {
-      ttlHours: 66,
-      newName: "new/branch",
-    })
+    let featureDeploymentConfig = CreateUpstreamTriggerDeploymentConfig(console)
+    featureDeploymentConfig.newName = 'new-branch'
+    featureDeploymentConfig.ttlHours = 66
+
+    console.log('featureDeploymentConfig', featureDeploymentConfig)
+    const modifiedRawDoc = modifyRawDoc(rawdoc, featureDeploymentConfig)
 
     let modifiedKubeYaml = actualDir + "/kube.yaml"
 

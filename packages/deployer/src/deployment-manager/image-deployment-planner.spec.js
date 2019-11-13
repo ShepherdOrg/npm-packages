@@ -391,7 +391,7 @@ describe("Docker image plan loader", function() {
       })
 
       it("should modify deployment descriptor", function() {
-        expect(planNumberOne.descriptor).to.contain("thisIsFeatureDeploymentOne")
+        expect(planNumberOne.descriptor).to.contain("thisisfeaturedeploymentone")
       })
 
       it("should modify deployment identifier ", function() {
@@ -404,6 +404,7 @@ describe("Docker image plan loader", function() {
       before(async function() {
         delete process.env.EXPORT1
         return (loadError = await loadTestPlans(dockerImageMetadata, {}).catch(function(error) {
+          console.error(error)
           return error
         }))
       })

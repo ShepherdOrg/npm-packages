@@ -9,7 +9,7 @@ const base64EnvSubst = require("../base64-env-subst").processLine
 const options = require("./options")
 const path = require("path")
 
-const createResourceNameChangeIndex = require("../k8s-feature-deployment/create-name-change-index")
+const addResourceNameChangeIndex = require("../k8s-feature-deployment/create-name-change-index").addResourceNameChangeIndex
 
 function deployerPlan (imageInformation, plan, shepherdMetadata) {
   let dockerImageWithVersion =
@@ -150,6 +150,7 @@ module.exports = function(injected) {
         imageFeatureDeploymentConfig.origin =
           imageInformation.imageDefinition.herdKey + "::" + imageFeatureDeploymentConfig.newName
       } else {
+        console.log("HERDFILE FEATURE DEPLOYMENT")
         // Feature deployment specified in herdfile
         imageFeatureDeploymentConfig.newName = imageInformation.imageDefinition.herdKey
         imageFeatureDeploymentConfig.origin =
@@ -174,7 +175,7 @@ module.exports = function(injected) {
         )
       }
 
-      imageFeatureDeploymentConfig.nameChangeIndex = createResourceNameChangeIndex(
+      addResourceNameChangeIndex(
         plan,
         kubeSupportedExtensions,
         imageFeatureDeploymentConfig,

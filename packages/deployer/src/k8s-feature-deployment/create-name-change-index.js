@@ -1,8 +1,20 @@
 const yamlLoad = require("../k8s-feature-deployment/multipart-yaml-load")
 const path = require("path")
 
-function createResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploymentConfig) {
-  let nameReferenceChanges = {}
+function indexNameReferenceChange (deploymentDescriptor, featureDeploymentConfig) {
+  let nameChangeIndex = featureDeploymentConfig.nameChangeIndex || {}
+  if (!deploymentDescriptor.metadata) {
+    console.warn("deploymentDescriptor without metadata!", deploymentDescriptor)
+    return
+  }
+  nameChangeIndex[deploymentDescriptor.kind] = nameChangeIndex[deploymentDescriptor.kind] || {}
+  nameChangeIndex[deploymentDescriptor.kind][deploymentDescriptor.metadata.name] =
+    deploymentDescriptor.metadata.name + "-" + featureDeploymentConfig.newName
+}
+
+function addResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploymentConfig) {
+  featureDeploymentConfig.nameChangeIndex = featureDeploymentConfig.nameChangeIndex || {}
+  console.log('featureDeploymentConfig.............', featureDeploymentConfig)
   Object.entries(plan.files).forEach(([fileName, deploymentFileContent]) => {
     let fileExtension = path.extname(fileName)
     if (!fileExtension) {
@@ -17,19 +29,18 @@ function createResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDep
       let parsedMultiContent = yamlLoad(deploymentFileContent.content)
       parsedMultiContent.forEach(function(parsedContent) {
         if (parsedContent) {
-          if (!parsedContent.metadata) {
-            console.log('parsedContent without metadata!', parsedContent)
-          }
-          nameReferenceChanges[parsedContent.kind] = nameReferenceChanges[parsedContent.kind] || {}
-          nameReferenceChanges[parsedContent.kind][parsedContent.metadata.name] =
-            parsedContent.metadata.name + "-" + featureDeploymentConfig.newName
+          indexNameReferenceChange(parsedContent, featureDeploymentConfig)
         } else {
           console.warn("Parsed content is NULL!!!", deploymentFileContent.content)
         }
       })
     }
   })
-  return nameReferenceChanges
+  console.log('After indexing: ', featureDeploymentConfig)
+  return featureDeploymentConfig
 }
 
-module.exports = createResourceNameChangeIndex
+module.exports = {
+  addResourceNameChangeIndex: addResourceNameChangeIndex,
+  indexNameReferenceChange
+}

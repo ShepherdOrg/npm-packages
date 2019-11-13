@@ -1,5 +1,6 @@
 const JSYAML = require("js-yaml")
 const YAMLload = require("./multipart-yaml-load")
+const { indexNameReferenceChange } = require("./create-name-change-index")
 
 // const path = require('path');
 
@@ -10,7 +11,7 @@ function modifyRawDocument(fileContents, options) {
     throw new Error("Must provide a feature name for document modifications")
   }
 
-  options.nameChangeIndex = options.nameChangeIndex || {}
+  let needToIndexChanges = Boolean(!options.nameChangeIndex)
 
   function addTimeToLive(deploymentDoc) {
     if (!deploymentDoc.metadata) {
@@ -23,6 +24,22 @@ function modifyRawDocument(fileContents, options) {
       throw new Error("ttlHours is a required parameter!")
     }
     deploymentDoc.metadata.labels["ttl-hours"] = `${options.ttlHours}`
+  }
+
+  function adjustEnvironment(container) {
+    if (container.env && container.env) {
+      for (let env of container.env) {
+        if (
+          env.valueFrom &&
+          env.valueFrom.secretKeyRef &&
+          env.valueFrom.secretKeyRef.name &&
+          options.nameChangeIndex["Secret"] &&
+          options.nameChangeIndex["Secret"][env.valueFrom.secretKeyRef.name]
+        ) {
+          env.valueFrom.secretKeyRef.name = options.nameChangeIndex["Secret"][env.valueFrom.secretKeyRef.name]
+        }
+      }
+    }
   }
 
   function adjustNames(deploymentSection) {
@@ -43,7 +60,11 @@ function modifyRawDocument(fileContents, options) {
       if (deploymentSection.spec.containers) {
         for (let container of deploymentSection.spec.containers) {
           adjustNames(container)
+          adjustEnvironment(container)
         }
+      }
+      if (deploymentSection.spec.jobTemplate) {
+        adjustNames(deploymentSection.spec.jobTemplate)
       }
 
       let template = deploymentSection.spec.template
@@ -52,6 +73,8 @@ function modifyRawDocument(fileContents, options) {
 
         if (template.spec.volumes) {
           for (let volume of template.spec.volumes) {
+            console.log('CHEKING VOLUME', volume)
+            console.log('options.nameChangeIndex', options.nameChangeIndex)
             if (volume.configMap && volume.configMap.name && volume.configMap.name === options.configMapName) {
               volume.configMap.name += "-" + cleanedName
             }
@@ -105,6 +128,13 @@ function modifyRawDocument(fileContents, options) {
   }
 
   let yamlFiles = YAMLload(fileContents)
+
+  if (needToIndexChanges) {
+    options.nameChangeIndex = {}
+    for (let parsedDocument of yamlFiles) {
+      indexNameReferenceChange(parsedDocument, options)
+    }
+  }
 
   let outfiles = ""
   for (let parsedDocument of yamlFiles) {

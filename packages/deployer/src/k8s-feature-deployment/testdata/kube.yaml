@@ -1,3 +1,44 @@
+apiVersion: v1
+data:
+  password: dmVyeXNlY3JldAo
+kind: Secret
+metadata:
+  annotations:
+  name: xbakvinn
+  namespace: default
+  resourceVersion: "109999"
+type: Opaque
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: toyota-cronjob
+spec:
+  schedule: '30 17 * * 1-5'
+  concurrencyPolicy: Replace
+  jobTemplate:
+    metadata:
+      labels:
+        app: toyota-cron
+        environment: dev
+    spec:
+      template:
+        spec:
+          containers:
+            - name: toyota-cron
+              image: DOCKER_IMAGE
+              imagePullPolicy: IfNotPresent
+              command: ['node', '.dist/job/run']
+              env:
+                - name: XBAKVINN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: xbakvinn
+                      key: password
+                - name: SERVER_EVENTS_CLUSTER_API
+                  value: http://server-events-service
+          restartPolicy: OnFailure
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
