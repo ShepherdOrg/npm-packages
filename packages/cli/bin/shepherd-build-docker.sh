@@ -147,6 +147,19 @@ rm -rf ${DOCKERDIR}/.build
 mkdir -p ${DOCKERDIR}/.build
 mkdir -p ${DOCKERDIR}/.build/metadata
 
+set +eao pipefail
+export METADATA_LABEL_COUNT=$(cat ${DOCKERFILE} | grep "SHEPHERD_" | wc -l)
+set -eao pipefail
+if [ $METADATA_LABEL_COUNT = 0 ];
+then
+  echo "Missing SHEPHERD_METADATA label from ${DOCKERFILE}. Please append"
+  echo ""
+  echo "ARG SHEPHERD_METADATA"
+  echo "LABEL shepherd.metadata=${SHEPHERD_METADATA}"
+  echo ""
+  echo "to ${DOCKERFILE}"
+  exit 255
+fi
 
 while [ ! -d "${DOCKERDIR}/.build/metadata" ]
 do

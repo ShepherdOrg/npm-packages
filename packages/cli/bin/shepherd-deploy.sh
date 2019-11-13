@@ -23,9 +23,6 @@ export THISDIR=$(installationDir ${BASH_SOURCE[0]})
 
 set -eo pipefail
 
-if [ -f "${PWD}/deployments.env" ]; then
-	. "${PWD}/deployments.env"
-fi
 
 if [[ "$*" == *--help*  || "$*" == *--version*  ]]
 then
@@ -37,6 +34,11 @@ fi
 
 export HERDFILE=$1
 HERDFILE_DIR=$(dirname ${HERDFILE})
+
+if [ -f "${PWD}/deployments.env" ]; then
+	. "${PWD}/deployments.env"
+fi
+
 
 if [[ "$*" == *--dryrun*  || "$*" == *--export* ]]
 then

@@ -1,6 +1,7 @@
 import { readJsonFiles } from "../../readJsonFiles"
 
 const exec = require("child-process-promise").exec
+const path = require("path")
 const expect = require("chai").expect
 const Future = require("fluture")
 
@@ -19,7 +20,7 @@ describe("Build docker with deployment dir", function() {
 
         return Future.promise(
           readJsonFiles(
-            "e2etest/public-repo-with-deployment-dir/.build",
+            path.join(__dirname, "/.build"),
             "**/*/shepherd.json"
           )
         ).then(metaFiles => {
