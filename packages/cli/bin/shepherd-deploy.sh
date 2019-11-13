@@ -29,7 +29,8 @@ fi
 
 if [[ "$*" == *--help*  || "$*" == *--version*  ]]
 then
-  echo "cli v$(npm view ${THISDIR}/../package.json version)"
+  PACKAGE_VERSION=$(node -p -e "require(\"${THISDIR}\" + '/../package.json').version")
+  echo "cli v${PACKAGE_VERSION}"
   shepherd.js "$@"
   exit 0
 fi
