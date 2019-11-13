@@ -150,7 +150,6 @@ module.exports = function(injected) {
         imageFeatureDeploymentConfig.origin =
           imageInformation.imageDefinition.herdKey + "::" + imageFeatureDeploymentConfig.newName
       } else {
-        console.log("HERDFILE FEATURE DEPLOYMENT")
         // Feature deployment specified in herdfile
         imageFeatureDeploymentConfig.newName = imageInformation.imageDefinition.herdKey
         imageFeatureDeploymentConfig.origin =

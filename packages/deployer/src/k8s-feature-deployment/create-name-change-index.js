@@ -14,7 +14,6 @@ function indexNameReferenceChange (deploymentDescriptor, featureDeploymentConfig
 
 function addResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploymentConfig) {
   featureDeploymentConfig.nameChangeIndex = featureDeploymentConfig.nameChangeIndex || {}
-  console.log('featureDeploymentConfig.............', featureDeploymentConfig)
   Object.entries(plan.files).forEach(([fileName, deploymentFileContent]) => {
     let fileExtension = path.extname(fileName)
     if (!fileExtension) {
@@ -36,7 +35,6 @@ function addResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploy
       })
     }
   })
-  console.log('After indexing: ', featureDeploymentConfig)
   return featureDeploymentConfig
 }
 

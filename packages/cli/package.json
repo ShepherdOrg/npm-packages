@@ -33,8 +33,8 @@
     "prepublishOnly": "yarn install --frozen-lockfile && npm run build"
   },
   "dependencies": {
-    "@shepherdorg/deployer": "^1.0.5",
-    "@shepherdorg/docker-image-metadata-loader": "^1.0.0",
+    "@shepherdorg/deployer": "1.0.7",
+    "@shepherdorg/docker-image-metadata-loader": "1.0.0",
     "@shepherdorg/metadata": "1.0.0",
     "@shepherdorg/nano-inject": "0.0.7",
     "js-yaml": "^3.13.1"

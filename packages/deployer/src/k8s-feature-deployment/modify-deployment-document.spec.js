@@ -62,7 +62,6 @@ describe("modify k8s deployment document", function() {
     featureDeploymentConfig.newName = 'new-branch'
     featureDeploymentConfig.ttlHours = 66
 
-    console.log('featureDeploymentConfig', featureDeploymentConfig)
     const modifiedRawDoc = modifyRawDoc(rawdoc, featureDeploymentConfig)
 
     let modifiedKubeYaml = actualDir + "/kube.yaml"

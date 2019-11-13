@@ -404,7 +404,6 @@ describe("Docker image plan loader", function() {
       before(async function() {
         delete process.env.EXPORT1
         return (loadError = await loadTestPlans(dockerImageMetadata, {}).catch(function(error) {
-          console.error(error)
           return error
         }))
       })

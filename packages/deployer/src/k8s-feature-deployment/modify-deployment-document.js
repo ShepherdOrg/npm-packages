@@ -73,8 +73,6 @@ function modifyRawDocument(fileContents, options) {
 
         if (template.spec.volumes) {
           for (let volume of template.spec.volumes) {
-            console.log('CHEKING VOLUME', volume)
-            console.log('options.nameChangeIndex', options.nameChangeIndex)
             if (volume.configMap && volume.configMap.name && volume.configMap.name === options.configMapName) {
               volume.configMap.name += "-" + cleanedName
             }
