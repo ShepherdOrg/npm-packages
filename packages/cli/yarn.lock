@@ -9,10 +9,10 @@
   dependencies:
     yargs "^11.0.0"
 
-"@shepherdorg/deployer@^1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/deployer/-/deployer-1.0.5.tgz#8253f2403de17049dbf3dabb561312a0baa35b10"
-  integrity sha512-wl76HvHJHTTGGqU3ShF4XgZ0WBBIibRQVbDVh6ixYFy83XhlK+KdTR6U4wlpmB87xa/JDcAXwDtau3NMJRB/xA==
+"@shepherdorg/deployer@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/deployer/-/deployer-1.1.1.tgz#1ddca518125c475280c930c6008183aac2c74553"
+  integrity sha512-Grimnli9PJiB4iz9wJi7bPpwqkpUw5M5pONEcwN+yd9LquP3iufFjK5wUXo5xBHMeGVawMafRwaV40C0/OEyng==
   dependencies:
     "@shepherdorg/docker-image-metadata-loader" "^0.1.2"
     "@shepherdorg/exec" "0.0.1"
@@ -31,20 +31,20 @@
     lodash "^4.17.15"
     tmp "^0.1.0"
 
-"@shepherdorg/docker-image-metadata-loader@^0.1.2":
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/docker-image-metadata-loader/-/docker-image-metadata-loader-0.1.2.tgz#eb16bd16dcd916fe2f7bb2fe3b594dfac1216cfc"
-  integrity sha512-NCXbbE3KbUXJTH/96/bDUt1yfuuucJ0brY0QZhxXvrSSmKTVosTR8wGPfYpee/juid+QrmakP9dmVoVhfxOViQ==
+"@shepherdorg/docker-image-metadata-loader@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/docker-image-metadata-loader/-/docker-image-metadata-loader-1.0.0.tgz#a6e500d83f0b5d178a8d535b412ffb7e7fc23ab9"
+  integrity sha512-eNA7xocvX+Q/TRrDce3Gfj8NEmktij0cU+itqxrc5PrIV9kn/dsZJBtqd6OwDMPkzil1enb/vvZ2jCnJwcarmQ==
   dependencies:
     "@shepherdorg/exec" "0.0.1"
     "@shepherdorg/nano-inject" "0.0.6"
     lodash "^4.17.15"
     superagent "^5.1.0"
 
-"@shepherdorg/docker-image-metadata-loader@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/docker-image-metadata-loader/-/docker-image-metadata-loader-1.0.0.tgz#a6e500d83f0b5d178a8d535b412ffb7e7fc23ab9"
-  integrity sha512-eNA7xocvX+Q/TRrDce3Gfj8NEmktij0cU+itqxrc5PrIV9kn/dsZJBtqd6OwDMPkzil1enb/vvZ2jCnJwcarmQ==
+"@shepherdorg/docker-image-metadata-loader@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/docker-image-metadata-loader/-/docker-image-metadata-loader-0.1.2.tgz#eb16bd16dcd916fe2f7bb2fe3b594dfac1216cfc"
+  integrity sha512-NCXbbE3KbUXJTH/96/bDUt1yfuuucJ0brY0QZhxXvrSSmKTVosTR8wGPfYpee/juid+QrmakP9dmVoVhfxOViQ==
   dependencies:
     "@shepherdorg/exec" "0.0.1"
     "@shepherdorg/nano-inject" "0.0.6"
