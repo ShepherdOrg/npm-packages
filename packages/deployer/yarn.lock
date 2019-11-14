@@ -9,15 +9,6 @@
   dependencies:
     yargs "^11.0.0"
 
-"@shepherdorg/cli@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/cli/-/cli-1.0.0.tgz#d1d8f3247c92bf9bfdb176fac6d1f7232d8b3ef7"
-  integrity sha512-1jP0cxcH5jnYU0Vf/CGh9ccGu0G7xvPXfxE71w3BvI4C2THsVbY3whlo9p3k7nRry2ADMEZKG3tauUZvYP6q5A==
-  dependencies:
-    "@shepherdorg/docker-image-metadata-loader" "^0.1.2"
-    "@shepherdorg/metadata" "^1.0.0"
-    "@shepherdorg/nano-inject" "0.0.7"
-
 "@shepherdorg/docker-image-metadata-loader@^0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@shepherdorg/docker-image-metadata-loader/-/docker-image-metadata-loader-0.1.2.tgz#eb16bd16dcd916fe2f7bb2fe3b594dfac1216cfc"
@@ -53,10 +44,10 @@
     glob "^7.1.4"
     tar "^5.0.5"
 
-"@shepherdorg/metadata@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/metadata/-/metadata-1.0.0.tgz#16aadd98732a0143f1f781392b24a7d6f73b187c"
-  integrity sha512-1kTFuoGHzRqUmUnXlYkc/rriYBBQVLDotJ2jZEJpsIZM9bumVF6WdkUUpAZ9AXa7wIZa9D4hd3YDDYDab7+HZw==
+"@shepherdorg/metadata@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/metadata/-/metadata-1.0.1.tgz#e4403c99490cc77dad1508e0b708d3e397baa78f"
+  integrity sha512-lO5sMV4SGlinXmyFxjjB2lla3vbzz2DVyeGBoByivL48QzmTwDTLMHSshdkoNfxOXWn6qfcUsd2kofTVpwNmKw==
   dependencies:
     ajv "^6.10.2"
     fluture "^11.0.3"
