@@ -9,15 +9,15 @@
   dependencies:
     yargs "^11.0.0"
 
-"@shepherdorg/deployer@1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/deployer/-/deployer-1.1.1.tgz#1ddca518125c475280c930c6008183aac2c74553"
-  integrity sha512-Grimnli9PJiB4iz9wJi7bPpwqkpUw5M5pONEcwN+yd9LquP3iufFjK5wUXo5xBHMeGVawMafRwaV40C0/OEyng==
+"@shepherdorg/deployer@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/deployer/-/deployer-1.1.2.tgz#585cc934f28a7d79cfe3e9e3eb603a5f2e17c537"
+  integrity sha512-oE5+u26VC7wUsg0a7L8u61B0I8hKv7QKB56OYziiiUMvtzPgqEgeE2grWN6m5OAAc66cVsM5tof5vE9ij+EYqQ==
   dependencies:
     "@shepherdorg/docker-image-metadata-loader" "^0.1.2"
     "@shepherdorg/exec" "0.0.1"
     "@shepherdorg/filestore-backend" "^1.0.0"
-    "@shepherdorg/metadata" "^1.0.0"
+    "@shepherdorg/metadata" "^1.0.1"
     "@shepherdorg/nano-inject" "0.0.7"
     "@shepherdorg/postgres-backend" "^1.0.2"
     "@shepherdorg/state-store" "^1.0.0"
@@ -66,7 +66,7 @@
     bluebird "^3.7.0"
     lodash "^4.17.15"
 
-"@shepherdorg/metadata@1.0.0", "@shepherdorg/metadata@^1.0.0":
+"@shepherdorg/metadata@1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@shepherdorg/metadata/-/metadata-1.0.0.tgz#16aadd98732a0143f1f781392b24a7d6f73b187c"
   integrity sha512-1kTFuoGHzRqUmUnXlYkc/rriYBBQVLDotJ2jZEJpsIZM9bumVF6WdkUUpAZ9AXa7wIZa9D4hd3YDDYDab7+HZw==
@@ -80,6 +80,16 @@
   version "0.0.11"
   resolved "https://registry.yarnpkg.com/@shepherdorg/metadata/-/metadata-0.0.11.tgz#563f5794a5558797eb52152bf360f0ae4632bb56"
   integrity sha512-jcP2sYHaNbi4qRBsgdSc/oBOaM643J0awkwAQtjkf60KbQM6JEtPVDto8/YRF3r8ACrjMivLTXfGcF4Q6lS9Yg==
+  dependencies:
+    ajv "^6.10.2"
+    fluture "^11.0.3"
+    glob "^7.1.4"
+    tar "^5.0.5"
+
+"@shepherdorg/metadata@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/metadata/-/metadata-1.0.1.tgz#e4403c99490cc77dad1508e0b708d3e397baa78f"
+  integrity sha512-lO5sMV4SGlinXmyFxjjB2lla3vbzz2DVyeGBoByivL48QzmTwDTLMHSshdkoNfxOXWn6qfcUsd2kofTVpwNmKw==
   dependencies:
     ajv "^6.10.2"
     fluture "^11.0.3"
