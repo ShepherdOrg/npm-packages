@@ -12,7 +12,11 @@ export function mapUntypedDeploymentData(deploymentInfo) {
     herdSpec: deploymentInfo.herdSpec,
   }
 
-  mappedDeploymentInfo.herdSpec.key = deploymentInfo.herdKey
+  mappedDeploymentInfo.herdSpec.key = mappedDeploymentInfo.herdSpec.herdKey || deploymentInfo.herdKey
+
+  if(!mappedDeploymentInfo.herdSpec.key){
+    throw new Error('Missing herdSpec key. In deployment info object: ' + JSON.stringify(deploymentInfo))
+  }
 
   mappedDeploymentInfo.deploymentState.timestamp =
     mappedDeploymentInfo.deploymentState.timestamp && new Date(mappedDeploymentInfo.deploymentState.timestamp)
@@ -28,8 +32,6 @@ export function mapUntypedDeploymentData(deploymentInfo) {
       }
     }
   }
-
-
 
   delete mappedDeploymentInfo.dockerImageGithash
   delete mappedDeploymentInfo.kubeConfigB64

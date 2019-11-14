@@ -39,7 +39,6 @@ export function deploymentData0(): any {
     "origin": "shepherdorg/shepherd-ui-api:3.0.3-c481249:kube.config.tar.base64",
     "type": "k8s",
     "fileName": "./deployment/kube.yaml",
-    "herdKey": "shepherd-ui-api",
     "env": "dev",
     "state": {
       "timestamp": "2019-10-31T14:05:52.716Z",
