@@ -24,6 +24,7 @@ spec:
     metadata:
       labels:
         app: toyota-cron-new-branch
+        origin: new-branch
         environment: dev
     spec:
       template:
@@ -58,6 +59,7 @@ spec:
       labels:
         app: toyota-pod-new-branch
         environment: dev
+        origin: new-branch
     spec:
       containers:
         - name: toyota-pod-new-branch
@@ -106,7 +108,7 @@ spec:
       protocol: TCP
   selector:
     app: toyota-pod-new-branch
-    origin: branch
+    origin: new-branch
     environment: dev
   sessionAffinity: ClientIP
 ---

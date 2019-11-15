@@ -54,6 +54,9 @@ function modifyRawDocument(fileContents, options) {
         if (deploymentSection.metadata.labels.name) {
           deploymentSection.metadata.labels.name += "-" + cleanedName
         }
+        if (deploymentSection.metadata.labels.origin) {
+          deploymentSection.metadata.labels.origin = cleanedName
+        }
       }
     }
     if (deploymentSection.spec) {
@@ -91,6 +94,9 @@ function modifyRawDocument(fileContents, options) {
         adjustNames(deploymentSection.spec.selector)
         if (Boolean(deploymentSection.spec.selector.app)) {
           deploymentSection.spec.selector.app += "-" + cleanedName
+        }
+        if (Boolean(deploymentSection.spec.selector.origin)) {
+          deploymentSection.spec.selector.origin = cleanedName
         }
       }
 
