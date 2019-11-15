@@ -260,6 +260,20 @@ module.exports = function(injected) {
       }
     }
 
+
+     function mapDeploymentDataAndWriteTo(dryrunOutputDir){
+      return async (deploymentData)=>{
+        if(!deploymentData){
+          return deploymentData
+        } else{
+          const mappedData = mapUntypedDeploymentData(deploymentData)
+          const writePath = path.join(dryrunOutputDir, `send-to-ui-${mappedData.deploymentState.key}.json`)
+          await writeFile(writePath, JSON.stringify(deploymentData, null, 2))
+          return deploymentData
+        }
+      }
+    }
+
     async function executePlan(runOptions) {
       // let i = 0
       runOptions = runOptions || { dryRun: false, dryRunOutputDir: undefined, forcePush: false }
@@ -270,6 +284,8 @@ module.exports = function(injected) {
       deploymentPromises = allPromises.map(promise => {
         if (shouldPush) {
           return promise.then(mapDeploymentDataAndPush)
+        } else if (runOptions.dryRun) {
+          return promise.then(mapDeploymentDataAndWriteTo(runOptions.dryRunOutputDir))
         } else {
           return promise.then()
         }
