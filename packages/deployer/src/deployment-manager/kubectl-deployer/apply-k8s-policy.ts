@@ -2,30 +2,25 @@ import yaml = require("js-yaml")
 
 type TK8SClusterPolicy = {
   removePublicServiceIpRestrictions: boolean
-  maxReplicasPolicy:number
-  clusterPolicyMaxCpuRequest:string | false
+  maxReplicasPolicy: number
+  clusterPolicyMaxCpuRequest: string | false
   publicServicesPolicyIpRestrictions: string | false
 }
 
-let policies : TK8SClusterPolicy = {
+let policies: TK8SClusterPolicy = {
   clusterPolicyMaxCpuRequest: false,
   maxReplicasPolicy: 0,
   publicServicesPolicyIpRestrictions: false,
-  removePublicServiceIpRestrictions: false
+  removePublicServiceIpRestrictions: false,
 }
 
 function readPoliciesFromEnv() {
   policies = {
     maxReplicasPolicy:
-      (process.env.CLUSTER_POLICY_MAX_REPLICAS &&
-        parseInt(process.env.CLUSTER_POLICY_MAX_REPLICAS)) ||
-      0,
-    clusterPolicyMaxCpuRequest:
-      process.env.CLUSTER_POLICY_MAX_CPU_REQUEST || false,
-    publicServicesPolicyIpRestrictions:
-      process.env.CLUSTER_POLICY_PUBLIC_SERVICES_IP_RESTRICTIONS || "unchanged",
-    removePublicServiceIpRestrictions:
-      process.env.CLUSTER_POLICY_PUBLIC_SERVICES_IP_RESTRICTIONS === "remove",
+      (process.env.CLUSTER_POLICY_MAX_REPLICAS && parseInt(process.env.CLUSTER_POLICY_MAX_REPLICAS)) || 0,
+    clusterPolicyMaxCpuRequest: process.env.CLUSTER_POLICY_MAX_CPU_REQUEST || false,
+    publicServicesPolicyIpRestrictions: process.env.CLUSTER_POLICY_PUBLIC_SERVICES_IP_RESTRICTIONS || "unchanged",
+    removePublicServiceIpRestrictions: process.env.CLUSTER_POLICY_PUBLIC_SERVICES_IP_RESTRICTIONS === "remove",
   }
 }
 
@@ -58,21 +53,17 @@ function applyServicePolicies(serviceDoc, logger) {
   return modified
 }
 
-function applyMaxCpuRequestToContainer(containerspec, logger) {
-  if (
-    containerspec.resources &&
-    containerspec.resources.requests &&
-    containerspec.resources.requests.cpu
-  ) {
+function applyMaxCpuRequestToContainer(containerSpec, logger) {
+  if (containerSpec.resources && containerSpec.resources.requests && containerSpec.resources.requests.cpu) {
     logger.info(
       "Changing CPU request",
-      containerspec.name,
+      containerSpec.name,
       "from",
-      containerspec.resources.requests.cpu,
+      containerSpec.resources.requests.cpu,
       "to",
       policies.clusterPolicyMaxCpuRequest
     )
-    containerspec.resources.requests.cpu = policies.clusterPolicyMaxCpuRequest
+    containerSpec.resources.requests.cpu = policies.clusterPolicyMaxCpuRequest
     return true
   }
   return false
@@ -83,10 +74,7 @@ function applyDeploymentPolicies(deploymentDoc, logger) {
 
   function applyReplicasPolicy() {
     if (policies.maxReplicasPolicy !== 0) {
-      if (
-        deploymentDoc.spec &&
-        deploymentDoc.spec.replicas > policies.maxReplicasPolicy
-      ) {
+      if (deploymentDoc.spec && deploymentDoc.spec.replicas > policies.maxReplicasPolicy) {
         logger.info(
           "Reducing number of replicas in",
           deploymentDoc.metadata.name,
@@ -107,8 +95,7 @@ function applyDeploymentPolicies(deploymentDoc, logger) {
         deploymentDoc.spec.template.spec.containers
       ) {
         for (let containerspec of deploymentDoc.spec.template.spec.containers) {
-          modified =
-            modified || applyMaxCpuRequestToContainer(containerspec, logger)
+          modified = modified || applyMaxCpuRequestToContainer(containerspec, logger)
         }
       }
     }
@@ -122,10 +109,7 @@ function applyHPAPolicies(deploymentDoc, logger) {
   let modified = false
   function applyReplicasPolicy() {
     if (policies.maxReplicasPolicy !== 0) {
-      if (
-        deploymentDoc.spec &&
-        deploymentDoc.spec.maxReplicas > policies.maxReplicasPolicy
-      ) {
+      if (deploymentDoc.spec && deploymentDoc.spec.maxReplicas > policies.maxReplicasPolicy) {
         logger.info(
           "Reducing maxreplicas in HPA ",
           deploymentDoc.metadata.name,
@@ -204,9 +188,7 @@ function applyPoliciesToDoc(rawDoc, logger) {
       return rawDoc
     }
   } catch (e) {
-    let error =
-      "There was an error applying cluster policy to deployment document: \n" +
-      e
+    let error = "There was an error applying cluster policy to deployment document: \n" + e
     error += "In document:\n"
     error += rawDoc
     throw new Error(error)

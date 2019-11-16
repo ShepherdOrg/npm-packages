@@ -118,6 +118,7 @@ describe("herd.yaml loading", function() {
     createTestHerdLoader(labelsLoader, featureDeploymentConfig)
   })
 
+
   it("should load herd.yaml", function() {
     return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
       expect(plan).not.to.equal(undefined)
@@ -127,7 +128,7 @@ describe("herd.yaml loading", function() {
   it("should not log any execution after herd load.", function() {
     return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
       expect(plan).not.to.equal(undefined)
-      expect(loaderLogger.infoLogEntries.length).to.equal(4)
+      expect(loaderLogger.infoLogEntries.length).to.eq(1)
     })
   })
 
@@ -160,9 +161,7 @@ describe("herd.yaml loading", function() {
     })
 
     it("should add k8s deployment found in scanned directory", function() {
-      // expect().fail('LOADED PLAN' + JSON.stringify(loadedPlan, null, 2))
-
-      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].origin).to.equal("namespaces")
+      expect(loadedPlan.addedK8sDeployments["Namespace_monitors"].origin).to.equal("namespaces/monitors-namespace.yml")
     })
 
     it("loaded plan should have herd name", function() {
@@ -254,7 +253,7 @@ describe("herd.yaml loading", function() {
 
     it("should base64decode and untar deployment files under file path", function() {
       expect(loadedPlan.addedK8sDeployments["Service_www-icelandair-com"].origin).to.equal(
-        "testenvimage:0.0.0:kube.config.tar.base64"
+        "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml"
       )
     })
 

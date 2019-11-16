@@ -310,7 +310,7 @@ describe("Docker image plan loader", function() {
       })
 
       it("should contain origin in plan", function() {
-        expect(planNumberOne.origin).to.equal("testenvimage-migrations:0.0.0:kube.config.tar.base64")
+        expect(planNumberOne.origin).to.equal("testenvimage-migrations:0.0.0:tar:./deployment/www-icelandair-com-internal.service.yml")
       })
 
       it("should use apply as default operation", function() {

@@ -1,15 +1,21 @@
 import * as path from "path"
 
-const yamlLoad = require('../k8s-feature-deployment/multipart-yaml-load');
+const yamlLoad = require('./multipart-yaml-load');
+
+type TStringMap = {
+  [key:string]:string
+}
 
 export interface TBranchModificationParams {
+  shouldModify: boolean
   origin?: string
   branchName?: string
   ttlHours?: number
+  nameChangeIndex?: TStringMap
 }
 
 
-function indexNameReferenceChange (deploymentDescriptor, branchModificationParams) {
+export function indexNameReferenceChange (deploymentDescriptor, branchModificationParams) {
   let nameChangeIndex = branchModificationParams.nameChangeIndex || {}
   if (!deploymentDescriptor.metadata) {
     console.warn("deploymentDescriptor without metadata!", deploymentDescriptor)
@@ -20,7 +26,7 @@ function indexNameReferenceChange (deploymentDescriptor, branchModificationParam
     deploymentDescriptor.metadata.name + "-" + branchModificationParams.branchName
 }
 
-function addResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploymentConfig) {
+export function addResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploymentConfig) {
   featureDeploymentConfig.nameChangeIndex = featureDeploymentConfig.nameChangeIndex || {}
   Object.entries(plan.files  as Array<any>).forEach(([fileName, deploymentFileContent]) => {
     let fileExtension = path.extname(fileName)
@@ -44,9 +50,4 @@ function addResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploy
     }
   })
   return featureDeploymentConfig
-}
-
-module.exports = {
-  addResourceNameChangeIndex: addResourceNameChangeIndex,
-  indexNameReferenceChange
 }

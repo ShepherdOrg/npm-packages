@@ -1,4 +1,4 @@
-function processLine(line, options) {
+export function processLine(line, options) {
   let result = ""
 
   let postfix = ""
@@ -81,8 +81,4 @@ function processLine(line, options) {
     }
     return result
   }
-}
-
-module.exports = {
-  processLine,
 }

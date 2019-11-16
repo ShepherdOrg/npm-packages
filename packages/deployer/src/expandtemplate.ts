@@ -20,7 +20,7 @@ Handlebars.registerHelper("Base64Decode", str => {
   return Buffer.from(str, "base64").toString()
 })
 
-module.exports = function(templateString) {
+export function expandTemplate(templateString) {
   var view = Object.assign({}, process.env)
 
   let template

@@ -1,4 +1,4 @@
-import { emptyArray } from "../helpers/ts-functions"
+import { emptyArray } from "../../../helpers/ts-functions"
 
 module.exports = function(yamlString) {
 

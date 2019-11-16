@@ -1,22 +1,22 @@
 import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../helpers/ts-functions"
-import { kubeSupportedExtensions } from "./kube-supported-extensions"
+import { kubeSupportedExtensions } from "./kubectl-deployer/kube-supported-extensions"
 
 const YAML = require("js-yaml")
 const inject = require("@shepherdorg/nano-inject").inject
 
 import Bluebird = require("bluebird")
 import {
-  TDeployerMetadata,
   TFolderDeploymentPlan,
   THerdFolderMap,
-  THerdFolderSpec, TImageDeploymentPlan,
+  THerdFolderSpec, TImageDeploymentAction,
   TImageMap,
   TInfrastructureImageMap,
 } from "./deployment-types"
 import { getShepherdMetadata } from "./add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
+import { TK8sDeploymentAction } from "./kubectl-deployer/create-image-based-kubectl-deployment-action"
 // declare var Promise: Bluebird<any>;
 
 
@@ -44,7 +44,7 @@ module.exports = function(injected) {
     }),
   ).calculateDeploymentActions
 
-  const scanDir = require("./folder-deployment-planner")(
+  const scanDir = require("./kubectl-deployer/folder-deployment-planner")(
     inject({
       kubeSupportedExtensions: {
         ".yml": true,
@@ -163,8 +163,8 @@ module.exports = function(injected) {
                     })
                 })
               },
-              "images": async function(images: TImageMap) : Promise<Array<Promise<TImageDeploymentPlan>>> {
-                let imageDeploymentPlans: Array<Promise<TImageDeploymentPlan>> = Object.entries(images).map(function([imgName, imgObj]) {
+              "images": async function(images: TImageMap) : Promise<Array<Promise<TImageDeploymentAction>>> {
+                let imageDeploymentPlans: Array<Promise<TImageDeploymentAction>> = Object.entries(images).map(function([imgName, imgObj]) {
                   imgObj.herdKey = imgName
                   logger.debug(
                     "Deployment image - loading image meta data for docker image",
@@ -181,7 +181,7 @@ module.exports = function(injected) {
                     .then(function(imagePlans) {
                       return Bluebird.each(imagePlans, releasePlan.addDeployment)
                     })
-                    .then(function(imgPlans: Array<TDeployerMetadata>) {
+                    .then(function(imgPlans: Array<TImageDeploymentAction | TK8sDeploymentAction>) {
                       return imgPlans
                     })
                     .catch(function(e) {

@@ -1,7 +1,7 @@
 import * as fs from "fs"
 import { expect } from "chai"
+import { identifyDocument } from "./k8s-deployment-document-identifier"
 
-const identifier = require("./k8s-deployment-document-identifier")
 describe("k8s deployment document identifier", function() {
 
   let descriptorsInDoc
@@ -13,7 +13,7 @@ describe("k8s deployment document identifier", function() {
       { encoding: "UTF-8" }
     )
 
-    let identifier1 = identifier(rawYamlDoc)
+    let identifier1 = identifyDocument(rawYamlDoc)
     fileIdentity = identifier1.identifyingString
     descriptorsInDoc = identifier1.descriptorsByKind
   })

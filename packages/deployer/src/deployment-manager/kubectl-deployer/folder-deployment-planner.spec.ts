@@ -44,7 +44,7 @@ describe("k8s deployment file directory structure release plan loader", function
 
       let deploymentDirsPath = Path.join(
         __dirname,
-        "../testdata/deployment-dirs"
+        "../../testdata/deployment-dirs"
       )
 
       return scanDir(deploymentDirsPath).then(function(plans) {
@@ -52,6 +52,10 @@ describe("k8s deployment file directory structure release plan loader", function
           plan.addDeployment(deploymentPlan)
         })
       })
+    })
+
+    afterEach(()=>{
+      delete process.env.CLUSTER_POLICY_MAX_CPU_REQUEST
     })
 
     it("should expand env variables in deployment file on load", function() {

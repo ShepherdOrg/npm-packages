@@ -1,17 +1,21 @@
+import { TBranchModificationParams } from "./create-name-change-index"
+
 const JSYAML = require("js-yaml")
 const YAMLload = require("./multipart-yaml-load")
 const { indexNameReferenceChange } = require("./create-name-change-index")
 
 // const path = require('path');
 
-export function modifyDeploymentDocument(fileContents, options) {
-  let cleanedName = options.branchName.replace(/\//g, "-").toLowerCase()
+export function modifyDeploymentDocument(fileContents, branchModificationParams:TBranchModificationParams) {
+
+
+  let cleanedName = branchModificationParams.branchName?.replace(/\//g, "-").toLowerCase()
 
   if (!Boolean(cleanedName)) {
     throw new Error("Must provide a feature name for document modifications")
   }
 
-  let needToIndexChanges = Boolean(!options.nameChangeIndex)
+  let needToIndexChanges = Boolean(!branchModificationParams?.nameChangeIndex)
 
   function addTimeToLive(deploymentDoc) {
     if (!deploymentDoc.metadata) {
@@ -20,10 +24,10 @@ export function modifyDeploymentDocument(fileContents, options) {
     if (!deploymentDoc.metadata.labels) {
       deploymentDoc.metadata.labels = {}
     }
-    if (!options.ttlHours) {
+    if (!branchModificationParams.ttlHours) {
       throw new Error("ttlHours is a required parameter!")
     }
-    deploymentDoc.metadata.labels["ttl-hours"] = `${options.ttlHours}`
+    deploymentDoc.metadata.labels["ttl-hours"] = `${branchModificationParams.ttlHours}`
   }
 
   function adjustEnvironment(container) {
@@ -33,10 +37,11 @@ export function modifyDeploymentDocument(fileContents, options) {
           env.valueFrom &&
           env.valueFrom.secretKeyRef &&
           env.valueFrom.secretKeyRef.name &&
-          options.nameChangeIndex["Secret"] &&
-          options.nameChangeIndex["Secret"][env.valueFrom.secretKeyRef.name]
+          branchModificationParams.nameChangeIndex &&
+          branchModificationParams.nameChangeIndex["Secret"] &&
+          branchModificationParams.nameChangeIndex["Secret"][env.valueFrom.secretKeyRef.name]
         ) {
-          env.valueFrom.secretKeyRef.name = options.nameChangeIndex["Secret"][env.valueFrom.secretKeyRef.name]
+          env.valueFrom.secretKeyRef.name = branchModificationParams.nameChangeIndex["Secret"][env.valueFrom.secretKeyRef.name]
         }
       }
     }
@@ -77,16 +82,14 @@ export function modifyDeploymentDocument(fileContents, options) {
 
         if (template.spec.volumes) {
           for (let volume of template.spec.volumes) {
-            if (volume.configMap && volume.configMap.name && volume.configMap.name === options.configMapName) {
-              volume.configMap.name += "-" + cleanedName
-            }
             if (
               volume.configMap &&
               volume.configMap.name &&
-              options.nameChangeIndex["ConfigMap"] &&
-              options.nameChangeIndex["ConfigMap"][volume.configMap.name]
+              branchModificationParams.nameChangeIndex &&
+              branchModificationParams.nameChangeIndex["ConfigMap"] &&
+              branchModificationParams.nameChangeIndex["ConfigMap"][volume.configMap.name]
             ) {
-              volume.configMap.name = options.nameChangeIndex["ConfigMap"][volume.configMap.name]
+              volume.configMap.name = branchModificationParams.nameChangeIndex["ConfigMap"][volume.configMap.name]
             }
           }
         }
@@ -135,9 +138,9 @@ export function modifyDeploymentDocument(fileContents, options) {
   let yamlFiles = YAMLload(fileContents)
 
   if (needToIndexChanges) {
-    options.nameChangeIndex = {}
+    branchModificationParams.nameChangeIndex = {}
     for (let parsedDocument of yamlFiles) {
-      indexNameReferenceChange(parsedDocument, options)
+      indexNameReferenceChange(parsedDocument, branchModificationParams)
     }
   }
 

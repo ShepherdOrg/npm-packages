@@ -1,6 +1,6 @@
 import { expect } from "chai"
+import { expandTemplate } from "./expandtemplate"
 
-const expandtemplate = require("./expandtemplate")
 describe("expand environment vars using handlebars template syntax", function() {
   beforeEach(function() {
     process.env.ENVVAR_ONE = "TESTVALUE"
@@ -13,14 +13,14 @@ describe("expand environment vars using handlebars template syntax", function() 
   it("should expand simple variable", function() {
     let rawText = "{{ENVVAR_ONE}}"
 
-    let expandedText = expandtemplate(rawText)
+    let expandedText = expandTemplate(rawText)
 
     expect(expandedText).to.equal("TESTVALUE")
   })
 
   it("should throw on missing variable", () => {
     try {
-      expandtemplate("{{ENVVAR_MISSING}}")
+      expandTemplate("{{ENVVAR_MISSING}}")
     } catch (err) {
       expect(err.message).to.contain("Available properties:")
     }
@@ -28,7 +28,7 @@ describe("expand environment vars using handlebars template syntax", function() 
 
   it("should list available properties", () => {
     try {
-      expandtemplate("{{ENVVAR_MISSING}}")
+      expandTemplate("{{ENVVAR_MISSING}}")
     } catch (err) {
       expect(err.message).to.contain("Available properties:")
       expect(err.message).to.contain("ENVVAR_ONE")
@@ -39,7 +39,7 @@ describe("expand environment vars using handlebars template syntax", function() 
     it("Should support base64 encode", () => {
       let rawText = "ENCODED: {{Base64Encode ENVVAR_ONE }}"
 
-      let expandedText = expandtemplate(rawText)
+      let expandedText = expandTemplate(rawText)
 
       expect(expandedText).to.equal("ENCODED: VEVTVFZBTFVF")
     })
@@ -47,7 +47,7 @@ describe("expand environment vars using handlebars template syntax", function() 
     it("Should support base64 encode with newline appended", () => {
       let rawText = 'ENCODED: {{{Base64Encode ENVVAR_ONE "\n"}}}'
 
-      let expandedText = expandtemplate(rawText)
+      let expandedText = expandTemplate(rawText)
 
       expect(expandedText).to.equal("ENCODED: VEVTVFZBTFVFCg==")
     })

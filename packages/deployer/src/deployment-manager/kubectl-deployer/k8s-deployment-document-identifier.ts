@@ -1,10 +1,15 @@
 const YAML = require("js-yaml")
 
-function identifyDocument(deploymentDocument) {
-  try {
-    let descriptorsByKind = {}
 
-    let identifyingString=""
+export type TDescriptorsByKind = {
+  [key: string] : any
+}
+
+export function identifyDocument(deploymentDocument):{identifyingString:string, descriptorsByKind:TDescriptorsByKind} {
+  try {
+    let descriptorsByKind:TDescriptorsByKind = {}
+
+    let identifyingString:string=""
 
     YAML.safeLoadAll(deploymentDocument, (documentPart)=>{
       if(!documentPart){
@@ -35,5 +40,3 @@ function identifyDocument(deploymentDocument) {
     process.exit(255)
   }
 }
-
-module.exports = identifyDocument

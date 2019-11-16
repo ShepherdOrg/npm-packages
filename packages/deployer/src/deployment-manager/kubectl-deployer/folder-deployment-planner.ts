@@ -1,12 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
-import { emptyArray } from "../helpers/ts-functions"
-import { expandEnv } from "../expandenv"
-const expandtemplate = require("../expandtemplate")
-const base64EnvSubst = require("../base64-env-subst").processLine
-
-const identifyDocument = require("../k8s-deployment-document-identifier")
-const applyClusterPolicies = require("../apply-k8s-policy").applyPoliciesToDoc
+import { emptyArray } from "../../helpers/ts-functions"
+import { createKubectlDeployAction } from "./create-kubectl-deployment-action"
 
 module.exports = function(injected) {
   const kubeSupportedExtensions = injected("kubeSupportedExtensions")
@@ -77,6 +72,7 @@ module.exports = function(injected) {
 
                   let dirName = path.basename(path.dirname(resolvedPath))
                   const fileName = path.basename(resolvedPath)
+
                   let imageVariableName = dirName.replace(/-/g, "_") + "_image"
                   if (process.env.hasOwnProperty(imageVariableName)) {
                     process.env.TPL_DOCKER_IMAGE =
@@ -86,39 +82,19 @@ module.exports = function(injected) {
                     }
                   }
 
-                  let lines = data.split("\n")
-                  lines.forEach(function(line, idx) {
-                    try {
-                      lines[idx] = expandEnv(line)
-                      lines[idx] = base64EnvSubst(lines[idx], {})
-                    } catch (e) {
-                      console.debug("Rejecting!", e)
-                      reject(e)
-                    }
-                  })
-
-                  let rawDoc = lines.join("\n")
-
-                  rawDoc = expandtemplate(rawDoc)
+                  const kubeDeploymentRelativePath = path.relative(initialDir, resolvedPath)
+                  const deploymentAction = createKubectlDeployAction(kubeDeploymentRelativePath, data, logger)
 
                   if (process.env.hasOwnProperty(imageVariableName)) {
                     delete process.env.TPL_DOCKER_IMAGE
                   }
 
-                  let deploymentDescriptor = applyClusterPolicies(
-                    rawDoc,
-                    logger
-                  )
-
-                  let documentIdentifier = identifyDocument(
-                    deploymentDescriptor
-                  ).identifyingString
                   let deployment = {
                     operation: dir.forDelete ? "delete" : "apply",
-                    identifier: documentIdentifier,
+                    identifier: deploymentAction.documentIdentifier,
                     version: "immutable",
-                    descriptor: deploymentDescriptor,
-                    origin: path.relative(initialDir, path.dirname(resolvedPath)),
+                    descriptor: deploymentAction.deploymentDescriptor,
+                    origin: deploymentAction.origin,
                     type: "k8s",
                     fileName: fileName
                   }

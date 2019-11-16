@@ -1,9 +1,9 @@
 const JsDiff = require("diff")
 import * as fs from "fs"
-const expect = require("expect.js")
+import { modifyDeploymentDocument } from "./modify-deployment-document"
 
-const modifyRawDoc = require("./modify-deployment-document").modifyDeploymentDocument
-const CreateUpstreamTriggerDeploymentConfig = require('../deployment-manager/create-upstream-trigger-deployment-config').CreateUpstreamTriggerDeploymentConfig
+const expect = require("expect.js")
+const CreateUpstreamTriggerDeploymentConfig = require('../../create-upstream-trigger-deployment-config').CreateUpstreamTriggerDeploymentConfig
 
 function containsDifference(diffArray) {
   for (let diffObj of diffArray) {
@@ -62,7 +62,7 @@ describe("modify k8s deployment document", function() {
     featureDeploymentConfig.branchName = 'new-branch'
     featureDeploymentConfig.ttlHours = 66
 
-    const modifiedRawDoc = modifyRawDoc(rawdoc, featureDeploymentConfig)
+    const modifiedRawDoc = modifyDeploymentDocument(rawdoc, featureDeploymentConfig)
 
     let modifiedKubeYaml = actualDir + "/kube.yaml"
 
