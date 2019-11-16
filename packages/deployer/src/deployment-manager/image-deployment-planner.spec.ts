@@ -5,7 +5,7 @@ import { createImageDeploymentPlanner } from "./image-deployment-planner"
 const inject = require("@shepherdorg/nano-inject").inject
 
 
-function createNewTestDeployerPlanner(featureDeploymentConfig) {
+function createNewTestDeployerPlanner() {
   return createImageDeploymentPlanner(
     inject({
       kubeSupportedExtensions: {
@@ -17,18 +17,17 @@ function createNewTestDeployerPlanner(featureDeploymentConfig) {
         info: () => {
           console.error("INFO", arguments)
         },
-      },
-      featureDeploymentConfig,
-    })
-  ).calculateDeploymentPlan
+      }
+    }),
+  ).calculateDeploymentActions
 }
 
-function loadTestPlans(dockerDeployerMetadata, featureDeploymentConfig) {
-  return getShepherdMetadata(dockerDeployerMetadata).then(createNewTestDeployerPlanner(featureDeploymentConfig))
+function loadTestPlans(dockerDeployerMetadata) {
+  return getShepherdMetadata(dockerDeployerMetadata).then(createNewTestDeployerPlanner())
 }
 
-function loadFirstTestPlan(dockerDeployerMetadata, featureDeploymentConfig) {
-  return loadTestPlans(dockerDeployerMetadata, featureDeploymentConfig).then(plans => {
+function loadFirstTestPlan(dockerDeployerMetadata) {
+  return loadTestPlans(dockerDeployerMetadata).then(plans => {
     // @ts-ignore
     return plans[0]
   })
@@ -54,7 +53,7 @@ async function clearEnv(envObj) {
 
 describe("Docker image plan loader", function() {
   let testEnv = {
-    ENV: "testenv"
+    ENV: "testenv",
   }
 
   before(() => setEnv(testEnv))
@@ -91,7 +90,7 @@ describe("Docker image plan loader", function() {
       }
 
       before(async function() {
-        firstPlan = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerDeployerMetadata, {}))
+        firstPlan = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerDeployerMetadata ))
       })
 
       after(() => clearEnv(testEnv))
@@ -156,7 +155,7 @@ describe("Docker image plan loader", function() {
       }
 
       before(async function() {
-        firstPlan = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerDeployerMetadata, {}))
+        firstPlan = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerDeployerMetadata ))
       })
 
       after(() => clearEnv(testEnv))
@@ -168,7 +167,7 @@ describe("Docker image plan loader", function() {
 
     describe("missing env variables", function() {
       it("should fail with message indicating label containing problematic env reference.", function() {
-        return loadTestPlans(dockerDeployerMetadata, {})
+        return loadTestPlans(dockerDeployerMetadata)
           .then(function() {
             expect.fail("Not expecting to load plan successfully")
           })
@@ -199,7 +198,7 @@ describe("Docker image plan loader", function() {
     let loadedPlan
 
     before(async () =>
-      setEnv(testEnv).then(async () => (loadedPlan = await loadFirstTestPlan(dockerDeployerMetadata, {})))
+      setEnv(testEnv).then(async () => (loadedPlan = await loadFirstTestPlan(dockerDeployerMetadata))),
     )
     after(() => clearEnv(testEnv))
 
@@ -237,7 +236,7 @@ describe("Docker image plan loader", function() {
     let firstPlan
 
     before(async function() {
-      return (firstPlan = await loadFirstTestPlan(dockerImageMetadata, {}))
+      return (firstPlan = await loadFirstTestPlan(dockerImageMetadata))
     })
 
     it("should rewrite docker labels starting with is.icelandairlabs to labels starting with shepherd", () => {
@@ -279,18 +278,18 @@ describe("Docker image plan loader", function() {
 
       before(async function() {
         return (planNumberOne = await setEnv(testEnv).then(() =>
-          loadTestPlans(dockerImageMetadata, {}).then(plans => {
+          loadTestPlans(dockerImageMetadata).then(plans => {
             loadedPlans = plans
             // @ts-ignore
             return plans[0]
-          })
+          }),
         ))
       })
 
       after(() => clearEnv(testEnv))
 
       it("should list all deployments to wait for completion", () => {
-        expect(loadedPlans[2].deploymentRollouts.join('')).to.equal('Deployment/www-icelandair-com')
+        expect(loadedPlans[2].deploymentRollouts.join("")).to.equal("Deployment/www-icelandair-com")
       })
 
       it("should expand handlebars template", () => {
@@ -331,7 +330,7 @@ describe("Docker image plan loader", function() {
       let loadError
       before(function() {
         delete process.env.EXPORT1
-        return loadTestPlans(dockerImageMetadata, {})
+        return loadTestPlans(dockerImageMetadata)
           .then(function() {
             expect.fail("Not expected to succeed!")
           })
@@ -354,7 +353,7 @@ describe("Docker image plan loader", function() {
       })
 
       it("should report variable in error", function() {
-        expect(loadError.message).to.contain('"EXPORT1" not defined')
+        expect(loadError.message).to.contain("\"EXPORT1\" not defined")
       })
     })
   })
@@ -392,7 +391,7 @@ describe("Docker image plan loader", function() {
         WWW_ICELANDAIR_IP_WHITELIST: "YnVsbHNoaXRsaXN0Cg==",
       }
       before(async function() {
-        return (planNumberOne = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerImageMetadata, {})))
+        return (planNumberOne = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerImageMetadata)))
       })
 
       after(() => clearEnv(testEnv))
@@ -414,7 +413,7 @@ describe("Docker image plan loader", function() {
       let loadError
       before(async function() {
         delete process.env.EXPORT1
-        return (loadError = await loadTestPlans(dockerImageMetadata, {}).catch(function(error) {
+        return (loadError = await loadTestPlans(dockerImageMetadata).catch(function(error) {
           return error
         }))
       })
@@ -443,7 +442,7 @@ describe("Docker image plan loader", function() {
         process.env.SUB_DOMAIN_PREFIX = "qwerty"
         process.env.PREFIXED_TOP_DOMAIN_NAME = "qwerty"
         delete process.env.WWW_ICELANDAIR_IP_WHITELIST
-        return (loadError = await loadTestPlans(dockerImageMetadata, {}).catch(function(error) {
+        return (loadError = await loadTestPlans(dockerImageMetadata).catch(function(error) {
           return error
         }))
       })
@@ -466,142 +465,12 @@ describe("Docker image plan loader", function() {
     })
   })
 
-  describe("triggered feature - deployment to k8s using base64 tar", function() {
-    const dockerImageMetadata = {
-      imageDefinition: {
-        herdKey: "regular-deployment",
-        image: "testenvimage-migrations",
-        imagetag: "0.0.0",
-      },
-      dockerLabels: {
-        "shepherd.builddate": "Tue 26 Dec 14:52:54 GMT 2017",
-        "shepherd.dbmigration": "testenvimage-migrations:0.0.0",
-        "shepherd.git.branch": "master",
-        "shepherd.git.hash": "b14892def916aa1fffa9728a5d58f7359f982c02",
-        "shepherd.git.url": "https://github.com/Icelandair/shepherd.git",
-        "shepherd.kube.config.tar.base64":
-          "H4sIAEZiQloAA+1XTXPiOBDlzK9QpXLaKoFtDEz5RhLPrmvCRwEzmRsl7A5Rxba8sgyhsvnvK9t8\nGBsCSSbJTq3fBSy1XkvqVuupVncgcNnSA1/UK+8DRaLdbsa/arupZn/XqKgNTW21G0qrqVcUVdM1\npYKa7zSfHUShIByhyixyXfqM3bH+3xS1bPwXiwWmNrjEdwjl2GZebdtbW3ru63zEAW619EPxbzR0\nbTf+mqqozQpSfu1S9+N/Hn8S0B/AQ8p8A8GDAD/+G9bn6hQEUav31HcMdLVJgqonmx0iiFFFyCce\nGKiYNLLLJVNww9joWTOEBAVuoFvOfOnbqYYB2PEoLj1Sm4QG0uSXAC9wiYCULzuFGFlfR/3t8Rk3\nrf3GoB6ZwUCGewQ2B5Fhxituh9n3wDGHGQ0FX+JAGuMwsV7Z2pKbUF/ubHZ0wmyg88fx4Hpy1b/8\nZg4nVrfzp/m0MTph+vHuhCziNmTIk42gHhW5NjmVIDKQUvuSa/bAY3xpoKaqdXe6OPwdQXiQRz/A\nozVbWZ6A8TwF3u7KQPYa6Iua40qXfidEgAPOHpa5btkmmM1cA40vB89T63p+nlvu8EXkc+ZGHnRZ\n5BfXk3JuwyQzMcQ2yJXnyDkQp++7cpsEjyC/gzH3gIg7A53Vk9H1XcqzvW79GfUfMLHd1zsDYdcT\nmnpMU8/6AX++f7XD772x1TUnZu+HNez3umZvnHMxJ24EXznz8hmUHItbOuuS4Bssh3BbNFjH6fzR\n/DnoD8fq0x6Te5Brk/6LJyt7piaj0fCEY4XDkL/xaLU+7mil2binJB1JwrQ47fpN23rJ8PgSxHkO\nuTkxD72VlVhAweXeBNxEeNfXwd0/kMVUlvzCNuE08os72evKyltIjSDJ601/LZ5M9bNv2P82jum/\nEPhcNr1e/FWO6j9Nfub0n6JJ81L/fQCy+m++1nujNOinij3i+0wQEQtHA6VyapU1sYis3UdT4D4I\nCGuU1ckixC4jDp4SySLrS3ob4+39e/bH2UsUZBhNHebJuz++NUbfL6Sw6nas3mQwNL9aP5/iKaRK\nkwVbu7TTvJqM+4P1gF6nuxJiAognBaJLg40gFctATuFaTvxiNe9qRuTg5K9UNEo6nvAZiB2Rk5c2\nm/VmRut6ozB8LWQK8iVLEIILtmD85XobY1z91SlQZsDvlAGfXYBKfCqO3P+YyizhPnHfIgSO3P9K\nQ2/m7n9NVdrl/f8ReHPx32TIiRV7a78urIUaqsZJkat5ZY17HxzT/+l77k3y/+j5l+/bvP5XlUZ5\n/j8Ce8//5foRf1oF2HnDZ2tARkWtSTaPcwP9gxOj88cLEkJLvwKbOWDc3NxMrEvzutO76ljDiTWY\n3Pxljc1razR+Kg9yiRIlSpQoUaJEiRIlSrwa/wJ4qk95ACgAAA==",
-        "shepherd.lastcommits":
-          "VGh1LCAyMSBEZWMgMjAxNyAxMDo0NTo0NSArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29u\nLiAtLS0gQmV0dGVyIHVzZSByaWdodCBtYWtlIHRhcmdldCBXZWQsIDIwIERlYyAyMDE3IDE4OjE1\nOjUwICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBBIGxpdHRsZSB0cmlja2Vy\neSB0byBtYWtlIGphc21pbmUgcnVubmFibGUgd2l0aCBzcmMgZGlyIG1hcHBlZCBpbiBkb2NrZXIt\nY29tcG9zZS4gV2VkLCAyMCBEZWMgMjAxNyAxNzoxMDozOCArMDAwMCBieSBHdcOwbGF1Z3VyIFMu\nIEVnaWxzc29uLiAtLS0gSmVua2lucyBqb2IgY2Fubm90IHVzZSAtaXQgV2VkLCAyMCBEZWMgMjAx\nNyAxNjo1OToxMyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gQWxsIHRlc3Rz\nIG5vdyBydW5uaW5nIGluIGRvY2tlciBpbWFnZXMuIEFkZGVkIEplbmtpbnNmaWxlLiBQbHVzIGxv\ndHMgb2Ygc21hbGxlciBpbXByb3ZlbWVudHMvY2hhbmdlcy4gV2VkLCAyMCBEZWMgMjAxNyAwOToz\nMToxMCArMDAwMCBieSBHdcOwbGF1Z3VyIEVnaWxzc29uIEBndWxsaS4gLS0tIFJlc29sdmUgdG9k\nbywgZXhpdCB3aXRoIGVycm9yIGlmIGltYWdlIHNwZWNpZmllZCBpcyBub3QgYWN0aW9uYWJsZS4K",
-        "shepherd.name": "Testimage",
-        "shepherd.version": "0.0.0",
-      },
-    }
-
-    describe("triggered successful load", function() {
-      let planNumberOne
-
-      let testEnv = {
-        EXPORT1: "na",
-        SUB_DOMAIN_PREFIX: "na",
-        PREFIXED_TOP_DOMAIN_NAME: "na",
-        WWW_ICELANDAIR_IP_WHITELIST: "YnVsbHNoaXRsaXN0Cg==",
-      }
-
-      before(async function() {
-        const featureDeploymentConfig = {
-          upstreamFeatureDeployment: true,
-          upstreamHerdKey: "regular-deployment",
-          newName: "on-branch-one",
-          ttlHours: 888,
-        }
-        return (planNumberOne = await setEnv(testEnv).then(() =>
-          loadFirstTestPlan(dockerImageMetadata, featureDeploymentConfig)
-        ))
-      })
-
-      after(() => clearEnv(testEnv))
-
-      it("should have triggered feature deployment in origin", function() {
-        expect(planNumberOne.origin).to.contain("regular-deployment::on-branch-one")
-      })
-
-      it("should modify triggered deployment descriptor", function() {
-        expect(planNumberOne.descriptor).to.contain("www-icelandair-com-on-branch-one")
-      })
-
-      it("should modify triggered deployment identifier ", function() {
-        expect(planNumberOne.identifier).to.equal("Deployment_www-icelandair-com-on-branch-one")
-      })
-    })
-
-    describe("feature deployment to k8s using base64 tar ", function() {
-      const dockerImageMetadata = {
-        imageDefinition: {
-          herdKey: "regular-deployment",
-          image: "testenvimage-migrations",
-          imagetag: "0.0.0",
-        },
-        dockerLabels: {
-          "shepherd.builddate": "Tue 26 Dec 14:52:54 GMT 2017",
-          "shepherd.dbmigration": "testenvimage-migrations:0.0.0",
-          "shepherd.git.branch": "master",
-          "shepherd.git.hash": "b14892def916aa1fffa9728a5d58f7359f982c02",
-          "shepherd.git.url": "https://github.com/Icelandair/shepherd.git",
-          "shepherd.kube.config.tar.base64":
-            "H4sIAEZiQloAA+1XTXPiOBDlzK9QpXLaKoFtDEz5RhLPrmvCRwEzmRsl7A5Rxba8sgyhsvnvK9t8\nGBsCSSbJTq3fBSy1XkvqVuupVncgcNnSA1/UK+8DRaLdbsa/arupZn/XqKgNTW21G0qrqVcUVdM1\npYKa7zSfHUShIByhyixyXfqM3bH+3xS1bPwXiwWmNrjEdwjl2GZebdtbW3ru63zEAW619EPxbzR0\nbTf+mqqozQpSfu1S9+N/Hn8S0B/AQ8p8A8GDAD/+G9bn6hQEUav31HcMdLVJgqonmx0iiFFFyCce\nGKiYNLLLJVNww9joWTOEBAVuoFvOfOnbqYYB2PEoLj1Sm4QG0uSXAC9wiYCULzuFGFlfR/3t8Rk3\nrf3GoB6ZwUCGewQ2B5Fhxituh9n3wDGHGQ0FX+JAGuMwsV7Z2pKbUF/ubHZ0wmyg88fx4Hpy1b/8\nZg4nVrfzp/m0MTph+vHuhCziNmTIk42gHhW5NjmVIDKQUvuSa/bAY3xpoKaqdXe6OPwdQXiQRz/A\nozVbWZ6A8TwF3u7KQPYa6Iua40qXfidEgAPOHpa5btkmmM1cA40vB89T63p+nlvu8EXkc+ZGHnRZ\n5BfXk3JuwyQzMcQ2yJXnyDkQp++7cpsEjyC/gzH3gIg7A53Vk9H1XcqzvW79GfUfMLHd1zsDYdcT\nmnpMU8/6AX++f7XD772x1TUnZu+HNez3umZvnHMxJ24EXznz8hmUHItbOuuS4Bssh3BbNFjH6fzR\n/DnoD8fq0x6Te5Brk/6LJyt7piaj0fCEY4XDkL/xaLU+7mil2binJB1JwrQ47fpN23rJ8PgSxHkO\nuTkxD72VlVhAweXeBNxEeNfXwd0/kMVUlvzCNuE08os72evKyltIjSDJ601/LZ5M9bNv2P82jum/\nEPhcNr1e/FWO6j9Nfub0n6JJ81L/fQCy+m++1nujNOinij3i+0wQEQtHA6VyapU1sYis3UdT4D4I\nCGuU1ckixC4jDp4SySLrS3ob4+39e/bH2UsUZBhNHebJuz++NUbfL6Sw6nas3mQwNL9aP5/iKaRK\nkwVbu7TTvJqM+4P1gF6nuxJiAognBaJLg40gFctATuFaTvxiNe9qRuTg5K9UNEo6nvAZiB2Rk5c2\nm/VmRut6ozB8LWQK8iVLEIILtmD85XobY1z91SlQZsDvlAGfXYBKfCqO3P+YyizhPnHfIgSO3P9K\nQ2/m7n9NVdrl/f8ReHPx32TIiRV7a78urIUaqsZJkat5ZY17HxzT/+l77k3y/+j5l+/bvP5XlUZ5\n/j8Ce8//5foRf1oF2HnDZ2tARkWtSTaPcwP9gxOj88cLEkJLvwKbOWDc3NxMrEvzutO76ljDiTWY\n3Pxljc1razR+Kg9yiRIlSpQoUaJEiRIlSrwa/wJ4qk95ACgAAA==",
-          "shepherd.lastcommits":
-            "VGh1LCAyMSBEZWMgMjAxNyAxMDo0NTo0NSArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29u\nLiAtLS0gQmV0dGVyIHVzZSByaWdodCBtYWtlIHRhcmdldCBXZWQsIDIwIERlYyAyMDE3IDE4OjE1\nOjUwICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBBIGxpdHRsZSB0cmlja2Vy\neSB0byBtYWtlIGphc21pbmUgcnVubmFibGUgd2l0aCBzcmMgZGlyIG1hcHBlZCBpbiBkb2NrZXIt\nY29tcG9zZS4gV2VkLCAyMCBEZWMgMjAxNyAxNzoxMDozOCArMDAwMCBieSBHdcOwbGF1Z3VyIFMu\nIEVnaWxzc29uLiAtLS0gSmVua2lucyBqb2IgY2Fubm90IHVzZSAtaXQgV2VkLCAyMCBEZWMgMjAx\nNyAxNjo1OToxMyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gQWxsIHRlc3Rz\nIG5vdyBydW5uaW5nIGluIGRvY2tlciBpbWFnZXMuIEFkZGVkIEplbmtpbnNmaWxlLiBQbHVzIGxv\ndHMgb2Ygc21hbGxlciBpbXByb3ZlbWVudHMvY2hhbmdlcy4gV2VkLCAyMCBEZWMgMjAxNyAwOToz\nMToxMCArMDAwMCBieSBHdcOwbGF1Z3VyIEVnaWxzc29uIEBndWxsaS4gLS0tIFJlc29sdmUgdG9k\nbywgZXhpdCB3aXRoIGVycm9yIGlmIGltYWdlIHNwZWNpZmllZCBpcyBub3QgYWN0aW9uYWJsZS4K",
-          "shepherd.name": "Testimage",
-          "shepherd.version": "0.0.0",
-        },
-      }
-      const testEnv = {
-        EXPORT1: "na",
-        SUB_DOMAIN_PREFIX: "na",
-        PREFIXED_TOP_DOMAIN_NAME: "na",
-        WWW_ICELANDAIR_IP_WHITELIST: "YnVsbHNoaXRsaXN0Cg==",
-      }
-      const featureDeploymentConfig = {
-        upstreamFeatureDeployment: true,
-        upstreamHerdKey: "regular-deployment",
-        newName: "on-branch-one",
-        ttlHours: "99",
-      }
-
-      let planOne
-
-      before(async function() {
-        return (planOne = await setEnv(testEnv).then(() =>
-          loadFirstTestPlan(dockerImageMetadata, featureDeploymentConfig)
-        ))
-      })
-
-      after(() => clearEnv(testEnv))
-
-      it("should have feature deployment in origin", function() {
-        expect(planOne.origin).to.contain("regular-deployment::on-branch-one")
-      })
-
-      it("should modify deployment descriptor", function() {
-        expect(planOne.descriptor).to.contain("www-icelandair-com-on-branch-one")
-      })
-
-      it("should modify deployment identifier ", function() {
-        expect(planOne.identifier).to.equal("Deployment_www-icelandair-com-on-branch-one")
-      })
-
-      it("should modify configmap identifier ", function() {
-        expect(planOne.descriptor).to.contain("www-icelandair-com-on-branch-one")
-      })
-
-      it("should modify configmap references ", function() {
-        expect(planOne.descriptor).to.contain("www-icelandair-com-nginx-acls-on-branch-one")
-      })
-
-      it("should set time to live", () => {
-        expect(planOne.descriptor).to.contain(" ttl-hours:")
-      })
-
-      it("should set time to live as quoted value", () => {
-        expect(planOne.descriptor).to.contain(" ttl-hours: '99'")
-      })
-    })
-  })
 
   describe("with invalid base64 tar archive", function() {
-    xit("should give meaningful message if base64tar archive is not legal", function() {})
+    xit("should give meaningful message if base64tar archive is not legal", function() {
+    })
 
-    xit("should give meaningful message if file in archive is binary", function() {})
+    xit("should give meaningful message if file in archive is binary", function() {
+    })
   })
 })

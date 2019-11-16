@@ -89,7 +89,7 @@ describe("herd.yaml loading", function() {
       getDockerRegistryClientsFromConfig() {
         return {}
       },
-      imageLabelsLoader() {
+      imageLabelsLoader(_injected:any) {
         return {
           getImageLabels(imageDef) {
             let dockerImageMetadataFile = path.join(
@@ -202,7 +202,7 @@ describe("herd.yaml loading", function() {
       featureDeploymentConfig.upstreamHerdDescription = "Very much a testing image"
       featureDeploymentConfig.upstreamFeatureDeployment = true
       featureDeploymentConfig.ttlHours = '22'
-      featureDeploymentConfig.newName = 'feature-XYZ'
+      featureDeploymentConfig.branchName = 'feature-XYZ'
     })
 
     after(()=>{
@@ -214,7 +214,7 @@ describe("herd.yaml loading", function() {
       delete featureDeploymentConfig.upstreamImageTag
       delete featureDeploymentConfig.upstreamHerdDescription
       delete featureDeploymentConfig.ttlHours
-      delete featureDeploymentConfig.newName
+      delete featureDeploymentConfig.branchName
     })
 
     beforeEach(function() {

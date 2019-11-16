@@ -42,7 +42,7 @@ module.exports = function(injected) {
       logger,
       featureDeploymentConfig,
     }),
-  ).calculateDeploymentPlan
+  ).calculateDeploymentActions
 
   const scanDir = require("./folder-deployment-planner")(
     inject({
@@ -73,7 +73,7 @@ module.exports = function(injected) {
   }
 
   return {
-    loadHerd(fileName, environment) {
+    loadHerd(fileName, environment?) {
       return new Promise(function(resolve, reject) {
         try {
           if (fs.existsSync(fileName)) {

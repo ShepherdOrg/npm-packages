@@ -4,18 +4,25 @@ import { emptyArray } from "../helpers/ts-functions"
 
 import { expandEnv } from "../expandenv"
 import { TImageDeploymentPlan } from "./deployment-types"
+import { TBranchModificationParams } from "../k8s-feature-deployment/create-name-change-index"
+import { modifyDeploymentDocument } from "../k8s-feature-deployment/modify-deployment-document"
 
 const identifyDocument = require("../k8s-deployment-document-identifier")
 const expandTemplate = require("../expandtemplate")
 
 const applyClusterPolicies = require("../apply-k8s-policy").applyPoliciesToDoc
-const modifyDeploymentDocument = require("../k8s-feature-deployment/modify-deployment-document").modifyRawDocument
 const base64EnvSubst = require("../base64-env-subst").processLine
 const options = require("./options")
 
 const addResourceNameChangeIndex = require("../k8s-feature-deployment/create-name-change-index").addResourceNameChangeIndex
 
-function deployerPlan(imageInformation, shepherdMetadata, herdKey: string, displayName: string): Array<TImageDeploymentPlan> {
+function calculateDeployerAction(imageInformation): Array<TImageDeploymentPlan> {
+
+  const shepherdMetadata = imageInformation.shepherdMetadata
+  const herdKey: string = imageInformation.imageDefinition.herdKey
+  const displayName: string = imageInformation.shepherdMetadata.displayName
+
+
   let dockerImageWithVersion =
     imageInformation.imageDefinition.dockerImage ||
     imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
@@ -32,7 +39,7 @@ function deployerPlan(imageInformation, shepherdMetadata, herdKey: string, displ
     operation: "run",
     command: "deploy",
     identifier: herdKey,
-    herdKey: herdKey
+    herdKey: herdKey,
   }
 
   let envList = ["ENV={{ ENV }}"]
@@ -63,12 +70,12 @@ function deployerPlan(imageInformation, shepherdMetadata, herdKey: string, displ
   return [plan]
 }
 
+
 export function createImageDeploymentPlanner(injected) {
   const kubeSupportedExtensions = injected("kubeSupportedExtensions")
   const logger = injected("logger")
-  const featureDeploymentConfig = injected("featureDeploymentConfig")
 
-  async function createK8sFileDeploymentPlan(deploymentFileContent, imageInformation, fileName, featureDeploymentConfig) {
+  async function createK8sFileDeploymentAction(deploymentFileContent, imageInformation, fileName, featureDeploymentConfig) {
     let origin =
       imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag + ":kube.config.tar.base64"
 
@@ -139,7 +146,11 @@ export function createImageDeploymentPlanner(injected) {
     }
   }
 
-  function kubeDeploymentPlan(shepherdMetadata: any, imageInformation, imageFeatureDeploymentConfig, herdKey: string, displayName: string) {
+  function calculateKubectlActions(imageInformation ) {
+
+    const shepherdMetadata: any = imageInformation.shepherdMetadata
+    const herdKey: string = imageInformation.imageDefinition.herdKey
+    const displayName: string = imageInformation.shepherdMetadata.displayName
 
     const plan: any = {
       herdKey: herdKey,
@@ -151,54 +162,37 @@ export function createImageDeploymentPlanner(injected) {
     plan.dockerLabels = imageInformation.dockerLabels
 
 
-    let planPromises = emptyArray<any>()
+    let deploymentActions = emptyArray<any>()
 
-    let featureDeploymentIsEnabled =
-      imageFeatureDeploymentConfig.upstreamFeatureDeployment || imageInformation.imageDefinition.featureDeployment
-    if (featureDeploymentIsEnabled) {
+    let branchDeploymentEnabled = imageInformation.imageDefinition.featureDeployment
 
-      let isTargetForUpstreamFeatureDeployment = imageFeatureDeploymentConfig.upstreamFeatureDeployment &&
-        imageFeatureDeploymentConfig.upstreamHerdKey === imageInformation.imageDefinition.herdKey
+    const branchModificationParams : TBranchModificationParams = {}
 
-      imageFeatureDeploymentConfig.ttlHours =
-        imageInformation.imageDefinition.timeToLiveHours || imageFeatureDeploymentConfig.ttlHours
+    if (branchDeploymentEnabled) {
 
-      imageInformation.isTargetForFeatureDeployment = isTargetForUpstreamFeatureDeployment || imageInformation.imageDefinition.featureDeployment
+      // console.log('featureDeploymentIsEnabled', branchDeploymentEnabled)
+      branchModificationParams.ttlHours =
+        imageInformation.imageDefinition.timeToLiveHours || branchModificationParams.ttlHours
 
-      delete imageFeatureDeploymentConfig.upstreamFeatureDeployment
+      imageInformation.isTargetForFeatureDeployment = imageInformation.imageDefinition.featureDeployment
 
-      if (isTargetForUpstreamFeatureDeployment) {
-        imageFeatureDeploymentConfig.origin =
-          imageInformation.imageDefinition.herdKey + "::" + imageFeatureDeploymentConfig.newName
-      } else {
         // Feature deployment specified in herdfile
-        imageFeatureDeploymentConfig.newName = imageInformation.imageDefinition.herdKey
-        imageFeatureDeploymentConfig.origin =
-          imageInformation.imageDefinition.herdKey + "::" + imageFeatureDeploymentConfig.newName
-      }
-      imageInformation.origin = imageFeatureDeploymentConfig.origin
+      branchModificationParams.branchName = imageInformation.imageDefinition.branchName || imageInformation.imageDefinition.herdKey
+      branchModificationParams.origin = imageInformation.imageDefinition.herdKey + "::" + branchModificationParams.branchName
+
+      imageInformation.origin = branchModificationParams.origin
     }
 
     if (imageInformation.isTargetForFeatureDeployment) {
-      if (!Boolean(imageFeatureDeploymentConfig.ttlHours)) {
+      if (!Boolean(branchModificationParams.ttlHours)) {
         throw new Error(
           `${imageInformation.imageDefinition.herdKey}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`,
         )
       }
-      try {
-        if (typeof imageFeatureDeploymentConfig.ttlHours === "string") {
-          imageFeatureDeploymentConfig.ttlHours = parseInt(imageFeatureDeploymentConfig.ttlHours, 10)
-        }
-      } catch (err) {
-        throw new Error(
-          `Error parsing time-to-live-hours setting ${imageFeatureDeploymentConfig.ttlHours}, must be an integer`,
-        )
-      }
-
       addResourceNameChangeIndex(
         plan,
         kubeSupportedExtensions,
-        imageFeatureDeploymentConfig,
+        branchModificationParams,
       )
     }
 
@@ -213,8 +207,8 @@ export function createImageDeploymentPlanner(injected) {
           // let deployment = calculateFileDeploymentPlan();
           //
           // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
-          planPromises.push(
-            createK8sFileDeploymentPlan(deploymentFileContent, imageInformation, fileName, imageFeatureDeploymentConfig),
+          deploymentActions.push(
+            createK8sFileDeploymentAction(deploymentFileContent, imageInformation, fileName, branchModificationParams),
           )
         }
       } catch (e) {
@@ -222,21 +216,21 @@ export function createImageDeploymentPlanner(injected) {
         throw new Error(error + e.message)
       }
     })
-    return Promise.all(planPromises)
+    return Promise.all(deploymentActions)
   }
 
-  async function calculateDeploymentPlan(imageInformation) {
+  async function calculateDeploymentActions(imageInformation) {
     if (imageInformation.shepherdMetadata) {
-      let imageFeatureDeploymentConfig = Object.assign({}, featureDeploymentConfig)
+
       if (imageInformation.shepherdMetadata.deploymentType === "deployer") {
-        return deployerPlan(imageInformation, imageInformation.shepherdMetadata, imageInformation.imageDefinition.herdKey, imageInformation.shepherdMetadata.displayName)
+        return calculateDeployerAction(imageInformation)
       } else if (imageInformation.shepherdMetadata.deploymentType === "k8s") {
-        return kubeDeploymentPlan(imageInformation.shepherdMetadata, imageInformation, imageFeatureDeploymentConfig, imageInformation.imageDefinition.herdKey, imageInformation.shepherdMetadata.displayName)
+        return calculateKubectlActions(imageInformation)
       } else {
         throw new Error(`Unexpected: No planner in place for deploymentType ${imageInformation.shepherdMetadata.deploymentType} in ${imageInformation.shepherdMetadata.displayName} `)
       }
     }
   }
 
-  return { calculateDeploymentPlan: calculateDeploymentPlan }
+  return { calculateDeploymentActions: calculateDeploymentActions }
 }

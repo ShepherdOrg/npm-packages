@@ -2,15 +2,22 @@ import * as path from "path"
 
 const yamlLoad = require('../k8s-feature-deployment/multipart-yaml-load');
 
-function indexNameReferenceChange (deploymentDescriptor, featureDeploymentConfig) {
-  let nameChangeIndex = featureDeploymentConfig.nameChangeIndex || {}
+export interface TBranchModificationParams {
+  origin?: string
+  branchName?: string
+  ttlHours?: number
+}
+
+
+function indexNameReferenceChange (deploymentDescriptor, branchModificationParams) {
+  let nameChangeIndex = branchModificationParams.nameChangeIndex || {}
   if (!deploymentDescriptor.metadata) {
     console.warn("deploymentDescriptor without metadata!", deploymentDescriptor)
     return
   }
   nameChangeIndex[deploymentDescriptor.kind] = nameChangeIndex[deploymentDescriptor.kind] || {}
   nameChangeIndex[deploymentDescriptor.kind][deploymentDescriptor.metadata.name] =
-    deploymentDescriptor.metadata.name + "-" + featureDeploymentConfig.newName
+    deploymentDescriptor.metadata.name + "-" + branchModificationParams.branchName
 }
 
 function addResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploymentConfig) {

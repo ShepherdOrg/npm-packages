@@ -3,13 +3,14 @@ import { newProgrammerOops } from "oops-error"
 type THerdFileStructure = any
 
 export interface TFeatureDeploymentConfig {
+  origin?: string
   imageFileName?: string
   ttlHours?: number
   upstreamHerdDescription?: string
   upstreamImageTag?: string
   upstreamImageName?: string
   upstreamHerdKey?: string
-  newName?: string
+  branchName?: string
 
   isUpstreamFeatureDeployment(): boolean
   asHerd():THerdFileStructure
@@ -22,7 +23,7 @@ export function CreateUpstreamTriggerDeploymentConfig(logger) {
   const featureDeploymentConfig:TFeatureDeploymentConfig = {
 
     isUpstreamFeatureDeployment() {
-      return Boolean(featureDeploymentConfig.newName)
+      return Boolean(featureDeploymentConfig.branchName)
     },
     asHerd() {
       let images = {}
@@ -40,6 +41,8 @@ export function CreateUpstreamTriggerDeploymentConfig(logger) {
         imagetag: featureDeploymentConfig.upstreamImageTag,
         description: featureDeploymentConfig.upstreamHerdDescription,
         timeToLiveHours: featureDeploymentConfig.ttlHours,
+        featureDeployment: true,
+        branchName: featureDeploymentConfig.branchName
       }
       return {
         images: images,
@@ -65,7 +68,7 @@ export function CreateUpstreamTriggerDeploymentConfig(logger) {
         featureDeploymentConfig.upstreamHerdDescription = environment.UPSTREAM_HERD_DESCRIPTION
         if (environment.FEATURE_NAME && environment.FEATURE_TTL_HOURS) {
           logger.info("Feature deployment information available, new name: " + environment.FEATURE_NAME + " to live for " + environment.FEATURE_TTL_HOURS + " hours")
-          featureDeploymentConfig.newName = environment.FEATURE_NAME.replace(/\//g, "-").toLowerCase()
+          featureDeploymentConfig.branchName = environment.FEATURE_NAME.replace(/\//g, "-").toLowerCase()
           featureDeploymentConfig.ttlHours = Number.parseInt(environment.FEATURE_TTL_HOURS, 10)
         }
       }

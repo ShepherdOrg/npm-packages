@@ -1,5 +1,5 @@
-const CreateUpstreamTriggerDeploymentConfig = require("./create-upstream-trigger-deployment-config")
-  .CreateUpstreamTriggerDeploymentConfig
+import { CreateUpstreamTriggerDeploymentConfig } from "./create-upstream-trigger-deployment-config"
+
 const expect = require("chai").expect
 
 describe("Upstream triggered deployment config ", function() {
@@ -19,7 +19,7 @@ describe("Upstream triggered deployment config ", function() {
       upstreamImageName: "envimagename",
       upstreamImageTag: "envtag",
       upstreamHerdDescription: "env description",
-      newName: "newnamein-alllowercaps",
+      branchName: "newnamein-alllowercaps",
       ttlHours: 999,
     }
     let config
@@ -73,8 +73,8 @@ describe("Upstream triggered deployment config ", function() {
       config.upstreamImageName = "repo/someimage"
       config.upstreamImageTag = "9999"
       config.upstreamHerdDescription = "yet another test"
-      config.newName = "featuroUno"
-      config.ttlHours = "676"
+      config.branchName = "featuroUno"
+      config.ttlHours = 676
     })
 
     it("should generate a herdfile like structure for creating a deployment plan for branch deployment", () => {
@@ -82,7 +82,8 @@ describe("Upstream triggered deployment config ", function() {
       expect(asHerd.images["thekey"].image).to.equal("repo/someimage")
       expect(asHerd.images["thekey"].imagetag).to.equal("9999")
       expect(asHerd.images["thekey"].description).to.equal("yet another test")
-      expect(asHerd.images["thekey"].timeToLiveHours).to.equal("676")
+      expect(asHerd.images["thekey"].timeToLiveHours).to.equal(676)
+      expect(asHerd.images["thekey"].featureDeployment).to.equal(true)
     })
 
     it("should not indicate herdfile modification", () => {

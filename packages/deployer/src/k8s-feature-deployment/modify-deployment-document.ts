@@ -4,8 +4,8 @@ const { indexNameReferenceChange } = require("./create-name-change-index")
 
 // const path = require('path');
 
-function modifyRawDocument(fileContents, options) {
-  let cleanedName = options.newName.replace(/\//g, "-").toLowerCase()
+export function modifyDeploymentDocument(fileContents, options) {
+  let cleanedName = options.branchName.replace(/\//g, "-").toLowerCase()
 
   if (!Boolean(cleanedName)) {
     throw new Error("Must provide a feature name for document modifications")
@@ -41,6 +41,7 @@ function modifyRawDocument(fileContents, options) {
       }
     }
   }
+
 
   function adjustNames(deploymentSection) {
     deploymentSection.name && (deploymentSection.name += "-" + cleanedName)
@@ -164,6 +165,3 @@ function modifyRawDocument(fileContents, options) {
   return outfiles
 }
 
-module.exports = {
-  modifyRawDocument: modifyRawDocument,
-}
