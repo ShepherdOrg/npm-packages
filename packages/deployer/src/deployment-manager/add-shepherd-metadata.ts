@@ -1,4 +1,5 @@
 import * as _ from "lodash"
+import { TDeployerMetadata, TK8sMetadata  } from "@shepherdorg/metadata"
 
 const extractShepherdMetadata = require("@shepherdorg/metadata/dist/dockerLabelParser")
   .extractShepherdMetadata
@@ -21,19 +22,17 @@ function rewriteDockerLabels(
   return result
 }
 
-const addShepherdMetadata = async imageMetadata => {
+export async function getShepherdMetadata (dockerImageMetadata:any) {
   let imageLabels = rewriteDockerLabels(
-    imageMetadata.dockerLabels,
+    dockerImageMetadata.dockerLabels,
     "is.icelandairlabs",
     "shepherd"
   )
-  const shepherdMetadata = await extractShepherdMetadata(imageLabels)
+  const shepherdMetadata: TDeployerMetadata | TK8sMetadata = await extractShepherdMetadata(imageLabels)
 
   return {
-    imageDefinition: imageMetadata.imageDefinition,
+    imageDefinition: dockerImageMetadata.imageDefinition,
     // dockerLabels: imageMetadata.dockerLabels, // If we need dockerlabels in the future, this is the place to put it in again.
     shepherdMetadata: shepherdMetadata,
   }
 }
-
-module.exports = addShepherdMetadata

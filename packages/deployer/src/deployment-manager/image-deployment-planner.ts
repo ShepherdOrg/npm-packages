@@ -3,6 +3,7 @@ import * as path from "path"
 import { emptyArray } from "../helpers/ts-functions"
 
 import { expandEnv } from "../expandenv"
+import { TImageDeploymentPlan } from "./deployment-types"
 
 const identifyDocument = require("../k8s-deployment-document-identifier")
 const expandTemplate = require("../expandtemplate")
@@ -14,23 +15,25 @@ const options = require("./options")
 
 const addResourceNameChangeIndex = require("../k8s-feature-deployment/create-name-change-index").addResourceNameChangeIndex
 
-function deployerPlan (imageInformation, plan, shepherdMetadata) {
+function deployerPlan(imageInformation, shepherdMetadata, herdKey: string, displayName: string): Array<TImageDeploymentPlan> {
   let dockerImageWithVersion =
     imageInformation.imageDefinition.dockerImage ||
     imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
 
-  Object.assign(plan, {
+  const plan: TImageDeploymentPlan = {
+    displayName: displayName,
     metadata: shepherdMetadata,
     herdSpec: imageInformation.imageDefinition,
     dockerParameters: ["-i", "--rm"],
     forTestParameters: undefined,
     imageWithoutTag: dockerImageWithVersion.replace(/:.*/g, ""), // For regression testing
-    origin: plan.herdKey,
+    origin: herdKey,
     type: "deployer",
     operation: "run",
     command: "deploy",
-    identifier: plan.herdKey,
-  })
+    identifier: herdKey,
+    herdKey: herdKey
+  }
 
   let envList = ["ENV={{ ENV }}"]
 
@@ -60,12 +63,12 @@ function deployerPlan (imageInformation, plan, shepherdMetadata) {
   return [plan]
 }
 
-module.exports = function(injected) {
+export function createImageDeploymentPlanner(injected) {
   const kubeSupportedExtensions = injected("kubeSupportedExtensions")
   const logger = injected("logger")
   const featureDeploymentConfig = injected("featureDeploymentConfig")
 
-  async function createK8sFileDeploymentPlan (deploymentFileContent, imageInformation, fileName, featureDeploymentConfig) {
+  async function createK8sFileDeploymentPlan(deploymentFileContent, imageInformation, fileName, featureDeploymentConfig) {
     let origin =
       imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag + ":kube.config.tar.base64"
 
@@ -113,11 +116,11 @@ module.exports = function(injected) {
     let loadedDescriptor = identifyDocument(deploymentDescriptor)
     let documentIdentifier = loadedDescriptor.identifyingString
     let descriptorsByKind = loadedDescriptor.descriptorsByKind
-    
+
     let deploymentRollouts = []
-    if(Boolean(descriptorsByKind['Deployment'])){
-      deploymentRollouts = descriptorsByKind['Deployment'].map((deploymentDoc)=>{
-        return deploymentDoc.kind + '/' + deploymentDoc.metadata.name
+    if (Boolean(descriptorsByKind["Deployment"])) {
+      deploymentRollouts = descriptorsByKind["Deployment"].map((deploymentDoc) => {
+        return deploymentDoc.kind + "/" + deploymentDoc.metadata.name
       })
     }
 
@@ -132,14 +135,22 @@ module.exports = function(injected) {
       type: "k8s",
       fileName: fileName,
       herdKey: imageInformation.imageDefinition.herdKey,
-      deploymentRollouts: deploymentRollouts
+      deploymentRollouts: deploymentRollouts,
     }
   }
 
-  function kubeDeploymentPlan (shepherdMetadata:any, plan, imageInformation, imageFeatureDeploymentConfig) {
+  function kubeDeploymentPlan(shepherdMetadata: any, imageInformation, imageFeatureDeploymentConfig, herdKey: string, displayName: string) {
+
+    const plan: any = {
+      herdKey: herdKey,
+      displayName: displayName,
+    }
+
     plan.files = shepherdMetadata.kubeDeploymentFiles
     plan.deployments = {}
     plan.dockerLabels = imageInformation.dockerLabels
+
+
     let planPromises = emptyArray<any>()
 
     let featureDeploymentIsEnabled =
@@ -214,28 +225,18 @@ module.exports = function(injected) {
     return Promise.all(planPromises)
   }
 
-  async function createImageDeployerPlan (imageInformation) {
+  async function calculateDeploymentPlan(imageInformation) {
     if (imageInformation.shepherdMetadata) {
-      const shepherdMetadata = imageInformation.shepherdMetadata
-
       let imageFeatureDeploymentConfig = Object.assign({}, featureDeploymentConfig)
-
-      let plan = {
-        displayName: shepherdMetadata.displayName,
-        herdKey: imageInformation.imageDefinition.herdKey, // TODO Rename imageDefinition -> herdSpec
-      }
-
-      if (shepherdMetadata.deploymentType === "deployer") {
-        return deployerPlan(imageInformation, plan, shepherdMetadata)
+      if (imageInformation.shepherdMetadata.deploymentType === "deployer") {
+        return deployerPlan(imageInformation, imageInformation.shepherdMetadata, imageInformation.imageDefinition.herdKey, imageInformation.shepherdMetadata.displayName)
+      } else if (imageInformation.shepherdMetadata.deploymentType === "k8s") {
+        return kubeDeploymentPlan(imageInformation.shepherdMetadata, imageInformation, imageFeatureDeploymentConfig, imageInformation.imageDefinition.herdKey, imageInformation.shepherdMetadata.displayName)
       } else {
-        if (shepherdMetadata.deploymentType === "k8s") {
-          return kubeDeploymentPlan(shepherdMetadata, plan, imageInformation, imageFeatureDeploymentConfig)
-        } else {
-          throw new Error(`FALLING THROUGH ${shepherdMetadata.displayName} - ${shepherdMetadata.deploymentType}`)
-        }
+        throw new Error(`Unexpected: No planner in place for deploymentType ${imageInformation.shepherdMetadata.deploymentType} in ${imageInformation.shepherdMetadata.displayName} `)
       }
     }
   }
 
-  return { createImageDeployerPlan }
+  return { calculateDeploymentPlan: calculateDeploymentPlan }
 }

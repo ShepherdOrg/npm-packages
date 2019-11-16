@@ -2,7 +2,7 @@ import { newProgrammerOops } from "oops-error"
 
 type THerdFileStructure = any
 
-interface TFeatureDeploymentConfig {
+export interface TFeatureDeploymentConfig {
   imageFileName?: string
   ttlHours?: number
   upstreamHerdDescription?: string

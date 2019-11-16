@@ -1,6 +1,5 @@
 {
   "displayName": "Testimage",
-  "herdKey": "testenvimage-migrations:0.0.0",
   "metadata": {
     "displayName": "Testimage",
     "buildDate": "Wed Oct 30 11:38:49 GMT 2019",
@@ -58,6 +57,7 @@
   "operation": "run",
   "command": "ls",
   "identifier": "testenvimage-migrations:0.0.0",
+  "herdKey": "testenvimage-migrations:0.0.0",
   "env": "integratedtestenv",
   "descriptor": "-i --rm -e ENV=testit -e EXPORT1=nowhardcoded -e DB_HOST=postgres-local -e DB_PASS=somedbpass -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0",
   "state": {

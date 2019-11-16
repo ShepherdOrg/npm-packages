@@ -138,7 +138,7 @@ module.exports = function(injected) {
                     return plans
                   })
                   .catch(function(scanErr) {
-                    reject("While scanning " + resolvedPath + ":" + scanErr)
+                    reject(new Error("While scanning " + resolvedPath + ":" + scanErr))
                   })
               )
             } else {
@@ -158,12 +158,12 @@ module.exports = function(injected) {
                       })
                       .catch(function(e) {
                         pending = -1
-                        reject(
+                        reject(new Error(
                           "Storing deployment state, for file " +
                             resolvedPath +
                             ":\n" +
                             e
-                        )
+                        ))
                       })
                   )
                 } else {
@@ -173,7 +173,7 @@ module.exports = function(injected) {
                 pending = -1
                 // Not well tested handling of this error is
                 console.error("Scan error", e)
-                reject("In file " + resolvedPath + ":\n" + e + dir)
+                reject(new Error("In file " + resolvedPath + ":\n" + e + dir))
               }
             }
           })

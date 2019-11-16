@@ -7,12 +7,19 @@ const YAML = require("js-yaml")
 const inject = require("@shepherdorg/nano-inject").inject
 
 import Bluebird = require("bluebird")
+import {
+  TDeployerMetadata,
+  TFolderDeploymentPlan,
+  THerdFolderMap,
+  THerdFolderSpec, TImageDeploymentPlan,
+  TImageMap,
+  TInfrastructureImageMap,
+} from "./deployment-types"
+import { getShepherdMetadata } from "./add-shepherd-metadata"
+import { createImageDeploymentPlanner } from "./image-deployment-planner"
 // declare var Promise: Bluebird<any>;
 
 
-const ImageDeployermentPlanner = require("./image-deployment-planner")
-
-const addShepherdMetadata = require("./add-shepherd-metadata")
 
 function splitDockerImageTag(imgObj) {
   let colonIdx = imgObj.dockerImage.indexOf(":")
@@ -20,17 +27,6 @@ function splitDockerImageTag(imgObj) {
   imgObj.imagetag = imgObj.dockerImage.slice(colonIdx + 1, imgObj.dockerImage.length)
 }
 
-type TInfrastructureImageMap = {
-  [property: string]: any
-}
-
-type THerdFolder = {
-  [property: string]: any
-}
-
-type TImageMap = {
-  [property: string]: any
-}
 
 module.exports = function(injected) {
   const ReleasePlan = injected("ReleasePlan")
@@ -40,13 +36,13 @@ module.exports = function(injected) {
   const labelsLoader = injected("labelsLoader", true) || require("@shepherdorg/docker-image-metadata-loader")
   const logger = injected("logger")
 
-  const calculateDeploymentPlan = ImageDeployermentPlanner(
+  const calculateDeploymentPlan = createImageDeploymentPlanner(
     inject({
       kubeSupportedExtensions,
       logger,
       featureDeploymentConfig,
-    })
-  ).createImageDeployerPlan
+    }),
+  ).calculateDeploymentPlan
 
   const scanDir = require("./folder-deployment-planner")(
     inject({
@@ -56,7 +52,7 @@ module.exports = function(injected) {
         ".json": true,
       },
       logger,
-    })
+    }),
   )
 
   // const cmd = injected('exec');
@@ -64,7 +60,7 @@ module.exports = function(injected) {
   const dockerRegistries = labelsLoader.getDockerRegistryClientsFromConfig()
   const loader = labelsLoader.imageLabelsLoader(inject({ dockerRegistries: dockerRegistries, logger: logger }))
 
-  function calculateFoldersPlan(herdFilePath, herdFolder) {
+  function calculateFoldersPlan(herdFilePath, herdFolder: THerdFolderSpec) {
     let resolvedPath = path.resolve(herdFilePath, herdFolder.path)
 
     logger.info(`Scanning ${resolvedPath} for kubernetes deployment documents`)
@@ -88,7 +84,7 @@ module.exports = function(injected) {
             const imagesPath = path.dirname(fileName)
 
             let herd
-            if(featureDeploymentConfig.isUpstreamFeatureDeployment()){
+            if (featureDeploymentConfig.isUpstreamFeatureDeployment()) {
               herd = featureDeploymentConfig.asHerd()
             } else {
               herd = YAML.load(fs.readFileSync(fileName, "utf8"))
@@ -97,7 +93,7 @@ module.exports = function(injected) {
 
             let imageDependencies = {}
 
-            async function addMigrationImageToDependenciesPlan(imageMetaData) {
+            async function addMigrationImageToDependenciesPlan(imageMetaData: any) {
               let dependency
               if (imageMetaData.shepherdMetadata.migrationImage) {
                 dependency = imageMetaData.shepherdMetadata.migrationImage
@@ -115,16 +111,16 @@ module.exports = function(injected) {
               return new Promise(function(resolve) {
                 resolve(
                   Object.entries(infrastructureImages as TInfrastructureImageMap).map(function([
-                    herdKey,
-                    herdDefinition,
-                  ]) {
+                                                                                                 herdKey,
+                                                                                                 herdDefinition,
+                                                                                               ]) {
                     herdDefinition.herdKey = herdKey
                     return loadImageMetadata(herdDefinition)
                       .then(calculateDeploymentPlan)
                       .catch(function(e) {
                         reject(new Error("When processing " + herdKey + ": " + e + (e.stack ? e.stack : "")))
                       })
-                  })
+                  }),
                 )
               })
             }
@@ -134,73 +130,74 @@ module.exports = function(injected) {
                 .then(function(addedPromises) {
                   return Bluebird.all(addedPromises).catch(reject)
                 })
-                .catch(reject)
+                .catch(reject),
             )
 
             let loaders = {
-              folders: function(folders: THerdFolder) {
-                return new Promise(function(resolve) {
-                  resolve(
-                    Object.entries(folders).map(function([herdFolderName, herdFolder]) {
-                      herdFolder.herdKey = herdFolderName
+              "folders": async function(folders: THerdFolderMap) : Promise<Array<Promise<TFolderDeploymentPlan>>> {
 
-                      return calculateFoldersPlan(imagesPath, herdFolder)
-                        .then(function(plans) {
-                          return Bluebird.each(plans, function(deploymentPlan) {
-                            deploymentPlan.herdKey = `${herdFolder.herdKey} - ${deploymentPlan.origin}`
-                            deploymentPlan.herdSpec = {
-                              herdKey: herdFolder.herdKey,
-                              path: herdFolder.path,
-                              description: herdFolder.description,
-                            }
-                            deploymentPlan.metadata = {
-                              displayName: deploymentPlan.fileName,
-                              semanticVersion: "0",
-                              deploymentType: "k8s",
-                              buildDate: new Date(0), // Might make sense to extract change timestamp on file from filesystem or git
-                              hyperlinks: [],
-                            }
-                            return releasePlan.addDeployment(deploymentPlan)
-                          })
-                        })
-                        .catch(function(e) {
-                          reject("When processing folder " + herdFolderName + "\n" + e + (e.stack ? e.stack : ""))
-                        })
+                return Object.entries(folders).flatMap(function([herdFolderName, herdFolder]) {
+                  herdFolder.herdKey = herdFolderName
+
+                  return calculateFoldersPlan(imagesPath, herdFolder)
+                    .then(function(plans) {
+                      return Bluebird.each(plans, function(deploymentPlan: TFolderDeploymentPlan) {
+                        deploymentPlan.herdKey = `${herdFolder.herdKey} - ${deploymentPlan.origin}`
+                        deploymentPlan.herdSpec = {
+                          herdKey: herdFolder.herdKey,
+                          path: herdFolder.path,
+                          description: herdFolder.description,
+                        }
+                        deploymentPlan.metadata = {
+                          displayName: deploymentPlan.fileName,
+                          semanticVersion: "0",
+                          deploymentType: "k8s",
+                          buildDate: new Date(0), // Might make sense to extract change timestamp on file from filesystem or git
+                          hyperlinks: [],
+                        }
+                        return releasePlan.addDeployment(deploymentPlan)
+                      })
                     })
-                  )
+                    .catch(function(e) {
+                      throw new Error("When processing folder " + herdFolderName + "\n" + e + (e.stack ? e.stack : ""))
+                    })
                 })
               },
-              images: function(images: TImageMap) {
-                return new Promise(function(resolve) {
-                  resolve(
-                    Object.entries(images).map(function([imgName, imgObj]) {
-                      imgObj.herdKey = imgName
-                      logger.debug(
-                        "Deployment image - loading image meta data for docker image",
-                        JSON.stringify(imgObj)
-                      )
-
-                      if (!imgObj.image && imgObj.dockerImage) {
-                        splitDockerImageTag(imgObj)
-                      }
-                      return loadImageMetadata(imgObj)
-                        .then(addShepherdMetadata)
-                        .then(addMigrationImageToDependenciesPlan)
-                        .then(calculateDeploymentPlan)
-                        .then(function(imagePlans) {
-                          return Bluebird.each(imagePlans, releasePlan.addDeployment)
-                        })
-                        .then(function(imgPlans) {
-                          return imgPlans
-                        })
-                        .catch(function(e) {
-                          let errorMessage =
-                            "When processing image " + imgName + "\n" + e.message + (e.stack ? e.stack : "")
-                          reject(new Error(errorMessage))
-                        })
-                    })
+              "images": async function(images: TImageMap) : Promise<Array<Promise<TImageDeploymentPlan>>> {
+                let imageDeploymentPlans: Array<Promise<TImageDeploymentPlan>> = Object.entries(images).map(function([imgName, imgObj]) {
+                  imgObj.herdKey = imgName
+                  logger.debug(
+                    "Deployment image - loading image meta data for docker image",
+                    JSON.stringify(imgObj),
                   )
+
+                  if (!imgObj.image && imgObj.dockerImage) {
+                    splitDockerImageTag(imgObj)
+                  }
+                  let promise = loadImageMetadata(imgObj)
+                    .then(getShepherdMetadata)
+                    .then(addMigrationImageToDependenciesPlan)/// This is pretty ugly, adding to external structure sideffect
+                    .then(calculateDeploymentPlan)
+                    .then(function(imagePlans) {
+                      return Bluebird.each(imagePlans, releasePlan.addDeployment)
+                    })
+                    .then(function(imgPlans: Array<TDeployerMetadata>) {
+                      return imgPlans
+                    })
+                    .catch(function(e) {
+                      if(typeof e === 'string'){
+                        console.log('STRING!')
+                        console.log(typeof e)
+                        console.log(e)
+
+                      }
+                      let errorMessage =
+                        "When processing image " + imgName + "\n" + e.message + (e.stack ? e.stack : "")
+                      throw new Error(errorMessage)
+                    })
+                  return promise
                 })
+                return imageDeploymentPlans
               },
             }
 
@@ -213,14 +210,17 @@ module.exports = function(injected) {
                         return Promise.all(addedPromises).catch(function(e) {
                           reject(e)
                         })
-                      })
-                      .catch(reject)
+                      }),
                   )
+                } else {
+                  // throw new Error('No loader registered for type ' + herdType)
                 }
               })
 
+              // Resolve all deployment definitions asynchronously
               Bluebird.all(allDeploymentPromises)
                 .then(function() {
+                  // Add plans from image dependencies
                   return loaders
                     .images(imageDependencies)
                     .then(function(planPromises) {
@@ -238,7 +238,7 @@ module.exports = function(injected) {
                 .catch(reject)
             })
           } else {
-            reject(fileName + " does not exist!")
+            reject(new Error(fileName + " does not exist!"))
           }
         } catch (e) {
           reject(e)

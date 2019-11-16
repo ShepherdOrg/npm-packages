@@ -1,12 +1,12 @@
 import { expect } from "chai"
+import { getShepherdMetadata } from "./add-shepherd-metadata"
+import { createImageDeploymentPlanner } from "./image-deployment-planner"
 
 const inject = require("@shepherdorg/nano-inject").inject
-const addShepherdMetadata = require("./add-shepherd-metadata")
 
-let ImageDeploymentPlanner = require("./image-deployment-planner")
 
 function createNewTestDeployerPlanner(featureDeploymentConfig) {
-  return ImageDeploymentPlanner(
+  return createImageDeploymentPlanner(
     inject({
       kubeSupportedExtensions: {
         ".yml": true,
@@ -20,15 +20,16 @@ function createNewTestDeployerPlanner(featureDeploymentConfig) {
       },
       featureDeploymentConfig,
     })
-  ).createImageDeployerPlan
+  ).calculateDeploymentPlan
 }
 
 function loadTestPlans(dockerDeployerMetadata, featureDeploymentConfig) {
-  return addShepherdMetadata(dockerDeployerMetadata).then(createNewTestDeployerPlanner(featureDeploymentConfig))
+  return getShepherdMetadata(dockerDeployerMetadata).then(createNewTestDeployerPlanner(featureDeploymentConfig))
 }
 
 function loadFirstTestPlan(dockerDeployerMetadata, featureDeploymentConfig) {
   return loadTestPlans(dockerDeployerMetadata, featureDeploymentConfig).then(plans => {
+    // @ts-ignore
     return plans[0]
   })
 }
@@ -280,6 +281,7 @@ describe("Docker image plan loader", function() {
         return (planNumberOne = await setEnv(testEnv).then(() =>
           loadTestPlans(dockerImageMetadata, {}).then(plans => {
             loadedPlans = plans
+            // @ts-ignore
             return plans[0]
           })
         ))

@@ -65,11 +65,11 @@ describe("herd.yaml loading", function() {
           return new Promise(function(resolve, reject) {
             if (!deployment.type) {
               let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deployment)
-              reject(message)
+              reject(new Error(message))
             }
             if (!deployment.identifier) {
               let message = "Illegal deployment, no identifier attribute in " + JSON.stringify(deployment)
-              reject(message)
+              reject(new Error(message))
             }
             if (deployment.type === "k8s") {
               releasePlan.addedK8sDeployments[deployment.identifier] = deployment
@@ -138,7 +138,7 @@ describe("herd.yaml loading", function() {
         expect.fail("Should not finish!")
       })
       .catch(function(error) {
-        expect(error).to.contain("/testdata/does-not-exist.yaml does not exist!")
+        expect(error.message).to.contain("/testdata/does-not-exist.yaml does not exist!")
       })
   })
 

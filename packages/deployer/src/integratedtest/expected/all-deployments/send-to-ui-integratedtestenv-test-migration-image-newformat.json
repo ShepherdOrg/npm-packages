@@ -1,6 +1,5 @@
 {
   "displayName": "Migration testimage newformat using environment value",
-  "herdKey": "test-migration-image-newformat",
   "metadata": {
     "buildDate": "2019-11-04T09:46:51+00:00",
     "buildHostName": "Gulaugurs-MacBook-Pro.local",
@@ -70,6 +69,7 @@
   "operation": "run",
   "command": "ls",
   "identifier": "test-migration-image-newformat",
+  "herdKey": "test-migration-image-newformat",
   "env": "integratedtestenv",
   "descriptor": "-i --rm -e ENV=testit -e MIGRATION_ENV_VARIABLE_ONE=justAValue -e MIGRATION_ENV_VARIABLE_TWO=fixedValue test-migration-image-newformat:0.0.66",
   "state": {
