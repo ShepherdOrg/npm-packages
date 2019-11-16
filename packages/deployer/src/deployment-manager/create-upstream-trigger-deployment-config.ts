@@ -1,5 +1,26 @@
-function CreateUpstreamTriggerDeploymentConfig(logger) {
-  const featureDeploymentConfig = {
+import { newProgrammerOops } from "oops-error"
+
+type THerdFileStructure = any
+
+interface TFeatureDeploymentConfig {
+  imageFileName?: string
+  ttlHours?: number
+  upstreamHerdDescription?: string
+  upstreamImageTag?: string
+  upstreamImageName?: string
+  upstreamHerdKey?: string
+  newName?: string
+
+  isUpstreamFeatureDeployment(): boolean
+  asHerd():THerdFileStructure
+  isUpstreamTriggeredDeployment(): boolean
+  herdFileEditNeeded():boolean
+  loadFromEnvironment(herdFilePath: string, environment: any)
+}
+
+export function CreateUpstreamTriggerDeploymentConfig(logger) {
+  const featureDeploymentConfig:TFeatureDeploymentConfig = {
+
     isUpstreamFeatureDeployment() {
       return Boolean(featureDeploymentConfig.newName)
     },
@@ -10,7 +31,11 @@ function CreateUpstreamTriggerDeploymentConfig(logger) {
           "Upstream config does not contain enough information for upstream feature deployment configuration!"
         )
       }
-      images[featureDeploymentConfig.upstreamHerdKey] = {
+      if(!featureDeploymentConfig.upstreamHerdKey){
+        throw newProgrammerOops("Cannot construct a herd declaration from upstream config without an upstreamHerdKey")
+      }
+      let upstreamHerdKey:string = featureDeploymentConfig.upstreamHerdKey
+      images[upstreamHerdKey] = {
         image: featureDeploymentConfig.upstreamImageName,
         imagetag: featureDeploymentConfig.upstreamImageTag,
         description: featureDeploymentConfig.upstreamHerdDescription,
@@ -22,9 +47,9 @@ function CreateUpstreamTriggerDeploymentConfig(logger) {
     },
     isUpstreamTriggeredDeployment: function() {
       return (
-        featureDeploymentConfig.upstreamHerdKey &&
+        Boolean(featureDeploymentConfig.upstreamHerdKey &&
         featureDeploymentConfig.upstreamImageName &&
-        featureDeploymentConfig.upstreamImageTag
+        featureDeploymentConfig.upstreamImageTag)
       )
     },
     herdFileEditNeeded() {
@@ -40,7 +65,6 @@ function CreateUpstreamTriggerDeploymentConfig(logger) {
         featureDeploymentConfig.upstreamHerdDescription = environment.UPSTREAM_HERD_DESCRIPTION
         if (environment.FEATURE_NAME && environment.FEATURE_TTL_HOURS) {
           logger.info("Feature deployment information available, new name: " + environment.FEATURE_NAME + " to live for " + environment.FEATURE_TTL_HOURS + " hours")
-          featureDeploymentConfig.upstreamFeatureDeployment = true
           featureDeploymentConfig.newName = environment.FEATURE_NAME.replace(/\//g, "-").toLowerCase()
           featureDeploymentConfig.ttlHours = Number.parseInt(environment.FEATURE_TTL_HOURS, 10)
         }
@@ -50,6 +74,3 @@ function CreateUpstreamTriggerDeploymentConfig(logger) {
   return featureDeploymentConfig
 }
 
-module.exports = {
-  CreateUpstreamTriggerDeploymentConfig: CreateUpstreamTriggerDeploymentConfig,
-}

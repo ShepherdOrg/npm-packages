@@ -1,8 +1,8 @@
 FROM postgres:latest
-ADD ./.pgpass /root/.pgpass
+ADD .pgpass /root/.pgpass
 RUN chmod 600 /root/.pgpass
 
-ADD ./entrypoint.sh ./entrypoint.sh
+ADD entrypoint.sh ./entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
 
 LABEL shepherd.name="Infrastructure"

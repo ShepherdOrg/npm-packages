@@ -1,0 +1,71 @@
+{
+  "displayName": "Testimage",
+  "herdKey": "testenvimage-migrations:0.0.0",
+  "metadata": {
+    "displayName": "Testimage",
+    "buildDate": "Wed Oct 30 11:38:49 GMT 2019",
+    "gitBranch": "master",
+    "gitHash": "0aa28463d74e9d0fc1c74eb1c9646c0c2d3f308e",
+    "gitUrl": "git@github.com:ShepherdOrg/npm-packages.git",
+    "lastCommits": "Tue, 29 Oct 2019 11:35:07 +0000 by Guðlaugur S. Egilsson. --- Fix base64 encode on last five commits. Tue, 29 Oct 2019 11:01:53 +0000 by Guðlaugur S. Egilsson. --- Defend against newlines in base64 output Tue, 29 Oct 2019 10:04:43 +0000 by Guðlaugur S. Egilsson. --- Fix metadata dependency Tue, 29 Oct 2019 09:59:05 +0000 by Guðlaugur S. Egilsson. --- Export types. Tue, 29 Oct 2019 09:51:53 +0000 by Guðlaugur S. Egilsson. --- Enable specify image name through IMAGE_NAME\n",
+    "semanticVersion": "0.0.0",
+    "deploymentType": "deployer",
+    "deployCommand": "ls",
+    "environmentVariablesExpansionString": "EXPORT1=${EXPORT1},DB_HOST=${MICROSERVICES_POSTGRES_RDS_HOST},DB_PASS=$MICRO_SITES_DB_PASSWORD,THIS_IS_DEPLOYER_ONE=true",
+    "deployerRole": "install"
+  },
+  "herdSpec": {
+    "dockerImage": "testenvimage-migrations:0.0.0",
+    "image": "testenvimage-migrations",
+    "imagetag": "0.0.0",
+    "key": "testenvimage-migrations:0.0.0"
+  },
+  "dockerParameters": [
+    "-i",
+    "--rm",
+    "-e",
+    "ENV=testit",
+    "-e",
+    "EXPORT1=nowhardcoded",
+    "-e",
+    "DB_HOST=postgres-local",
+    "-e",
+    "DB_PASS=somedbpass",
+    "-e",
+    "THIS_IS_DEPLOYER_ONE=true",
+    "testenvimage-migrations:0.0.0",
+    "ls"
+  ],
+  "forTestParameters": [
+    "-i",
+    "--rm",
+    "-e",
+    "ENV=testit",
+    "-e",
+    "EXPORT1=nowhardcoded",
+    "-e",
+    "DB_HOST=postgres-local",
+    "-e",
+    "DB_PASS=somedbpass",
+    "-e",
+    "THIS_IS_DEPLOYER_ONE=true",
+    "testenvimage-migrations:[image_version]",
+    "ls"
+  ],
+  "imageWithoutTag": "testenvimage-migrations",
+  "origin": "testenvimage-migrations:0.0.0",
+  "type": "deployer",
+  "operation": "run",
+  "command": "ls",
+  "identifier": "testenvimage-migrations:0.0.0",
+  "env": "integratedtestenv",
+  "descriptor": "-i --rm -e ENV=testit -e EXPORT1=nowhardcoded -e DB_HOST=postgres-local -e DB_PASS=somedbpass -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0",
+  "state": {
+    "key": "integratedtestenv-testenvimage-migrations:0.0.0",
+    "new": true,
+    "modified": true,
+    "operation": "run",
+    "signature": "ac68c6ccb87d863c18619c6031aeca0c",
+    "env": "integratedtestenv"
+  }
+}

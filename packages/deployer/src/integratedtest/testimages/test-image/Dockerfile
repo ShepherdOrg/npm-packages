@@ -1,6 +1,6 @@
 FROM alpine:3.4
 
-ADD ./entrypoint.sh ./entrypoint.sh
+ADD entrypoint.sh ./entrypoint.sh
 
 
 LABEL shepherd.name="Testimage"
