@@ -7,7 +7,7 @@ const rl = readline.createInterface({
   terminal: false,
 })
 
-const identifyDocument = require("../src/k8s-deployment-document-identifier")
+const identifyDocument = require("../dist/k8s-deployment-document-identifier")
 
 let stdin = ""
 

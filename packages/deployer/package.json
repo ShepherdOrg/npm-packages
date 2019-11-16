@@ -23,6 +23,7 @@
     "handlebars": "^4.1.2",
     "js-yaml": "^3.10.0",
     "lodash": "^4.17.15",
+    "oops-error": "^2.4.0",
     "tmp": "^0.1.0"
   },
   "devDependencies": {
@@ -32,17 +33,20 @@
     "chai": "^4.2.0",
     "expect.js": "0.3.1",
     "mocha": "^6.2.1",
-    "should": "^13.2.3"
+    "should": "^13.2.3",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.7.2"
   },
   "scripts": {
-    "test": "npm run specs",
-    "specs": "mocha --exit --recursive 'src/**/*.spec.js'",
-    "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch 'src/**/*.spec.js'",
-    "build-test-images": "cd integratedtest/testimages && ./build-test-images.sh",
-    "integratedtest": "mocha --exit --recursive 'integratedtest/**/*.integratedtest.js'",
-    "e2etdd": "mocha --exit -R dot --recursive --watch-extensions js,json,sh,json --watch 'integratedtest/**/*.integratedtest.js'",
-    "prepublishOnly": "yarn install --frozen-lockfile && npm test",
+    "build-test-images": "cd src/e2etest/testimages && ./build-test-images.sh",
     "start-postgres": "docker run --rm --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres",
-    "kill-postgres": "docker stop postgres"
+    "kill-postgres": "docker stop postgres",
+    "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
+    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/**/*.spec.ts'",
+    "e2etest": "npm run build && mocha --exit --recursive 'dist/e2etest/**/*.e2etest.js'",
+    "e2etdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/e2etest/**/*.e2etest.ts'",
+    "test": "npm run specs",
+    "build": "tsc && chmod +x dist/shepherd.js",
+    "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
   }
 }

@@ -1,0 +1,39 @@
+import { emptyArray } from "../helpers/ts-functions"
+import { expect } from "chai"
+
+module.exports = function() {
+  let fakeExec = {
+    executedCommands: emptyArray<any>(),
+    nextResponse: {
+      err: undefined,
+      success: undefined,
+    },
+    onExec:undefined,
+    extendedExec: function(command, params, options, err, success) {
+      fakeExec.executedCommands.push({
+        command: command,
+        params: params,
+        options: options,
+        err: err,
+        success: success,
+      })
+      if (fakeExec && fakeExec.onExec != undefined) {
+        // @ts-ignore
+        fakeExec.onExec(command, params, options, err, success)
+      } else if (fakeExec.nextResponse) {
+        if (fakeExec.nextResponse.success) {
+          success(fakeExec.nextResponse.success)
+        } else {
+          err(
+            fakeExec.nextResponse.err ||
+              "No execution response defined for " +
+                JSON.stringify({ command, params, options })
+          )
+        }
+      } else {
+        expect.fail("No response defined!!!!")
+      }
+    },
+  }
+  return fakeExec
+}
