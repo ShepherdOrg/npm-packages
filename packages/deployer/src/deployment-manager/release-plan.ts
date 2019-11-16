@@ -162,7 +162,7 @@ module.exports = function(injected) {
                         stdin: deployment.descriptor,
                         debug: true,
                       })
-                      logger.info( deploymentRollout + ' rolled out')
+                      logger.info( deploymentRollout + ' rolled out', stdOut)
                     }))
                   }
 

@@ -146,12 +146,6 @@ let herdFilePath = process.argv[2]
 let environment = process.argv[3]
 
 
-type TUpstreamFeatureDeploymentConfig = {
-  ttlHours?: string
-  newName?: string
-  upstreamFeatureDeployment?: boolean
-}
-
 stateStoreBackend
   .connect()
   .then(function() {

@@ -1,5 +1,3 @@
-const yamlLoad = require("../k8s-feature-deployment/multipart-yaml-load")
-const path = require("path")
 import * as path from "path"
 
 const yamlLoad = require('../k8s-feature-deployment/multipart-yaml-load');
@@ -17,7 +15,7 @@ function indexNameReferenceChange (deploymentDescriptor, featureDeploymentConfig
 
 function addResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploymentConfig) {
   featureDeploymentConfig.nameChangeIndex = featureDeploymentConfig.nameChangeIndex || {}
-  Object.entries(plan.files).forEach(([fileName, deploymentFileContent]) => {
+  Object.entries(plan.files  as Array<any>).forEach(([fileName, deploymentFileContent]) => {
     let fileExtension = path.extname(fileName)
     if (!fileExtension) {
       return
