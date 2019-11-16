@@ -424,7 +424,8 @@
       "origin": "testenvimage:0.0.0:kube.config.tar.base64",
       "type": "k8s",
       "fileName": "./deployment/www-icelandair-com.deployment.yml",
-      "herdKey": "test-image"
+      "herdKey": "test-image",
+      "deploymentRollouts": ["Deployment/www-icelandair-com-test1"]
     },
     "ConfigMap_image2-config": {
       "herdSpec": {

@@ -111,7 +111,7 @@ module.exports = function(injected) {
 
                   let documentIdentifier = identifyDocument(
                     deploymentDescriptor
-                  )
+                  ).identifyingString
                   let deployment = {
                     operation: dir.forDelete ? "delete" : "apply",
                     identifier: documentIdentifier,

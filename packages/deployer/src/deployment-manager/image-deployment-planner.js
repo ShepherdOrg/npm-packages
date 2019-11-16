@@ -110,7 +110,16 @@ module.exports = function(injected) {
 
     let deploymentDescriptor = applyClusterPolicies(fileContents, logger)
 
-    let documentIdentifier = identifyDocument(deploymentDescriptor)
+    let loadedDescriptor = identifyDocument(deploymentDescriptor)
+    let documentIdentifier = loadedDescriptor.identifyingString
+    let descriptorsByKind = loadedDescriptor.descriptorsByKind
+    
+    let deploymentRollouts = []
+    if(Boolean(descriptorsByKind['Deployment'])){
+      deploymentRollouts = descriptorsByKind['Deployment'].map((deploymentDoc)=>{
+        return deploymentDoc.kind + '/' + deploymentDoc.metadata.name
+      })
+    }
 
     return {
       herdSpec: imageInformation.imageDefinition,
@@ -123,6 +132,7 @@ module.exports = function(injected) {
       type: "k8s",
       fileName: fileName,
       herdKey: imageInformation.imageDefinition.herdKey,
+      deploymentRollouts: deploymentRollouts
     }
   }
 

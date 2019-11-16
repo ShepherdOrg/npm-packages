@@ -163,8 +163,16 @@ describe("Release plan", function() {
           })
       })
 
+      it("should execute three apply commands and a rollout status command", () => {
+        expect(fakeExec.executedCommands.length).to.equal(4)
+        expect(fakeExec.executedCommands[0].params[0]).to.equal("apply", "0")
+        expect(fakeExec.executedCommands[1].params[0]).to.equal("apply", "1")
+        expect(fakeExec.executedCommands[2].params.join(' ')).to.equal("delete -f -")
+        expect(fakeExec.executedCommands[2].params[0]).to.equal("delete", "2")
+        expect(fakeExec.executedCommands[3].params[0]).to.equal("rollout")
+      })
+
       it("should execute kubectl apply for all deployments with same origin", function() {
-        expect(fakeExec.executedCommands.length).to.equal(3)
         expect(fakeExec.executedCommands[0].command).to.equal("kubectl")
         expect(fakeExec.executedCommands[0].params[0]).to.equal("apply")
         expect(fakeExec.executedCommands[0].params[1]).to.equal("-f")
@@ -174,16 +182,27 @@ describe("Release plan", function() {
         )
       })
 
+      it("should execute kubectl rollout status to wait for deployment to complete", () => {
+        expect(fakeExec.executedCommands[3].command).to.equal("kubectl")
+        expect(fakeExec.executedCommands[3].params[0]).to.equal("rollout")
+        expect(fakeExec.executedCommands[3].params[1]).to.equal("status")
+        expect(fakeExec.executedCommands[3].params[2]).to.equal("Deployment/www-icelandair-com-test1")
+      })
+
       it("should push data to UI", () => {
 
         // testDebug('WROTE DATA ARRAY TO ' )
         // fs.writeFileSync('./pushedDataArray.json', JSON.stringify(fakeUiDataPusher.pushedData))
         expect(fakeUiDataPusher.pushedData.length).to.equal(3)
 
+        // console.log('pushedData', fakeUiDataPusher.pushedData.map((pd)=>pd.displayName)).join('...')
+
         expect(fakeUiDataPusher.pushedData[0].displayName).to.equal('Testimage')
-        expect(fakeUiDataPusher.pushedData[1].displayName).to.equal('Testimage')
-        expect(fakeUiDataPusher.pushedData[2].displayName).to.equal('monitors-namespace.yml')
-        expect(fakeUiDataPusher.pushedData[2].deploymentState.timestamp).to.eql(new Date('2019-10-31T11:03:52.381Z'))
+
+        expect(fakeUiDataPusher.pushedData[1].displayName).to.equal('monitors-namespace.yml')
+        expect(fakeUiDataPusher.pushedData[1].deploymentState.timestamp).to.eql(new Date('2019-10-31T11:03:52.381Z'))
+
+        expect(fakeUiDataPusher.pushedData[2].displayName).to.equal('Testimage')
 
 
       })
@@ -200,7 +219,11 @@ describe("Release plan", function() {
 
       it("should log deployments", function() {
         // 3 statements for each deployment
-        expect(fakeLogger.logStatements.length).to.equal(9)
+        expect(fakeLogger.logStatements.length).to.equal(10)
+      })
+
+      it("should log rollout complete", () => {
+        expect(fakeLogger.logStatements[9].data[0]).to.equal('Deployment/www-icelandair-com-test1 rolled out')
       })
 
     })

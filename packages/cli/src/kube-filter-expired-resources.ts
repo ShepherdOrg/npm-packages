@@ -13,7 +13,7 @@ const rl = readline.createInterface({
 });
 
 if(process.env.DEBUG_LOG){
-    console.debug = console.log;
+    console.debug = console.debug || console.log;
 } else{
     console.debug = function () {};
 }

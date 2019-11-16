@@ -39,3 +39,47 @@ metadata:
   name: fluentd-logwriter-aws-credentials
 type: Opaque
 data: None
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: deployment-test1
+  labels:
+    name: deployment-test1
+    tier: frontend
+    ttl-hours: '48'
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: deployment-test1
+        tier: frontend
+    spec:
+      imagePullSecrets:
+        - name: registry-pull-secret
+      containers:
+        - image: 'testenvimage:1.0.0'
+          name: deployment-test1
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: deployment-test2
+  labels:
+    name: deployment-test2
+    tier: frontend
+    ttl-hours: '48'
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: deployment-test2
+        tier: frontend
+    spec:
+      imagePullSecrets:
+        - name: registry-pull-secret
+      containers:
+        - image: 'testenvimage:2.0.0'
+          name: deployment-test2

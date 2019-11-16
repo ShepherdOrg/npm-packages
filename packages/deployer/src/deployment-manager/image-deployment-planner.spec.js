@@ -282,6 +282,10 @@ describe("Docker image plan loader", function() {
 
       after(() => clearEnv(testEnv))
 
+      it("should list all deployments to wait for completion", () => {
+        expect(loadedPlans[2].deploymentRollouts.join('')).to.equal('Deployment/www-icelandair-com')
+      })
+
       it("should expand handlebars template", () => {
         const configMapPlan = loadedPlans.find(plan => {
           return plan.identifier === "ConfigMap_www-icelandair-com-nginx-acls"

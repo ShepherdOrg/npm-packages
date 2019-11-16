@@ -2,25 +2,33 @@ const YAML = require("js-yaml")
 
 function identifyDocument(deploymentDocument) {
   try {
-    if (deploymentDocument.indexOf("---\n") > 0) {
-      let parts = deploymentDocument.split("---\n")
-      deploymentDocument = parts[0]
-    }
-    let deploymentdocument = YAML.safeLoad(deploymentDocument)
+    let descriptorsByKind = {}
 
-    let identifyingString = deploymentdocument.kind
-    if (deploymentdocument.metadata) {
-      identifyingString += "_" + deploymentdocument.metadata.name
+    let identifyingString=""
 
-      if (
-        deploymentdocument.metadata.namespace &&
-        deploymentdocument.metadata.namespace !== "default"
-      ) {
-        identifyingString =
-          deploymentdocument.metadata.namespace + "_" + identifyingString
+    YAML.safeLoadAll(deploymentDocument, (documentPart)=>{
+      if(!documentPart){
+        return
       }
-    }
-    return identifyingString
+      if(!identifyingString){
+        identifyingString = documentPart.kind
+        if (documentPart.metadata) {
+          identifyingString += "_" + documentPart.metadata.name
+
+          if (
+            documentPart.metadata.namespace &&
+            documentPart.metadata.namespace !== "default"
+          ) {
+            identifyingString =
+              documentPart.metadata.namespace + "_" + identifyingString
+          }
+        }
+      }
+      descriptorsByKind[documentPart.kind] = descriptorsByKind[documentPart.kind] || []
+      descriptorsByKind[documentPart.kind].push( documentPart)
+    })
+
+    return {identifyingString, descriptorsByKind }
   } catch (e) {
     console.error(deploymentDocument)
     console.error("Error classifying deployment document (see above).", e)

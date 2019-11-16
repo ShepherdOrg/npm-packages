@@ -12,7 +12,7 @@ const identifyDocument = require("../src/k8s-deployment-document-identifier")
 let stdin = ""
 
 function identifyStdinDocument(stdincopy) {
-  let identifyingString = identifyDocument(stdincopy)
+  let identifyingString = identifyDocument(stdincopy).identifyingString
 
   if (!identifyingString) {
     console.error(

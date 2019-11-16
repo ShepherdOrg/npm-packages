@@ -1,6 +1,7 @@
 
 const mapUntypedDeploymentData = require("@shepherdorg/metadata/dist/map-untyped-deployment-data").mapUntypedDeploymentData
 const Promise = require("bluebird")
+const Bluebird = require("bluebird")
 
 const path = require("path")
 const fs = require("fs")
@@ -109,7 +110,7 @@ module.exports = function(injected) {
 
     function K8sDeploymentPromises(deploymentOptions) {
       return Object.values(k8sDeploymentPlan).flatMap(deploymentPlan => {
-        return deploymentPlan.deployments.map(async deployment => {
+        return deploymentPlan.deployments.flatMap(async deployment => {
           if (deployment.state.modified) {
             if (deploymentOptions.dryRun) {
               const writePath = path.join(
@@ -138,6 +139,18 @@ module.exports = function(injected) {
                 try {
                   const state = await saveDeploymentState(deployment)
                   deployment.state = state
+
+                  if(deployment.deploymentRollouts && deployment.operation === 'apply'){
+                    await Bluebird.all(deployment.deploymentRollouts.map(async (deploymentRollout)=>{
+                      const stdOut = await extendedExec(cmd)("kubectl", ['rollout', "status", deploymentRollout], {
+                        env: process.env,
+                        stdin: deployment.descriptor,
+                        debug: true,
+                      })
+                      logger.info( deploymentRollout + ' rolled out')
+                    }))
+                  }
+
                   return deployment
                 } catch (err) {
                   throw "Failed to save state after successful deployment! " +

@@ -116,7 +116,7 @@ describe("run all deployers with infrastructure", function() {
         .then(() => pgBackend.resetAllDeploymentStates())
     })
 
-    it("should deploy once in two runs", function(done) {
+    it.only("should deploy once in two runs", function(done) {
       process.env.KUBECTL_OUTPUT_FOLDER = firstRoundFolder
 
       script
