@@ -1,0 +1,8 @@
+{
+  "displayName": "Test image using Json Metadata",
+  "deployCommand": "ls",
+  "rollbackCommand": "cat",
+  "hyperlinks":[
+    {"title": "Test Image Source Control", "url": "https://github.com/shepherdorg/npm-packages/packages/deployer/integratedtest/test-image-json-metadata"}
+  ]
+}

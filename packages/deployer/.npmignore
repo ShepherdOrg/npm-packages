@@ -1,10 +1,10 @@
 *.tgz
 **/*.spec.*
-**/*.e2etest.*
+**/*.integratedtest.*
 **/testdata/**/*
 .testdata/
 .testrun/
 .build/
 .actual/
-e2etest/
+integratedtest/
 yamrt.json

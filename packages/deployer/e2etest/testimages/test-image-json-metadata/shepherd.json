@@ -1,8 +1,0 @@
-{
-  "displayName": "Test image using Json Metadata",
-  "deployCommand": "ls",
-  "rollbackCommand": "cat",
-  "hyperlinks":[
-    {"title": "Test Image Source Control", "url": "https://github.com/shepherdorg/shepherd/agent/e2etests/test-image-json-metadata"}
-  ]
-}

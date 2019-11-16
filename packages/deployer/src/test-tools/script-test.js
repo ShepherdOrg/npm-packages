@@ -184,7 +184,7 @@ module.exports = {
             )
             if (containsDifference(difference)) {
               fs.writeFileSync(
-                "./e2etest/expected/actualoutput.log",
+                "./integratedtest/expected/actualoutput.log",
                 execution.processOutput
               )
               expect().fail(

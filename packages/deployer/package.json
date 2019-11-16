@@ -38,9 +38,9 @@
     "test": "npm run specs",
     "specs": "mocha --exit --recursive 'src/**/*.spec.js'",
     "tdd": "mocha --exit -R dot --recursive --watch-extensions js,json --watch 'src/**/*.spec.js'",
-    "build-test-images": "cd e2etest/testimages && ./build-test-images.sh",
-    "e2etest": "mocha --exit --recursive 'e2etest/**/*.e2etest.js'",
-    "e2etdd": "mocha --exit -R dot --recursive --watch-extensions js,json,sh,json --watch 'e2etest/**/*.e2etest.js'",
+    "build-test-images": "cd integratedtest/testimages && ./build-test-images.sh",
+    "integratedtest": "mocha --exit --recursive 'integratedtest/**/*.integratedtest.js'",
+    "e2etdd": "mocha --exit -R dot --recursive --watch-extensions js,json,sh,json --watch 'integratedtest/**/*.integratedtest.js'",
     "prepublishOnly": "yarn install --frozen-lockfile && npm test",
     "start-postgres": "docker run --rm --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres",
     "kill-postgres": "docker stop postgres"

@@ -49,7 +49,7 @@ describe("run all deployers with infrastructure", function() {
           debug: false, // debug:false suppresses stdout of process
         })
         .output("./.build/.testdata/kubeapply")
-        .shouldEqual("./e2etest/expected/all-deployments")
+        .shouldEqual("./integratedtest/expected/all-deployments")
         .done(function(stdout) {
           done()
         })
@@ -116,7 +116,7 @@ describe("run all deployers with infrastructure", function() {
         .then(() => pgBackend.resetAllDeploymentStates())
     })
 
-    it.only("should deploy once in two runs", function(done) {
+    it("should deploy once in two runs", function(done) {
       process.env.KUBECTL_OUTPUT_FOLDER = firstRoundFolder
 
       script
@@ -125,7 +125,7 @@ describe("run all deployers with infrastructure", function() {
           debug: false, // debug:false suppresses stdout of process
         })
         .output(firstRoundFolder)
-        .shouldEqual(process.cwd() + "/e2etest/expected/k8s-deployments")
+        .shouldEqual(process.cwd() + "/integratedtest/expected/k8s-deployments")
         .done(function(stdout) {
           process.env.KUBECTL_OUTPUT_FOLDER = secondRoundFolder
 
@@ -201,13 +201,13 @@ describe("run all deployers with infrastructure", function() {
 
     it("should export deployment documents directly", function(done) {
       let expectedOutputFileOrDir =
-        process.cwd() + "/e2etest/expected/all-deployments"
+        process.cwd() + "/integratedtest/expected/exported"
       script
         .execute(
           "./src/shepherd.js",
           [
             "./src/deployment-manager/testdata/happypath/herd.yaml",
-            "e2etestenv",
+            "integratedtestenv",
             "--export",
             "--outputDir",
             ".build/testexport",
