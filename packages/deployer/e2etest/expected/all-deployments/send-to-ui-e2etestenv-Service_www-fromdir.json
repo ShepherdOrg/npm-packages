@@ -1,0 +1,32 @@
+{
+  "operation": "apply",
+  "identifier": "Service_www-fromdir",
+  "version": "immutable",
+  "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: www-fromdir\n  annotations: \n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: \"*\"\n  labels:\n    name: www\n    team: flip\nspec:\n  type: LoadBalancer\n  ports:\n  - port: 80\n    targetPort: 81\n    name: http-proxy-protocol\n  - port: 443\n    targetPort: 444\n    name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com\n    tier: frontend\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-part2\n  annotations:\n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: \"*\"\n  labels:\n    name: www-com\n    team: flip\nspec:\n  type: LoadBalancer\n  ports:\n  - port: 80\n    targetPort: 81\n    name: http-proxy-protocol\n  - port: 443\n    targetPort: 444\n    name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com\n    tier: frontend\n",
+  "origin": "www-deployment",
+  "type": "k8s",
+  "fileName": "www.service.yml",
+  "herdKey": "kube-config - www-deployment",
+  "herdSpec": {
+    "path": "./",
+    "description": "Kubernetes pull secrets, namespaces, common config",
+    "key": "kube-config"
+  },
+  "metadata": {
+    "displayName": "www.service.yml",
+    "semanticVersion": "0",
+    "deploymentType": "k8s",
+    "buildDate": "1970-01-01T00:00:00.000Z",
+    "hyperlinks": []
+  },
+  "env": "e2etestenv",
+  "state": {
+    "key": "e2etestenv-Service_www-fromdir",
+    "new": true,
+    "modified": true,
+    "operation": "apply",
+    "version": "immutable",
+    "signature": "5d7afb87d37c4816bbff6b9f6d09a941",
+    "env": "e2etestenv"
+  }
+}
