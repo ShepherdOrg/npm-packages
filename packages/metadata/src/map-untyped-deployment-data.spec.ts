@@ -28,9 +28,7 @@ describe("raw deployment data mapping", function() {
     try{
       let deploymentInfo = deploymentData0()
 
-      console.log("deploymentInfo.herdSpec.herdKey", deploymentInfo.herdSpec.herdKey)
       delete deploymentInfo.herdKey
-      console.log("deploymentInfo.herdSpec.herdKey", deploymentInfo.herdSpec.herdKey)
       mapUntypedDeploymentData(deploymentInfo)
 
     }catch(err){
