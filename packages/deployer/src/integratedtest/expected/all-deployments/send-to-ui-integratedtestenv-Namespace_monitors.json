@@ -1,12 +1,24 @@
 {
   "operation": "delete",
-  "identifier": "Namespace_monitors",
-  "version": "immutable",
+  "origin": "namespaces/monitors-namespace.yml",
+  "deploymentRollouts": [],
   "descriptor": "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: monitors\n",
-  "origin": "namespaces",
+  "identifier": "Namespace_monitors",
+  "descriptorsByKind": {
+    "Namespace": [
+      {
+        "apiVersion": "v1",
+        "kind": "Namespace",
+        "metadata": {
+          "name": "monitors"
+        }
+      }
+    ]
+  },
+  "version": "immutable",
   "type": "k8s",
   "fileName": "monitors-namespace.yml",
-  "herdKey": "kube-config - namespaces",
+  "herdKey": "kube-config - namespaces/monitors-namespace.yml",
   "herdSpec": {
     "path": "./",
     "description": "Kubernetes pull secrets, namespaces, common config",

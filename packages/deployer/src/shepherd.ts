@@ -4,6 +4,7 @@ import * as path from "path"
 
 import * as fs from "fs"
 import { inject } from "@shepherdorg/nano-inject/dist"
+import { ReleasePlanModule } from "./deployment-manager/release-plan"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -131,7 +132,7 @@ if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
 
 const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
 const HerdLoader = require("./deployment-manager/herd-loader")
-const ReleasePlanModule = require("./deployment-manager/release-plan")
+
 const exec = require("@shepherdorg/exec")
 const { CreateUpstreamTriggerDeploymentConfig } = require("./deployment-manager/create-upstream-trigger-deployment-config")
 
@@ -157,12 +158,12 @@ stateStoreBackend
     featureDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
 
     const ReleasePlan = ReleasePlanModule(
-      inject({
+      {
         cmd: exec,
         logger: Logger(console),
         stateStore: releaseStateStore,
         uiDataPusher: uiDataPusher,
-      })
+      }
     )
 
     if(featureDeploymentConfig.herdFileEditNeeded()){

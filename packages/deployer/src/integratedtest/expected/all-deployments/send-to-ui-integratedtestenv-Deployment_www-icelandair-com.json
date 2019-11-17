@@ -1,4 +1,129 @@
 {
+  "operation": "apply",
+  "origin": "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.deployment.yml",
+  "deploymentRollouts": [
+    "Deployment/www-icelandair-com"
+  ],
+  "descriptor": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: www-icelandair-com\n  labels:\n    name: www-icelandair-com\n    tier: frontend\nspec:\n  replicas: 2\n  template:\n    metadata:\n      labels:\n        name: www-icelandair-com\n        tier: frontend\n    spec:\n      imagePullSecrets:\n        - name: registry-pull-secret\n      containers:\n        - image: testenvimage:0.0.0\n          name: www-icelandair-com\n          resources:\n            limits:\n              cpu: 0.8\n              memory: 512M\n            requests:\n              cpu: 0.4\n              memory: 256M\n          ports:\n            - containerPort: 81\n              name: http-proxy\n              protocol: TCP\n            - containerPort: 444\n              name: https-proxy\n              protocol: TCP\n          volumeMounts:\n            - name: certs-volume\n              readOnly: true\n              mountPath: \"/volumes/certs\"\n            - name: nginx-acls\n              readOnly: true\n              mountPath: \"/etc/nginx/acls/\"\n          env:\n            - name: RUNTIME_ENVIRONMENT\n              valueFrom:\n                configMapKeyRef:\n                  name: nowhardcoded\n                  key: ENV\n        - image: DOCKER_IMAGE_SSR\n          name: www-icelandair-com-ssr\n          resources:\n            limits:\n              cpu: 0.6\n              memory: 512M\n            requests:\n              cpu: 0.4\n              memory: 256M\n      volumes:\n        - name: certs-volume\n          secret:\n            secretName: star-cert-secret\n        - name: nginx-acls\n          configMap:\n            name: www-icelandair-com-nginx-acls\n            items:\n              - key: whitelist\n                path: whitelist.conf\n",
+  "identifier": "Deployment_www-icelandair-com",
+  "descriptorsByKind": {
+    "Deployment": [
+      {
+        "apiVersion": "extensions/v1beta1",
+        "kind": "Deployment",
+        "metadata": {
+          "name": "www-icelandair-com",
+          "labels": {
+            "name": "www-icelandair-com",
+            "tier": "frontend"
+          }
+        },
+        "spec": {
+          "replicas": 2,
+          "template": {
+            "metadata": {
+              "labels": {
+                "name": "www-icelandair-com",
+                "tier": "frontend"
+              }
+            },
+            "spec": {
+              "imagePullSecrets": [
+                {
+                  "name": "registry-pull-secret"
+                }
+              ],
+              "containers": [
+                {
+                  "image": "testenvimage:0.0.0",
+                  "name": "www-icelandair-com",
+                  "resources": {
+                    "limits": {
+                      "cpu": 0.8,
+                      "memory": "512M"
+                    },
+                    "requests": {
+                      "cpu": 0.4,
+                      "memory": "256M"
+                    }
+                  },
+                  "ports": [
+                    {
+                      "containerPort": 81,
+                      "name": "http-proxy",
+                      "protocol": "TCP"
+                    },
+                    {
+                      "containerPort": 444,
+                      "name": "https-proxy",
+                      "protocol": "TCP"
+                    }
+                  ],
+                  "volumeMounts": [
+                    {
+                      "name": "certs-volume",
+                      "readOnly": true,
+                      "mountPath": "/volumes/certs"
+                    },
+                    {
+                      "name": "nginx-acls",
+                      "readOnly": true,
+                      "mountPath": "/etc/nginx/acls/"
+                    }
+                  ],
+                  "env": [
+                    {
+                      "name": "RUNTIME_ENVIRONMENT",
+                      "valueFrom": {
+                        "configMapKeyRef": {
+                          "name": "nowhardcoded",
+                          "key": "ENV"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "image": "DOCKER_IMAGE_SSR",
+                  "name": "www-icelandair-com-ssr",
+                  "resources": {
+                    "limits": {
+                      "cpu": 0.6,
+                      "memory": "512M"
+                    },
+                    "requests": {
+                      "cpu": 0.4,
+                      "memory": "256M"
+                    }
+                  }
+                }
+              ],
+              "volumes": [
+                {
+                  "name": "certs-volume",
+                  "secret": {
+                    "secretName": "star-cert-secret"
+                  }
+                },
+                {
+                  "name": "nginx-acls",
+                  "configMap": {
+                    "name": "www-icelandair-com-nginx-acls",
+                    "items": [
+                      {
+                        "key": "whitelist",
+                        "path": "whitelist.conf"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
   "herdSpec": {
     "image": "testenvimage",
     "imagetag": "0.0.0",
@@ -39,17 +164,10 @@
     "deploymentType": "k8s",
     "deployerRole": "install"
   },
-  "operation": "apply",
-  "identifier": "Deployment_www-icelandair-com",
   "version": "0.0.0",
-  "descriptor": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: www-icelandair-com\n  labels:\n    name: www-icelandair-com\n    tier: frontend\nspec:\n  replicas: 2\n  template:\n    metadata:\n      labels:\n        name: www-icelandair-com\n        tier: frontend\n    spec:\n      imagePullSecrets:\n        - name: registry-pull-secret\n      containers:\n        - image: testenvimage:0.0.0\n          name: www-icelandair-com\n          resources:\n            limits:\n              cpu: 0.8\n              memory: 512M\n            requests:\n              cpu: 0.4\n              memory: 256M\n          ports:\n            - containerPort: 81\n              name: http-proxy\n              protocol: TCP\n            - containerPort: 444\n              name: https-proxy\n              protocol: TCP\n          volumeMounts:\n            - name: certs-volume\n              readOnly: true\n              mountPath: \"/volumes/certs\"\n            - name: nginx-acls\n              readOnly: true\n              mountPath: \"/etc/nginx/acls/\"\n          env:\n            - name: RUNTIME_ENVIRONMENT\n              valueFrom:\n                configMapKeyRef:\n                  name: nowhardcoded\n                  key: ENV\n        - image: DOCKER_IMAGE_SSR\n          name: www-icelandair-com-ssr\n          resources:\n            limits:\n              cpu: 0.6\n              memory: 512M\n            requests:\n              cpu: 0.4\n              memory: 256M\n      volumes:\n        - name: certs-volume\n          secret:\n            secretName: star-cert-secret\n        - name: nginx-acls\n          configMap:\n            name: www-icelandair-com-nginx-acls\n            items:\n              - key: whitelist\n                path: whitelist.conf\n",
-  "origin": "testenvimage:0.0.0:kube.config.tar.base64",
   "type": "k8s",
   "fileName": "./deployment/www-icelandair-com.deployment.yml",
   "herdKey": "test-image",
-  "deploymentRollouts": [
-    "Deployment/www-icelandair-com"
-  ],
   "env": "integratedtestenv",
   "state": {
     "key": "integratedtestenv-Deployment_www-icelandair-com",

@@ -1,4 +1,27 @@
 {
+  "operation": "apply",
+  "origin": "test1::test1",
+  "deploymentRollouts": [],
+  "descriptor": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: www-icelandair-com-nginx-acls-test1\n  labels:\n    team: flip\n    ttl-hours: '48'\ndata:\n  whitelist: teststring",
+  "identifier": "ConfigMap_www-icelandair-com-nginx-acls-test1",
+  "descriptorsByKind": {
+    "ConfigMap": [
+      {
+        "apiVersion": "v1",
+        "kind": "ConfigMap",
+        "metadata": {
+          "name": "www-icelandair-com-nginx-acls-test1",
+          "labels": {
+            "team": "flip",
+            "ttl-hours": "48"
+          }
+        },
+        "data": {
+          "whitelist": "teststring"
+        }
+      }
+    ]
+  },
   "herdSpec": {
     "image": "testenvimage",
     "imagetag": "0.0.0",
@@ -41,15 +64,10 @@
     "deploymentType": "k8s",
     "deployerRole": "install"
   },
-  "operation": "apply",
-  "identifier": "ConfigMap_www-icelandair-com-nginx-acls-test1",
   "version": "0.0.0",
-  "descriptor": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: www-icelandair-com-nginx-acls-test1\n  labels:\n    team: flip\n    ttl-hours: '48'\ndata:\n  whitelist: teststring",
-  "origin": "test1::test1",
   "type": "k8s",
   "fileName": "./deployment/www-icelandair-com.config.yml",
   "herdKey": "test1",
-  "deploymentRollouts": [],
   "env": "integratedtestenv",
   "state": {
     "key": "integratedtestenv-ConfigMap_www-icelandair-com-nginx-acls-test1",

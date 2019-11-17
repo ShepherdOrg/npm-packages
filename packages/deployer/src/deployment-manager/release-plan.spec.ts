@@ -1,13 +1,12 @@
 import { expect } from "chai"
+import { createKubectlTestDeployAction } from "./kubectl-deployer/create-kubectl-deployment-action"
+import { ReleasePlanModule } from "./release-plan"
 
-const ReleasePlanModule = require("./release-plan")
 const FakeExec = require("../test-tools/fake-exec")
 const FakeLogger = require("../test-tools/fake-logger")
 
-const inject = require("@shepherdorg/nano-inject").inject
-const { extend } = require( 'lodash');
-const k8sDeployments = require('./testdata/testplan.json').addedK8sDeployments
-const dockerDeployers = require('./testdata/testplan.json').addedDockerDeployers
+const k8sDeployments = require("./testdata/testplan.json").addedK8sDeployments
+const dockerDeployers = require("./testdata/testplan.json").addedDockerDeployers
 
 describe("Release plan", function() {
   let releasePlan, checkedStates
@@ -16,41 +15,40 @@ describe("Release plan", function() {
   let fakeLogger
   let fakeUiDataPusher
 
-
   beforeEach(function() {
     checkedStates = []
-    fakeUiDataPusher={
-      pushedData:[],
-      pushDeploymentStateToUI:async (data)=>{
+    fakeUiDataPusher = {
+      pushedData: [],
+      pushDeploymentStateToUI: async data => {
         fakeUiDataPusher.pushedData.push(data)
         return data
-      }
+      },
     }
     fakeStateStore = {
-      fixedTimestamp: "2001-01-10T00:00:00.000Z",
+      fixedTimestamp: "1999-01-10T00:00:00.000Z",
       nextState: {},
       savedStates: [],
       getDeploymentState: function(deployment) {
         checkedStates.push(JSON.parse(JSON.stringify(deployment)))
-        return Promise.resolve(
-          extend({
-            testState: true,
-            new: true,
-            modified: true,
-            operation: "apply",
-            version: "0.0.0",
-            lastVersion: undefined,
-            signature: "fakesignature",
-            origin: deployment.origin,
-            env: "UNITTEST",
-            timestamp: fakeStateStore.fixedTimestamp
-          }, fakeStateStore.nextState)
-        );
+        let value = {
+          testState: true,
+          new: true,
+          modified: true,
+          operation: "apply",
+          version: "0.0.0",
+          lastVersion: undefined,
+          signature: "fakesignature",
+          origin: deployment.origin,
+          env: "UNITTEST",
+          timestamp: fakeStateStore.fixedTimestamp,
+          ...fakeStateStore.nextState,
+        }
+        return Promise.resolve(value)
       },
       saveDeploymentState: function(deploymentState) {
         return new Promise(function(resolve, reject) {
           if (fakeStateStore.nextState.saveFailure) {
-            reject(fakeStateStore.nextState.message)
+            reject(new Error(fakeStateStore.nextState.message))
             return
           }
 
@@ -62,22 +60,18 @@ describe("Release plan", function() {
     fakeLogger = FakeLogger()
 
     fakeExec = FakeExec()
-    releasePlan = ReleasePlanModule(
-      inject({
-        stateStore: fakeStateStore,
-        cmd: fakeExec,
-        logger: fakeLogger,
-        uiDataPusher: fakeUiDataPusher
-      })
-    )("planSpecEnv")
+    releasePlan = ReleasePlanModule({
+      stateStore: fakeStateStore,
+      cmd: fakeExec,
+      logger: fakeLogger,
+      uiDataPusher: fakeUiDataPusher,
+    })("planSpecEnv")
   })
 
   describe("-k8s- deployment", function() {
     it("should check state for each added kubernetes deployment", function() {
       return releasePlan
-        .addDeployment(
-          k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]
-        )
+        .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]))
         .then(function(deploymentState) {
           expect(deploymentState.state.testState).to.equal(true)
           expect(checkedStates.length).to.equal(1)
@@ -89,17 +83,17 @@ describe("Release plan", function() {
       beforeEach(function() {
         fakeStateStore.nextState = { new: false, modified: true }
         return releasePlan
-          .addDeployment(
-            k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]
-          )
+          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]))
           .then(function() {
-            return releasePlan.executePlan({
-              dryRun: true,
-              dryRunOutputDir: "/tmp/",
-            }).then((execResults)=>{
-              // debug('execResults', execResults)
-              return execResults
-            })
+            return releasePlan
+              .executePlan({
+                dryRun: true,
+                dryRunOutputDir: "/tmp/",
+              })
+              .then(execResults => {
+                // debug('execResults', execResults)
+                return execResults
+              })
           })
       })
 
@@ -116,9 +110,7 @@ describe("Release plan", function() {
       beforeEach(function() {
         fakeStateStore.nextState = { new: false, modified: false }
         return releasePlan
-          .addDeployment(
-            k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]
-          )
+          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]))
           .then(function() {
             return releasePlan.executePlan()
           })
@@ -136,26 +128,25 @@ describe("Release plan", function() {
         let outputLogger = new FakeLogger()
         releasePlan.printPlan(outputLogger)
         expect(outputLogger.logStatements.length).to.equal(1)
-        expect(outputLogger.logStatements[0].data[0]).to.contain(
-          "No modified deployments in "
-        )
+        expect(outputLogger.logStatements[0].data[0]).to.contain("No modified deployments in ")
       })
     })
 
     describe("modified deployment docs", function() {
       beforeEach(function() {
         fakeStateStore.fixedTimestamp = "2019-10-31T11:03:52.381Z"
+        fakeStateStore.nextState = {
+          saveFailure: false,
+          message: "",
+        }
         fakeExec.nextResponse.success = "applied"
+
         return releasePlan
-          .addDeployment(
-            k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]
-          )
+          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]))
           .then(
-            releasePlan.addDeployment(
-              k8sDeployments["Deployment_www-icelandair-com"]
-            )
+            releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"]))
           )
-          .then(releasePlan.addDeployment(k8sDeployments["Namespace_monitors"]))
+          .then(releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"])))
           .then(function() {
             return releasePlan.executePlan()
           })
@@ -165,7 +156,7 @@ describe("Release plan", function() {
         expect(fakeExec.executedCommands.length).to.equal(4)
         expect(fakeExec.executedCommands[0].params[0]).to.equal("apply", "0")
         expect(fakeExec.executedCommands[1].params[0]).to.equal("apply", "1")
-        expect(fakeExec.executedCommands[2].params.join(' ')).to.equal("delete -f -")
+        expect(fakeExec.executedCommands[2].params.join(" ")).to.equal("delete -f -")
         expect(fakeExec.executedCommands[2].params[0]).to.equal("delete", "2")
         expect(fakeExec.executedCommands[3].params[0]).to.equal("rollout")
       })
@@ -175,9 +166,7 @@ describe("Release plan", function() {
         expect(fakeExec.executedCommands[0].params[0]).to.equal("apply")
         expect(fakeExec.executedCommands[0].params[1]).to.equal("-f")
         expect(fakeExec.executedCommands[0].params[2]).to.equal("-")
-        expect(fakeExec.executedCommands[0].options.stdin).to.contain(
-          "name: www-icelandair-com-nginx-acls"
-        )
+        expect(fakeExec.executedCommands[0].options.stdin).to.contain("name: www-icelandair-com-nginx-acls")
       })
 
       it("should execute kubectl rollout status to wait for deployment to complete", () => {
@@ -188,21 +177,16 @@ describe("Release plan", function() {
       })
 
       it("should push data to UI", () => {
-
-        // testDebug('WROTE DATA ARRAY TO ' )
-        // fs.writeFileSync('./pushedDataArray.json', JSON.stringify(fakeUiDataPusher.pushedData))
         expect(fakeUiDataPusher.pushedData.length).to.equal(3)
 
-        // console.log('pushedData', fakeUiDataPusher.pushedData.map((pd)=>pd.displayName)).join('...')
+        // console.log('pushedData', fakeUiDataPusher.pushedData.map((pd)=>pd.deploymentState.timestamp).join(','))
 
-        expect(fakeUiDataPusher.pushedData[0].displayName).to.equal('Testimage')
+        expect(fakeUiDataPusher.pushedData[0].displayName).to.equal("Testimage")
 
-        expect(fakeUiDataPusher.pushedData[1].displayName).to.equal('monitors-namespace.yml')
-        expect(fakeUiDataPusher.pushedData[1].deploymentState.timestamp).to.eql(new Date('2019-10-31T11:03:52.381Z'))
+        expect(fakeUiDataPusher.pushedData[1].displayName).to.equal("monitors-namespace.yml")
+        expect(fakeUiDataPusher.pushedData[1].deploymentState.timestamp).to.eql(new Date("2019-10-31T11:03:52.381Z"))
 
-        expect(fakeUiDataPusher.pushedData[2].displayName).to.equal('Testimage')
-
-
+        expect(fakeUiDataPusher.pushedData[2].displayName).to.equal("Testimage")
       })
 
       it("should store state kubectl", function() {
@@ -216,14 +200,17 @@ describe("Release plan", function() {
       })
 
       it("should log deployments", function() {
-        // 3 statements for each deployment
-        expect(fakeLogger.logStatements.length).to.equal(10)
+        expect(fakeLogger.logStatements.map(logs => logs.data[0]).join(" ")).to.equal(
+          "kubectl apply deployments in testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls applied kubectl apply deployments in testenvimage:0.0.0:kube.config.tar.base64/Deployment_www-icelandair-com applied kubectl delete deployments in /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces/Namespace_monitors applied Deployment/www-icelandair-com-test1 rolled out"
+        )
+        expect(fakeLogger.logStatements.length).to.equal(7)
       })
 
       it("should log rollout complete", () => {
-        expect(fakeLogger.logStatements[9].data[0]).to.equal('Deployment/www-icelandair-com-test1 rolled out')
+        expect(fakeLogger.logStatements.map(logs => logs.data[0]).join(" ")).to.contain(
+          "Deployment/www-icelandair-com-test1 rolled out"
+        )
       })
-
     })
 
     describe("modified, fail to save state", function() {
@@ -236,15 +223,11 @@ describe("Release plan", function() {
         }
         fakeExec.nextResponse.success = "applied"
         return releasePlan
-          .addDeployment(
-            k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]
-          )
+          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]))
           .then(
-            releasePlan.addDeployment(
-              k8sDeployments["Deployment_www-icelandair-com"]
-            )
+            releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"]))
           )
-          .then(releasePlan.addDeployment(k8sDeployments["Namespace_monitors"]))
+          .then(releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"])))
           .then(function() {
             return releasePlan.executePlan().catch(function(err) {
               saveError = err
@@ -254,23 +237,23 @@ describe("Release plan", function() {
 
       it("should propagate error to caller", function() {
         expect(saveError).to.equal(
-          "Failed to save state after successful deployment! testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls\nState store failure!"
+          "Failed to save state after successful deployment! testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls\nError: State store failure!"
         )
       })
     })
 
     describe("modified, delete deployment and kubectl responds with not found", function() {
-      let saveError, executedPlan
+      let saveError, executedAction
 
       beforeEach(function() {
         fakeExec.nextResponse.err = "not found"
         return releasePlan
-          .addDeployment(k8sDeployments["Namespace_monitors"])
+          .addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"]))
           .then(function() {
             return releasePlan
               .executePlan()
               .then(function(executionResults) {
-                executedPlan = executionResults[0]
+                executedAction = executionResults[0]
               })
               .catch(function(err) {
                 saveError = err
@@ -286,8 +269,8 @@ describe("Release plan", function() {
       })
 
       it("should save call log with state", function() {
-        expect(executedPlan.state.stdout).to.equal(undefined)
-        expect(executedPlan.state.stderr).to.equal("not found")
+        expect(executedAction.state.stdout).to.equal(undefined)
+        expect(executedAction.state.stderr).to.equal("not found")
       })
     })
   })
@@ -297,11 +280,9 @@ describe("Release plan", function() {
       let deploymentState
 
       beforeEach(function() {
-        return releasePlan
-          .addDeployment(dockerDeployers["testenvimage-migrations:0.0.0"])
-          .then(function(ds) {
-            deploymentState = ds
-          })
+        return releasePlan.addDeployment(dockerDeployers["testenvimage-migrations:0.0.0"]).then(function(ds) {
+          deploymentState = ds
+        })
       })
 
       it("should check state for each added docker deployer", function() {
@@ -317,15 +298,12 @@ describe("Release plan", function() {
     })
 
     describe("modified parameters", function() {
-
       beforeEach(function() {
         fakeExec.nextResponse.success = "this would be docker run output"
         fakeStateStore.nextState = { new: false, modified: true }
-        return releasePlan
-          .addDeployment(dockerDeployers["testenvimage-migrations:0.0.0"])
-          .then(function() {
-            return releasePlan.executePlan()
-          })
+        return releasePlan.addDeployment(dockerDeployers["testenvimage-migrations:0.0.0"]).then(function() {
+          return releasePlan.executePlan()
+        })
       })
 
       it("should run docker with correct parameters", function() {
@@ -336,9 +314,7 @@ describe("Release plan", function() {
         expect(fakeExec.executedCommands[0].params[p++]).to.equal("-i")
         expect(fakeExec.executedCommands[0].params[p++]).to.equal("--rm")
         expect(fakeExec.executedCommands[0].params[p++]).to.equal("-e")
-        expect(fakeExec.executedCommands[0].params[p++]).to.equal(
-          "ENV=testenv"
-        )
+        expect(fakeExec.executedCommands[0].params[p++]).to.equal("ENV=testenv")
       })
 
       it("should print info about modified deployments", function() {
@@ -346,12 +322,8 @@ describe("Release plan", function() {
 
         releasePlan.printPlan(outputLogger)
         expect(outputLogger.logStatements.length).to.equal(2)
-        expect(outputLogger.logStatements[0].data[0]).to.equal(
-          "testenvimage-migrations:0.0.0 deployer"
-        )
-        expect(outputLogger.logStatements[1].data[0]).to.equal(
-          "  -  will run testenvimage-migrations:0.0.0 ls"
-        )
+        expect(outputLogger.logStatements[0].data[0]).to.equal("testenvimage-migrations:0.0.0 deployer")
+        expect(outputLogger.logStatements[1].data[0]).to.equal("  -  will run testenvimage-migrations:0.0.0 ls")
       })
     })
   })

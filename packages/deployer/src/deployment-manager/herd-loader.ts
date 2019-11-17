@@ -16,7 +16,7 @@ import {
 } from "./deployment-types"
 import { getShepherdMetadata } from "./add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
-import { TK8sDeploymentAction } from "./kubectl-deployer/create-image-based-kubectl-deployment-action"
+import { TK8sDockerImageDeploymentAction } from "./kubectl-deployer/create-kubectl-deployment-action"
 // declare var Promise: Bluebird<any>;
 
 
@@ -37,11 +37,10 @@ module.exports = function(injected) {
   const logger = injected("logger")
 
   const calculateDeploymentPlan = createImageDeploymentPlanner(
-    inject({
+    {
       kubeSupportedExtensions,
-      logger,
-      featureDeploymentConfig,
-    }),
+      logger
+    },
   ).calculateDeploymentActions
 
   const scanDir = require("./kubectl-deployer/folder-deployment-planner")(
@@ -178,10 +177,10 @@ module.exports = function(injected) {
                     .then(getShepherdMetadata)
                     .then(addMigrationImageToDependenciesPlan)/// This is pretty ugly, adding to external structure sideffect
                     .then(calculateDeploymentPlan)
-                    .then(function(imagePlans) {
-                      return Bluebird.each(imagePlans, releasePlan.addDeployment)
+                    .then(function(imageDeploymentActions) {
+                      return Bluebird.each(imageDeploymentActions, releasePlan.addDeployment)
                     })
-                    .then(function(imgPlans: Array<TImageDeploymentAction | TK8sDeploymentAction>) {
+                    .then(function(imgPlans: Array<TImageDeploymentAction | TK8sDockerImageDeploymentAction>) {
                       return imgPlans
                     })
                     .catch(function(e) {

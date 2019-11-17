@@ -1,24 +1,23 @@
 import { expect } from "chai"
 import { getShepherdMetadata } from "./add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
-
-const inject = require("@shepherdorg/nano-inject").inject
-
+import { ILog } from "./deployment-types"
 
 function createNewTestDeployerPlanner() {
+  let fakeLogger = {
+    info: () => {
+      console.error("INFO", arguments)
+    },
+  }
   return createImageDeploymentPlanner(
-    inject({
+    {
       kubeSupportedExtensions: {
         ".yml": true,
         ".yaml": true,
         ".json": true,
       },
-      logger: {
-        info: () => {
-          console.error("INFO", arguments)
-        },
-      }
-    }),
+      logger: fakeLogger as ILog
+    },
   ).calculateDeploymentActions
 }
 

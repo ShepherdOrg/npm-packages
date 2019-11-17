@@ -85,6 +85,7 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
             if (
               volume.configMap &&
               volume.configMap.name &&
+              branchModificationParams &&
               branchModificationParams.nameChangeIndex &&
               branchModificationParams.nameChangeIndex["ConfigMap"] &&
               branchModificationParams.nameChangeIndex["ConfigMap"][volume.configMap.name]

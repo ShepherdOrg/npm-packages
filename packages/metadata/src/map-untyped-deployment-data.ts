@@ -3,7 +3,7 @@ import { THerdK8sMetadata } from "./index"
 export function mapUntypedDeploymentData(deploymentInfo) {
 
   if (!deploymentInfo.state) {
-    throw new Error("Expecting state property on deploymentInfo object" + Object.keys(deploymentInfo).join(", "))
+    throw new Error("Expecting state property on deploymentInfo object -> " + Object.keys(deploymentInfo).join(", "))
   }
 
   const mappedDeploymentInfo = {

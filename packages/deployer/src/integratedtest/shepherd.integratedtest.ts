@@ -46,7 +46,7 @@ describe("run all deployers with infrastructure", function() {
             NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
           }),
-          debug: false, // debug:false suppresses stdout of process
+          debug: true, // debug:false suppresses stdout of process
         })
         .output("./.build/.testdata/kubeapply")
         .shouldEqual("./src/integratedtest/expected/all-deployments")
@@ -159,7 +159,7 @@ describe("run all deployers with infrastructure", function() {
         .then(() => pgBackend.resetAllDeploymentStates())
     })
 
-    it("should modify feature deployment", function(done) {
+    it("should modify branch deployment", function(done) {
       script
         .execute(shepherdTestHarness, ["--dryrun"], {
           env: _.extend({ NO_REBUILD_IMAGES: true }, process.env),

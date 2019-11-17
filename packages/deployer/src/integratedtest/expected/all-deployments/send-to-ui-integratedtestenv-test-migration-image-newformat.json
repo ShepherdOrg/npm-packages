@@ -71,13 +71,13 @@
   "identifier": "test-migration-image-newformat",
   "herdKey": "test-migration-image-newformat",
   "env": "integratedtestenv",
-  "descriptor": "-i --rm -e ENV=testit -e MIGRATION_ENV_VARIABLE_ONE=justAValue -e MIGRATION_ENV_VARIABLE_TWO=fixedValue test-migration-image-newformat:0.0.66",
   "state": {
     "key": "integratedtestenv-test-migration-image-newformat",
     "new": true,
     "modified": true,
     "operation": "run",
-    "signature": "690969e24851808daa52ff88bff6031f",
+    "signature": "6a5cb4974fa8bf8800812dae0f6347c0",
     "env": "integratedtestenv"
-  }
+  },
+  "descriptor": "-i --rm -e ENV=testit -e MIGRATION_ENV_VARIABLE_ONE=justAValue -e MIGRATION_ENV_VARIABLE_TWO=fixedValue test-migration-image-newformat:0.0.66"
 }

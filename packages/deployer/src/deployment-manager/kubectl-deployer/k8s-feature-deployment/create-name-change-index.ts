@@ -26,8 +26,8 @@ export function indexNameReferenceChange (deploymentDescriptor, branchModificati
     deploymentDescriptor.metadata.name + "-" + branchModificationParams.branchName
 }
 
-export function addResourceNameChangeIndex(plan, kubeSupportedExtensions, featureDeploymentConfig) {
-  featureDeploymentConfig.nameChangeIndex = featureDeploymentConfig.nameChangeIndex || {}
+export function addResourceNameChangeIndex(plan, kubeSupportedExtensions, branchModificationParams) {
+  branchModificationParams.nameChangeIndex = branchModificationParams.nameChangeIndex || {}
   Object.entries(plan.files  as Array<any>).forEach(([fileName, deploymentFileContent]) => {
     let fileExtension = path.extname(fileName)
     if (!fileExtension) {
@@ -42,12 +42,13 @@ export function addResourceNameChangeIndex(plan, kubeSupportedExtensions, featur
       let parsedMultiContent = yamlLoad(deploymentFileContent.content)
       parsedMultiContent.forEach(function(parsedContent) {
         if (parsedContent) {
-          indexNameReferenceChange(parsedContent, featureDeploymentConfig)
+          indexNameReferenceChange(parsedContent, branchModificationParams)
         } else {
           console.warn("Parsed content is NULL!!!", deploymentFileContent.content)
         }
       })
+
     }
   })
-  return featureDeploymentConfig
+  return branchModificationParams
 }

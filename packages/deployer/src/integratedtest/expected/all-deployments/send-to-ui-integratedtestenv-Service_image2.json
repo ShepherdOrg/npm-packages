@@ -1,4 +1,46 @@
 {
+  "operation": "delete",
+  "origin": "testenvimage2:999.999.99999:tar:./deployment/image2.service.yml",
+  "deploymentRollouts": [],
+  "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: image2\n  annotations: \n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: \"*\"\n  labels:\n    name: image2\n    team: flip\nspec:\n  type: LoadBalancer\n  ports:\n  - port: 80\n    targetPort: 81\n    name: http-proxy-protocol\n  - port: 443\n    targetPort: 444\n    name: https-proxy-protocol\n  selector:\n    name: image2\n    tier: frontend\n",
+  "identifier": "Service_image2",
+  "descriptorsByKind": {
+    "Service": [
+      {
+        "apiVersion": "v1",
+        "kind": "Service",
+        "metadata": {
+          "name": "image2",
+          "annotations": {
+            "service.beta.kubernetes.io/aws-load-balancer-proxy-protocol": "*"
+          },
+          "labels": {
+            "name": "image2",
+            "team": "flip"
+          }
+        },
+        "spec": {
+          "type": "LoadBalancer",
+          "ports": [
+            {
+              "port": 80,
+              "targetPort": 81,
+              "name": "http-proxy-protocol"
+            },
+            {
+              "port": 443,
+              "targetPort": 444,
+              "name": "https-proxy-protocol"
+            }
+          ],
+          "selector": {
+            "name": "image2",
+            "tier": "frontend"
+          }
+        }
+      }
+    ]
+  },
   "herdSpec": {
     "image": "testenvimage2",
     "imagetag": "999.999.99999",
@@ -31,15 +73,10 @@
     "deploymentType": "k8s",
     "deployerRole": "install"
   },
-  "operation": "delete",
-  "identifier": "Service_image2",
   "version": "999.999.99999",
-  "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: image2\n  annotations: \n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: \"*\"\n  labels:\n    name: image2\n    team: flip\nspec:\n  type: LoadBalancer\n  ports:\n  - port: 80\n    targetPort: 81\n    name: http-proxy-protocol\n  - port: 443\n    targetPort: 444\n    name: https-proxy-protocol\n  selector:\n    name: image2\n    tier: frontend\n",
-  "origin": "testenvimage2:999.999.99999:kube.config.tar.base64",
   "type": "k8s",
   "fileName": "./deployment/image2.service.yml",
   "herdKey": "test-image-to-delete",
-  "deploymentRollouts": [],
   "env": "integratedtestenv",
   "state": {
     "key": "integratedtestenv-Service_image2",

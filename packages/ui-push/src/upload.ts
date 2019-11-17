@@ -13,7 +13,7 @@ export function CreatePushApi(endPoint: string, logger: typeof console) {
   async function pushDeploymentStateToUI(deploymentState: THerdDeployerMetadata) {
     let uiVersion = mapToUiVersion(deploymentState)
     if(uiVersion){
-      logger.info('Pushing deployment data to UI ', JSON.stringify(uiVersion))
+      logger.debug('Pushing deployment data to UI ', JSON.stringify(uiVersion))
       const pushResults:DeploymentStatePushResults = {
         deploymentResult: undefined,
         deploymentVersionResult: undefined

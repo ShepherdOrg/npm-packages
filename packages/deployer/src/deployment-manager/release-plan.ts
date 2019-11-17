@@ -1,35 +1,15 @@
-import { Oops } from "oops-error"
+import * as path from "path"
+
+import { emptyArray } from "../helpers/ts-functions"
+import { extendedExec, writeFile } from "../promisified"
 
 const mapUntypedDeploymentData = require("@shepherdorg/metadata/dist/map-untyped-deployment-data").mapUntypedDeploymentData
 
-import * as path from "path"
-import * as fs from "fs"
+import Bluebird = require("bluebird")
+import { TKubectrlDeployAction } from "./kubectl-deployer/create-kubectl-deployment-action"
+import { ILog } from "./deployment-types"
 
-import Bluebird = require("bluebird");
-declare var Promise: Bluebird<any>;
-
-import { emptyArray } from "../helpers/ts-functions"
-
-const writeFile = Bluebird.promisify(fs.writeFile)
-
-const extendedExec = cmd => (...args) =>
-  new Promise((res, rej) =>
-    cmd.extendedExec(
-      ...args,
-      (error, errCode, stdOut) => {
-        const err = new Oops({
-          message:error,
-          category:"OperationalError",
-          context:{
-            errCode,
-            stdOut
-          }
-        })
-        rej(err)
-      },
-      res
-    )
-  )
+declare var Promise: Bluebird<any>
 
 // function writeJsonToFile (path1 = "./shepherd-pushed.json") {
 //   return shepherdMetadata => {
@@ -46,36 +26,48 @@ type TK8sDeploymentPlan = [string, any]
 
 type TDockerDeploymentPlan = [string, any]
 
-module.exports = function(injected) {
-  const stateStore = injected("stateStore")
+export interface TActionExecutionOptions {
+  forcePush: boolean
+  dryRun: boolean
+  dryRunOutputDir: string | undefined
+}
 
-  const cmd = injected("cmd")
-  const logger = injected("logger")
-  const uiDataPusher = injected("uiDataPusher", true)
+export type TReleasePlanDependencies = {
+  stateStore: any
+  cmd: any
+  logger: ILog
+  uiDataPusher: any
+}
+
+export function ReleasePlanModule(injected : TReleasePlanDependencies) {
+  const stateStore = injected.stateStore
+  const cmd = injected.cmd
+  const logger = injected.logger
+  const uiDataPusher = injected.uiDataPusher
 
   return function(forEnv) {
     if (!forEnv) {
       throw new Error("must specify environment you are creating a deployment plan for")
     }
 
-    const k8sDeploymentPlan = {}
+    const k8sDeploymentActions = {}
     const dockerDeploymentPlan = {}
     const k8sDeploymentsByIdentifier = {}
 
     function addK8sDeployment(deployment) {
-      k8sDeploymentPlan[deployment.origin] = k8sDeploymentPlan[deployment.origin] || {
+      k8sDeploymentActions[deployment.origin] = k8sDeploymentActions[deployment.origin] || {
         herdKey: deployment.herdKey,
         deployments: [],
       }
-      k8sDeploymentPlan[deployment.origin].deployments.push(deployment)
+      k8sDeploymentActions[deployment.origin].deployments.push(deployment)
 
       if (k8sDeploymentsByIdentifier[deployment.identifier]) {
         throw new Error(
           deployment.identifier +
-            " is already in deployment plan from " +
-            k8sDeploymentsByIdentifier[deployment.identifier].origin +
-            ". When adding deployment from " +
-            deployment.origin
+          " is already in deployment plan from " +
+          k8sDeploymentsByIdentifier[deployment.identifier].origin +
+          ". When adding deployment from " +
+          deployment.origin,
         )
       }
 
@@ -100,139 +92,43 @@ module.exports = function(injected) {
       return stateStore.saveDeploymentState(deployment.state)
     }
 
-    function getDeploymentStateFromStore(deployment) {
-      logger.debug("Get deployment state ", { deployment })
-      if (deployment.type === "k8s") {
-        addK8sDeployment(deployment)
-      } else if (deployment.type === "deployer") {
-        addDockerDeployer(deployment)
+    async function addToPlanAndGetDeploymentStateFromStore(deploymentAction): Promise<TKubectrlDeployAction> {
+      let state = await stateStore.getDeploymentState(deploymentAction)
+
+      if (!deploymentAction.type) {
+        let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deploymentAction)
+        throw new Error(message)
       }
+      if (!deploymentAction.identifier) {
+        let message = "Illegal deployment, no identifier attribute in " + JSON.stringify(deploymentAction)
+        throw new Error(message)
+      }
+      deploymentAction.state = state
 
-      return stateStore.getDeploymentState(deployment).then(function(state) {
-        if (!deployment.type) {
-          let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deployment)
-          throw new Error(message)
-        }
-        if (!deployment.identifier) {
-          let message = "Illegal deployment, no identifier attribute in " + JSON.stringify(deployment)
-          throw new Error(message)
-        }
-
-        deployment.state = state
-        return deployment
-      })
+      if (deploymentAction.type === "k8s") {
+        addK8sDeployment(deploymentAction)
+      } else if (deploymentAction.type === "deployer") {
+        addDockerDeployer(deploymentAction)
+      }
+      return deploymentAction
     }
 
     function K8sDeploymentPromises(deploymentOptions) {
-      return Object.values(k8sDeploymentPlan).flatMap((deploymentPlan:TDeploymentPlan) => {
-        return deploymentPlan.deployments.map(async deployment => {
-          if (deployment.state.modified) {
-            if (deploymentOptions.dryRun) {
-              const writePath = path.join(
-                deploymentOptions.dryRunOutputDir,
-                deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml"
-              )
-              await writeFile(writePath, deployment.descriptor.trim())
-              return deployment
-            } else {
-              try {
-                const stdOut = await extendedExec(cmd)("kubectl", [deployment.operation, "-f", "-"], {
-                  env: process.env,
-                  stdin: deployment.descriptor,
-                  debug: true,
-                })
-                logger.info(
-                  "kubectl " +
-                    deployment.operation +
-                    " deployments in " +
-                    deployment.origin +
-                    "/" +
-                    deployment.identifier
-                )
-                logger.info(stdOut || "[empty output]")
-
-                try {
-                  const state = await saveDeploymentState(deployment)
-                  deployment.state = state
-
-                  if(deployment.deploymentRollouts && deployment.operation === 'apply'){
-                    await Bluebird.all(deployment.deploymentRollouts.map(async (deploymentRollout)=>{
-                      const stdOut = await extendedExec(cmd)("kubectl", ['rollout', "status", deploymentRollout], {
-                        env: process.env,
-                        stdin: deployment.descriptor,
-                        debug: true,
-                      })
-                      logger.info( deploymentRollout + ' rolled out', stdOut)
-                    }))
-                  }
-
-                  return deployment
-                } catch (err) {
-                  throw "Failed to save state after successful deployment! " +
-                    deployment.origin +
-                    "/" +
-                    deployment.identifier +
-                    "\n" +
-                    err
-                }
-              } catch (error) {
-                if (typeof error === "string") throw error
-                const { errCode, stdOut, message: err } = error
-                if (deployment.operation === "delete") {
-                  logger.info(
-                    "kubectl " +
-                      deployment.operation +
-                      " deployments in " +
-                      deployment.origin +
-                      "/" +
-                      deployment.identifier
-                  )
-                  logger.info(
-                    "Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows."
-                  )
-                  logger.info(err || "[empty error]")
-                  logger.info(stdOut || "[empty output]")
-
-                  deployment.state.stdout = stdOut
-                  deployment.state.stderr = err
-
-                  try {
-                    const state = await saveDeploymentState(deployment)
-                    deployment.state = state
-                    return deployment
-                  } catch (err) {
-                    throw "Failed to save state after error in deleting deployment! " +
-                      deployment.origin +
-                      "/" +
-                      deployment.identifier +
-                      "\n" +
-                      err
-                  }
-                } else {
-                  let message = "Failed to deploy from label for image " + JSON.stringify(deployment)
-                  message += "\n" + err
-                  message += "\nCode:" + errCode
-                  message += "\nStdOut:" + stdOut
-                  throw message
-                }
-              }
-            }
-          } else {
-            logger.debug(deployment.identifier + " not modified, not deploying.")
-            return deployment
-          }
+      return Object.values(k8sDeploymentActions).flatMap((k8sContainerDeployment: TDeploymentPlan) => {
+        return k8sContainerDeployment.deployments.map(async k8sDeploymentAction => {
+          return await k8sDeploymentAction.execute(deploymentOptions, cmd, logger, saveDeploymentState)
         })
       })
     }
 
     function DeployerPromises(deploymentOptions) {
-      return Object.values(dockerDeploymentPlan).flatMap((deploymentPlan:TDeploymentPlan) =>
+      return Object.values(dockerDeploymentPlan).flatMap((deploymentPlan: TDeploymentPlan) =>
         deploymentPlan.deployments.map(async deployment => {
           if (deployment.state.modified) {
             if (deploymentOptions.dryRun) {
               let writePath = path.join(
                 deploymentOptions.dryRunOutputDir,
-                deployment.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt"
+                deployment.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt",
               )
 
               let cmdLine = `docker run ${deployment.forTestParameters.join(" ")}`
@@ -255,11 +151,11 @@ module.exports = function(injected) {
                     return deployment
                   } catch (err) {
                     throw "Failed to save state after successful deployment! " +
-                      deployment.origin +
-                      "/" +
-                      deployment.identifier +
-                      "\n" +
-                      err
+                    deployment.origin +
+                    "/" +
+                    deployment.identifier +
+                    "\n" +
+                    err
                   }
                 } catch (e) {
                   console.error("Error running docker run" + JSON.stringify(deployment))
@@ -274,14 +170,14 @@ module.exports = function(injected) {
           } else {
             return undefined
           }
-        })
+        }),
       )
     }
 
-    async function mapDeploymentDataAndPush(deploymentData){
-      if(!deploymentData){
+    async function mapDeploymentDataAndPush(deploymentData) {
+      if (!deploymentData) {
         return deploymentData
-      } else{
+      } else {
         const mappedData = mapUntypedDeploymentData(deploymentData)
         uiDataPusher && await uiDataPusher.pushDeploymentStateToUI(mappedData)
         return deploymentData
@@ -289,11 +185,11 @@ module.exports = function(injected) {
     }
 
 
-     function mapDeploymentDataAndWriteTo(dryrunOutputDir){
-      return async (deploymentData)=>{
-        if(!deploymentData){
+    function mapDeploymentDataAndWriteTo(dryrunOutputDir) {
+      return async (deploymentData) => {
+        if (!deploymentData) {
           return deploymentData
-        } else{
+        } else {
           const mappedData = mapUntypedDeploymentData(deploymentData)
           const writePath = path.join(dryrunOutputDir, `send-to-ui-${mappedData.deploymentState.key}.json`)
           await writeFile(writePath, JSON.stringify(deploymentData, null, 2))
@@ -302,7 +198,7 @@ module.exports = function(injected) {
       }
     }
 
-    async function executePlan(runOptions = { dryRun: false, dryRunOutputDir: undefined, forcePush: false }) {
+    async function executePlan(runOptions: TActionExecutionOptions = { dryRun: false, dryRunOutputDir: undefined, forcePush: false }) {
       // let i = 0
       const shouldPush = !runOptions.dryRun || runOptions.forcePush
       let deploymentPromises = K8sDeploymentPromises(runOptions)
@@ -329,7 +225,7 @@ module.exports = function(injected) {
     }
 
     function printPlan(logger) {
-      Object.entries(k8sDeploymentPlan as TK8sDeploymentPlan).forEach(([_key, plan])=>{
+      Object.entries(k8sDeploymentActions as TK8sDeploymentPlan).forEach(([_key, plan]) => {
         let modified = false
         if (plan.deployments) {
           plan.deployments.forEach(function(deployment) {
@@ -350,7 +246,7 @@ module.exports = function(injected) {
           logger.info("No modified deployments in " + plan.herdKey)
         }
       })
-      Object.entries(dockerDeploymentPlan as TDockerDeploymentPlan).forEach(([_key, plan])=>{
+      Object.entries(dockerDeploymentPlan as TDockerDeploymentPlan).forEach(([_key, plan]) => {
         let modified = false
         if (plan.deployments) {
           plan.deployments.forEach(function(deployment) {
@@ -372,11 +268,11 @@ module.exports = function(injected) {
       return new Promise(function(resolve, reject) {
         let fileWrites = emptyArray<any>()
 
-        Object.entries(k8sDeploymentPlan as TK8sDeploymentPlan).forEach(function([_key, plan]) {
+        Object.entries(k8sDeploymentActions as TK8sDeploymentPlan).forEach(function([_key, plan]) {
           plan.deployments.forEach(function(deployment) {
             let writePath = path.join(
               exportDirectory,
-              deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml"
+              deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml",
             )
             let writePromise = writeFile(writePath, deployment.descriptor.trim())
             fileWrites.push(writePromise)
@@ -394,17 +290,17 @@ module.exports = function(injected) {
         Promise.all(fileWrites)
           .then(resolve)
           .catch(reject)
-      });
+      })
     }
 
     return {
-      addDeployment(deployment) {
-        deployment.env = forEnv
-        return getDeploymentStateFromStore(deployment)
+      async addDeployment(deploymentAction) {
+        deploymentAction.env = forEnv
+        return await addToPlanAndGetDeploymentStateFromStore(deploymentAction)
       },
       executePlan: executePlan,
       printPlan: printPlan,
       exportDeploymentDocuments: exportDeploymentDocuments,
     }
-  };
+  }
 }

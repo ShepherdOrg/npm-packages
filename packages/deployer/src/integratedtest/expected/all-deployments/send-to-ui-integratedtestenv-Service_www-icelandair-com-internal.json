@@ -1,4 +1,35 @@
 {
+  "operation": "apply",
+  "origin": "testenvimage:0.0.0:tar:./deployment/www-icelandair-com-internal.service.yml",
+  "deploymentRollouts": [],
+  "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-internal\n  labels:\n    name: www-icelandair-com-internal\nspec:\n  ports:\n  - port: 10000\n    name: http\n  selector:\n    name: www-icelandair-com\n    tier: frontend\n",
+  "identifier": "Service_www-icelandair-com-internal",
+  "descriptorsByKind": {
+    "Service": [
+      {
+        "apiVersion": "v1",
+        "kind": "Service",
+        "metadata": {
+          "name": "www-icelandair-com-internal",
+          "labels": {
+            "name": "www-icelandair-com-internal"
+          }
+        },
+        "spec": {
+          "ports": [
+            {
+              "port": 10000,
+              "name": "http"
+            }
+          ],
+          "selector": {
+            "name": "www-icelandair-com",
+            "tier": "frontend"
+          }
+        }
+      }
+    ]
+  },
   "herdSpec": {
     "image": "testenvimage",
     "imagetag": "0.0.0",
@@ -39,15 +70,10 @@
     "deploymentType": "k8s",
     "deployerRole": "install"
   },
-  "operation": "apply",
-  "identifier": "Service_www-icelandair-com-internal",
   "version": "0.0.0",
-  "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-internal\n  labels:\n    name: www-icelandair-com-internal\nspec:\n  ports:\n  - port: 10000\n    name: http\n  selector:\n    name: www-icelandair-com\n    tier: frontend\n",
-  "origin": "testenvimage:0.0.0:kube.config.tar.base64",
   "type": "k8s",
   "fileName": "./deployment/www-icelandair-com-internal.service.yml",
   "herdKey": "test-image",
-  "deploymentRollouts": [],
   "env": "integratedtestenv",
   "state": {
     "key": "integratedtestenv-Service_www-icelandair-com-internal",

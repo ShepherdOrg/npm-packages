@@ -1,4 +1,85 @@
 {
+  "operation": "apply",
+  "origin": "test1::test1",
+  "deploymentRollouts": [],
+  "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-test1\n  annotations:\n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'\n  labels:\n    name: www-icelandair-com-test1\n    subdomain: testSDPbeta\n    topdomain: testtopdomain\n    team: flip\n    ttl-hours: '48'\nspec:\n  type: LoadBalancer\n  ports:\n    - port: 80\n      targetPort: 81\n      name: http-proxy-protocol\n    - port: 443\n      targetPort: 444\n      name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com-test1\n    tier: frontend\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-test1\n  annotations:\n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'\n  labels:\n    name: www-icelandair-com-test1\n    subdomain: testSDPbeta\n    topdomain: testtopdomain\n    team: flip\n    ttl-hours: '48'\nspec:\n  type: LoadBalancer\n  ports:\n    - port: 80\n      targetPort: 81\n      name: http-proxy-protocol\n    - port: 443\n      targetPort: 444\n      name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com-test1\n    tier: frontend",
+  "identifier": "Service_www-icelandair-com-test1",
+  "descriptorsByKind": {
+    "Service": [
+      {
+        "apiVersion": "v1",
+        "kind": "Service",
+        "metadata": {
+          "name": "www-icelandair-com-test1",
+          "annotations": {
+            "service.beta.kubernetes.io/aws-load-balancer-proxy-protocol": "*"
+          },
+          "labels": {
+            "name": "www-icelandair-com-test1",
+            "subdomain": "testSDPbeta",
+            "topdomain": "testtopdomain",
+            "team": "flip",
+            "ttl-hours": "48"
+          }
+        },
+        "spec": {
+          "type": "LoadBalancer",
+          "ports": [
+            {
+              "port": 80,
+              "targetPort": 81,
+              "name": "http-proxy-protocol"
+            },
+            {
+              "port": 443,
+              "targetPort": 444,
+              "name": "https-proxy-protocol"
+            }
+          ],
+          "selector": {
+            "name": "www-icelandair-com-test1",
+            "tier": "frontend"
+          }
+        }
+      },
+      {
+        "apiVersion": "v1",
+        "kind": "Service",
+        "metadata": {
+          "name": "www-icelandair-com-test1",
+          "annotations": {
+            "service.beta.kubernetes.io/aws-load-balancer-proxy-protocol": "*"
+          },
+          "labels": {
+            "name": "www-icelandair-com-test1",
+            "subdomain": "testSDPbeta",
+            "topdomain": "testtopdomain",
+            "team": "flip",
+            "ttl-hours": "48"
+          }
+        },
+        "spec": {
+          "type": "LoadBalancer",
+          "ports": [
+            {
+              "port": 80,
+              "targetPort": 81,
+              "name": "http-proxy-protocol"
+            },
+            {
+              "port": 443,
+              "targetPort": 444,
+              "name": "https-proxy-protocol"
+            }
+          ],
+          "selector": {
+            "name": "www-icelandair-com-test1",
+            "tier": "frontend"
+          }
+        }
+      }
+    ]
+  },
   "herdSpec": {
     "image": "testenvimage",
     "imagetag": "0.0.0",
@@ -41,15 +122,10 @@
     "deploymentType": "k8s",
     "deployerRole": "install"
   },
-  "operation": "apply",
-  "identifier": "Service_www-icelandair-com-test1",
   "version": "0.0.0",
-  "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-test1\n  annotations:\n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'\n  labels:\n    name: www-icelandair-com-test1\n    subdomain: testSDPbeta\n    topdomain: testtopdomain\n    team: flip\n    ttl-hours: '48'\nspec:\n  type: LoadBalancer\n  ports:\n    - port: 80\n      targetPort: 81\n      name: http-proxy-protocol\n    - port: 443\n      targetPort: 444\n      name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com-test1\n    tier: frontend\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-test1\n  annotations:\n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'\n  labels:\n    name: www-icelandair-com-test1\n    subdomain: testSDPbeta\n    topdomain: testtopdomain\n    team: flip\n    ttl-hours: '48'\nspec:\n  type: LoadBalancer\n  ports:\n    - port: 80\n      targetPort: 81\n      name: http-proxy-protocol\n    - port: 443\n      targetPort: 444\n      name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com-test1\n    tier: frontend",
-  "origin": "test1::test1",
   "type": "k8s",
   "fileName": "./deployment/www-icelandair-com.service.yml",
   "herdKey": "test1",
-  "deploymentRollouts": [],
   "env": "integratedtestenv",
   "state": {
     "key": "integratedtestenv-Service_www-icelandair-com-test1",

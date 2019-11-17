@@ -1,4 +1,26 @@
 {
+  "operation": "delete",
+  "origin": "testenvimage2:999.999.99999:tar:./deployment/image2.config.yml",
+  "deploymentRollouts": [],
+  "descriptor": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: image2-config\n  labels:\n    team: flip\ndata:\n  whitelist: |-\n    teststring\n    \n",
+  "identifier": "ConfigMap_image2-config",
+  "descriptorsByKind": {
+    "ConfigMap": [
+      {
+        "apiVersion": "v1",
+        "kind": "ConfigMap",
+        "metadata": {
+          "name": "image2-config",
+          "labels": {
+            "team": "flip"
+          }
+        },
+        "data": {
+          "whitelist": "teststring"
+        }
+      }
+    ]
+  },
   "herdSpec": {
     "image": "testenvimage2",
     "imagetag": "999.999.99999",
@@ -31,15 +53,10 @@
     "deploymentType": "k8s",
     "deployerRole": "install"
   },
-  "operation": "delete",
-  "identifier": "ConfigMap_image2-config",
   "version": "999.999.99999",
-  "descriptor": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: image2-config\n  labels:\n    team: flip\ndata:\n  whitelist: |-\n    teststring\n    \n",
-  "origin": "testenvimage2:999.999.99999:kube.config.tar.base64",
   "type": "k8s",
   "fileName": "./deployment/image2.config.yml",
   "herdKey": "test-image-to-delete",
-  "deploymentRollouts": [],
   "env": "integratedtestenv",
   "state": {
     "key": "integratedtestenv-ConfigMap_image2-config",

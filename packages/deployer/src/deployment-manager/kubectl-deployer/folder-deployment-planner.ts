@@ -1,7 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
-import { createKubectlDeployAction } from "./create-kubectl-deployment-action"
+import { createKubectlDeployAction, TKubectrlDeployAction } from "./create-kubectl-deployment-action"
 
 module.exports = function(injected) {
   const kubeSupportedExtensions = injected("kubeSupportedExtensions")
@@ -83,21 +83,17 @@ module.exports = function(injected) {
                   }
 
                   const kubeDeploymentRelativePath = path.relative(initialDir, resolvedPath)
-                  const deploymentAction = createKubectlDeployAction(kubeDeploymentRelativePath, data, logger)
+                  const deploymentAction : TKubectrlDeployAction = createKubectlDeployAction(kubeDeploymentRelativePath, data, dir.forDelete ? "delete" : "apply", logger)
 
                   if (process.env.hasOwnProperty(imageVariableName)) {
                     delete process.env.TPL_DOCKER_IMAGE
                   }
 
-                  let deployment = {
-                    operation: dir.forDelete ? "delete" : "apply",
-                    identifier: deploymentAction.documentIdentifier,
+                  let deployment = Object.assign(deploymentAction,{
                     version: "immutable",
-                    descriptor: deploymentAction.deploymentDescriptor,
-                    origin: deploymentAction.origin,
                     type: "k8s",
                     fileName: fileName
-                  }
+                  })
                   resolve(deployment)
                 })
               });

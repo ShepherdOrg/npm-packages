@@ -59,13 +59,13 @@
   "identifier": "testenvimage-migrations:0.0.0",
   "herdKey": "testenvimage-migrations:0.0.0",
   "env": "integratedtestenv",
-  "descriptor": "-i --rm -e ENV=testit -e EXPORT1=nowhardcoded -e DB_HOST=postgres-local -e DB_PASS=somedbpass -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0",
   "state": {
     "key": "integratedtestenv-testenvimage-migrations:0.0.0",
     "new": true,
     "modified": true,
     "operation": "run",
-    "signature": "ac68c6ccb87d863c18619c6031aeca0c",
+    "signature": "6a5cb4974fa8bf8800812dae0f6347c0",
     "env": "integratedtestenv"
-  }
+  },
+  "descriptor": "-i --rm -e ENV=testit -e EXPORT1=nowhardcoded -e DB_HOST=postgres-local -e DB_PASS=somedbpass -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0"
 }

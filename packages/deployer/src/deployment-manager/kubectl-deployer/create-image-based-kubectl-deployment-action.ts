@@ -1,30 +1,21 @@
-import { THerdSpec } from "../deployment-types"
-import { TK8sMetadata } from "@shepherdorg/metadata"
 import { emptyArray } from "../../helpers/ts-functions"
-import { TBranchModificationParams } from "./k8s-feature-deployment/create-name-change-index"
+import {
+  addResourceNameChangeIndex,
+  TBranchModificationParams,
+} from "./k8s-feature-deployment/create-name-change-index"
 import * as path from "path"
 
 import { options } from "../options"
-import { createKubectlDeployAction } from "./create-kubectl-deployment-action"
+import {
+  createKubectlDeployAction,
+  TK8sDockerImageDeploymentAction,
+} from "./create-kubectl-deployment-action"
 
-const addResourceNameChangeIndex = require("./k8s-feature-deployment/create-name-change-index").addResourceNameChangeIndex
+import Bluebird = require("bluebird");
 
-export interface TK8sDeploymentAction {
-  herdSpec: THerdSpec
-  metadata: TK8sMetadata
 
-  operation: string
-  identifier: string,
-  version: string,
-  descriptor: string // Deployment file contents
-  origin: string,
-  type: string,
-  fileName: string,
-  herdKey: string,
-  deploymentRollouts: string[]
-}
 
-async function createImageBasedFileDeploymentAction(deploymentFileContent, imageInformation, fileName, branchModificationParams, logger): Promise<TK8sDeploymentAction> {
+async function createImageBasedFileDeploymentAction(deploymentFileContent, imageInformation, fileName, branchModificationParams, logger): Promise<TK8sDockerImageDeploymentAction> {
   let origin =
     imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag + ":tar:" + fileName
 
@@ -37,25 +28,22 @@ async function createImageBasedFileDeploymentAction(deploymentFileContent, image
       imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
   }
 
-  const documentDeploymentAction = createKubectlDeployAction(origin, deploymentFileContent.content, logger, branchModificationParams)
+  let operation = imageInformation.imageDefinition.delete ? "delete" : "apply"
+
+  const documentDeploymentAction = createKubectlDeployAction(origin, deploymentFileContent.content, operation, logger, branchModificationParams)
 
   delete process.env.TPL_DOCKER_IMAGE
 
   // TODO: Create deployment action for each part of multipart deployment document
 
-  const newK8sAction: TK8sDeploymentAction = {
+  const newK8sAction: TK8sDockerImageDeploymentAction = Object.assign(documentDeploymentAction,{
     herdSpec: imageInformation.imageDefinition,
     metadata: imageInformation.shepherdMetadata,
-    operation: imageInformation.imageDefinition.delete ? "delete" : "apply",
-    identifier: documentDeploymentAction.documentIdentifier,
     version: imageInformation.imageDefinition.imagetag,
-    descriptor: documentDeploymentAction.deploymentDescriptor, // Original descriptor file contents, may be multipart yaml
-    origin: documentDeploymentAction.origin,
     type: "k8s",
     fileName: fileName,
     herdKey: imageInformation.imageDefinition.herdKey,
-    deploymentRollouts: documentDeploymentAction.deploymentRollouts,
-  }
+  })
   return newK8sAction
 }
 
@@ -95,7 +83,7 @@ export function calculateKubectlActions(imageInformation, kubeSupportedExtension
     branchModificationParams.origin = imageInformation.imageDefinition.herdKey + "::" + branchModificationParams.branchName
     branchModificationParams.shouldModify = true
 
-    if (imageInformation.isTargetForFeatureDeployment) {
+    if (branchDeploymentEnabled) {
       if (!Boolean(branchModificationParams.ttlHours)) {
         throw new Error(
           `${imageInformation.imageDefinition.herdKey}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`,
@@ -131,5 +119,5 @@ export function calculateKubectlActions(imageInformation, kubeSupportedExtension
       throw new Error(error + e.message)
     }
   })
-  return Promise.all(deploymentActions)
+  return Bluebird.all(deploymentActions)
 }
