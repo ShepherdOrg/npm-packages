@@ -35,10 +35,6 @@ describe("raw deployment data mapping", function() {
       expect(err.message).to.contain('Missing herdSpec key. In deployment info object: ')
     }
 
-
-
-
-
   })
 
 })

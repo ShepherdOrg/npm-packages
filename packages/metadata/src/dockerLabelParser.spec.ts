@@ -15,16 +15,14 @@ const expect = require("chai").expect
 
 describe("Shepherd metadata reading", function() {
   describe("from image with no shepherd labels", function() {
-    let metaData: TK8sMetadata
 
     let loadError: Error
 
     before(async () => {
       try {
-        metaData = await extractMetadataFromDockerInspectJson(
+        await extractMetadataFromDockerInspectJson(
           "./testdata/inspected-dockers/alpine.json"
         )
-        console.log("Loaded metadata", metaData)
       } catch (err) {
         loadError = err
       }

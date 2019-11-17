@@ -17,7 +17,7 @@ describe("shepherd json load and validation", function() {
       )
 
       if (validate.errors) {
-        if (!valid) console.log("Not valid!", validate.errors)
+        if (!valid) console.error("Not valid!", validate.errors)
         expect(validate.errors.length).to.equal(
           0,
           renderValidationMessage(validate)
