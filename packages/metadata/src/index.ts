@@ -41,8 +41,8 @@ export type TDeploymentState = {
   timestamp?: Date
   signature: string
   env: string
-  stdout: string  // Output from deployment action exection
-  stderr: string  // Error output 
+  stdout?: string  // Output from deployment action exection
+  stderr?: string  // Error output
 }
 
 export type TImageMetadata = {
