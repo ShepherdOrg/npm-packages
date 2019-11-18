@@ -3,7 +3,11 @@
   "private": true,
   "description": "Shepherd published packages ",
   "main": "index.js",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
+    "bootstrap": "lerna bootstrap -- --frozen-lockfile",
     "test": "yamrt . --verifyModified",
     "build": "yamrt .",
     "publish": "yamrt . --publish"
@@ -19,7 +23,7 @@
   },
   "homepage": "https://github.com/ShepherdOrg/shepherd#readme",
   "devDependencies": {
-    "prettier": "^1.18.2",
-    "yamrt": "0.2.2"
+    "lerna": "^3.18.4",
+    "prettier": "^1.18.2"
   }
 }
