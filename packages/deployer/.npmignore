@@ -7,4 +7,3 @@
 .build/
 .actual/
 integratedtest/
-yamrt.json
