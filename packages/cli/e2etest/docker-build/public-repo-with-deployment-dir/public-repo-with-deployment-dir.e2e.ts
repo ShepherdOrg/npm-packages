@@ -1,9 +1,5 @@
-import { readJsonFiles } from "../../readJsonFiles"
-
-const exec = require("child-process-promise").exec
-const path = require("path")
-const expect = require("chai").expect
-const Future = require("fluture")
+import { expect } from "chai"
+import { exec } from "child-process-promise"
 
 describe("Build docker with deployment dir", function() {
   this.timeout(10000)
@@ -17,21 +13,14 @@ describe("Build docker with deployment dir", function() {
         if (stderr) expect.fail("GOT ERROR> " + stderr)
 
         buildOutput = stdout
+        shepherdMeta = require(__dirname + '/.build/metadata/shepherd.json')
 
-        return Future.promise(
-          readJsonFiles(
-            path.join(__dirname, "/.build"),
-            "**/*/shepherd.json"
-          )
-        ).then(metaFiles => {
-          shepherdMeta = metaFiles[0]
-
-          return exec(
-            "docker inspect public-repo-with-deployment-dir:latest"
-          ).then(({ stdout }) => {
-            dockerMeta = JSON.parse(stdout)
-          })
+        return exec(
+          "docker inspect public-repo-with-deployment-dir:latest"
+        ).then(({ stdout }) => {
+          dockerMeta = JSON.parse(stdout)
         })
+
       }
     )
   })

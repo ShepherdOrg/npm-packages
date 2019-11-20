@@ -1,8 +1,8 @@
+import * as _ from "lodash"
+
 const script = require("../test-tools/script-test")
 const fs = require("fs")
 const path = require("path")
-const _ = require("lodash")
-
 const PgBackend = require("@shepherdorg/postgres-backend").PostgresStore
 const PgConfig = require("@shepherdorg/postgres-backend").PgConfig
 

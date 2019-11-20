@@ -1,6 +1,5 @@
-
-const exec = require("child-process-promise").exec
-const expect = require("chai").expect
+import { expect } from "chai"
+import { exec } from "child-process-promise"
 
 describe("Build docker with insufficient deployment information", function() {
   this.timeout(10000)
