@@ -33,14 +33,14 @@ jobs:
       - run:
           name: Publish to NPM
           command: yarn run lerna publish from-package --yes
-      - run:
-          name: Restore docker layer restore
-          command: |
-            set +o pipefail
-            docker load -i /tmp/layercache.tar | true
-      - run:
-          name: Login to docker registry
-          command: docker login -u $DOCKER_USER -p $DOCKER_PASSWD
+#      - run:
+#          name: Restore docker layer restore
+#          command: |
+#            set +o pipefail
+#            docker load -i /tmp/layercache.tar | true
+#      - run:
+#          name: Login to docker registry
+#          command: docker login -u $DOCKER_USER -p $DOCKER_PASSWD
 #      - run:
 #          name: Build docker images
 #          command: BASE_COMMIT=$(./scripts/base-commit.sh) BUILD_NUMBER=$CIRCLE_BUILD_NUM ./scripts/build.js --only-changed
