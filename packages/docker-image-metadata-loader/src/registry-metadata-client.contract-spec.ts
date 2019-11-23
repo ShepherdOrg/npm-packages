@@ -40,7 +40,6 @@ describe("Registry metadata API against localhost on http", function() {
     return api
       .getImageManifestLabels("localhost:5000/shepherd", "latest")
       .then((dockerTags: TDockerImageLabels) => {
-        // console.log('dockerTags', dockerTags)
         expect(dockerTags["shepherd.name"]).to.equal("Shepherd agent")
       })
   })

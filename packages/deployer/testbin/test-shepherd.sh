@@ -6,7 +6,7 @@ THISDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 TESTMODE=$1
 HERDFILE=$2
 
-export PATH=$(pwd)/src/integratedtest/testbin:$(pwd)/bin:${PATH}
+export PATH=$(pwd)/testbin:$(pwd)/bin:${PATH}
 
 
 if [ -z "${HERDFILE}" ]; then
@@ -46,7 +46,6 @@ if [ "${TESTMODE}" = "--testrun-mode" ]; then
 	export DRYRUN_OUTPUT_DIR_PARAM="--outputDir ${DRYRUN_OUTPUT_FOLDER}"
 fi
 
-echo "Executing shepherd.js................."
  SHEPHERD_FILESTORE_DIR="./.build/.shepherdstore" \
  www_icelandair_com_image=www-image:99 \
  PREFIXED_TOP_DOMAIN_NAME=testtopdomain \

@@ -6,7 +6,7 @@ const packages = require('./utils/get-docker-projects')
 const spawnProcess = require('./utils/spawn-process')
 
 if (packages.length === 0) {
-  console.log('Nothing ot build. exiting')
+  console.info('Nothing to build. exiting')
   process.exit(0)
 }
 

@@ -20,7 +20,7 @@ export function getTestCaseLogger(options: {
     },
     info: (_msg: string) => {
       infoEntries.push(_msg)
-      options.infoOutput && console.log("INFO", _msg)
+      options.infoOutput && console.info("INFO", _msg)
     },
   }
 }

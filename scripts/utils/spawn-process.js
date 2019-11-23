@@ -31,7 +31,7 @@ const spawnProcess = (name, command, args, spawnOptions = {}) => {
     const prefixError = s => `${chalk.red(`${name} |`)} ${s}`
 
     proc.stdout.on('data', data => {
-      console.log(
+      console.info(
         data
           .toString()
           .split('\n')

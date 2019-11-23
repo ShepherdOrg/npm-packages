@@ -16,7 +16,7 @@ function ensureCleanOutputFolder(firstRoundFolder) {
 }
 
 describe("run all deployers with infrastructure", function() {
-  let shepherdTestHarness = process.cwd() + "/src/integratedtest/test-shepherd.sh"
+  let shepherdTestHarness = path.join(process.cwd(),'testbin/test-shepherd.sh')
 
   this.timeout(40000)
 
@@ -46,7 +46,7 @@ describe("run all deployers with infrastructure", function() {
             NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
           }),
-          debug: true, // debug:false suppresses stdout of process
+          debug: false, // debug:false suppresses stdout of process
         })
         .output("./.build/.testdata/kubeapply")
         .shouldEqual("./src/integratedtest/expected/all-deployments")
@@ -111,8 +111,11 @@ describe("run all deployers with infrastructure", function() {
       ensureCleanOutputFolder(firstRoundFolder)
       ensureCleanOutputFolder(secondRoundFolder)
 
+      let postgresConnectionError = (err)=>{
+        throw new Error('Error connecting to postgres!' + err)
+      }
       return pgBackend
-        .connect()
+        .connect().catch(postgresConnectionError)
         .then(() => pgBackend.resetAllDeploymentStates())
     })
 
@@ -156,7 +159,9 @@ describe("run all deployers with infrastructure", function() {
 
       return pgBackend
         .connect()
-        .then(() => pgBackend.resetAllDeploymentStates())
+        .then(() => pgBackend.resetAllDeploymentStates()).catch((err)=>{
+          throw new Error('Error connecting to postgres!' + err)
+        })
     })
 
     it("should modify branch deployment", function(done) {

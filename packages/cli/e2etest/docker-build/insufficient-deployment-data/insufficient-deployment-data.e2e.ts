@@ -20,8 +20,8 @@ describe("Build docker with insufficient deployment information", function() {
   })
 
   xit("should suppress tslint warnings", () => {
-    console.log(shepherdMeta)
-    console.log(buildOutput)
-    console.log(dockerMeta)
+    console.info(shepherdMeta)
+    console.info(buildOutput)
+    console.info(dockerMeta)
   })
 })

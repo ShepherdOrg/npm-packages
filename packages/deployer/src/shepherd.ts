@@ -13,7 +13,7 @@ This is the main entry point for shepherd deployer agent
  */
 
 function printUsage () {
-  console.log(`Usage: shepherd /path/to/a/herd.yaml ENVIRONMENT <options>
+  console.info(`Usage: shepherd /path/to/a/herd.yaml ENVIRONMENT <options>
 
 Supported options:
 
@@ -58,8 +58,8 @@ if (process.argv.indexOf("--help") > 0) {
 }
 
 function printVersions() {
-  console.log(`deployer v${require("../package.json").version}`)
-  console.log(`metadata v${require("@shepherdorg/metadata/package").version}`)
+  console.info(`deployer v${require("../package.json").version}`)
+  console.info(`metadata v${require("@shepherdorg/metadata/package").version}`)
 }
 
 if (process.argv.indexOf("--version") > 0) {

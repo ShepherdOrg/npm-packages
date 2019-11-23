@@ -14,7 +14,7 @@ declare var Promise: Bluebird<any>
 // function writeJsonToFile (path1 = "./shepherd-pushed.json") {
 //   return shepherdMetadata => {
 //     fs.writeFile(path1, JSON.stringify(shepherdMetadata), ()=>{
-//       console.log('WROTE JSON TO ' + path1)
+//       console.info('WROTE JSON TO ' + path1)
 //     })
 //     return shepherdMetadata
 //   }
@@ -214,13 +214,13 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
         }
       })
 
-      // console.log('deploymentPromises', deploymentPromises)
+      // console.info('deploymentPromises', deploymentPromises)
 
       const deployments = await Promise.all(deploymentPromises)
       // deployments.forEach((deployment)=>{
       //   runOptions.uiBackend(deployment)
       // })
-      // console.log('deployments', deployments)
+      // console.info('deployments', deployments)
       return deployments
     }
 

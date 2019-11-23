@@ -20,8 +20,8 @@
     "shepherd-delete-expired-resources": "bin/delete-expired-resources.sh",
     "kube-filter-expired-resources.js": "dist/kube-filter-expired-resources.js",
     "shepherd-inspect": "dist/shepherd-inspect-cmd.js",
-    "join-metadata-files": "node_modules/@shepherdorg/metadata/dist/join-metadata-files.js",
-    "shepherd.js": "node_modules/@shepherdorg/deployer/src/shepherd.js"
+    "join-metadata-files": "dist/join-metadata-files.js",
+    "shepherd.js": "dist/shepherd.js"
   },
   "scripts": {
     "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",

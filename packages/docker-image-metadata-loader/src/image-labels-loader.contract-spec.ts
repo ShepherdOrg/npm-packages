@@ -49,7 +49,6 @@ describe("Loading image labels", function() {
           expect(imageLabels.dockerLabels["shepherd.name"]).to.eql(
             "Shepherd agent"
           )
-          // console.log('testLogger.debugEntries', JSON.stringify(testLogger.debugEntries))
           expect(testLogger.debugEntries).to.contain(
             "localhost:5000/shepherd:latest metadata loaded using registry API"
           )

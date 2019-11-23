@@ -185,10 +185,8 @@ module.exports = function(injected) {
                     })
                     .catch(function(e) {
                       if(typeof e === 'string'){
-                        console.log('STRING!')
-                        console.log(typeof e)
-                        console.log(e)
-
+                        console.error('Thrown error of type STRING!')
+                        console.error(e)
                       }
                       let errorMessage =
                         "When processing image " + imgName + "\n" + e.message + (e.stack ? e.stack : "")

@@ -25,7 +25,7 @@ module.exports = {
     child.on("close", code => {
       if (code) {
         if (!stdoutLineHandler) {
-          console.log(stdout)
+          console.info(stdout)
         }
         err(strerr, code, stdout)
       } else {

@@ -6,7 +6,7 @@ import { inspectFormatText } from "./shepherd-inspect-format-text-output"
 let dockerImageReference = process.argv[2]
 
 if (!dockerImageReference || process.argv.indexOf("--help") > 0) {
-  console.log(`
+  console.info(`
 Inspect shepherd metadata for a docker image.
 
 Usage:
@@ -29,4 +29,4 @@ if (process.argv.indexOf("--json") > 0) {
 
 inspectAndExtractShepherdMetadata(dockerImageReference)
   .then(formatOutput)
-  .then(console.log)
+  .then(console.info)

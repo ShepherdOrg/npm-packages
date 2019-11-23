@@ -26,11 +26,11 @@ describe("Build docker with deployment dir", function() {
   })
 
   // it('should spew out build output', () => {
-  //     console.log('buildOutput', buildOutput)
+  //     console.info('buildOutput', buildOutput)
   // });
 
   it("should have shepherd.metadata as a label in docker metadata", () => {
-    // console.log('dockerMeta[0]', JSON.stringify(dockerMeta[0]))
+    // console.info('dockerMeta[0]', JSON.stringify(dockerMeta[0]))
     expect(dockerMeta[0].Config.Labels["shepherd.metadata"].length).to.be.gte(
       1000
     )

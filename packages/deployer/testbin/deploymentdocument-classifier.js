@@ -20,7 +20,7 @@ function identifyStdinDocument(stdincopy) {
         stdincopy
     )
   } else {
-    console.log(identifyingString.toLowerCase())
+    console.info(identifyingString.toLowerCase())
   }
   process.exit(0)
 }

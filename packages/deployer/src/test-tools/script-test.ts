@@ -53,7 +53,7 @@ module.exports = {
 
     options.stdoutLineHandler = function(line) {
       if (options.debug) {
-        console.log(line.trim())
+        console.debug(line.trim())
       }
     }
     options.env = extend({}, options.env, { PATH: process.env.PATH })

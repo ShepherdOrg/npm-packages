@@ -2,11 +2,7 @@
   "name": "@shepherdorg/deployer",
   "version": "2.0.0",
   "description": "Deployer application",
-  "main": "src/shepherd.js",
-  "bin": {
-    "shepherd.js": "src/shepherd.js",
-    "classify-k8s-document": "bin/deploymentdocument-classifier.js"
-  },
+  "main": "dist/shepherd.js",
   "dependencies": {
     "@shepherdorg/docker-image-metadata-loader": "^0.1.2",
     "@shepherdorg/exec": "^2.0.0",

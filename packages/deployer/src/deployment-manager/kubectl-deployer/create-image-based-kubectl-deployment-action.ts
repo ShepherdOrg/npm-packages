@@ -73,7 +73,6 @@ export function calculateKubectlActions(imageInformation, kubeSupportedExtension
 
   if (branchDeploymentEnabled) {
 
-    // console.log('featureDeploymentIsEnabled', branchDeploymentEnabled)
     branchModificationParams.ttlHours =
       imageInformation.imageDefinition.timeToLiveHours || branchModificationParams.ttlHours
 

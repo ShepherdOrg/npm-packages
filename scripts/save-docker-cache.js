@@ -3,7 +3,7 @@ const packages = require('./utils/get-docker-projects')
 const { spawn } = require('child_process')
 
 if (packages.length === 0) {
-  console.log('Nothing ot push. exiting')
+  console.info('Nothing to push. exiting')
   process.exit(0)
 }
 
