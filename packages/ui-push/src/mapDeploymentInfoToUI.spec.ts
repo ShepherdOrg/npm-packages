@@ -16,7 +16,7 @@ describe("mapping", function() {
       docker_image: "plain-deployer-repo:latest",
       docker_image_tag: "plain-deployer-repo:latest",
       env: "dev",
-      git_branch: "dev",
+      git_branch: "master",
       git_commit: "2153e378877c0deaa2a3ee2491800d40f5212bc5",
       git_hash: "062b591",
       git_url: "git@github.com:ShepherdOrg/npm-packages.git",

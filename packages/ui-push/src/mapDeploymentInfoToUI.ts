@@ -58,7 +58,7 @@ export function mapToUiVersion(deployerInfo: THerdDeployerMetadata | THerdK8sMet
         docker_image: deployerInfo.dockerImageTag || "missing docker image", // TODO Must fix in metadata library
         docker_image_tag: deployerInfo.dockerImageTag || "missing docker image tag",
         env: deployerInfo.deploymentState.env,
-        git_branch: deployerInfo.deploymentState.env,
+        git_branch: deployerInfo.gitBranch,
         git_commit: deployerInfo.gitCommit || "missing",
         git_hash: deployerInfo.gitHash,
         git_url: deployerInfo.gitUrl,
