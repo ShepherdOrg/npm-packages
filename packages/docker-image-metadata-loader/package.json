@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/docker-image-metadata-loader",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Retrieve docker image metadata efficiently from (private) docker registry, or alternatively by using docker pull and inspect",
   "keywords": [
     "docker",
@@ -39,7 +39,7 @@
     "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
   },
   "dependencies": {
-    "@shepherdorg/exec": "^2.0.1",
+    "@shepherdorg/exec": "^2.0.2",
     "@shepherdorg/nano-inject": "0.0.6",
     "lodash": "^4.17.15",
     "superagent": "^5.1.0"
