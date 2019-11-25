@@ -20,6 +20,8 @@ Supported options:
     --export             Export deployment documents to outputDir
     --dryrun             Run without actually deploying. Exports documents to outputDir. 
     --force-push         Force push of deployment data to consumers during --dryrun (this is not git push)
+    --wait-for-rollout   Wait for any kubernetes deployment rollouts to complete before determining successful deployment. 
+                         Shepherd does not wait for rollouts by default.
     
     
 Both will write to directory specified by 
@@ -32,6 +34,7 @@ Upstream build job input. The first three must be provided together or all skipp
     UPSTREAM_IMAGE_NAME         - Docker image name from upstream. Always without tag. 
     UPSTREAM_IMAGE_TAG          - Docker image tag from upstream trigger. 
     UPSTREAM_HERD_DESCRIPTION   - Short description that would otherwise be in the herd.yaml file.
+    UPSTREAM_WAIT_FOR_ROLLOUT   - Upstream build wants rollout to complete before getting control back. Designed for e2e tests.
 
 Push ata Shepherd UI:
     SHEPHERD_UI_API_ENDPOINT - GraphQL endpoint for shepherd UI API
@@ -86,6 +89,8 @@ console.debug = function() {
 
 let dryRun = process.argv.indexOf("--dryrun") > 0
 let forcePush = process.argv.indexOf("--force-push") > 0
+let waitForRollout = process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process.argv.indexOf("--wait-for-rollout") > 0
+
 
 const exportDocuments = process.argv.indexOf("--export") > 0
 
@@ -203,7 +208,7 @@ stateStoreBackend
             })
         } else {
           plan
-            .executePlan({ dryRun: dryRun, dryRunOutputDir: outputDirectory, forcePush: forcePush })
+            .executePlan({ dryRun: dryRun, dryRunOutputDir: outputDirectory, forcePush: forcePush, waitForRollout: waitForRollout })
             .then(function() {
               logger.info("Plan execution complete. Exiting shepherd.")
               setTimeout(() => {

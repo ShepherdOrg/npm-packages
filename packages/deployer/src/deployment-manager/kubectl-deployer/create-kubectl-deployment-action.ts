@@ -72,7 +72,7 @@ async function executeDeploymentAction(thisIsMe: TKubectrlDeployAction, actionEx
           const state = await saveDeploymentState(thisIsMe)
           thisIsMe.state = state
 
-          if (thisIsMe.deploymentRollouts && thisIsMe.operation === "apply") {
+          if (actionExecutionOptions.waitForRollout && thisIsMe.deploymentRollouts && thisIsMe.operation === "apply") {
             await Bluebird.all(thisIsMe.deploymentRollouts.map(async (deploymentRollout) => {
               const stdOut = await extendedExec(cmd)("kubectl", ["rollout", "status", deploymentRollout], {
                 env: process.env,

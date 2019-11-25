@@ -27,6 +27,7 @@ type TK8sDeploymentPlan = [string, any]
 type TDockerDeploymentPlan = [string, any]
 
 export interface TActionExecutionOptions {
+  waitForRollout: boolean
   forcePush: boolean
   dryRun: boolean
   dryRunOutputDir: string | undefined
@@ -198,7 +199,7 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
       }
     }
 
-    async function executePlan(runOptions: TActionExecutionOptions = { dryRun: false, dryRunOutputDir: undefined, forcePush: false }) {
+    async function executePlan(runOptions: TActionExecutionOptions = { dryRun: false, dryRunOutputDir: undefined, forcePush: false, waitForRollout: false }) {
       // let i = 0
       const shouldPush = !runOptions.dryRun || runOptions.forcePush
       let deploymentPromises = K8sDeploymentPromises(runOptions)

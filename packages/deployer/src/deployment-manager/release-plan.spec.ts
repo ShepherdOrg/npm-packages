@@ -132,7 +132,7 @@ describe("Release plan", function() {
       })
     })
 
-    describe("modified deployment docs", function() {
+    describe("modified deployment docs with no rollout wait", function() {
       beforeEach(function() {
         fakeStateStore.fixedTimestamp = "2019-10-31T11:03:52.381Z"
         fakeStateStore.nextState = {
@@ -148,11 +148,49 @@ describe("Release plan", function() {
           )
           .then(releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"])))
           .then(function() {
-            return releasePlan.executePlan()
+            return releasePlan.executePlan({
+              dryRun: false,
+              dryRunOutputDir: undefined,
+              forcePush: false,
+              waitForRollout: false,
+            })
           })
       })
 
-      it("should execute three apply commands and a rollout status command", () => {
+      it("should execute three commands and no rollout status command", () => {
+        expect(fakeExec.executedCommands.length).to.equal(3)
+        expect(fakeExec.executedCommands[0].params[0]).to.equal("apply", "0")
+        expect(fakeExec.executedCommands[1].params[0]).to.equal("apply", "1")
+        expect(fakeExec.executedCommands[2].params[0]).to.equal("delete", "2")
+      })
+    })
+
+    describe("modified deployment docs with rollout wait", function() {
+      beforeEach(function() {
+        fakeStateStore.fixedTimestamp = "2019-10-31T11:03:52.381Z"
+        fakeStateStore.nextState = {
+          saveFailure: false,
+          message: "",
+        }
+        fakeExec.nextResponse.success = "applied"
+
+        return releasePlan
+          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]))
+          .then(
+            releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"]))
+          )
+          .then(releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"])))
+          .then(function() {
+            return releasePlan.executePlan({
+              dryRun: false,
+              dryRunOutputDir: undefined,
+              forcePush: false,
+              waitForRollout: true,
+            })
+          })
+      })
+
+      it("should execute two apply, one delete and a rollout status command", () => {
         expect(fakeExec.executedCommands.length).to.equal(4)
         expect(fakeExec.executedCommands[0].params[0]).to.equal("apply", "0")
         expect(fakeExec.executedCommands[1].params[0]).to.equal("apply", "1")

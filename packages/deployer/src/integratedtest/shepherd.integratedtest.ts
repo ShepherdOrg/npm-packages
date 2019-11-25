@@ -106,6 +106,7 @@ describe("run all deployers with infrastructure", function() {
         process.env.SHEPHERD_PG_HOST = "localhost"
       }
       process.env.RESET_FOR_REAL = "yes-i-really-want-to-drop-deployments-table"
+      process.env.UPSTREAM_WAIT_FOR_ROLLOUT="true"
       let pgBackend = PgBackend(PgConfig())
 
       ensureCleanOutputFolder(firstRoundFolder)
