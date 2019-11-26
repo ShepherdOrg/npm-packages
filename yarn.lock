@@ -853,7 +853,7 @@
     graphql "^0.13.0"
     typescript "^3.6.4"
 
-"@shepherdorg/ui-graphql-client@^3.0.7":
+"@shepherdorg/ui-graphql-client@3.0.7":
   version "3.0.7"
   resolved "https://registry.yarnpkg.com/@shepherdorg/ui-graphql-client/-/ui-graphql-client-3.0.7.tgz#c6e160d599831725d37c4015e98fa9cd3b49e584"
   integrity sha512-DdCA99nSUgUifWKRjEwwowVM0utlgAFH7CqDexj2mfv90VcvLT7rPF5wT8I139l5BlzeRu2vC3E37Z1fbNcfJw==
