@@ -844,21 +844,21 @@
   resolved "https://registry.yarnpkg.com/@shepherdorg/nano-inject/-/nano-inject-0.0.6.tgz#d06981b1500226f35bcad89470e1a12c1c5a1821"
   integrity sha512-/JyL8EeBWXXhK/P0NrhgcvI7usq95yKsMH8Iu3ZgWHqrMbx7aVsUH5sw7gfKjKHJi2CM3CgUJz+/nIq3aiKk+w==
 
-"@shepherdorg/shepherd-ui-api@^3.0.5":
-  version "3.0.5"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/shepherd-ui-api/-/shepherd-ui-api-3.0.5.tgz#52d18777a4a54021e0c4c991f44a8215cd18fc3a"
-  integrity sha512-Aiicc8zO6t7UmybUZvKrdcRzkE00cutQky6j+8qOHBjsLZ/80laoY/TfkTeaa/qEhzYtBOIZD7mUUrHfEaXqmw==
+"@shepherdorg/shepherd-ui-api@^3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/shepherd-ui-api/-/shepherd-ui-api-3.1.1.tgz#b013bb13ddbfcce8d2944c5a5a241f8fc1ff3464"
+  integrity sha512-LrOZDUi1Y/MBu2kdZwBGByax2F5jimK74XqUHY4xWcw6WZ1xGdsjLDtt2BCWWpIq0qgnrYkbv434wvRLxo9Dyw==
   dependencies:
     "@pongsatt/graphql-schema-typescript" "^1.0.25"
     graphql "^0.13.0"
     typescript "^3.6.4"
 
-"@shepherdorg/ui-graphql-client@3.0.7":
-  version "3.0.7"
-  resolved "https://registry.yarnpkg.com/@shepherdorg/ui-graphql-client/-/ui-graphql-client-3.0.7.tgz#c6e160d599831725d37c4015e98fa9cd3b49e584"
-  integrity sha512-DdCA99nSUgUifWKRjEwwowVM0utlgAFH7CqDexj2mfv90VcvLT7rPF5wT8I139l5BlzeRu2vC3E37Z1fbNcfJw==
+"@shepherdorg/ui-graphql-client@^3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@shepherdorg/ui-graphql-client/-/ui-graphql-client-3.1.1.tgz#32090c2dc9d8266512049a8b163fa72dbce0eab8"
+  integrity sha512-RqWyLgxqd/WbYPyVEDjtN5R0ilhQl7s0nVJtD4h64ZUAm2iyXbUa4U1uVY90CFU3jUOx1N6NwB9fZbSdbY4+xA==
   dependencies:
-    "@shepherdorg/shepherd-ui-api" "^3.0.5"
+    "@shepherdorg/shepherd-ui-api" "^3.1.1"
     "@types/node-fetch" "^2.5.2"
     graphql "^14.5.8"
     node-fetch "^2.6.0"
