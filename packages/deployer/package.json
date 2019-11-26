@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Deployer application",
   "main": "dist/shepherd.js",
   "dependencies": {
@@ -11,7 +11,7 @@
     "@shepherdorg/nano-inject": "^2.0.2",
     "@shepherdorg/postgres-backend": "^2.0.2",
     "@shepherdorg/state-store": "^2.0.2",
-    "@shepherdorg/ui-push": "^2.0.2",
+    "@shepherdorg/ui-push": "^2.1.1",
     "bluebird": "^3.7.1",
     "bunyan": "^1.8.12",
     "db-migrate": "^0.11.6",
