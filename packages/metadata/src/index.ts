@@ -1,12 +1,12 @@
 export type TDockerImageInspection = any
 export type TCompressedMetadata = string
 
-type TarFile ={
+export type TarFile ={
   path: string
   content: string
 }
 
-type TTarFolderStructure =  { [path:string]:TarFile; }
+export type TTarFolderStructure =  { [path:string]:TarFile; }
 
 export type THref = {
   title: string

@@ -3,17 +3,23 @@ import fs from "fs"
 import path from "path"
 import { TDeploymentType, TImageMetadata } from "./index"
 
-export function readJsonFile(absolutePath) {
+export function readJsonFile(absolutePath:string) {
   return JSON.parse(fs.readFileSync(absolutePath, "utf-8"))
 }
 
-export function readJsonFileRelative(relativePath) {
+export function readJsonFileRelative(relativePath:string) {
   return readJsonFile(path.join(__dirname, relativePath))
 }
 
-export function renderValidationMessage(validate) {
+export type TRendererMap = {
+  [index: string] : (validationErr: any) => string
+}
+
+export type TValidationErrors = { errors: Array<any> }
+
+export function renderValidationMessage(validate:TValidationErrors) {
   function renderValidationError(validationError: any) {
-    const keywordRenderers = {
+    const keywordRenderers:TRendererMap = {
       additionalProperties: (validationErr: any) => {
         return `.${validationErr.params.additionalProperty} : Not recognized as a valid shepherd metadata property`
       },
@@ -46,7 +52,9 @@ export function renderValidationMessage(validate) {
   }, "")
 }
 
-function extendJsonSchema(baseSchema, extendingSchema) {
+type TJsonSchema = any
+
+function extendJsonSchema(baseSchema:TJsonSchema, extendingSchema:TJsonSchema) {
   let extendedSchema = Object.assign({}, extendingSchema)
   extendedSchema.properties = Object.assign(
     extendedSchema.properties,
@@ -91,8 +99,8 @@ function compileGeneratedPropertiesSchema() {
 }
 
 export function validateAndCombineFullProps(
-  userProps,
-  generatedProps
+  userProps:any,
+  generatedProps:any
 ): TImageMetadata {
   const validateUserProps = compileUserPropertiesSchema()
 
@@ -100,7 +108,7 @@ export function validateAndCombineFullProps(
   if (validateUserProps.errors) {
     throw new Error(
       `User properties did not pass validation: ${renderValidationMessage(
-        validateUserProps
+        validateUserProps as TValidationErrors
       )}`
     )
   }
@@ -110,7 +118,7 @@ export function validateAndCombineFullProps(
   if (validateGeneratedProps.errors) {
     throw new Error(
       `Generated properties did not pass validation: ${renderValidationMessage(
-        validateGeneratedProps
+        validateGeneratedProps as TValidationErrors
       )}`
     )
   }

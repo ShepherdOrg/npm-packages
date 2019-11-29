@@ -16,7 +16,7 @@ export function getValidHerdDeployerMetadata() {
     },
     deploymentType: TDeploymentType.Deployer,
     herdSpec: {
-      key: "dev-images-plain-deployer",
+      key: "images-plain-deployer",
       image: "isrvkbuild02:5000/fluentd",
       imagetag: "v1.1.2-g-2b48d1c",
       description: "Log writer to AWS ES/Kibana",

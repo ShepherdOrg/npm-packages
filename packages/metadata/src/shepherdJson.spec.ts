@@ -3,7 +3,7 @@ import {
   compileFullDockerMetadataSchema,
   compileUserPropertiesSchema,
   readJsonFileRelative,
-  renderValidationMessage,
+  renderValidationMessage, TValidationErrors,
   validateAndCombineFullProps,
 } from "./shepherdJson"
 import { TDeploymentType, TK8sMetadata } from "./index"
@@ -20,7 +20,7 @@ describe("shepherd json load and validation", function() {
         if (!valid) console.error("Not valid!", validate.errors)
         expect(validate.errors.length).to.equal(
           0,
-          renderValidationMessage(validate)
+          renderValidationMessage(validate as TValidationErrors)
         )
       }
     })
@@ -40,7 +40,7 @@ describe("shepherd json load and validation", function() {
  .environment['DB_PASS'] : Incorrect value, should match some schema in anyOf
  .hyperlinks[0].url : Incorrect pattern, should match pattern "^https?://"`
 
-        expect(renderValidationMessage(validate)).to.equal(expectedError)
+        expect(renderValidationMessage(validate as TValidationErrors)).to.equal(expectedError)
       }
     })
   })
@@ -49,12 +49,12 @@ describe("shepherd json load and validation", function() {
     it("should validate generated json metadata ", () => {
       const validate = compileFullDockerMetadataSchema()
 
-      const valid = validate(
+      const isValid = validate(
         readJsonFileRelative("./testdata/shepherd-json/full-props.json")
       )
 
-      if (!valid && validate.errors) {
-        expect(renderValidationMessage(validate)).to.equal("")
+      if (!isValid && validate.errors) {
+        expect(renderValidationMessage(validate as TValidationErrors)).to.equal("")
         expect(validate.errors.length).to.equal(0)
       }
     })
