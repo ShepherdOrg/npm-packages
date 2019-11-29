@@ -1,6 +1,6 @@
-import { THerdK8sMetadata } from "./index"
+import { THerdDeployerMetadata, THerdK8sMetadata } from "./index"
 
-export function mapUntypedDeploymentData(deploymentInfo) {
+export function mapUntypedDeploymentData(deploymentInfo: any): THerdK8sMetadata | THerdDeployerMetadata {
 
   if (!deploymentInfo.state) {
     throw new Error("Expecting state property on deploymentInfo object -> " + Object.keys(deploymentInfo).join(", "))

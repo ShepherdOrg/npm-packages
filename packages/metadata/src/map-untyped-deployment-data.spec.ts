@@ -1,13 +1,15 @@
 import { deploymentData0, deploymentData1 } from "./testdata/deployment-json/shepherd-deployment-data"
 import { expectedK8sDeployment0, expectedK8sDeployment1 } from "./testdata/deployment-json/expected"
 import { expect } from "chai"
-import { TDeploymentType } from "./index"
+import { TDeploymentType, THerdDeployerMetadata, THerdK8sMetadata } from "./index"
 import { mapUntypedDeploymentData } from "./map-untyped-deployment-data"
 
 
-function expectMappedToMatchExpectedData(deploymentInfo, expectedData, deploymentType ) {
-  let mappedData = mapUntypedDeploymentData(deploymentInfo)
+interface TUntypedDeploymentInfo {
+}
 
+function expectMappedToMatchExpectedData(deploymentInfo: TUntypedDeploymentInfo, expectedData:THerdK8sMetadata | THerdDeployerMetadata, deploymentType: TDeploymentType) {
+  let mappedData = mapUntypedDeploymentData(deploymentInfo)
 
   expect(deploymentType).to.equal(mappedData.deploymentType)
   expect(expectedData).to.deep.equal(mappedData)
@@ -34,7 +36,5 @@ describe("raw deployment data mapping", function() {
     }catch(err){
       expect(err.message).to.contain('Missing herdSpec key. In deployment info object: ')
     }
-
   })
-
 })

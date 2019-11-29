@@ -213,7 +213,7 @@ describe("Load all inspected docker files", function() {
 
   const invalidImages = ["alpine.json", "image-with-no-shepherd-label.json"]
 
-  async function loadMetadata(fileName) {
+  async function loadMetadata(fileName:string) {
     const dockerImageInspection = require(`./testdata/inspected-dockers/${fileName}`)
     const imageLabels = extractImageLabels(dockerImageInspection)
     const metaData = (await extractShepherdMetadata(

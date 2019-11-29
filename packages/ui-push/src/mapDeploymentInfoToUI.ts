@@ -79,7 +79,9 @@ export function mapToUiVersion(deployerInfo: THerdDeployerMetadata | THerdK8sMet
         deployer_role: mapDeployerRole(deployerInfo),
         db_migration_image: deployerInfo.migrationImage,
         hyperlinks: mapLinks(),
+        herd_key: deployerInfo.herdSpec.key,
         last_deployment_timestamp: deployedAt,
+        last_deployment_version: deployerInfo.semanticVersion,
         env: deployerInfo.deploymentState.env,
       },
     }

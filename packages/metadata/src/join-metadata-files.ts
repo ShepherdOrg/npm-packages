@@ -2,8 +2,8 @@
 
 import { readJsonFile, validateAndCombineFullProps } from "./shepherdJson"
 
-let userPropsFile = process.argv[2]
-let generatedPropsFile = process.argv[3]
+let userPropsFile : string | undefined = process.argv[2]
+let generatedPropsFile : string | undefined = process.argv[3]
 
 if (
   !generatedPropsFile ||
