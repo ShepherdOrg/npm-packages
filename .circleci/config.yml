@@ -11,7 +11,7 @@ jobs:
       - checkout
       - setup_remote_docker
       - restore_cache:
-
+          keys:
             - docker-{{ .Branch }}
             - yarn-{{ .Branch }}
       - run:
