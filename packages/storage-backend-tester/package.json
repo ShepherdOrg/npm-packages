@@ -22,6 +22,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "yarn build && yarn test"
+    "prepublishOnly": "yarn build"
   }
 }
