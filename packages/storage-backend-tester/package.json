@@ -22,6 +22,6 @@
   },
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
+    "prepublishOnly": "yarn build && yarn test"
   }
 }

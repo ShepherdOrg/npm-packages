@@ -16,6 +16,6 @@
   },
   "scripts": {
     "build": "echo Nothing to build in pure JS module",
-    "prepublishOnly": "yarn install --frozen-lockfile"
+    "prepublishOnly": "echo Nothing to do here"
   }
 }

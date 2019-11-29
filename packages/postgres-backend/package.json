@@ -32,12 +32,12 @@
   },
   "scripts": {
     "build": "tsc",
-    "pretest": "npm run start-postgres",
-    "test": "npm run integrationtest",
-    "posttest": "npm run kill-postgres",
+    "pretest": "yarn start-postgres",
+    "test": "yarn integrationtest",
+    "posttest": "yarn kill-postgres",
     "integrationtest": "SHEPHERD_PG_PORT=54321 mocha --exit --require ts-node/register --recursive './**/*.integrationtest.ts'",
     "itdd": "SHEPHERD_PG_PORT=54321 mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,json --watch './**/*.integrationtest.ts'",
-    "prepublishOnly": "yarn install --frozen-lockfile && npm run build",
+    "prepublishOnly": "yarn build",
     "start-postgres": "docker run --rm --name postgres-it -e POSTGRES_PASSWORD=mysecretpassword -d -p 54321:5432 postgres && sleep 1",
     "kill-postgres": "docker rm -f postgres-it"
   }

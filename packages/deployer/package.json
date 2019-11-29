@@ -39,10 +39,10 @@
     "kill-postgres": "docker stop postgres",
     "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
     "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/**/*.spec.ts'",
-    "integratedtest": "npm run build && mocha --exit --recursive 'dist/integratedtest/**/*.integratedtest.js'",
+    "integratedtest": "yarn build && mocha --exit --recursive 'dist/integratedtest/**/*.integratedtest.js'",
     "itdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/integratedtest/**/*.integratedtest.ts'",
-    "test": "npm run specs",
+    "test": "yarn specs",
     "build": "tsc && chmod +x dist/shepherd.js",
-    "prepublishOnly": "yarn install --frozen-lockfile && npm run build && npm run test"
+    "prepublishOnly": "yarn build && yarn test"
   }
 }
