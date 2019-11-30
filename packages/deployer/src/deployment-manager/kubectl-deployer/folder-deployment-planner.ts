@@ -2,10 +2,16 @@ import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
 import { createKubectlDeployAction, TKubectrlDeployAction } from "./create-kubectl-deployment-action"
+import { ILog } from "../deployment-types"
 
-module.exports = function(injected) {
-  const kubeSupportedExtensions = injected("kubeSupportedExtensions")
-  const logger = injected("logger")
+export interface TFolderDeploymentPlannerDependencies {
+  logger: ILog
+  kubeSupportedExtensions: any
+}
+
+export function planFolderDeployment(injected : TFolderDeploymentPlannerDependencies) {
+  const kubeSupportedExtensions = injected.kubeSupportedExtensions
+  const logger = injected.logger
 
   function initDir(dirPath) {
     return {

@@ -1,4 +1,5 @@
 import { TDockerImageLabels } from "./registry-metadata-client"
+import { ILog } from ".";
 
 export interface TDockerInspectMetadata {
   dockerLabels: TDockerImageLabels
@@ -6,9 +7,8 @@ export interface TDockerInspectMetadata {
 }
 
 export type TDockerImageReference = {
-  dockerImage?: string
-  image?: string
-  imagetag?: string
+  image: string
+  imagetag: string
 }
 
 function extractImageLabels(
@@ -33,18 +33,22 @@ function extractImageLabels(
   return imageMetadata
 }
 
-export function dockerImageMetadata(injected: any) {
-  const logger = injected("logger")
+export type TLocalImageMetadataOptions = {
+  exec: any
+  logger: ILog
+}
 
-  const cmd = injected("exec")
+export function dockerImageMetadata(injected: TLocalImageMetadataOptions) {
+  const logger = injected.logger
+
+  const cmd = injected.exec
 
   function inspectImage(
     imageDef: TDockerImageReference,
     retryCount: number = 0
   ): Promise<TDockerInspectMetadata> {
     return new Promise(function(resolve, reject) {
-      let dockerImage =
-        imageDef.dockerImage || imageDef.image + ":" + imageDef.imagetag
+      let dockerImage = imageDef.image + ":" + imageDef.imagetag
       logger.debug("Extracting labels from image " + dockerImage)
       cmd.extendedExec(
         "docker",

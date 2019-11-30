@@ -1,24 +1,32 @@
-import {
-  createDockerRegistryClient,
-  IRetrieveDockerImageLabels,
-} from "./registry-metadata-client"
+import { createDockerRegistryClient, IRetrieveDockerImageLabels } from "./registry-metadata-client"
 import * as _ from "lodash"
 import * as path from "path"
 import * as fs from "fs"
+import { ILog } from "./index"
 
 export type TDockerRegistryClientMap = {
   [hostname: string]: IRetrieveDockerImageLabels
 }
 
-function defaultDockerConfig() {
-  const homeDir = require("os").homedir()
+function dockerConfigFilePath(homeDir) {
   return path.join(homeDir, ".docker", "config.json")
 }
 
-export function getDockerRegistryClientsFromConfig(
-  configFile: string = defaultDockerConfig()
+interface TDockerRegistryConfigOptions {
+  log: ILog,
+  homeDir: string
+}
+
+const defaultOptions:TDockerRegistryConfigOptions = {
+  homeDir: require("os").homedir(),
+  log: console
+}
+
+export function getDockerRegistryClientsFromConfig(options: TDockerRegistryConfigOptions = defaultOptions
+
 ): TDockerRegistryClientMap {
-  const configFilePath = path.resolve(configFile)
+
+  const configFilePath = path.resolve(dockerConfigFilePath(options.homeDir))
   let clients: TDockerRegistryClientMap = {}
 
   if (!fs.existsSync(configFilePath)) {
@@ -42,23 +50,28 @@ export function getDockerRegistryClientsFromConfig(
       }
     })
   }
+  const certsDir = path.join(options.homeDir,'.shepherd', 'certs.d')
+  if(fs.existsSync(certsDir) && fs.statSync(certsDir).isDirectory()){
+    fs.readdirSync(certsDir).map((certDir)=>{
+      let certFilePath = path.join(certsDir, certDir, 'ca.crt')
+      if(fs.existsSync(certFilePath)){
+        let ca = fs.readFileSync(certFilePath, 'utf8')
+        if(clients[certDir]){
+          clients[certDir].addCertificate(ca)
+        } else{
+          clients[certDir] = createDockerRegistryClient({
+            httpProtocol: "https",
+            registryHost: certDir,
+            ca: ca
+          })
+        }
+
+      } else {
+        options.log.warn('Probable misconfiguration: Directory listed in certs.d, but no ca.crt file found' + path.join(certsDir, certDir))
+      }
+    })
+  }
 
   return clients
 }
 
-export function getLocalhostTestingDockerRegistryClients(): TDockerRegistryClientMap {
-  return {
-    "localhost:5000": createDockerRegistryClient({
-      httpProtocol: "http",
-      registryHost: "localhost:5000",
-    }),
-    "localhost:5500": createDockerRegistryClient({
-      httpProtocol: "https",
-      registryHost: "localhost:5500",
-      authorization: {
-        type: "Basic",
-        token: "dGVzdHVzZXI6dGVzdHBhc3N3b3Jk",
-      },
-    }),
-  }
-}

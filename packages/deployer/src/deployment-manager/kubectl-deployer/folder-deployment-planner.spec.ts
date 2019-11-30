@@ -1,11 +1,10 @@
 import { expect } from "chai"
 
-const DirScan = require("./folder-deployment-planner")
-const inject = require("@shepherdorg/nano-inject").inject
+import { planFolderDeployment } from "./folder-deployment-planner"
 
 const Path = require("path")
 
-import Bluebird = require("bluebird");
+import Bluebird = require("bluebird")
 
 describe("k8s deployment file directory structure release plan loader", function() {
   let  scanDir
@@ -19,8 +18,8 @@ describe("k8s deployment file directory structure release plan loader", function
   }
 
   beforeEach(function() {
-    scanDir = DirScan(
-      inject({
+    scanDir = planFolderDeployment(
+      {
         kubeSupportedExtensions: {
           ".yml": true,
           ".yaml": true,
@@ -28,8 +27,10 @@ describe("k8s deployment file directory structure release plan loader", function
         },
         logger: {
           info: () => {},
+          warn: () => {},
+          debug: () => {},
         },
-      })
+      }
     )
   })
 

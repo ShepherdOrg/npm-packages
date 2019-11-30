@@ -1,4 +1,11 @@
 export {
   getDockerRegistryClientsFromConfig,
 } from "./docker-registry-clients-config"
-export { imageLabelsLoader } from "./image-labels-loader"
+
+export type ILog = {
+  info: typeof console.info
+  debug: typeof console.debug
+  warn: typeof console.warn
+}
+
+export * from "./image-labels-loader"

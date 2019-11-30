@@ -12,6 +12,7 @@
   "homepage": "",
   "license": "GPL-3.0-or-later",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -23,8 +24,8 @@
     "build": "yarn clean && tsc",
     "clean": "rm -rf dist && echo Dist cleaned",
     "ci-task": "yarn clean && yarn test && yarn test && yarn build && yarn format-verify",
-    "contract-test": "SERVICE_SUFFIX=.dev.it.tm.is mocha -R dot --exit --require ts-node/register --recursive './src/**/*.contract-spec.ts'",
-    "contract-tdd": "SERVICE_SUFFIX=.dev.it.tm.is mocha --exit --require ts-node/register --recursive  --watch-extensions ts,js --watch  './src/**/*.contract-spec.ts'",
+    "contract-test": "mocha -R dot --exit --require ts-node/register --recursive './src/**/*.contract-spec.ts'",
+    "contract-tdd": "mocha --exit --require ts-node/register --recursive  --watch-extensions ts,js --watch  './src/**/*.contract-spec.ts'",
     "test-disabled": "mocha --exit --require ts-node/register --recursive ./**/*.spec.ts",
     "tdd": "mocha -R dot --require ts-node/register --recursive --watch-extensions ts,js --watch ./**/*.spec.ts",
     "test": "mocha --require ts-node/register --recursive ./**/*.spec.ts",
@@ -40,9 +41,8 @@
   },
   "dependencies": {
     "@shepherdorg/exec": "^2.0.2",
-    "@shepherdorg/nano-inject": "0.0.6",
     "lodash": "^4.17.15",
-    "superagent": "^5.1.0"
+    "request-promise": "^4.2.5"
   },
   "devDependencies": {
     "@types/chai": "^4.2.4",

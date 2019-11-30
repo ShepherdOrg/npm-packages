@@ -1,6 +1,10 @@
 import { TDeployerMetadata } from "@shepherdorg/metadata"
 
-export type ILog = typeof console
+export type ILog = {
+  info: typeof console.info,
+  debug: typeof console.debug,
+  warn: typeof console.warn
+}
 
 export type THref = {
   title: string

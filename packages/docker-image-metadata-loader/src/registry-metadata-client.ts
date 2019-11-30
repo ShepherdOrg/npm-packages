@@ -1,5 +1,4 @@
-import * as agent from "superagent"
-import { SuperAgentRequest } from "superagent"
+import * as request from "request-promise"
 
 export type TImageWithTags = {
   name: string
@@ -22,18 +21,24 @@ export interface TDockerImageLabels {
 
 export interface IRetrieveDockerImageLabels {
   getImageTags(image: string): Promise<TImageWithTags>
+
   getImageManifest(
     image: string,
-    imageTag: string
+    imageTag: string,
   ): Promise<TRegistryImageManifest>
+
   getImageManifestLabels(
     image: string,
-    imageTag: string
+    imageTag: string,
   ): Promise<TDockerImageLabels>
+
+  addCertificate(caCrt: string)
+
+  getCertificate(): string | undefined
 }
 
 export type TRegistryClientDependencies = {
-  agent: any
+  request: any
 }
 
 export type TRegistryClientOptions = {
@@ -42,71 +47,97 @@ export type TRegistryClientOptions = {
   authorization?: {
     type: string
     token: string
-  }
+  },
+  ca?: string
 }
 
 const defaultDependencies: TRegistryClientDependencies = {
-  agent: agent,
+  request: request,
 }
+
 
 export function createDockerRegistryClient(
   options: TRegistryClientOptions,
-  injected: TRegistryClientDependencies = defaultDependencies
+  injected: TRegistryClientDependencies = defaultDependencies,
 ): IRetrieveDockerImageLabels {
   function stripHostName(image: string) {
     const len = options.registryHost.length + 1
     return image.slice(len, image.length)
   }
 
-  function addAuthorization(superAgentRequest: SuperAgentRequest) {
-    if (options.authorization) {
-      superAgentRequest.set(
-        "Authorization",
-        `${options.authorization.type} ${options.authorization.token}`
-      )
+  function addCertificateOptions(requestOptions) {
+    if (options.ca) {
+      return {
+        ...requestOptions,
+        ca: options.ca,
+      }
+    } else {
+      return requestOptions
     }
-    return superAgentRequest
+  }
+
+  function addAuthorization(request: any) {
+    if (options.authorization) {
+      return {
+        ...request,
+        headers: {
+          "Authorization":
+            `${options.authorization.type} ${options.authorization.token}`,
+        },
+      }
+    } else{
+      return request
+    }
   }
 
   function getFromDockerRegistry(ApiUrl: string) {
-    return addAuthorization(injected.agent.get(ApiUrl)).set(
-      "Host",
-      options.registryHost
-    )
+    let requestOptions = addCertificateOptions(addAuthorization({
+        method: "GET",
+        url: ApiUrl,
+      },
+    ))
+    return injected.request(requestOptions)
   }
 
   function getImageManifest(
     image: string,
-    imageTag: string
+    imageTag: string,
   ): Promise<TRegistryImageManifest> {
     return getFromDockerRegistry(
       `${options.httpProtocol}://${options.registryHost}/v2/${stripHostName(
-        image
-      )}/manifests/${imageTag}`
-    ).then(result => {
-      return JSON.parse(result.body)
+        image,
+      )}/manifests/${imageTag}`,
+    ).then(resultBody => {
+      return JSON.parse(resultBody)
+    }).catch((err) => {
+      // console.log('ERROROR', err)
+      improveErrorMessage(image, imageTag)(err)
     })
   }
 
   function getImageTags(image): Promise<TImageWithTags> {
     return getFromDockerRegistry(
       `${options.httpProtocol}://${options.registryHost}/v2/${stripHostName(
-        image
-      )}/tags/list/?n=10`
+        image,
+      )}/tags/list/?n=10`,
     ).then(result => {
-      return result.body
+      return JSON.parse(result)
     })
   }
 
   function improveErrorMessage(image: string, imageTag: string) {
     return err => {
-      throw new Error(`${image}:${imageTag} ${err.message}`)
+      throw new Error(`${image}:${imageTag} ${err.statusCode || ""}: ${err.error}`)
     }
+  }
+
+  function addCertificate(caCrt: string) {
+    options.ca = caCrt
   }
 
   function getImageManifestLabels(
     image: string,
-    imageTag: string
+    imageTag: string,
   ): Promise<TDockerImageLabels> {
     return getImageManifest(image, imageTag)
       .then(imageManifest => {
@@ -122,12 +153,18 @@ export function createDockerRegistryClient(
         }
         return layerZero.config.Labels
       })
-      .catch(improveErrorMessage(image, imageTag))
+  }
+
+  function getCertificate(): string | undefined {
+    return options.ca
   }
 
   return {
     getImageManifest,
     getImageTags,
     getImageManifestLabels,
+    addCertificate,
+    getCertificate,
+
   }
 }

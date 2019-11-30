@@ -3,8 +3,13 @@
 import * as path from "path"
 
 import * as fs from "fs"
-import { inject } from "@shepherdorg/nano-inject/dist"
 import { ReleasePlanModule } from "./deployment-manager/release-plan"
+
+import { HerdLoader } from "./deployment-manager/herd-loader"
+import {
+  getDockerRegistryClientsFromConfig,
+  imageLabelsLoader,
+} from "@shepherdorg/docker-image-metadata-loader"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -131,13 +136,11 @@ if (process.env.SHEPHERD_PG_HOST) {
   stateStoreBackend = FileStore({ directory: shepherdStoreDir })
 }
 if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
-  console.info(`Shepherd UI API endpoint configured ${process.env.SHEPHERD_UI_API_ENDPOINT}`)
+  logger.info(`Shepherd UI API endpoint configured ${process.env.SHEPHERD_UI_API_ENDPOINT}`)
   uiDataPusher = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT, console)
 }
 
 const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
-const HerdLoader = require("./deployment-manager/herd-loader")
-
 const exec = require("@shepherdorg/exec")
 const { CreateUpstreamTriggerDeploymentConfig } = require("./deployment-manager/create-upstream-trigger-deployment-config")
 
@@ -176,12 +179,16 @@ stateStoreBackend
     }
 
     let loader = HerdLoader(
-      inject({
+      {
         logger: Logger(console),
         ReleasePlan: ReleasePlan,
         exec: exec,
         featureDeploymentConfig,
-      })
+        labelsLoader: {
+          imageLabelsLoader,
+          getDockerRegistryClientsFromConfig
+        }
+      }
     )
 
     if (!environment) {
@@ -192,7 +199,7 @@ stateStoreBackend
     logger.info("Shepherding herd from file " + herdFilePath + " for environment " + environment)
     loader
       .loadHerd(herdFilePath, environment)
-      .then(function(plan) {
+      .then(function(plan:any) {
         plan.printPlan(logger)
         if (exportDocuments) {
           logger.info("Testrun mode set - exporting all deployment documents to " + outputDirectory)

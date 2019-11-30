@@ -2,10 +2,10 @@ import {
   dockerImageMetadata,
   TDockerInspectMetadata,
 } from "./local-image-metadata"
-import { inject } from "@shepherdorg/nano-inject"
 import { expect } from "chai"
 import { TDockerImageLabels } from "./registry-metadata-client"
 import { getTestCaseLogger } from "./testcase-logger"
+import { ILog } from "./index"
 
 const exec = require("@shepherdorg/exec")
 
@@ -15,15 +15,16 @@ describe("Image metadata loading", function() {
   let testCaseLogger = getTestCaseLogger({
     debugOutput: false,
     infoOutput: false,
+    warnOutput: false
   })
 
   const imageMetadataLoader = dockerImageMetadata(
-    inject({ exec: exec, logger: testCaseLogger })
+    { exec: exec, logger: testCaseLogger  as ILog}
   )
 
-  it("should pull and inspect icelandair/shepherd image", () => {
+  it("should pull and inspect shepherdorg/shepherd image", () => {
     return imageMetadataLoader
-      .inspectImage({ image: "icelandair/shepherd", imagetag: "latest" })
+      .inspectImage({ image: "shepherdorg/shepherd", imagetag: "latest" })
       .then((imageMetadata: TDockerInspectMetadata) => {
         expect(imageMetadata.dockerLabels["shepherd.name"]).to.equal(
           "Shepherd agent"
@@ -31,9 +32,9 @@ describe("Image metadata loading", function() {
       })
   })
 
-  it("should pull and inspect icelandair/shepherd image labels", () => {
+  it("should pull and inspect shepherdorg/shepherd image labels", () => {
     return imageMetadataLoader
-      .inspectImageLabels({ image: "icelandair/shepherd", imagetag: "latest" })
+      .inspectImageLabels({ image: "shepherdorg/shepherd", imagetag: "latest" })
       .then((imageLabels: TDockerImageLabels) => {
         expect(imageLabels["shepherd.name"]).to.equal("Shepherd agent")
       })

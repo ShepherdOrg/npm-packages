@@ -56,8 +56,8 @@ describe("Registry metadata API against localhost on http", function() {
     return api
       .getImageManifestLabels("localhost:5000/nowayjose", "latest")
       .catch(err => {
-        expect(err.message).to.equal(
-          "localhost:5000/nowayjose:latest Not Found"
+        expect(err.message.trim()).to.equal(
+          'localhost:5000/nowayjose:latest 404: {"errors":[{"code":"MANIFEST_UNKNOWN","message":"manifest unknown","detail":{"Tag":"latest"}}]}'
         )
       })
   })
@@ -65,9 +65,9 @@ describe("Registry metadata API against localhost on http", function() {
 
 describe("Registry metadata API against localhost with basicauth on https", function() {
   this.timeout(60000)
-  const dockerHost = "localhost:5000"
+  const dockerHost = "localhost:5500"
 
-  const api = createDockerRegistryClient({
+  const httpsApi = createDockerRegistryClient({
     httpProtocol: "https",
     registryHost: "localhost:5500",
     authorization: {
@@ -76,19 +76,15 @@ describe("Registry metadata API against localhost with basicauth on https", func
     },
   })
 
-  before(() => {
-    process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = "0"
-  })
-
   it("should retrieve image tags", () => {
-    return api.getImageTags("localhost:5000/shepherd").then(imageWithTags => {
+    return httpsApi.getImageTags("localhost:5500/shepherd").then(imageWithTags => {
       expect(imageWithTags.name).to.equal("shepherd")
       expect(imageWithTags.tags.length).to.be.gte(1)
     })
   })
 
   it("should have expected property names on manifest", () => {
-    return api
+    return httpsApi
       .getImageManifest(`${dockerHost}/shepherd`, "latest")
       .then((manifest: any) => {
         const expectedPropNames = [
@@ -105,7 +101,7 @@ describe("Registry metadata API against localhost with basicauth on https", func
   })
 
   it("should retrieve docker tags on existing image", () => {
-    return api
+    return httpsApi
       .getImageManifestLabels(`${dockerHost}/shepherd`, "latest")
       .then((dockerTags: TDockerImageLabels) => {
         expect(dockerTags["shepherd.name"]).to.equal("Shepherd agent")

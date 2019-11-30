@@ -1,13 +1,14 @@
 import { expect } from "chai"
 
-const HerdLoader = require("./herd-loader")
-const inject = require("@shepherdorg/nano-inject").inject
+import {HerdLoader} from "./herd-loader"
+
 const exec = require("@shepherdorg/exec")
 const fakeLogger = require("../test-tools/fake-logger")
 import * as path from "path"
 import * as fs from "fs"
 
 /// Inject a mock image metadata loader with fake image information
+
 
 const CreateFeatureDeploymentConfig = require('./create-upstream-trigger-deployment-config').CreateUpstreamTriggerDeploymentConfig
 
@@ -33,13 +34,13 @@ describe("herd.yaml loading", function() {
 
   function createTestHerdLoader(labelsLoader, featureDeploymentConfig) {
     loader = HerdLoader(
-      inject({
+      {
         logger: loaderLogger,
         ReleasePlan: CreateReleasePlan,
         exec: exec,
         labelsLoader: labelsLoader,
         featureDeploymentConfig,
-      })
+      }
     )
   }
 

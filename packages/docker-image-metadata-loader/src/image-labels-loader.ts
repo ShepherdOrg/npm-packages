@@ -4,23 +4,33 @@ import {
   TDockerInspectMetadata,
 } from "./local-image-metadata"
 import { TDockerImageLabels } from "./registry-metadata-client"
-import { inject } from "@shepherdorg/nano-inject"
 
 import * as _ from "lodash"
+import { ILog } from "./index"
+import { TDockerRegistryClientMap } from "./docker-registry-clients-config"
 
 const exec = require("@shepherdorg/exec")
 
-export function imageLabelsLoader(injected) {
-  const logger = injected("logger")
+export interface TImageLabelsLoaderDependencies {
+  dockerRegistries: TDockerRegistryClientMap
+  logger: ILog
+}
+
+export interface ILoadDockerImageLabels {
+  getImageLabels(imageDef: TDockerImageReference):any
+}
+
+export function imageLabelsLoader(injected:TImageLabelsLoaderDependencies) : ILoadDockerImageLabels {
+  const logger = injected.logger
 
   const localImageLoader = dockerImageMetadata(
-    inject({
+    {
       logger: logger,
       exec: exec,
-    })
+    }
   )
 
-  const dockerRegistries = injected("dockerRegistries")
+  const dockerRegistries = injected.dockerRegistries
 
   function findMatchingRegistry(imageDef: TDockerImageReference) {
     return _.find(dockerRegistries, (_registry, registryHost) => {

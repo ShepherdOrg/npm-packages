@@ -4,10 +4,10 @@ import { emptyArray } from "../helpers/ts-functions"
 import { kubeSupportedExtensions } from "./kubectl-deployer/kube-supported-extensions"
 
 const YAML = require("js-yaml")
-const inject = require("@shepherdorg/nano-inject").inject
 
 import Bluebird = require("bluebird")
 import {
+  ILog,
   TFolderDeploymentPlan,
   THerdFolderMap,
   THerdFolderSpec, TImageDeploymentAction,
@@ -17,9 +17,15 @@ import {
 import { getShepherdMetadata } from "./add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
 import { TK8sDockerImageDeploymentAction } from "./kubectl-deployer/create-kubectl-deployment-action"
+import {
+  getDockerRegistryClientsFromConfig,
+} from "@shepherdorg/docker-image-metadata-loader"
+import { imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 // declare var Promise: Bluebird<any>;
 
 
+
+import {planFolderDeployment} from "./kubectl-deployer/folder-deployment-planner"
 
 function splitDockerImageTag(imgObj) {
   let colonIdx = imgObj.dockerImage.indexOf(":")
@@ -28,13 +34,22 @@ function splitDockerImageTag(imgObj) {
 }
 
 
-module.exports = function(injected) {
-  const ReleasePlan = injected("ReleasePlan")
+type THerdLoaderDependencies = {
+  logger: ILog
+  featureDeploymentConfig: any
+  ReleasePlan: any
+  exec: any
+  labelsLoader: {
+    imageLabelsLoader: typeof imageLabelsLoader,
+    getDockerRegistryClientsFromConfig: typeof getDockerRegistryClientsFromConfig
+  }
+}
 
-  const featureDeploymentConfig = injected("featureDeploymentConfig")
+export function HerdLoader(injected: THerdLoaderDependencies) {
+  const ReleasePlan = injected.ReleasePlan
 
-  const labelsLoader = injected("labelsLoader", true) || require("@shepherdorg/docker-image-metadata-loader")
-  const logger = injected("logger")
+  const featureDeploymentConfig = injected.featureDeploymentConfig
+  const logger = injected.logger
 
   const calculateDeploymentPlan = createImageDeploymentPlanner(
     {
@@ -43,21 +58,21 @@ module.exports = function(injected) {
     },
   ).calculateDeploymentActions
 
-  const scanDir = require("./kubectl-deployer/folder-deployment-planner")(
-    inject({
+  const scanDir = planFolderDeployment(
+    {
       kubeSupportedExtensions: {
         ".yml": true,
         ".yaml": true,
         ".json": true,
       },
       logger,
-    }),
+    },
   )
 
   // const cmd = injected('exec');
 
-  const dockerRegistries = labelsLoader.getDockerRegistryClientsFromConfig()
-  const loader = labelsLoader.imageLabelsLoader(inject({ dockerRegistries: dockerRegistries, logger: logger }))
+  const dockerRegistries = injected.labelsLoader.getDockerRegistryClientsFromConfig()
+  const loader = injected.labelsLoader.imageLabelsLoader({ dockerRegistries: dockerRegistries, logger: logger })
 
   function calculateFoldersPlan(herdFilePath, herdFolder: THerdFolderSpec) {
     let resolvedPath = path.resolve(herdFilePath, herdFolder.path)

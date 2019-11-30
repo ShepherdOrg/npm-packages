@@ -1,22 +1,22 @@
-import { inject } from "@shepherdorg/nano-inject"
-import { getTestCaseLogger, ILog } from "./testcase-logger"
+import { getTestCaseLogger, ITestLog } from "./testcase-logger"
 import { expect } from "chai"
 import { imageLabelsLoader } from "./image-labels-loader"
-import { getLocalhostTestingDockerRegistryClients } from "./docker-registry-clients-config"
+import { TDockerRegistryClientMap } from "./docker-registry-clients-config"
 import { TDockerInspectMetadata } from "./local-image-metadata"
+import { getLocalhostTestingDockerRegistryClients } from "./local-testing-docker-registry-clients-config"
 
 describe("Loading image labels", function() {
   this.timeout(60000)
-  let testLogger: ILog
+  let testLogger: ITestLog
   let loader
 
   // const dockerRegistries = getDockerRegistryClientsFromConfig();
-  var dockerRegistries = getLocalhostTestingDockerRegistryClients()
+  const dockerRegistries: TDockerRegistryClientMap = getLocalhostTestingDockerRegistryClients()
 
   beforeEach(function() {
-    testLogger = getTestCaseLogger({ debugOutput: true, infoOutput: false })
+    testLogger = getTestCaseLogger({ debugOutput: false, infoOutput: false, warnOutput:false })
     loader = imageLabelsLoader(
-      inject({ logger: testLogger, dockerRegistries: dockerRegistries })
+      { logger: testLogger, dockerRegistries: dockerRegistries }
     )
   })
 
