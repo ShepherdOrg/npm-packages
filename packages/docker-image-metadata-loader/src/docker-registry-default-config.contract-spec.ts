@@ -22,7 +22,7 @@ describe("Default docker registry clients config loading", function() {
     expect(Object.getOwnPropertyNames(config).length).to.be.gte(1)
   })
 
-  it.only("should get metadata from private docker registry", () => {
+  it("should get metadata from private docker registry", () => {
     const config = getDockerRegistryClientsFromConfig()
 
     const api = config["isrvkbuild02:5000"]

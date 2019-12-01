@@ -78,8 +78,6 @@ if (process.argv.indexOf("--version") > 0) {
 // parse options - Accept dry-run flags
 
 // @ts-ignore
-global.inject = require("@shepherdorg/nano-inject").inject
-// @ts-ignore
 global._ = require("lodash")
 global.Promise = require("bluebird")
 
@@ -185,8 +183,8 @@ stateStoreBackend
         exec: exec,
         featureDeploymentConfig,
         labelsLoader: {
-          imageLabelsLoader,
-          getDockerRegistryClientsFromConfig
+          imageLabelsLoader:imageLabelsLoader,
+          getDockerRegistryClientsFromConfig:getDockerRegistryClientsFromConfig
         }
       }
     )

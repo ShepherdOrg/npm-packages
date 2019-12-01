@@ -7,7 +7,7 @@
      "node" : ">=11"
   },
   "dependencies": {
-    "@shepherdorg/docker-image-metadata-loader": "^0.1.2",
+    "@shepherdorg/docker-image-metadata-loader": "^2.2.0",
     "@shepherdorg/exec": "^2.2.0",
     "@shepherdorg/filestore-backend": "^2.2.0",
     "@shepherdorg/metadata": "^2.2.0",
