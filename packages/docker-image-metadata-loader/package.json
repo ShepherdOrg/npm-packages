@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/docker-image-metadata-loader",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Retrieve docker image metadata efficiently from (private) docker registry, or alternatively by using docker pull and inspect",
   "keywords": [
     "docker",

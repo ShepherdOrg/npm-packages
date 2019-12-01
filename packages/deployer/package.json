@@ -1,13 +1,13 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Deployer application",
   "main": "dist/shepherd.js",
   "engines": {
-     "node" : ">=11"
+    "node": ">=11"
   },
   "dependencies": {
-    "@shepherdorg/docker-image-metadata-loader": "^2.2.0",
+    "@shepherdorg/docker-image-metadata-loader": "^2.2.1",
     "@shepherdorg/exec": "^2.2.0",
     "@shepherdorg/filestore-backend": "^2.2.0",
     "@shepherdorg/metadata": "^2.2.0",
