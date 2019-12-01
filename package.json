@@ -8,7 +8,6 @@
   ],
   "scripts": {
     "bootstrap": "lerna bootstrap",
-    "incrementalbuild": "yarn run lerna run tsc --since $(./scripts/base-commit.sh) --include-dependencies --stream",
     "test": "lerna run prepublishOnly",
     "build": "lerna run build",
     "buildChanged": "lerna run build --since $(./scripts/base-commit.sh) --include-dependencies --stream"

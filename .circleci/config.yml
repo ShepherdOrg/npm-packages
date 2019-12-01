@@ -32,7 +32,7 @@ jobs:
             - ~/.cache/yarn
       - run:
           name: Build
-          command: yarn buildChanged
+          command: yarn build
       - run:
           name: Publish to NPM
           command: yarn run lerna publish from-package --yes
