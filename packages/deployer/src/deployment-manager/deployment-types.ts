@@ -83,6 +83,7 @@ export interface TImageDeploymentAction {
   operation: string;
   command: string;
   identifier: string;
+  env?: string;
 }
 
 

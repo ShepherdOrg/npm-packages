@@ -67,7 +67,7 @@ export function getDockerRegistryClientsFromConfig(options: TDockerRegistryConfi
         }
 
       } else {
-        options.log.warn('Probable misconfiguration: Directory listed in certs.d, but no ca.crt file found' + path.join(certsDir, certDir))
+        options.log && options.log.warn('Probable misconfiguration: Directory listed in certs.d, but no ca.crt file found' + path.join(certsDir, certDir))
       }
     })
   }

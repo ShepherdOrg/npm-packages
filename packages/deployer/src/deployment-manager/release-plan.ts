@@ -6,8 +6,11 @@ import { extendedExec, writeFile } from "../promisified"
 const mapUntypedDeploymentData = require("@shepherdorg/metadata/dist/map-untyped-deployment-data").mapUntypedDeploymentData
 
 import Bluebird = require("bluebird")
-import { TKubectrlDeployAction } from "./kubectl-deployer/create-kubectl-deployment-action"
-import { ILog } from "./deployment-types"
+import {
+  TK8sDockerImageDeploymentAction,
+  TKubectrlDeployAction,
+} from "./kubectl-deployer/create-kubectl-deployment-action"
+import { ILog, TImageDeploymentAction } from "./deployment-types"
 
 declare var Promise: Bluebird<any>
 
@@ -295,7 +298,7 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
     }
 
     return {
-      async addDeployment(deploymentAction) {
+      async addDeployment(deploymentAction: TImageDeploymentAction | TK8sDockerImageDeploymentAction) {
         deploymentAction.env = forEnv
         return await addToPlanAndGetDeploymentStateFromStore(deploymentAction)
       },

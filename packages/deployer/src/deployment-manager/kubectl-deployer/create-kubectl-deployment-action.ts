@@ -35,6 +35,7 @@ export interface TK8sDockerImageDeploymentAction extends TKubectrlDeployAction {
   type: string,
   fileName: string,
   herdKey: string,
+  env?: string
 }
 
 

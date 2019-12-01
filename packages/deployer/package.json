@@ -3,6 +3,9 @@
   "version": "2.2.0",
   "description": "Deployer application",
   "main": "dist/shepherd.js",
+  "engines": {
+     "node" : ">=11"
+  },
   "dependencies": {
     "@shepherdorg/docker-image-metadata-loader": "^0.1.2",
     "@shepherdorg/exec": "^2.2.0",

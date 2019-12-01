@@ -177,8 +177,8 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
                     })
                 })
               },
-              "images": async function(images: TImageMap) : Promise<Array<Promise<TImageDeploymentAction>>> {
-                let imageDeploymentPlans: Array<Promise<TImageDeploymentAction>> = Object.entries(images).map(function([imgName, imgObj]) {
+              "images": async function(images: TImageMap)  {
+                let imageDeploymentPlans = Object.entries(images).map(function([imgName, imgObj]) {
                   imgObj.herdKey = imgName
                   logger.debug(
                     "Deployment image - loading image meta data for docker image",
@@ -188,11 +188,11 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
                   if (!imgObj.image && imgObj.dockerImage) {
                     splitDockerImageTag(imgObj)
                   }
-                  let promise = loadImageMetadata(imgObj)
+                  let promise: Promise<Array<TImageDeploymentAction | TK8sDockerImageDeploymentAction>> = loadImageMetadata(imgObj)
                     .then(getShepherdMetadata)
                     .then(addMigrationImageToDependenciesPlan)/// This is pretty ugly, adding to external structure sideffect
                     .then(calculateDeploymentPlan)
-                    .then(function(imageDeploymentActions) {
+                    .then(function(imageDeploymentActions: Array<TImageDeploymentAction | TK8sDockerImageDeploymentAction>) {
                       return Bluebird.each(imageDeploymentActions, releasePlan.addDeployment)
                     })
                     .then(function(imgPlans: Array<TImageDeploymentAction | TK8sDockerImageDeploymentAction>) {
