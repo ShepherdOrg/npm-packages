@@ -48,6 +48,7 @@ describe("run all deployers with infrastructure", function() {
           }),
           debug: false, // debug:false suppresses stdout of process
         })
+        .ignoreLinesWith(['buildDate'])
         .output("./.build/.testdata/kubeapply")
         .shouldEqual("./src/integratedtest/expected/all-deployments")
         .done(function() {

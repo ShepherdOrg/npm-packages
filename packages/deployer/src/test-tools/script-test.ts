@@ -1,14 +1,18 @@
 const JsDiff = require("diff")
 import * as fs from "fs"
+
 const expect = require("expect.js")
-const { extend, sortedUniq } = require('lodash');
+const { extend, sortedUniq } = require("lodash")
 
 const exec = require("@shepherdorg/exec")
 
-function containsDifference(diffArray) {
+function containsDifference(diffArray, ignoreList: string[] = []) {
   for (let diffObj of diffArray) {
     if (diffObj.removed || diffObj.added) {
-      return true
+      const onIgnoreList = ignoreList.reduce((ignored, ignoredWord) => {
+        return ignored || diffObj.value.indexOf(ignoredWord) >= 0
+      }, false)
+      return !onIgnoreList
     }
   }
   return false
@@ -27,21 +31,21 @@ function renderDifferences(diffArray) {
   return result
 }
 
-function compareActualVsExpected(expectedFileName, actualFileName) {
+function compareActualVsExpected(expectedFileName, actualFileName, ignoreList: string[] = []) {
   let expectedFileContents = fs.readFileSync(expectedFileName, "utf-8")
   let actualFileContents = fs.readFileSync(actualFileName, "utf-8")
   let difference = JsDiff.diffTrimmedLines(
     expectedFileContents.trim(),
-    actualFileContents.trim()
+    actualFileContents.trim(),
   )
-  if (containsDifference(difference)) {
+  if (containsDifference(difference, ignoreList)) {
     expect().fail(
       "Expected file " +
-        expectedFileName +
-        " differs from actual file " +
-        actualFileName +
-        "\n" +
-        renderDifferences(difference)
+      expectedFileName +
+      " differs from actual file " +
+      actualFileName +
+      "\n" +
+      renderDifferences(difference),
     )
   }
 }
@@ -74,19 +78,19 @@ module.exports = {
             "Process error in test, error code:",
             errCode,
             " stderr:",
-            err
+            err,
           )
           expect().fail(
             "Error invoking : " +
-              command +
-              " with arguments " +
-              JSON.stringify(args) +
-              "\nStdout: \n" +
-              stdout +
-              "\nError output:\n" +
-              err +
-              "\n. ErrorCode:" +
-              errCode
+            command +
+            " with arguments " +
+            JSON.stringify(args) +
+            "\nStdout: \n" +
+            stdout +
+            "\nError output:\n" +
+            err +
+            "\n. ErrorCode:" +
+            errCode,
           )
         }
       },
@@ -95,11 +99,12 @@ module.exports = {
         execution.checkExpectations()
         execution.callback(output)
       },
-      logfn
+      logfn,
     )
 
-    let execution:any = {
-      expectedPartialStrings:[],
+    let execution: any = {
+      ignoreList: [],
+      expectedPartialStrings: [],
       output: function(actualOutputFileOrDir) {
         execution.actualOutputFileOrDir = actualOutputFileOrDir
         return {
@@ -113,6 +118,10 @@ module.exports = {
           },
         }
       },
+      ignoreLinesWith(ignoreList: string[]) {
+        execution.ignoreList = ignoreList
+        return execution
+      },
       stdout: function() {
         execution.actualFromStdout = true
         return {
@@ -120,10 +129,10 @@ module.exports = {
             execution.expectedStdOutput = expectedStdOutputRefFile
             return execution
           },
-          shouldContain(partialString){
+          shouldContain(partialString) {
             execution.expectedPartialStrings.push(partialString)
             return execution
-          }
+          },
         }
       },
       stderr: function() {
@@ -153,16 +162,16 @@ module.exports = {
           ) {
             expect().fail(
               "Standard err " +
-                execution.processStderr +
-                " does not match expected " +
-                execution.expectedOutputFileOrDir +
-                " error output"
+              execution.processStderr +
+              " does not match expected " +
+              execution.expectedOutputFileOrDir +
+              " error output",
             )
           }
           return
         }
 
-        execution.expectedPartialStrings.forEach((partialString)=>{
+        execution.expectedPartialStrings.forEach((partialString) => {
           expect(execution.processOutput).to.contain(partialString)
         })
 
@@ -171,21 +180,21 @@ module.exports = {
           if (fs.existsSync(execution.expectedStdOutput)) {
             expectedOutput = fs.readFileSync(
               execution.expectedStdOutput,
-              "utf-8"
+              "utf-8",
             )
           } else {
             expectedOutput = execution.expectedStdOutput
           }
 
-          if(expectedOutput){
+          if (expectedOutput) {
             let difference = JsDiff.diffTrimmedLines(
               expectedOutput.trim(),
-              execution.processOutput.trim()
+              execution.processOutput.trim(),
             )
             if (containsDifference(difference)) {
               fs.writeFileSync(
                 "./integratedtest/expected/actualoutput.log",
-                execution.processOutput
+                execution.processOutput,
               )
               expect().fail(
                 "Expected stdout \n" +
@@ -193,7 +202,7 @@ module.exports = {
                 "\n differs from actual stdout \n" +
                 execution.processOutput +
                 "\n Differences found:" +
-                renderDifferences(difference)
+                renderDifferences(difference),
               )
             }
           }
@@ -215,8 +224,8 @@ module.exports = {
                   `Directory ${
                     execution.actualOutputFileOrDir
                   } is not empty, contains following files: ${actualFiles.join(
-                    ", "
-                  )}`
+                    ", ",
+                  )}`,
                 )
               }
             } else {
@@ -232,7 +241,7 @@ module.exports = {
             !(expectedIsDir && actualIsDir)
           ) {
             expect().fail(
-              "Both expected and actual must be a directory or a file"
+              "Both expected and actual must be a directory or a file",
             )
           }
           if (expectedIsDir) {
@@ -243,28 +252,29 @@ module.exports = {
 
             let difference = JsDiff.diffTrimmedLines(
               expectedFilesString,
-              actualFilesString
+              actualFilesString,
             )
             if (containsDifference(difference)) {
               expect().fail(
                 "Expected directory contents " +
-                  execution.expectedOutputFileOrDir +
-                  " differs from actual dir contents " +
-                  execution.actualOutputFileOrDir +
-                  "\n" +
-                  renderDifferences(difference)
+                execution.expectedOutputFileOrDir +
+                " differs from actual dir contents " +
+                execution.actualOutputFileOrDir +
+                "\n" +
+                renderDifferences(difference),
               )
             }
             actualFiles.forEach(function(file) {
               compareActualVsExpected(
                 execution.expectedOutputFileOrDir + "/" + file,
-                execution.actualOutputFileOrDir + "/" + file
+                execution.actualOutputFileOrDir + "/" + file,
+                execution.ignoreList,
               )
             })
           } else {
             let expectedFileName = execution.expectedOutputFileOrDir
             let actualFileName = execution.actualOutputFileOrDir
-            compareActualVsExpected(expectedFileName, actualFileName)
+            compareActualVsExpected(expectedFileName, actualFileName, execution.ignoreList)
           }
         }
       },
