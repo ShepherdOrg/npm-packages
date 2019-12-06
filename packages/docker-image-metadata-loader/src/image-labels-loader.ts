@@ -21,7 +21,7 @@ export interface ILoadDockerImageLabels {
 }
 
 export function imageLabelsLoader(injected:TImageLabelsLoaderDependencies) : ILoadDockerImageLabels {
-  const logger = injected.logger
+  const logger = injected.logger || console
 
   const localImageLoader = dockerImageMetadata(
     {

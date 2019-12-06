@@ -39,7 +39,7 @@ export type TLocalImageMetadataOptions = {
 }
 
 export function dockerImageMetadata(injected: TLocalImageMetadataOptions) {
-  const logger = injected.logger
+  const logger = injected.logger || console
 
   const cmd = injected.exec
 
