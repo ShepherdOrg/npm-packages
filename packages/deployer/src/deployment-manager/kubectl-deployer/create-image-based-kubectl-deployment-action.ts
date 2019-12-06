@@ -2,7 +2,7 @@ import { emptyArray } from "../../helpers/ts-functions"
 import {
   addResourceNameChangeIndex,
   TBranchModificationParams,
-} from "./k8s-feature-deployment/create-name-change-index"
+} from "./k8s-branch-deployment/create-name-change-index"
 import * as path from "path"
 
 import { options } from "../options"

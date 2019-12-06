@@ -3,73 +3,65 @@ data:
   password: dmVyeXNlY3JldAo
 kind: Secret
 metadata:
-  annotations: null
-  name: xbakvinn-new-branch
+  annotations:
+  name: xbakvinn
   namespace: default
-  resourceVersion: '109999'
-  labels:
-    ttl-hours: '66'
+  resourceVersion: "109999"
 type: Opaque
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: toyota-cronjob-new-branch
-  labels:
-    ttl-hours: '66'
+  name: toyota-cronjob
 spec:
-  schedule: 30 17 * * 1-5
+  schedule: '30 17 * * 1-5'
   concurrencyPolicy: Replace
   jobTemplate:
     metadata:
       labels:
-        app: toyota-cron-new-branch
-        origin: new-branch
+        app: toyota-cron
+        origin: branch
         environment: dev
     spec:
       template:
         spec:
           containers:
-            - name: toyota-cron-new-branch
+            - name: toyota-cron
               image: DOCKER_IMAGE
               imagePullPolicy: IfNotPresent
-              command:
-                - node
-                - .dist/job/run
+              command: ['node', '.dist/job/run']
               env:
                 - name: XBAKVINN_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: xbakvinn-new-branch
+                      name: xbakvinn
                       key: password
                 - name: SERVER_EVENTS_CLUSTER_API
-                  value: 'http://server-events-service'
+                  value: http://server-events-service
           restartPolicy: OnFailure
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: toyota-deployment-new-branch
-  labels:
-    ttl-hours: '66'
+  name: toyota-deployment
 spec:
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
-        app: toyota-pod-new-branch
+        app: toyota-pod
         environment: dev
-        origin: new-branch
+        origin: branch
     spec:
       containers:
-        - name: toyota-pod-new-branch
+        - name: toyota-pod
           image: DOCKER_IMAGE
           imagePullPolicy: IfNotPresent
           env:
             - name: DRAGON_ENV
               value: test
             - name: SERVICE_SUFFIX
-              value: dev.it.tm.is
+              value: dev.domain.com
             - name: IN_CLUSTER
               value: 'YES'
             - name: FEATURES_ON
@@ -88,6 +80,7 @@ spec:
               port: 80
             initialDelaySeconds: 15
             timeoutSeconds: 4
+
           ports:
             - containerPort: 80
               name: httpport
@@ -95,34 +88,38 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: toyota-new-branch
+  name: toyota
   labels:
-    name: toyota-new-branch
+    name: toyota
     environment: dev
-    ttl-hours: '66'
 spec:
   ports:
-    - port: 80
+    - port: 80 # the port that this service should serve on
+      # the container on each pod to connect to, can be a name
+      # (e.g. 'www') or a number (e.g. 80)
       name: serviceport
       targetPort: 80
       protocol: TCP
+  # just like the selector in the replication controller,
+  # but this time it identifies the set of pods to load balance
+  # traffic to.
   selector:
-    app: toyota-pod-new-branch
-    origin: new-branch
+    app: toyota-pod
+    origin: branch
     environment: dev
   sessionAffinity: ClientIP
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: toyota-ingress-new-branch
-  labels:
-    ttl-hours: '66'
+  name: toyota-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   rules:
-    - host: new-branch-toyota.dev.it.tm.is
+    - host: toyota.dev.domain.com
       http:
         paths:
           - backend:
-              serviceName: toyota-new-branch
+              serviceName: toyota
               servicePort: 80

@@ -115,8 +115,11 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
     }
   }
 
-  function adjustIngressNames(deploymentDoc) {
+  function adjustIngressSettings(deploymentDoc) {
     if (deploymentDoc.kind && deploymentDoc.kind === "Ingress" && deploymentDoc.spec) {
+      if (deploymentDoc.metadata && deploymentDoc.metadata.annotations && deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"]) {
+        deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"] = "false"
+      }
       if (deploymentDoc.spec.rules && deploymentDoc.spec.rules[0] && deploymentDoc.spec.rules[0].host) {
         deploymentDoc.spec.rules[0].host = `${cleanedName}-${deploymentDoc.spec.rules[0].host}`
         const http = deploymentDoc.spec.rules[0].http
@@ -153,7 +156,7 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
 
     setOneReplica(parsedDocument)
 
-    adjustIngressNames(parsedDocument)
+    adjustIngressSettings(parsedDocument)
 
     try {
       let yml = JSYAML.safeDump(parsedDocument)
