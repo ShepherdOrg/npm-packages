@@ -21,6 +21,7 @@
     "kube-filter-expired-resources.js": "dist/kube-filter-expired-resources.js",
     "shepherd-inspect": "dist/shepherd-inspect-cmd.js",
     "join-metadata-files": "dist/join-metadata-files.js",
+    "base64encode": "dist/base64/base64encode.js",
     "shepherd.js": "dist/shepherd.js"
   },
   "scripts": {
@@ -37,7 +38,9 @@
     "@shepherdorg/docker-image-metadata-loader": "^2.2.2",
     "@shepherdorg/metadata": "^2.2.0",
     "@shepherdorg/nano-inject": "^2.2.0",
-    "js-yaml": "^3.13.1"
+    "js-yaml": "^3.13.1",
+    "nodegit": "^0.26.2",
+    "simple-git": "^1.126.0"
   },
   "devDependencies": {
     "@types/chai": "^4.2.5",

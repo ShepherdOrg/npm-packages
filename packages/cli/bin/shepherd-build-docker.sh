@@ -166,9 +166,8 @@ do
   sleep 1
 done
 
-echo "Retrieving changelog for ${DOCKERDIR}"
 LASTFIVECOMMITS=$(git log -5 --pretty=format:" %aD by %an. --- %s %n" -- ${DOCKERDIR} > ${DOCKERDIR}/.build/gitlog.log && cat ${DOCKERDIR}/.build/gitlog.log)
-LAST_COMMITS_B64="$(echo "${LASTFIVECOMMITS}" | base64  | tr '\n' ' ' | sed 's/ //g' )"
+LAST_COMMITS_B64="$(echo "${LASTFIVECOMMITS}"  | base64encode )"
 
 pushd .
 
@@ -178,7 +177,6 @@ if [ -e "./build.sh" ]; then
 	echo "Custom pre build script detected, sourcing"
 	. ./build.sh
 fi
-
 
 
 if [ -z "$GIT_COMMIT" ]; then
@@ -227,7 +225,7 @@ if [[ -d ./.build/deployment/ ]]; then
 	set -e
 
 
-	KUBECONFIG_B64=$(cd ./.build && tar -b 1 -zcv ./deployment/ 2>/dev/null | base64 | tr '\n' ' ' | sed 's/ //g' )
+	KUBECONFIG_B64=$(cd ./.build && tar -b 1 -zcv ./deployment/ 2>/dev/null | base64encode )
 fi
 
 if [ ! -z "${KUBECONFIG_B64}" ]; then
@@ -253,7 +251,7 @@ fi
 
 join-metadata-files ./.build/metadata/userdata.json ./.build/metadata/builddata.json > ./.build/metadata/shepherd.json
 
-SHEPHERD_METADATA=$(cd ./.build/metadata && tar  -b 1 -zcv shepherd.json 2>/dev/null | base64 | tr '\n' ' ' | sed 's/ //g' )
+SHEPHERD_METADATA=$(cd ./.build/metadata && tar  -b 1 -zcv shepherd.json 2>/dev/null | base64encode )
 
 docker build -t ${DOCKER_IMAGE} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_GITHASH} \
 	--build-arg SHEPHERD_METADATA=${SHEPHERD_METADATA} \
@@ -278,7 +276,7 @@ else
 	echo "Not pushing ${DOCKER_IMAGE}"
 fi
 
-
+# TODO Port completely to nodejs
 # TODO Error if docker image produced is not configured with enough information to deploy
 # Create command shepherd-validate-image
 # TODO Add SHEPHERD_METADATA arg and label to Dockerfile if missing.

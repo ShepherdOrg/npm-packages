@@ -1,5 +1,6 @@
 import { expect } from "chai"
 import { exec } from "child-process-promise"
+import * as fs from "fs"
 
 describe("Build docker with kube.yaml deployment", function() {
   this.timeout(10000)
@@ -12,7 +13,9 @@ describe("Build docker with kube.yaml deployment", function() {
       ({ stdout, stderr }) => {
         if (stderr) expect.fail("GOT ERROR> " + stderr)
 
-        shepherdMeta = require(__dirname + '/.build/metadata/shepherd.json')
+        // console.log('DEBUG BUILD OUTPUT', stdout)
+
+        shepherdMeta = JSON.parse(fs.readFileSync(__dirname + '/.build/metadata/shepherd.json', 'utf8'))
         buildOutput = stdout
 
         return exec(
@@ -24,8 +27,16 @@ describe("Build docker with kube.yaml deployment", function() {
     )
   })
 
+  function base64decode(encoded: string){
+    return Buffer.from(encoded, "base64").toString('utf8')
+  }
+
   it("should have kubeConfigB64", () => {
-    expect(shepherdMeta.kubeConfigB64.length).to.equal(684)
+    expect((shepherdMeta.kubeConfigB64.length)).to.be.gt(500)
+  })
+
+  it("should have last 5 commits base64 encoded", () => {
+    expect(base64decode(shepherdMeta.lastCommits)).to.be.contain('by')
   })
 
   xit("should suppress tslint warnings", () => {

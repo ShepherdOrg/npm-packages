@@ -22,10 +22,5 @@
     "node_modules",
     "e2etest",
     "dist"
-  ],
-  "types": [
-    "@types/node",
-    "@types/mocha",
-    "@types/chai"
   ]
 }
