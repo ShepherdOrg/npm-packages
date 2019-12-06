@@ -46,6 +46,12 @@ spec:
                 configMapKeyRef:
                   name: ${EXPORT2}
                   key: ENV
+            - name: RUNTIME_ENV_3
+              value: {{BRANCH_NAME}}
+            - name: RUNTIME_ENV_4
+              value: {{BRANCH_NAME_PREFIX}}
+            - name: RUNTIME_ENV_5
+              value: {{BRANCH_NAME_POSTFIX}}
         - image: DOCKER_IMAGE_SSR
           name: www-icelandair-com-ssr
           resources:

@@ -57,6 +57,12 @@ Deployment state store configuration
     SHEPHERD_PG_DATABASE     - Postgres database
     SHEPHERD_PG_PASSWORD     - Postgres password
 
+Other reserved environment variables:
+    The following environment variables are used to enable parameterising branch deployments
+    BRANCH_NAME              - set to FEATURE_NAME from upstream branch deployment
+    BRANCH_NAME_PREFIX       - set to \${FEATURE_NAME}-
+    BRANCH_NAME_POSTFIX      - set to -\${FEATURE_NAME}   
+
 `)
 }
 

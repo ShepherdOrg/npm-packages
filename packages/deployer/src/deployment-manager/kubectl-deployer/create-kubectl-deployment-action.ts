@@ -9,11 +9,11 @@ import { expandTemplate } from "../../expandtemplate"
 import * as path from "path"
 import { extendedExec, writeFile } from "../../promisified"
 import { TDeploymentState, TK8sMetadata } from "@shepherdorg/metadata"
+import { TActionExecutionOptions } from "../release-plan"
 
 const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 
 import Bluebird = require("bluebird")
-import { TActionExecutionOptions } from "../release-plan"
 
 
 export interface TKubectrlDeployAction {
@@ -150,9 +150,7 @@ function listDeploymentRollouts(descriptorsByKind) {
   })
 }
 
-function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: string) {
-  let lines = deploymentFileDescriptorContent.split("\n")
-
+function expandEnvVariables(lines: string[]) {
   lines.forEach(function(line, idx) {
     try {
       lines[idx] = expandEnv(line)
@@ -164,14 +162,26 @@ function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: st
     }
   })
   let modifiedContents = lines.join("\n")
-  modifiedContents = expandTemplate(modifiedContents)
   return modifiedContents
 }
 
+function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: string) {
+  return expandTemplate(expandEnvVariables(deploymentFileDescriptorContent.split("\n")))
+}
 
 export function createKubectlDeployAction(_origin: string, deploymentFileDescriptorContent: string, operation: string, logger: ILog, branchModificationParams?: TBranchModificationParams): TKubectrlDeployAction {
   let origin: string = _origin
   try {
+    if(branchModificationParams && branchModificationParams.shouldModify){
+      process.env.BRANCH_NAME = branchModificationParams.branchName
+      process.env.BRANCH_NAME_PREFIX = `${branchModificationParams.branchName}-`
+      process.env.BRANCH_NAME_POSTFIX = `-${branchModificationParams.branchName}`
+    } else {
+      process.env.BRANCH_NAME = ''
+      process.env.BRANCH_NAME_PREFIX = ''
+      process.env.BRANCH_NAME_POSTFIX = ''
+    }
+
     let finalDescriptor = expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent)
 
     if (branchModificationParams && branchModificationParams.shouldModify) {

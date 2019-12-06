@@ -123,3 +123,28 @@ spec:
           - backend:
               serviceName: myservice
               servicePort: 80
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: myservice-path-ingress
+  namespace: default
+  labels:
+    app: myservice
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+spec:
+  rules:
+    - host: api.dev.domain.com
+      http:
+        paths:
+          - path: /myservice
+            backend:
+              serviceName: myservice
+              servicePort: 80
+  tls:
+    - hosts:
+        - api.dev.domain.com
+      secretName: services-cert
