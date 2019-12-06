@@ -12,21 +12,21 @@ type: Opaque
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: toyota-cronjob
+  name: myservice-cronjob
 spec:
   schedule: '30 17 * * 1-5'
   concurrencyPolicy: Replace
   jobTemplate:
     metadata:
       labels:
-        app: toyota-cron
+        app: myservice-cron
         origin: branch
         environment: dev
     spec:
       template:
         spec:
           containers:
-            - name: toyota-cron
+            - name: myservice-cron
               image: DOCKER_IMAGE
               imagePullPolicy: IfNotPresent
               command: ['node', '.dist/job/run']
@@ -43,18 +43,18 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: toyota-deployment
+  name: myservice-deployment
 spec:
   replicas: 2
   template:
     metadata:
       labels:
-        app: toyota-pod
+        app: myservice-pod
         environment: dev
         origin: branch
     spec:
       containers:
-        - name: toyota-pod
+        - name: myservice-pod
           image: DOCKER_IMAGE
           imagePullPolicy: IfNotPresent
           env:
@@ -88,9 +88,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: toyota
+  name: myservice
   labels:
-    name: toyota
+    name: myservice
     environment: dev
 spec:
   ports:
@@ -104,7 +104,7 @@ spec:
   # but this time it identifies the set of pods to load balance
   # traffic to.
   selector:
-    app: toyota-pod
+    app: myservice-pod
     origin: branch
     environment: dev
   sessionAffinity: ClientIP
@@ -112,14 +112,14 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: toyota-ingress
+  name: myservice-ingress
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   rules:
-    - host: toyota.dev.domain.com
+    - host: myservice.dev.domain.com
       http:
         paths:
           - backend:
-              serviceName: toyota
+              serviceName: myservice
               servicePort: 80

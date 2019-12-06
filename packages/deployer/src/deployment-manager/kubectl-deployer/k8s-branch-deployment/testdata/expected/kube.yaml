@@ -14,7 +14,7 @@ type: Opaque
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: toyota-cronjob-new-branch
+  name: myservice-cronjob-new-branch
   labels:
     ttl-hours: '66'
 spec:
@@ -23,14 +23,14 @@ spec:
   jobTemplate:
     metadata:
       labels:
-        app: toyota-cron-new-branch
+        app: myservice-cron-new-branch
         origin: new-branch
         environment: dev
     spec:
       template:
         spec:
           containers:
-            - name: toyota-cron-new-branch
+            - name: myservice-cron-new-branch
               image: DOCKER_IMAGE
               imagePullPolicy: IfNotPresent
               command:
@@ -49,7 +49,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: toyota-deployment-new-branch
+  name: myservice-deployment-new-branch
   labels:
     ttl-hours: '66'
 spec:
@@ -57,12 +57,12 @@ spec:
   template:
     metadata:
       labels:
-        app: toyota-pod-new-branch
+        app: myservice-pod-new-branch
         environment: dev
         origin: new-branch
     spec:
       containers:
-        - name: toyota-pod-new-branch
+        - name: myservice-pod-new-branch
           image: DOCKER_IMAGE
           imagePullPolicy: IfNotPresent
           env:
@@ -95,9 +95,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: toyota-new-branch
+  name: myservice-new-branch
   labels:
-    name: toyota-new-branch
+    name: myservice-new-branch
     environment: dev
     ttl-hours: '66'
 spec:
@@ -107,7 +107,7 @@ spec:
       targetPort: 80
       protocol: TCP
   selector:
-    app: toyota-pod-new-branch
+    app: myservice-pod-new-branch
     origin: new-branch
     environment: dev
   sessionAffinity: ClientIP
@@ -115,16 +115,16 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: toyota-ingress-new-branch
+  name: myservice-ingress-new-branch
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: 'false'
   labels:
     ttl-hours: '66'
 spec:
   rules:
-    - host: new-branch-toyota.dev.domain.com
+    - host: new-branch-myservice.dev.domain.com
       http:
         paths:
           - backend:
-              serviceName: toyota-new-branch
+              serviceName: myservice-new-branch
               servicePort: 80
