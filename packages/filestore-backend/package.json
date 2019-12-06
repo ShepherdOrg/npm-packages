@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/filestore-backend",
-  "version": "2.2.0",
+  "version": "2.2.3",
   "description": "State store for persisting shepherd deployment state using a provided backend.",
   "files": [
     "dist"
@@ -16,9 +16,9 @@
     "@shepherdorg/state-store": "^2.0.0"
   },
   "devDependencies": {
-    "@shepherdorg/metadata": "^2.2.0",
-    "@shepherdorg/state-store": "^2.2.0",
-    "@shepherdorg/storage-backend-tester": "^2.2.0",
+    "@shepherdorg/metadata": "^2.2.3",
+    "@shepherdorg/state-store": "^2.2.3",
+    "@shepherdorg/storage-backend-tester": "^2.2.3",
     "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.11",
