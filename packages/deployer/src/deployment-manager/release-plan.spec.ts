@@ -199,7 +199,7 @@ describe("Release plan", function() {
             return releasePlan.executePlan({
               dryRun: false,
               dryRunOutputDir: undefined,
-              pushToUi: false,
+              pushToUi: true,
               waitForRollout: true,
             })
           })
