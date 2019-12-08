@@ -31,6 +31,14 @@ export function DeploymentDir(operation, parameterizedDir) {
   }
 }
 
+export type TDeploymentStateParams = {
+  version: string
+  identifier: string
+  env: string
+  descriptor: string
+  operation: string
+}
+
 export function ReleaseStateStore(injected: TStateStoreDependencies) {
   let storageBackend = injected.storageBackend
 
@@ -40,7 +48,7 @@ export function ReleaseStateStore(injected: TStateStoreDependencies) {
     operation: string,
     deploymentVersion: string,
     newSignature: string
-  ) {
+  ) : Promise<TDeploymentState> {
     const envIdentifier = `${env}-${deploymentIdentifier}`
     const keyValue = await storageBackend.get(envIdentifier)
 
@@ -66,7 +74,7 @@ export function ReleaseStateStore(injected: TStateStoreDependencies) {
     return newState
   }
 
-  async function saveDeploymentState(stateSignatureObject) {
+  async function saveDeploymentState(stateSignatureObject): Promise<TDeploymentState> {
     if (stateSignatureObject.modified) {
       const timestampedObject = {
         ...stateSignatureObject,
@@ -84,7 +92,7 @@ export function ReleaseStateStore(injected: TStateStoreDependencies) {
   }
 
   return {
-    getDeploymentState(deployment) {
+    getDeploymentState(deployment:TDeploymentStateParams) {
       let deploymentSignature = crypto
         .createHash("md5")
         .update(deployment.operation + deployment.descriptor)
