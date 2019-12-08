@@ -2,15 +2,14 @@ import * as path from "path"
 
 import { emptyArray } from "../helpers/ts-functions"
 import { extendedExec, writeFile } from "../promisified"
-
-const mapUntypedDeploymentData = require("@shepherdorg/metadata/dist/map-untyped-deployment-data").mapUntypedDeploymentData
-
-import Bluebird = require("bluebird")
 import {
   TK8sDockerImageDeploymentAction,
-  TKubectrlDeployAction,
+  TKubectlDeployAction,
 } from "./kubectl-deployer/create-kubectl-deployment-action"
-import { ILog, TImageDeploymentAction } from "./deployment-types"
+import { ILog, TImageDeploymentAction, TTempDeploymentInfoType } from "./deployment-types"
+import { mapUntypedDeploymentData } from "../map-untyped-deployment-data"
+import Bluebird = require("bluebird")
+
 
 declare var Promise: Bluebird<any>
 
@@ -31,7 +30,7 @@ type TDockerDeploymentPlan = [string, any]
 
 export interface TActionExecutionOptions {
   waitForRollout: boolean
-  forcePush: boolean
+  pushToUi: boolean
   dryRun: boolean
   dryRunOutputDir: string | undefined
 }
@@ -58,24 +57,24 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
     const dockerDeploymentPlan = {}
     const k8sDeploymentsByIdentifier = {}
 
-    function addK8sDeployment(deployment) {
-      k8sDeploymentActions[deployment.origin] = k8sDeploymentActions[deployment.origin] || {
-        herdKey: deployment.herdKey,
+    function addK8sDeployment(deploymentAction) {
+      k8sDeploymentActions[deploymentAction.origin] = k8sDeploymentActions[deploymentAction.origin] || {
+        herdKey: deploymentAction.herdKey,
         deployments: [],
       }
-      k8sDeploymentActions[deployment.origin].deployments.push(deployment)
+      k8sDeploymentActions[deploymentAction.origin].deployments.push(deploymentAction)
 
-      if (k8sDeploymentsByIdentifier[deployment.identifier]) {
+      if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
         throw new Error(
-          deployment.identifier +
+          deploymentAction.identifier +
           " is already in deployment plan from " +
-          k8sDeploymentsByIdentifier[deployment.identifier].origin +
+          k8sDeploymentsByIdentifier[deploymentAction.identifier].origin +
           ". When adding deployment from " +
-          deployment.origin,
+          deploymentAction.origin,
         )
       }
 
-      k8sDeploymentsByIdentifier[deployment.identifier] = deployment
+      k8sDeploymentsByIdentifier[deploymentAction.identifier] = deploymentAction
     }
 
     function addDockerDeployer(deployment) {
@@ -96,7 +95,7 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
       return stateStore.saveDeploymentState(deployment.state)
     }
 
-    async function addToPlanAndGetDeploymentStateFromStore(deploymentAction): Promise<TKubectrlDeployAction> {
+    async function addToPlanAndGetDeploymentStateFromStore(deploymentAction): Promise<TKubectlDeployAction> {
       let state = await stateStore.getDeploymentState(deploymentAction)
 
       if (!deploymentAction.type) {
@@ -190,7 +189,7 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
 
 
     function mapDeploymentDataAndWriteTo(dryrunOutputDir) {
-      return async (deploymentData) => {
+      return async (deploymentData: TTempDeploymentInfoType) => {
         if (!deploymentData) {
           return deploymentData
         } else {
@@ -202,17 +201,18 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
       }
     }
 
-    async function executePlan(runOptions: TActionExecutionOptions = { dryRun: false, dryRunOutputDir: undefined, forcePush: false, waitForRollout: false }) {
+    async function executePlan(runOptions: TActionExecutionOptions = { dryRun: false, dryRunOutputDir: undefined, pushToUi: true, waitForRollout: false }) {
       // let i = 0
-      const shouldPush = !runOptions.dryRun || runOptions.forcePush
       let deploymentPromises = K8sDeploymentPromises(runOptions)
       let allPromises = deploymentPromises.concat(DeployerPromises(runOptions))
 
       deploymentPromises = allPromises.map(promise => {
-        if (shouldPush) {
-          return promise.then(mapDeploymentDataAndPush)
-        } else if (runOptions.dryRun) {
-          return promise.then(mapDeploymentDataAndWriteTo(runOptions.dryRunOutputDir))
+        if (runOptions.pushToUi) {
+          if (runOptions.dryRun) {
+            return promise.then(mapDeploymentDataAndWriteTo(runOptions.dryRunOutputDir))
+          } else {
+            return promise.then(mapDeploymentDataAndPush)
+          }
         } else {
           return promise.then()
         }

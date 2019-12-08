@@ -42,15 +42,16 @@ async function createImageBasedFileDeploymentAction(deploymentFileContent, image
     version: imageInformation.imageDefinition.imagetag,
     type: "k8s",
     fileName: fileName,
-    herdKey: imageInformation.imageDefinition.herdKey,
+    herdKey: imageInformation.imageDefinition.key,
   })
   return newK8sAction
 }
 
-export function calculateKubectlActions(imageInformation, kubeSupportedExtensions, logger) {
+export function calculateKubectlActions(imageInformation, kubeSupportedExtensions, logger):Promise<Array<TK8sDockerImageDeploymentAction>> {
 
   const shepherdMetadata: any = imageInformation.shepherdMetadata
-  const herdKey: string = imageInformation.imageDefinition.herdKey
+  const herdKey: string = imageInformation.imageDefinition.key
+
   const displayName: string = imageInformation.shepherdMetadata.displayName
 
   const plan: any = {
@@ -62,7 +63,6 @@ export function calculateKubectlActions(imageInformation, kubeSupportedExtension
   plan.deployments = {}
   plan.dockerLabels = imageInformation.dockerLabels
 
-
   let deploymentActions = emptyArray<any>()
 
   let branchDeploymentEnabled = imageInformation.imageDefinition.featureDeployment
@@ -72,13 +72,12 @@ export function calculateKubectlActions(imageInformation, kubeSupportedExtension
   }
 
   if (branchDeploymentEnabled) {
-
     branchModificationParams.ttlHours =
       imageInformation.imageDefinition.timeToLiveHours || branchModificationParams.ttlHours
 
 
     // Feature deployment specified in herdfile
-    branchModificationParams.branchName = imageInformation.imageDefinition.branchName || imageInformation.imageDefinition.herdKey
+    branchModificationParams.branchName = imageInformation.imageDefinition.branchName || imageInformation.imageDefinition.key
     branchModificationParams.origin = imageInformation.imageDefinition.herdKey + "::" + branchModificationParams.branchName
     branchModificationParams.shouldModify = true
 

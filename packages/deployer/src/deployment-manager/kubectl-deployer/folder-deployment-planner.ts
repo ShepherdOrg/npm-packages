@@ -1,7 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
-import { createKubectlDeployAction, TKubectrlDeployAction } from "./create-kubectl-deployment-action"
+import { createKubectlDeployAction, TKubectlDeployAction } from "./create-kubectl-deployment-action"
 import { ILog } from "../deployment-types"
 
 export interface TFolderDeploymentPlannerDependencies {
@@ -89,7 +89,7 @@ export function planFolderDeployment(injected : TFolderDeploymentPlannerDependen
                   }
 
                   const kubeDeploymentRelativePath = path.relative(initialDir, resolvedPath)
-                  const deploymentAction : TKubectrlDeployAction = createKubectlDeployAction(kubeDeploymentRelativePath, data, dir.forDelete ? "delete" : "apply", logger)
+                  const deploymentAction : TKubectlDeployAction = createKubectlDeployAction(kubeDeploymentRelativePath, data, dir.forDelete ? "delete" : "apply", logger)
 
                   if (process.env.hasOwnProperty(imageVariableName)) {
                     delete process.env.TPL_DOCKER_IMAGE

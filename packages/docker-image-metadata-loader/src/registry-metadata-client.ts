@@ -110,7 +110,6 @@ export function createDockerRegistryClient(
     ).then(resultBody => {
       return JSON.parse(resultBody)
     }).catch((err) => {
-      // console.log('ERROROR', err)
       improveErrorMessage(image, imageTag)(err)
     })
   }

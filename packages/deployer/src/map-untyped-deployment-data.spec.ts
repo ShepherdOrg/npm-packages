@@ -1,14 +1,12 @@
+import { expect } from "chai"
+import { mapUntypedDeploymentData} from "./map-untyped-deployment-data"
 import { deploymentData0, deploymentData1 } from "./testdata/deployment-json/shepherd-deployment-data"
 import { expectedK8sDeployment0, expectedK8sDeployment1 } from "./testdata/deployment-json/expected"
-import { expect } from "chai"
-import { TDeploymentType, THerdDeployerMetadata, THerdK8sMetadata } from "./index"
-import { mapUntypedDeploymentData } from "./map-untyped-deployment-data"
+import { TDeploymentType, THerdDeployerMetadata, THerdK8sMetadata } from "@shepherdorg/metadata/dist"
+import { TTempDeploymentInfoType } from "./deployment-manager/deployment-types"
 
 
-interface TUntypedDeploymentInfo {
-}
-
-function expectMappedToMatchExpectedData(deploymentInfo: TUntypedDeploymentInfo, expectedData:THerdK8sMetadata | THerdDeployerMetadata, deploymentType: TDeploymentType) {
+function expectMappedToMatchExpectedData(deploymentInfo: TTempDeploymentInfoType, expectedData:THerdK8sMetadata | THerdDeployerMetadata, deploymentType: TDeploymentType) {
   let mappedData = mapUntypedDeploymentData(deploymentInfo)
 
   expect(deploymentType).to.equal(mappedData.deploymentType)

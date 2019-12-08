@@ -64,7 +64,7 @@
       "herdSpec": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
-        "herdKey": "test-image"
+        "key": "test-image"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -119,7 +119,7 @@
         "image": "testenvimage2",
         "imagetag": "999.999.99999",
         "delete": true,
-        "herdKey": "test-image-to-delete"
+        "key": "test-image-to-delete"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -166,7 +166,7 @@
         "imagetag": "0.0.0",
         "featureDeployment": true,
         "timeToLiveHours": 48,
-        "herdKey": "test1"
+        "key": "test1"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -220,7 +220,7 @@
       "herdSpec": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
-        "herdKey": "test-image"
+        "key": "test-image"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -275,7 +275,7 @@
         "image": "testenvimage2",
         "imagetag": "999.999.99999",
         "delete": true,
-        "herdKey": "test-image-to-delete"
+        "key": "test-image-to-delete"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -322,7 +322,7 @@
         "imagetag": "0.0.0",
         "featureDeployment": true,
         "timeToLiveHours": 48,
-        "herdKey": "test1"
+        "key": "test1"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -376,7 +376,7 @@
       "herdSpec": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
-        "herdKey": "test-image"
+        "key": "test-image"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -432,7 +432,7 @@
         "image": "testenvimage2",
         "imagetag": "999.999.99999",
         "delete": true,
-        "herdKey": "test-image-to-delete"
+        "key": "test-image-to-delete"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -479,7 +479,7 @@
         "imagetag": "0.0.0",
         "featureDeployment": true,
         "timeToLiveHours": 48,
-        "herdKey": "test1"
+        "key": "test1"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -533,7 +533,7 @@
       "herdSpec": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
-        "herdKey": "test-image"
+        "key": "test-image"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -589,7 +589,7 @@
         "imagetag": "0.0.0",
         "featureDeployment": true,
         "timeToLiveHours": 48,
-        "herdKey": "test1"
+        "key": "test1"
       },
       "metadata": {
         "displayName": "Testimage",
@@ -649,9 +649,9 @@
       "fileName": "monitors-namespace.yml",
       "herdKey": "kube-config - /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces",
       "herdSpec": {
-        "herdKey": "kube-config",
+        "key": "kube-config",
         "path": "./",
-        "description": "Kubernetes pull secrets, namespaces, common config"
+        "description": "Kubernetes pull secrets, namespaces, common config, from test data"
       },
       "metadata": {
         "displayName": "monitors-namespace.yml",
@@ -671,7 +671,7 @@
       "fileName": "www.service.yml",
       "herdKey": "kube-config - /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/www-deployment",
       "herdSpec": {
-        "herdKey": "kube-config",
+        "key": "kube-config",
         "path": "./",
         "description": "Kubernetes pull secrets, namespaces, common config"
       },

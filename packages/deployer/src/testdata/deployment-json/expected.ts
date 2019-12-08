@@ -1,4 +1,4 @@
-import { TDeploymentType, THerdK8sMetadata } from "../../index"
+import { TDeploymentType, THerdK8sMetadata } from "@shepherdorg/metadata"
 
 export function expectedK8sDeployment0():THerdK8sMetadata {
   return {

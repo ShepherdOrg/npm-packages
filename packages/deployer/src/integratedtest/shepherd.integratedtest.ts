@@ -35,6 +35,7 @@ describe("run all deployers with infrastructure", function() {
 
   describe("default state storage", function() {
     beforeEach(() => {
+      delete process.env.SHEPHERD_UI_API_ENDPOINT
       let shepherdStoreDir = "./.build/.shepherdstore"
       cleanDir(shepherdStoreDir)
     })
@@ -48,7 +49,7 @@ describe("run all deployers with infrastructure", function() {
           }),
           debug: false, // debug:false suppresses stdout of process
         })
-        .ignoreLinesWith(['buildDate'])
+        .ignoreLinesWith(['buildDate','lastCommits','kubeConfigB64', 'gitHash'])
         .output("./.build/.testdata/kubeapply")
         .shouldEqual("./src/integratedtest/expected/all-deployments")
         .done(function() {

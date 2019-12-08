@@ -16,7 +16,7 @@ const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 import Bluebird = require("bluebird")
 
 
-export interface TKubectrlDeployAction {
+export interface TKubectlDeployAction {
   descriptorsByKind: TDescriptorsByKind
   identifier: string
   descriptor: string
@@ -28,7 +28,7 @@ export interface TKubectrlDeployAction {
   execute(deploymentOptions, cmd, logger, saveDeploymentState)
 }
 
-export interface TK8sDockerImageDeploymentAction extends TKubectrlDeployAction {
+export interface TK8sDockerImageDeploymentAction extends TKubectlDeployAction {
   herdSpec: THerdSpec
   metadata: TK8sMetadata
   version: string,
@@ -39,7 +39,7 @@ export interface TK8sDockerImageDeploymentAction extends TKubectrlDeployAction {
 }
 
 
-async function executeDeploymentAction(thisIsMe: TKubectrlDeployAction, actionExecutionOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState) {
+export async function executeDeploymentAction(thisIsMe: TKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState) {
 
   if(!thisIsMe.state){
     throw newProgrammerOops("Missing state object on deployment action ! " + thisIsMe.origin)
@@ -169,7 +169,7 @@ function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: st
   return expandTemplate(expandEnvVariables(deploymentFileDescriptorContent.split("\n")))
 }
 
-export function createKubectlDeployAction(_origin: string, deploymentFileDescriptorContent: string, operation: string, logger: ILog, branchModificationParams?: TBranchModificationParams): TKubectrlDeployAction {
+export function createKubectlDeployAction(_origin: string, deploymentFileDescriptorContent: string, operation: string, logger: ILog, branchModificationParams?: TBranchModificationParams): TKubectlDeployAction {
   let origin: string = _origin
   try {
     if(branchModificationParams && branchModificationParams.shouldModify){
@@ -199,7 +199,7 @@ export function createKubectlDeployAction(_origin: string, deploymentFileDescrip
       deploymentRollouts = listDeploymentRollouts(descriptorsByKind)
     }
 
-    let documentDeploymentAction: TKubectrlDeployAction = {
+    let documentDeploymentAction: TKubectlDeployAction = {
       async execute(deploymentOptions, cmd, logger, saveDeploymentState) {
         return executeDeploymentAction(documentDeploymentAction, deploymentOptions, cmd, logger, saveDeploymentState)
       },
@@ -221,13 +221,3 @@ export function createKubectlDeployAction(_origin: string, deploymentFileDescrip
   }
 }
 
-export function createKubectlTestDeployAction(serialisedAction: TKubectrlDeployAction) {
-  let me = {
-    execute(deploymentOptions, cmd, logger, saveDeploymentState) {
-      return executeDeploymentAction(me, deploymentOptions, cmd, logger, saveDeploymentState)
-    },
-    testInstance: true,
-    ...serialisedAction,
-  }
-  return me
-}

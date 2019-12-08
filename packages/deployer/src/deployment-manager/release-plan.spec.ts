@@ -1,5 +1,8 @@
 import { expect } from "chai"
-import { createKubectlTestDeployAction } from "./kubectl-deployer/create-kubectl-deployment-action"
+import {
+  executeDeploymentAction, TK8sDockerImageDeploymentAction,
+
+} from "./kubectl-deployer/create-kubectl-deployment-action"
 import { ReleasePlanModule } from "./release-plan"
 
 const FakeExec = require("../test-tools/fake-exec")
@@ -7,6 +10,18 @@ const FakeLogger = require("../test-tools/fake-logger")
 
 const k8sDeployments = require("./testdata/testplan.json").addedK8sDeployments
 const dockerDeployers = require("./testdata/testplan.json").addedDockerDeployers
+
+
+export function createKubectlTestDeployAction(serialisedAction: TK8sDockerImageDeploymentAction): TK8sDockerImageDeploymentAction {
+  let me = {
+    execute(deploymentOptions, cmd, logger, saveDeploymentState) {
+      return executeDeploymentAction(me, deploymentOptions, cmd, logger, saveDeploymentState)
+    },
+    testInstance: true,
+    ...serialisedAction,
+  }
+  return me
+}
 
 describe("Release plan", function() {
   let releasePlan, checkedStates
@@ -151,7 +166,7 @@ describe("Release plan", function() {
             return releasePlan.executePlan({
               dryRun: false,
               dryRunOutputDir: undefined,
-              forcePush: false,
+              pushToUi: false,
               waitForRollout: false,
             })
           })
@@ -184,7 +199,7 @@ describe("Release plan", function() {
             return releasePlan.executePlan({
               dryRun: false,
               dryRunOutputDir: undefined,
-              forcePush: false,
+              pushToUi: false,
               waitForRollout: true,
             })
           })
@@ -216,8 +231,6 @@ describe("Release plan", function() {
 
       it("should push data to UI", () => {
         expect(fakeUiDataPusher.pushedData.length).to.equal(3)
-
-        // console.log('pushedData', fakeUiDataPusher.pushedData.map((pd)=>pd.deploymentState.timestamp).join(','))
 
         expect(fakeUiDataPusher.pushedData[0].displayName).to.equal("Testimage")
 
@@ -300,9 +313,9 @@ describe("Release plan", function() {
       })
 
       it("should not result in error ", function() {
-        if (saveError) {
-          console.error(saveError)
-        }
+        // if (saveError) {
+        //   console.error('Unexpected error in test!', saveError)
+        // }
         expect(saveError).to.equal(undefined)
       })
 

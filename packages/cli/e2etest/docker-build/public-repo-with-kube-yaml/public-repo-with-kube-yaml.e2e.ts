@@ -13,8 +13,6 @@ describe("Build docker with kube.yaml deployment", function() {
       ({ stdout, stderr }) => {
         if (stderr) expect.fail("GOT ERROR> " + stderr)
 
-        // console.log('DEBUG BUILD OUTPUT', stdout)
-
         shepherdMeta = JSON.parse(fs.readFileSync(__dirname + '/.build/metadata/shepherd.json', 'utf8'))
         buildOutput = stdout
 

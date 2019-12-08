@@ -7,10 +7,10 @@ const YAML = require("js-yaml")
 
 import Bluebird = require("bluebird")
 import {
-  ILog,
-  TFolderDeploymentPlan,
+  ILog, TDockerImageHerdSpec,
+  TFolderDeploymentPlan, TFolderHerdSpec,
   THerdFolderMap,
-  THerdFolderSpec, TImageDeploymentAction,
+  TImageDeploymentAction,
   TImageMap,
   TInfrastructureImageMap,
 } from "./deployment-types"
@@ -74,7 +74,7 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
   const dockerRegistries = injected.labelsLoader.getDockerRegistryClientsFromConfig()
   const loader = injected.labelsLoader.imageLabelsLoader({ dockerRegistries: dockerRegistries, logger: logger })
 
-  function calculateFoldersPlan(herdFilePath, herdFolder: THerdFolderSpec) {
+  function calculateFoldersPlan(herdFilePath, herdFolder: TFolderHerdSpec) {
     let resolvedPath = path.resolve(herdFilePath, herdFolder.path)
 
     logger.info(`Scanning ${resolvedPath} for kubernetes deployment documents`)
@@ -150,18 +150,14 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
             let loaders = {
               "folders": async function(folders: THerdFolderMap) : Promise<Array<Promise<TFolderDeploymentPlan>>> {
 
-                return Object.entries(folders).flatMap(function([herdFolderName, herdFolder]) {
-                  herdFolder.herdKey = herdFolderName
+                return Object.entries(folders).flatMap(function([herdFolderName, herdSpec]:[string, TFolderHerdSpec]) {
+                  herdSpec.key = herdFolderName
 
-                  return calculateFoldersPlan(imagesPath, herdFolder)
+                  return calculateFoldersPlan(imagesPath, herdSpec)
                     .then(function(plans) {
                       return Bluebird.each(plans, function(deploymentPlan: TFolderDeploymentPlan) {
-                        deploymentPlan.herdKey = `${herdFolder.herdKey} - ${deploymentPlan.origin}`
-                        deploymentPlan.herdSpec = {
-                          herdKey: herdFolder.herdKey,
-                          path: herdFolder.path,
-                          description: herdFolder.description,
-                        }
+                        deploymentPlan.herdKey = `${herdSpec.key} - ${deploymentPlan.origin}`
+                        deploymentPlan.herdSpec = herdSpec
                         deploymentPlan.metadata = {
                           displayName: deploymentPlan.fileName,
                           semanticVersion: "0",
@@ -178,17 +174,17 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
                 })
               },
               "images": async function(images: TImageMap)  {
-                let imageDeploymentPlans = Object.entries(images).map(function([imgName, imgObj]) {
-                  imgObj.herdKey = imgName
+                let imageDeploymentPlans = Object.entries(images).map(function([imgName, herdSpec]:[string, TDockerImageHerdSpec ]) {
+                  herdSpec.key = imgName
                   logger.debug(
                     "Deployment image - loading image meta data for docker image",
-                    JSON.stringify(imgObj),
+                    JSON.stringify(herdSpec),
                   )
 
-                  if (!imgObj.image && imgObj.dockerImage) {
-                    splitDockerImageTag(imgObj)
+                  if (!herdSpec.image && herdSpec.dockerImage) {
+                    splitDockerImageTag(herdSpec)
                   }
-                  let promise: Promise<Array<TImageDeploymentAction | TK8sDockerImageDeploymentAction>> = loadImageMetadata(imgObj)
+                  let promise: Promise<Array<TImageDeploymentAction | TK8sDockerImageDeploymentAction>> = loadImageMetadata(herdSpec)
                     .then(getShepherdMetadata)
                     .then(addMigrationImageToDependenciesPlan)/// This is pretty ugly, adding to external structure sideffect
                     .then(calculateDeploymentPlan)

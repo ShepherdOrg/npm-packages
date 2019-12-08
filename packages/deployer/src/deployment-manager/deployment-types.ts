@@ -1,4 +1,4 @@
-import { TDeployerMetadata } from "@shepherdorg/metadata"
+import { TDeployerMetadata, TDeploymentState, TImageMetadata, TK8sMetadata } from "@shepherdorg/metadata"
 
 export type ILog = {
   info: typeof console.info,
@@ -13,10 +13,34 @@ export type THref = {
 
 
 export interface THerdSpec {
-  herdKey: string;
-  path: string;
+  key: string;
   description: string;
+  delete?: boolean;
 }
+
+export type TFolderHerdSpec = THerdSpec & {
+  path: string;
+}
+
+export type TDockerImageHerdSpec = THerdSpec & {
+  dockerImage?: string;
+
+  image: string;
+  imagetag: string;
+}
+
+export function isDockerImageHerdSpec(spec: TDockerImageHerdSpec | TFolderHerdSpec): spec is TDockerImageHerdSpec {
+  return Boolean((spec as TDockerImageHerdSpec).image)
+}
+
+export type TTempHerdSpec = {
+  herdKey: string
+  image: string
+  imagetag: string
+  description: string
+}
+
+
 
 /// From metadata module, discrepancy here...key and herdKey
 
@@ -33,13 +57,7 @@ export type TImageMap = {
 }
 
 export type THerdFolderMap = {
-  [property: string]: THerdFolderSpec
-}
-
-export interface THerdFolderSpec {
-  path: string;
-  description: string;
-  herdKey: string;
+  [property: string]: TFolderHerdSpec
 }
 
 
@@ -66,7 +84,7 @@ export interface TFolderDeploymentPlan {
   type: string;
   fileName: string;
   herdKey: string;
-  herdSpec: THerdSpec;
+  herdSpec: TFolderHerdSpec;
   metadata: TMetadata;
 }
 
@@ -74,7 +92,7 @@ export interface TImageDeploymentAction {
   displayName: string;
   herdKey: string;
   metadata: TDeployerMetadata;
-  herdSpec: HerdSpec;
+  herdSpec: TDockerImageHerdSpec;
   dockerParameters: string[];
   forTestParameters?: string[];
   imageWithoutTag?: string;
@@ -86,10 +104,20 @@ export interface TImageDeploymentAction {
   env?: string;
 }
 
+export type TTempMetadataType = (TImageMetadata | TK8sMetadata)
 
-export interface HerdSpec {
-  dockerImage: string;
-  herdKey: string;
-  image: string;
-  imagetag: string;
+export interface TTempDeploymentInfoType {
+  herdKey: string
+  herdSpec: TTempHerdSpec
+  state: TDeploymentState
+  metadata: TTempMetadataType
+
+  descriptor: string
+  env: string
+  fileName: string
+  identifier: string
+  operation: string
+  origin: string
+  type: string
+  version: string
 }

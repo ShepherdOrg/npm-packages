@@ -6,16 +6,21 @@ const { extend, sortedUniq } = require("lodash")
 
 const exec = require("@shepherdorg/exec")
 
-function containsDifference(diffArray, ignoreList: string[] = []) {
+function relevantDifferences(diffArray, ignoreList: string[] = []) {
+  let result: Array<any> = []
   for (let diffObj of diffArray) {
     if (diffObj.removed || diffObj.added) {
       const onIgnoreList = ignoreList.reduce((ignored, ignoredWord) => {
         return ignored || diffObj.value.indexOf(ignoredWord) >= 0
       }, false)
-      return !onIgnoreList
+      if(!onIgnoreList){
+        result.push(diffObj)
+      } else {
+        console.log('IGNORING DIFF', diffObj)
+      }
     }
   }
-  return false
+  return result
 }
 
 function renderDifferences(diffArray) {
@@ -38,14 +43,15 @@ function compareActualVsExpected(expectedFileName, actualFileName, ignoreList: s
     expectedFileContents.trim(),
     actualFileContents.trim(),
   )
-  if (containsDifference(difference, ignoreList)) {
+  let relevantDiff = relevantDifferences(difference, ignoreList)
+  if (relevantDiff.length) {
     expect().fail(
-      "Expected file " +
+      "Expected file xxxxxx " +
       expectedFileName +
       " differs from actual file " +
       actualFileName +
       "\n" +
-      renderDifferences(difference),
+      renderDifferences(relevantDiff),
     )
   }
 }
@@ -191,7 +197,8 @@ module.exports = {
               expectedOutput.trim(),
               execution.processOutput.trim(),
             )
-            if (containsDifference(difference)) {
+            let relevant = relevantDifferences(difference, execution.ignoreList)
+            if (relevant.length) {
               fs.writeFileSync(
                 "./integratedtest/expected/actualoutput.log",
                 execution.processOutput,
@@ -202,7 +209,7 @@ module.exports = {
                 "\n differs from actual stdout \n" +
                 execution.processOutput +
                 "\n Differences found:" +
-                renderDifferences(difference),
+                renderDifferences(relevant),
               )
             }
           }
@@ -254,14 +261,15 @@ module.exports = {
               expectedFilesString,
               actualFilesString,
             )
-            if (containsDifference(difference)) {
+            let relevantDiff = relevantDifferences(difference, execution.ignoreList)
+            if (relevantDiff.length) {
               expect().fail(
                 "Expected directory contents " +
                 execution.expectedOutputFileOrDir +
                 " differs from actual dir contents " +
                 execution.actualOutputFileOrDir +
                 "\n" +
-                renderDifferences(difference),
+                renderDifferences(relevantDiff),
               )
             }
             actualFiles.forEach(function(file) {

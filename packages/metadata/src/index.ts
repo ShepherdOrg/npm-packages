@@ -31,35 +31,38 @@ export enum TDeployerRole {
   Install = "install",
 }
 
+
+// TDeploymentActionResult
 export type TDeploymentState = {
-  new: boolean
-  key: string
-  modified: boolean
-  operation: string
-  version: string
-  lastVersion?: string
-  timestamp?: Date
-  signature: string
   env: string
-  stdout?: string  // Output from deployment action exection
+  key: string
+  lastVersion?: string
+  modified: boolean
+  new: boolean
+  operation: string
+  signature: string
   stderr?: string  // Error output
+  stdout?: string  // Output from deployment action execution
+  timestamp?: Date
+  version: string
 }
 
 export type TImageMetadata = {
-  displayName: string
-  semanticVersion: string
-  deploymentType: TDeploymentType
-  migrationImage?: string
-  lastCommits: string
-  gitUrl: string
-  gitHash: string
-  gitBranch: string
   buildDate: Date
-  gitCommit?: string
-  dockerImageTag?: string
   buildHostName?: string
+  deploymentType: TDeploymentType
+  displayName: string
+  dockerImageGithash?: string
+  dockerImageTag?: string
   e2eTestCommand?: string
+  gitBranch: string
+  gitCommit?: string
+  gitHash: string
+  gitUrl: string
   hyperlinks?: Array<THref>
+  lastCommits: string
+  migrationImage?: string
+  semanticVersion: string
 }
 
 export type TDeployerMetadata = TImageMetadata & {

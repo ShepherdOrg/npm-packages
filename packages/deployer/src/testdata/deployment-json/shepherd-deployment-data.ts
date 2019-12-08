@@ -1,5 +1,10 @@
-export function deploymentData0(): any {
+import { TDeploymentType } from "@shepherdorg/metadata/dist"
+import { TTempDeploymentInfoType } from "../../deployment-manager/deployment-types"
+
+
+export function deploymentData0(): TTempDeploymentInfoType {
   return {
+    herdKey: "shepherd-ui-api",
     "herdSpec": {
       "image": "shepherdorg/shepherd-ui-api",
       "imagetag": "3.0.3-c481249",
@@ -7,7 +12,7 @@ export function deploymentData0(): any {
       "herdKey": "shepherd-ui-api",
     },
     "metadata": {
-      "buildDate": "2019-10-29T14:53:42+00:00",
+      "buildDate": new Date("2019-10-29T14:53:42+00:00"),
       "buildHostName": "db704622a3b2",
       "dockerImageTag": "shepherdorg/shepherd-ui-api:latest",
       "dockerImageGithash": "shepherdorg/shepherd-ui-api:3.0.3-c481249",
@@ -23,7 +28,7 @@ export function deploymentData0(): any {
         "title": "Git repository",
         "url": "https://github.com/shepherdorg/shepherd-ui/",
       }, { "title": "Build", "url": "https://circleci.com/gh/ShepherdOrg/shepherd-ui/" }],
-      "deploymentType": "k8s",
+      "deploymentType": TDeploymentType.Kubernetes,
       "kubeDeploymentFiles": {
         "./deployment/": { "path": "./deployment/", "content": "" },
         "./deployment/kube.yaml": {
@@ -41,7 +46,7 @@ export function deploymentData0(): any {
     "fileName": "./deployment/kube.yaml",
     "env": "dev",
     "state": {
-      "timestamp": "2019-10-31T14:05:52.716Z",
+      "timestamp": new Date("2019-10-31T14:05:52.716Z"),
       "key": "dev-Service_shepherd-ui-api-service",
       "new": true,
       "modified": true,
@@ -49,12 +54,12 @@ export function deploymentData0(): any {
       "version": "3.0.3-c481249",
       "signature": "4490ea1847ec8850781d0925e1d77f73",
       "env": "dev",
-    },
+    }
   }
 }
 
 
-export function deploymentData1() {
+export function deploymentData1(): TTempDeploymentInfoType {
 
   return {
     "herdSpec": {
@@ -64,7 +69,7 @@ export function deploymentData1() {
       "herdKey": "shepherd-ui",
     },
     "metadata": {
-      "buildDate": "2019-10-29T15:16:31+00:00",
+      "buildDate": new Date("2019-10-29T15:16:31+00:00"),
       "buildHostName": "fb7bee96cc25",
       "dockerImageTag": "shepherdorg/shepherd-ui:latest",
       "dockerImageGithash": "shepherdorg/shepherd-ui:3.0.3-8d75408",
@@ -80,7 +85,7 @@ export function deploymentData1() {
         "title": "Git repository",
         "url": "https://github.com/shepherdorg/shepherd-ui/",
       }, { "title": "Build", "url": "https://circleci.com/gh/ShepherdOrg/shepherd-ui/" }],
-      "deploymentType": "k8s",
+      "deploymentType": TDeploymentType.Kubernetes,
       "kubeDeploymentFiles": {
         "./deployment/": { "path": "./deployment/", "content": "" },
         "./deployment/kube.yaml": {
@@ -99,7 +104,7 @@ export function deploymentData1() {
     "herdKey": "shepherd-ui",
     "env": "dev",
     "state": {
-      "timestamp": "2019-10-31T15:36:25.956Z",
+      "timestamp": new Date("2019-10-31T15:36:25.956Z"),
       "key": "dev-Service_shepherd-ui-service",
       "new": true,
       "modified": true,

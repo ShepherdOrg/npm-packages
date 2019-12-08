@@ -27,6 +27,7 @@ Supported options:
     --force-push         Force push of deployment data to consumers during --dryrun (this is not git push)
     --wait-for-rollout   Wait for any kubernetes deployment rollouts to complete before determining successful deployment. 
                          Shepherd does not wait for rollouts by default.
+    --push-to-ui           Push data to shepherd UI. See SHEPHERD_UI_API_ENDPOINT below.
     
     
 Both will write to directory specified by 
@@ -41,7 +42,7 @@ Upstream build job input. The first three must be provided together or all skipp
     UPSTREAM_HERD_DESCRIPTION   - Short description that would otherwise be in the herd.yaml file.
     UPSTREAM_WAIT_FOR_ROLLOUT   - Upstream build wants rollout to complete before getting control back. Designed for e2e tests.
 
-Push ata Shepherd UI:
+Push data to Shepherd UI:
     SHEPHERD_UI_API_ENDPOINT - GraphQL endpoint for shepherd UI API
         Example: SHEPHERD_UI_API_ENDPOINT=http://localhost:8080/v1/graphql
 
@@ -97,9 +98,9 @@ console.debug = function() {
 }
 
 let dryRun = process.argv.indexOf("--dryrun") > 0
-let forcePush = process.argv.indexOf("--force-push") > 0
-let waitForRollout = process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process.argv.indexOf("--wait-for-rollout") > 0
+let pushToUi = process.argv.indexOf("--push-to-ui") > 0 || Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)
 
+let waitForRollout = process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process.argv.indexOf("--wait-for-rollout") > 0
 
 const exportDocuments = process.argv.indexOf("--export") > 0
 
@@ -219,7 +220,7 @@ stateStoreBackend
             })
         } else {
           plan
-            .executePlan({ dryRun: dryRun, dryRunOutputDir: outputDirectory, forcePush: forcePush, waitForRollout: waitForRollout })
+            .executePlan({ dryRun: dryRun, dryRunOutputDir: outputDirectory, pushToUi: pushToUi, waitForRollout: waitForRollout })
             .then(function() {
               logger.info("Plan execution complete. Exiting shepherd.")
               setTimeout(() => {

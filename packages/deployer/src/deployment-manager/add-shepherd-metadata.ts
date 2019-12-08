@@ -32,7 +32,6 @@ export async function getShepherdMetadata (dockerImageMetadata:any) {
 
   return {
     imageDefinition: dockerImageMetadata.imageDefinition,
-    // dockerLabels: imageMetadata.dockerLabels, // If we need dockerlabels in the future, this is the place to put it in again.
     shepherdMetadata: shepherdMetadata,
   }
 }

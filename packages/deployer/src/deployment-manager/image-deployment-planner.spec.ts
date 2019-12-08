@@ -61,7 +61,7 @@ describe("Docker image plan loader", function() {
   describe("image deployer, old style docker labels", function() {
     let dockerDeployerMetadata = {
       imageDefinition: {
-        herdKey: "testimage",
+        key: "testimage",
         image: "testenvimage-migrations",
         imagetag: "0.0.0",
       },
@@ -120,7 +120,7 @@ describe("Docker image plan loader", function() {
       })
 
       it("should have herdspec", () => {
-        expect(firstPlan.herdSpec.herdKey).to.equal("testimage")
+        expect(firstPlan.herdSpec.key).to.equal("testimage")
       })
     })
 
@@ -129,7 +129,7 @@ describe("Docker image plan loader", function() {
 
       let dockerDeployerMetadata = {
         imageDefinition: {
-          herdKey: "testimage",
+          key: "testimage",
           image: "testenvimage-migrations",
           imagetag: "0.0.0",
         },
@@ -180,7 +180,7 @@ describe("Docker image plan loader", function() {
   describe("docker deployer, shepherd.json labels", async () => {
     const dockerDeployerMetadata = {
       imageDefinition: {
-        herdKey: "testimage-shepherd-json",
+        key: "testimage-shepherd-json",
         image: "testenvimage-shepherd-json",
         imagetag: "0.0.5",
       },
@@ -213,7 +213,7 @@ describe("Docker image plan loader", function() {
   describe("is.icelandairlabs backwards compatibility", function() {
     const dockerImageMetadata = {
       imageDefinition: {
-        herdKey: "testimage",
+        key: "testimage",
         image: "testenvimage-migrations",
         imagetag: "1.2.3",
       },
@@ -247,7 +247,7 @@ describe("Docker image plan loader", function() {
   describe("k8s deployment using base64 tar", function() {
     const dockerImageMetadata = {
       imageDefinition: {
-        herdKey: "testimage",
+        key: "testimage",
         image: "testenvimage-migrations",
         imagetag: "0.0.0",
       },
@@ -360,7 +360,7 @@ describe("Docker image plan loader", function() {
   describe("herd.yaml- feature - deployment to k8s using base64 tar", function() {
     const dockerImageMetadata = {
       imageDefinition: {
-        herdKey: "thisIsFeatureDeploymentOne",
+        key: "thisIsFeatureDeploymentOne",
         image: "testenvimage-migrations",
         imagetag: "0.0.0",
         featureDeployment: true,

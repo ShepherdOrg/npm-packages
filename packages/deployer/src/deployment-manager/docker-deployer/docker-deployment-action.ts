@@ -5,9 +5,8 @@ import { expandTemplate } from "../../expandtemplate"
 export async function calculateDeployerAction(imageInformation): Promise<Array<TImageDeploymentAction>> {
 
   const shepherdMetadata = imageInformation.shepherdMetadata
-  const herdKey: string = imageInformation.imageDefinition.herdKey
+  const herdKey: string = imageInformation.imageDefinition.key
   const displayName: string = imageInformation.shepherdMetadata.displayName
-
 
   let dockerImageWithVersion =
     imageInformation.imageDefinition.dockerImage ||
