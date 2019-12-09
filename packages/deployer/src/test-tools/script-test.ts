@@ -6,24 +6,30 @@ const { extend, sortedUniq } = require("lodash")
 
 const exec = require("@shepherdorg/exec")
 
-function relevantDifferences(diffArray, ignoreList: string[] = []) {
-  let result: Array<any> = []
+declare type TJsDifference = {
+  value: string
+  added: boolean
+  removed: boolean
+}
+
+function relevantDifferences(diffArray:Array<TJsDifference>, ignoreList: string[] = []):Array<TJsDifference> {
+  let result: Array<TJsDifference> = []
   for (let diffObj of diffArray) {
     if (diffObj.removed || diffObj.added) {
       const onIgnoreList = ignoreList.reduce((ignored, ignoredWord) => {
         return ignored || diffObj.value.indexOf(ignoredWord) >= 0
       }, false)
-      if(!onIgnoreList){
+      if (!onIgnoreList) {
         result.push(diffObj)
       } else {
-        console.log('IGNORING DIFF', diffObj)
+        console.log("IGNORING DIFF", diffObj)
       }
     }
   }
   return result
 }
 
-function renderDifferences(diffArray) {
+function renderDifferences(diffArray: Array<TJsDifference>): string {
   let result = ""
   for (let diffObj of diffArray) {
     if (diffObj.added) {
@@ -36,32 +42,80 @@ function renderDifferences(diffArray) {
   return result
 }
 
-function compareActualVsExpected(expectedFileName, actualFileName, ignoreList: string[] = []) {
+function compareActualVsExpected(expectedFileName:TFileName, actualFileName:TFileName, ignoreList: string[] = []) {
   let expectedFileContents = fs.readFileSync(expectedFileName, "utf-8")
   let actualFileContents = fs.readFileSync(actualFileName, "utf-8")
-  let difference = JsDiff.diffTrimmedLines(
-    expectedFileContents.trim(),
-    actualFileContents.trim(),
-  )
+  let difference = JsDiff.diffTrimmedLines(expectedFileContents.trim(), actualFileContents.trim())
   let relevantDiff = relevantDifferences(difference, ignoreList)
   if (relevantDiff.length) {
     expect().fail(
       "Expected file xxxxxx " +
-      expectedFileName +
-      " differs from actual file " +
-      actualFileName +
-      "\n" +
-      renderDifferences(relevantDiff),
+        expectedFileName +
+        " differs from actual file " +
+        actualFileName +
+        "\n" +
+        renderDifferences(relevantDiff)
     )
   }
 }
 
+export type FExecutionCallback = (output: string) => {}
+
+export type TFileName = string
+
+type TOutputDSL = {
+  shouldBeEmptyDir(): TScriptTestExecution
+  shouldEqual(expectedOutputFileOrDir: any): TScriptTestExecution
+}
+
+type TStdOutDSL = {
+  shouldContain(partialString: string): TScriptTestExecution
+  shouldEqual(expectedStdOutputRefFile: TFileName): TScriptTestExecution
+}
+
+type TStdErrDSL = {
+  shouldBeEmptyDir(): TScriptTestExecution
+  shouldEqual(expectedOutputFileOrDir: TFileName): TScriptTestExecution
+}
+
+interface TScriptTestExecution {
+  expectedExitCode: number | undefined
+  callback?: FExecutionCallback
+  actualFromStderr: boolean
+  processStderr?: string
+  expectedPartialStrings: string[]
+  actualFromStdout: boolean
+  expectedStdOutput: string | TFileName | undefined
+  processOutput: string
+  dirShouldBeEmpty: boolean
+  expectedOutputFileOrDir: TFileName | undefined
+  actualOutputFileOrDir: TFileName | undefined
+  ignoreList: string[]
+  stderr: () => TStdErrDSL
+  stdout: () => TStdOutDSL
+  output: (actualOutputFileOrDir: TFileName) => TOutputDSL
+  ignoreLinesWith: (ignoreList: string[]) => TScriptTestExecution
+  expectExitCode: (expectedExitCode: number) => TScriptTestExecution
+  done: (callback: FExecutionCallback) => void
+  checkExpectations: () => void
+}
+
+function emptyArray<T>(): Array<T> {
+  return []
+}
+
+export type TExecuteOptions = {
+  env: typeof process.env
+  debug: boolean
+  stdoutLineHandler: (line: string) => void
+}
+
 module.exports = {
   // Pass in debug=true if you want to see output of subject under test.
-  execute: function(command, args, options) {
+  execute: function(command:string, args:string[], options:TExecuteOptions) {
     let logfn = undefined
 
-    options.stdoutLineHandler = function(line) {
+    options.stdoutLineHandler = function(line:string) {
       if (options.debug) {
         console.debug(line.trim())
       }
@@ -72,45 +126,48 @@ module.exports = {
       command,
       args,
       options,
-      function(err, errCode, stdout) {
+      function(err: string, errCode: number, stdout: string) {
         if (execution.expectedExitCode) {
           expect(errCode).to.equal(execution.expectedExitCode)
           execution.processOutput = stdout
           execution.processStderr = err.trim()
           execution.checkExpectations()
-          execution.callback(stdout)
+          execution.callback && execution.callback(stdout)
         } else {
-          console.error(
-            "Process error in test, error code:",
-            errCode,
-            " stderr:",
-            err,
-          )
+          console.error("Process error in test, error code:", errCode, " stderr:", err)
           expect().fail(
             "Error invoking : " +
-            command +
-            " with arguments " +
-            JSON.stringify(args) +
-            "\nStdout: \n" +
-            stdout +
-            "\nError output:\n" +
-            err +
-            "\n. ErrorCode:" +
-            errCode,
+              command +
+              " with arguments " +
+              JSON.stringify(args) +
+              "\nStdout: \n" +
+              stdout +
+              "\nError output:\n" +
+              err +
+              "\n. ErrorCode:" +
+              errCode
           )
         }
       },
-      function(output) {
+      function(output: string) {
         execution.processOutput = output
         execution.checkExpectations()
-        execution.callback(output)
+        execution.callback && execution.callback(output)
       },
-      logfn,
+      logfn
     )
 
-    let execution: any = {
-      ignoreList: [],
-      expectedPartialStrings: [],
+    let execution: TScriptTestExecution = {
+      actualOutputFileOrDir: undefined,
+      dirShouldBeEmpty: false,
+      expectedOutputFileOrDir: undefined,
+      expectedStdOutput: undefined,
+      processOutput: "",
+      ignoreList: emptyArray<string>(),
+      expectedPartialStrings: emptyArray<string>(),
+      expectedExitCode: undefined,
+      actualFromStderr: false,
+      actualFromStdout: false,
       output: function(actualOutputFileOrDir) {
         execution.actualOutputFileOrDir = actualOutputFileOrDir
         return {
@@ -131,11 +188,11 @@ module.exports = {
       stdout: function() {
         execution.actualFromStdout = true
         return {
-          shouldEqual(expectedStdOutputRefFile) {
+          shouldEqual(expectedStdOutputRefFile: TFileName) {
             execution.expectedStdOutput = expectedStdOutputRefFile
             return execution
           },
-          shouldContain(partialString) {
+          shouldContain(partialString: string) {
             execution.expectedPartialStrings.push(partialString)
             return execution
           },
@@ -144,7 +201,7 @@ module.exports = {
       stderr: function() {
         execution.actualFromStderr = true
         return {
-          shouldEqual(expectedOutputFileOrDir) {
+          shouldEqual(expectedOutputFileOrDir: TFileName) {
             execution.expectedOutputFileOrDir = expectedOutputFileOrDir
             return execution
           },
@@ -154,85 +211,67 @@ module.exports = {
           },
         }
       },
-      expectExitCode: function(expectedExitCode) {
+      expectExitCode: function(expectedExitCode: number) {
         execution.expectedExitCode = expectedExitCode
         return execution
       },
-      done(callback) {
+      done(callback: FExecutionCallback) {
         execution.callback = callback
       },
       checkExpectations() {
         if (execution.actualFromStderr) {
-          if (
-            !(execution.processStderr === execution.expectedOutputFileOrDir)
-          ) {
+          if (!(execution.processStderr === execution.expectedOutputFileOrDir)) {
             expect().fail(
               "Standard err " +
-              execution.processStderr +
-              " does not match expected " +
-              execution.expectedOutputFileOrDir +
-              " error output",
+                execution.processStderr +
+                " does not match expected " +
+                execution.expectedOutputFileOrDir +
+                " error output"
             )
           }
           return
         }
 
-        execution.expectedPartialStrings.forEach((partialString) => {
+        execution.expectedPartialStrings.forEach((partialString: string) => {
           expect(execution.processOutput).to.contain(partialString)
         })
 
         if (execution.actualFromStdout) {
           let expectedOutput
-          if (fs.existsSync(execution.expectedStdOutput)) {
-            expectedOutput = fs.readFileSync(
-              execution.expectedStdOutput,
-              "utf-8",
-            )
+          if (fs.existsSync(execution.expectedStdOutput as TFileName)) {
+            expectedOutput = fs.readFileSync(execution.expectedStdOutput as TFileName, "utf-8")
           } else {
             expectedOutput = execution.expectedStdOutput
           }
 
           if (expectedOutput) {
-            let difference = JsDiff.diffTrimmedLines(
-              expectedOutput.trim(),
-              execution.processOutput.trim(),
-            )
+            let difference = JsDiff.diffTrimmedLines(expectedOutput.trim(), execution.processOutput.trim())
             let relevant = relevantDifferences(difference, execution.ignoreList)
             if (relevant.length) {
-              fs.writeFileSync(
-                "./integratedtest/expected/actualoutput.log",
-                execution.processOutput,
-              )
+              fs.writeFileSync("./integratedtest/expected/actualoutput.log", execution.processOutput)
               expect().fail(
                 "Expected stdout \n" +
-                expectedOutput +
-                "\n differs from actual stdout \n" +
-                execution.processOutput +
-                "\n Differences found:" +
-                renderDifferences(relevant),
+                  expectedOutput +
+                  "\n differs from actual stdout \n" +
+                  execution.processOutput +
+                  "\n Differences found:" +
+                  renderDifferences(relevant)
               )
             }
           }
         } else {
-          if (
-            !execution.expectedOutputFileOrDir &&
-            !execution.actualOutputFileOrDir
-          ) {
+          if (!execution.expectedOutputFileOrDir && !execution.actualOutputFileOrDir) {
             return
           }
-          let actualIsDir = fs
-            .lstatSync(execution.actualOutputFileOrDir)
-            .isDirectory()
+          let actualIsDir =execution.actualOutputFileOrDir && fs.lstatSync(execution.actualOutputFileOrDir).isDirectory()
           if (execution.dirShouldBeEmpty) {
             if (actualIsDir) {
-              let actualFiles = sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir))
+              let actualFiles = sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir as TFileName))
               if (actualFiles.length > 0) {
                 expect().fail(
                   `Directory ${
                     execution.actualOutputFileOrDir
-                  } is not empty, contains following files: ${actualFiles.join(
-                    ", ",
-                  )}`,
+                  } is not empty, contains following files: ${actualFiles.join(", ")}`
                 )
               }
             } else {
@@ -240,48 +279,39 @@ module.exports = {
             }
             return
           }
-          let expectedIsDir = fs
-            .lstatSync(execution.expectedOutputFileOrDir)
-            .isDirectory()
-          if (
-            (expectedIsDir || actualIsDir) &&
-            !(expectedIsDir && actualIsDir)
-          ) {
-            expect().fail(
-              "Both expected and actual must be a directory or a file",
-            )
+          let expectedIsDir =
+            execution.expectedOutputFileOrDir && fs.lstatSync(execution.expectedOutputFileOrDir).isDirectory()
+          if ((expectedIsDir || actualIsDir) && !(expectedIsDir && actualIsDir)) {
+            expect.fail("Both expected and actual must be a directory or a file")
           }
-          if (expectedIsDir) {
+          if (expectedIsDir && execution.expectedOutputFileOrDir && execution.actualOutputFileOrDir) {
             let expectedFiles = sortedUniq(fs.readdirSync(execution.expectedOutputFileOrDir))
             let actualFiles = sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir))
             let expectedFilesString = expectedFiles.join("\n")
             let actualFilesString = actualFiles.join("\n")
 
-            let difference = JsDiff.diffTrimmedLines(
-              expectedFilesString,
-              actualFilesString,
-            )
+            let difference = JsDiff.diffTrimmedLines(expectedFilesString, actualFilesString)
             let relevantDiff = relevantDifferences(difference, execution.ignoreList)
             if (relevantDiff.length) {
               expect().fail(
                 "Expected directory contents " +
-                execution.expectedOutputFileOrDir +
-                " differs from actual dir contents " +
-                execution.actualOutputFileOrDir +
-                "\n" +
-                renderDifferences(relevantDiff),
+                  execution.expectedOutputFileOrDir +
+                  " differs from actual dir contents " +
+                  execution.actualOutputFileOrDir +
+                  "\n" +
+                  renderDifferences(relevantDiff)
               )
             }
-            actualFiles.forEach(function(file) {
+            actualFiles.forEach(function(file: string) {
               compareActualVsExpected(
                 execution.expectedOutputFileOrDir + "/" + file,
                 execution.actualOutputFileOrDir + "/" + file,
-                execution.ignoreList,
+                execution.ignoreList
               )
             })
           } else {
-            let expectedFileName = execution.expectedOutputFileOrDir
-            let actualFileName = execution.actualOutputFileOrDir
+            let expectedFileName = execution.expectedOutputFileOrDir as TFileName
+            let actualFileName = execution.actualOutputFileOrDir as TFileName
             compareActualVsExpected(expectedFileName, actualFileName, execution.ignoreList)
           }
         }
