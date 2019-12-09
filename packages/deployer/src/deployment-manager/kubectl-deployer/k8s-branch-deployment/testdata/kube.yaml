@@ -112,6 +112,19 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
+  name: myservice-http-ingress
+spec:
+  rules:
+    - host: myservice.dev.domain.com
+      http:
+        paths:
+          - backend:
+              serviceName: myservice-http
+              servicePort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
   name: myservice-ingress
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
@@ -123,7 +136,6 @@ spec:
           - backend:
               serviceName: myservice
               servicePort: 80
-
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress

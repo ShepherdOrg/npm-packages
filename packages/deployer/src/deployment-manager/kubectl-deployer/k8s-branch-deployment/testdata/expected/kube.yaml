@@ -115,6 +115,21 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
+  name: myservice-http-ingress-new-branch
+  labels:
+    ttl-hours: '66'
+spec:
+  rules:
+    - host: new-branch-myservice.dev.domain.com
+      http:
+        paths:
+          - backend:
+              serviceName: myservice-http-new-branch
+              servicePort: 80
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
   name: myservice-ingress-new-branch
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: 'false'

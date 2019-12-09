@@ -113,13 +113,14 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
     }
   }
 
+
   function adjustIngressSettings(deploymentDoc) {
     if (deploymentDoc.kind && deploymentDoc.kind === "Ingress" && deploymentDoc.spec) {
-      if ( deploymentDoc?.metadata?.annotations["nginx.ingress.kubernetes.io/ssl-redirect"]) {
+      if ( deploymentDoc.metadata && deploymentDoc.metadata.annotations && deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"]) {
         deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"] = "false"
       }
       if ( deploymentDoc?.spec?.rules[0]?.host) {
-        if (deploymentDoc?.metadata?.annotations["nginx.ingress.kubernetes.io/rewrite-target"]
+        if (deploymentDoc.metadata && deploymentDoc.metadata.annotations && deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"]
           && deploymentDoc?.spec?.rules[0]?.http?.paths[0]?.path
         ) {
           deploymentDoc.spec.rules[0].http.paths[0].path += `-${cleanedName}`
