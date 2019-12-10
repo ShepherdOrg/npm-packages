@@ -6,7 +6,7 @@ const exec = require("@shepherdorg/exec")
 const fakeLogger = require("../test-tools/fake-logger")
 import * as path from "path"
 import * as fs from "fs"
-import { TImageDeploymentAction, TK8sDockerImageDeploymentAction } from "./deployment-types"
+import { TDockerDeploymentAction, TK8sDockerImageDeploymentAction } from "./deployment-types"
 
 /// Inject a mock image metadata loader with fake image information
 
@@ -63,11 +63,11 @@ describe("herd.yaml loading", function() {
 
     CreateTestReleasePlan = function() {
       let addedK8sDeployerActions: {[key:string]:TK8sDockerImageDeploymentAction} = {}
-      let addedDockerDeployerActions: {[key:string]:TImageDeploymentAction} = {}
+      let addedDockerDeployerActions: {[key:string]:TDockerDeploymentAction} = {}
       let releasePlan = {
         addedDockerDeployerActions: addedDockerDeployerActions,
         addedK8sDeploymentActions: addedK8sDeployerActions,
-        addDeployment(deployment: TK8sDockerImageDeploymentAction | TImageDeploymentAction) {
+        addDeployment(deployment: TK8sDockerImageDeploymentAction | TDockerDeploymentAction) {
           return new Promise(function(resolve, reject) {
             if (!deployment.type) {
               let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deployment)
@@ -80,7 +80,7 @@ describe("herd.yaml loading", function() {
             if (deployment.type === "k8s") {
               releasePlan.addedK8sDeploymentActions[deployment.identifier] = deployment as TK8sDockerImageDeploymentAction
             } else if (deployment.type === "deployer") {
-              releasePlan.addedDockerDeployerActions[deployment.identifier] = deployment as TImageDeploymentAction
+              releasePlan.addedDockerDeployerActions[deployment.identifier] = deployment as TDockerDeploymentAction
             }
             resolve({ fakeState: true })
           })

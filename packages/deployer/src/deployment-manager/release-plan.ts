@@ -4,18 +4,19 @@ import { emptyArray } from "../helpers/ts-functions"
 import { extendedExec, writeFile } from "../promisified"
 import {
   ILog,
-  TImageDeploymentAction,
+  TActionExecutionOptions,
+  TDeploymentPlan,
+  TDockerDeploymentAction,
+  TK8sDeploymentPlan,
+  TK8sDirDeploymentAction,
   TK8sDockerImageDeploymentAction,
   TKubectlDeployAction,
   TReleasePlanDependencies,
-  TDeploymentPlan,
-  TK8sDeploymentPlan,
-  TActionExecutionOptions,
 } from "./deployment-types"
 import { mapUntypedDeploymentData } from "../map-untyped-deployment-data"
-import Bluebird = require("bluebird")
 import { TFileSystemPath } from "../basic-types"
 import { Oops } from "oops-error"
+import Bluebird = require("bluebird")
 
 // function writeJsonToFile (path1 = "./shepherd-pushed.json") {
 //   return shepherdMetadata => {
@@ -29,20 +30,28 @@ import { Oops } from "oops-error"
 type TK8sDeploymentActionMap = { [key: string]: any }
 type TDockerDeploymentPlan = { [key: string]: any }
 
+export interface TReleasePlan {
+  executePlan: (runOptions?: TActionExecutionOptions) => Promise<Array<(TDockerDeploymentAction | TKubectlDeployAction | undefined)>>
+  printPlan: (logger: ILog) => void
+  exportDeploymentDocuments: (exportDirectory: TFileSystemPath) => Promise<unknown>
+  addDeployment:(deploymentAction: (TDockerDeploymentAction | TK8sDockerImageDeploymentAction))=> Promise<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>
+}
+
+
 export function ReleasePlanModule(injected: TReleasePlanDependencies) {
   const stateStore = injected.stateStore
   const cmd = injected.cmd
   const logger = injected.logger
   const uiDataPusher = injected.uiDataPusher
 
-  return function(forEnv: string) {
+  return function(forEnv: string): TReleasePlan {
     if (!forEnv) {
       throw new Error("must specify environment you are creating a deployment plan for")
     }
 
     const k8sDeploymentActions: TK8sDeploymentActionMap = {}
     const dockerDeploymentPlan: TDockerDeploymentPlan = {}
-    const k8sDeploymentsByIdentifier = {}
+    const k8sDeploymentsByIdentifier: { [key: string]: TK8sDockerImageDeploymentAction } = {}
 
     function addK8sDeployment(deploymentAction: TK8sDockerImageDeploymentAction) {
       k8sDeploymentActions[deploymentAction.origin] = k8sDeploymentActions[deploymentAction.origin] || {
@@ -54,23 +63,23 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
         throw new Error(
           deploymentAction.identifier +
-            " is already in deployment plan from " +
-            k8sDeploymentsByIdentifier[deploymentAction.identifier].origin +
-            ". When adding deployment from " +
-            deploymentAction.origin
+          " is already in deployment plan from " +
+          k8sDeploymentsByIdentifier[deploymentAction.identifier].origin +
+          ". When adding deployment from " +
+          deploymentAction.origin,
         )
       }
 
       k8sDeploymentsByIdentifier[deploymentAction.identifier] = deploymentAction
     }
 
-    function addDockerDeployer(deployment) {
+    function addDockerDeployer(deployment: TDockerDeploymentAction) {
       dockerDeploymentPlan[deployment.origin] = dockerDeploymentPlan[deployment.origin] || {
         herdKey: deployment.herdKey,
         deployments: [],
       }
 
-      function allButImageParameter(params) {
+      function allButImageParameter(params: string[]) {
         return params.slice(0, params.length - 1)
       }
 
@@ -78,13 +87,16 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       dockerDeploymentPlan[deployment.origin].deployments.push(deployment)
     }
 
-    function saveDeploymentState(deployment) {
+    function saveDeploymentState(deployment: TK8sDockerImageDeploymentAction | TDockerDeploymentAction | TK8sDirDeploymentAction) {
+      if (!deployment.state) {
+        throw new Oops({ message: "State is mandatory here", category: "ProgrammerError" })
+      }
       return stateStore.saveDeploymentState(deployment.state)
     }
 
     async function addToPlanAndGetDeploymentStateFromStore(
-      deploymentAction: TImageDeploymentAction | TK8sDockerImageDeploymentAction
-    ): Promise<TImageDeploymentAction | TK8sDockerImageDeploymentAction> {
+      deploymentAction: TDockerDeploymentAction | TK8sDockerImageDeploymentAction,
+    ): Promise<TDockerDeploymentAction | TK8sDockerImageDeploymentAction> {
       if (!deploymentAction.type) {
         let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deploymentAction)
         throw new Error(message)
@@ -99,7 +111,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       if (deploymentAction.type === "k8s") {
         addK8sDeployment(deploymentAction as TK8sDockerImageDeploymentAction)
       } else if (deploymentAction.type === "deployer") {
-        addDockerDeployer(deploymentAction as TImageDeploymentAction)
+        addDockerDeployer(deploymentAction as TDockerDeploymentAction)
       }
       return deploymentAction
     }
@@ -113,14 +125,14 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       })
     }
 
-    function DeployerPromises(deploymentOptions: TActionExecutionOptions): Array<Promise<TImageDeploymentAction | undefined>> {
+    function DeployerPromises(deploymentOptions: TActionExecutionOptions): Array<Promise<TDockerDeploymentAction | undefined>> {
       return Object.values(dockerDeploymentPlan).flatMap((deploymentPlan: TDeploymentPlan) => {
-        return deploymentPlan.deployments.map(async (deployment: TImageDeploymentAction) => {
+        return deploymentPlan.deployments.map(async (deployment: TDockerDeploymentAction) => {
           if (deployment.state?.modified) {
             if (deploymentOptions.dryRun && deploymentOptions.dryRunOutputDir) {
               let writePath = path.join(
                 deploymentOptions.dryRunOutputDir,
-                deployment.imageWithoutTag?.replace(/\//g, "_") + "-deployer.txt"
+                deployment.imageWithoutTag?.replace(/\//g, "_") + "-deployer.txt",
               )
 
               let cmdLine = `docker run ${deployment.forTestParameters?.join(" ")}`
@@ -143,11 +155,11 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
                     return deployment
                   } catch (err) {
                     throw "Failed to save state after successful deployment! " +
-                      deployment.origin +
-                      "/" +
-                      deployment.identifier +
-                      "\n" +
-                      err
+                    deployment.origin +
+                    "/" +
+                    deployment.identifier +
+                    "\n" +
+                    err
                   }
                 } catch (e) {
                   console.error("Error running docker run" + JSON.stringify(deployment))
@@ -166,7 +178,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       })
     }
 
-    async function mapDeploymentDataAndPush(deploymentData: TImageDeploymentAction | TK8sDockerImageDeploymentAction | undefined ) {
+    async function mapDeploymentDataAndPush(deploymentData: TDockerDeploymentAction | TK8sDockerImageDeploymentAction | undefined) {
       if (!deploymentData) {
         return deploymentData
       } else {
@@ -177,7 +189,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
     }
 
     function mapDeploymentDataAndWriteTo(dryrunOutputDir: TFileSystemPath) {
-      return async (deploymentData: TImageDeploymentAction | TK8sDockerImageDeploymentAction | undefined) => {
+      return async (deploymentData: TDockerDeploymentAction | TK8sDockerImageDeploymentAction | undefined) => {
         if (!deploymentData) {
           return deploymentData
         } else {
@@ -195,10 +207,10 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
         dryRunOutputDir: undefined,
         pushToUi: true,
         waitForRollout: false,
-      }
+      },
     ) {
       // let i = 0
-      let deploymentPromises:Array<Promise<TImageDeploymentAction | TKubectlDeployAction | undefined>> = K8sDeploymentPromises(runOptions)
+      let deploymentPromises: Array<Promise<TDockerDeploymentAction | TKubectlDeployAction | undefined>> = K8sDeploymentPromises(runOptions)
 
       let deployerPromises = DeployerPromises(runOptions)
       let allPromises = deploymentPromises.concat(deployerPromises)
@@ -261,7 +273,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
         let modified = false
 
         if (plan.deployments) {
-          plan.deployments.forEach(function(deployment: TImageDeploymentAction) {
+          plan.deployments.forEach(function(deployment: TDockerDeploymentAction) {
             if (!deployment.state) {
               throw new Error("No state!")
             }
@@ -278,7 +290,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       })
     }
 
-    function exportDeploymentDocuments(exportDirectory: TFileSystemPath) {
+    function exportDeploymentDocuments(exportDirectory: TFileSystemPath):Promise<unknown> {
       return new Promise(function(resolve, reject) {
         let fileWrites = emptyArray<any>()
 
@@ -286,14 +298,14 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
           plan.deployments.forEach(function(deployment: TK8sDockerImageDeploymentAction) {
             let writePath = path.join(
               exportDirectory,
-              deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml"
+              deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml",
             )
             let writePromise = writeFile(writePath, deployment.descriptor.trim())
             fileWrites.push(writePromise)
           })
         })
         Object.entries(dockerDeploymentPlan as TDockerDeploymentPlan).forEach(function([_key, plan]) {
-          plan.deployments.forEach(function(deploymentAction: TImageDeploymentAction) {
+          plan.deployments.forEach(function(deploymentAction: TDockerDeploymentAction) {
             if (!deploymentAction.forTestParameters) {
               throw new Error("Missing forTestParameters!")
             }
@@ -304,7 +316,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
 
             let writePath = path.join(
               exportDirectory,
-              deploymentAction.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt"
+              deploymentAction.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt",
             )
             let writePromise = writeFile(writePath, cmdLine)
             fileWrites.push(writePromise)
@@ -316,8 +328,8 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       })
     }
 
-    return {
-      async addDeployment(deploymentAction: TImageDeploymentAction | TK8sDockerImageDeploymentAction) {
+    let myplan = {
+      async addDeployment(deploymentAction: TDockerDeploymentAction | TK8sDockerImageDeploymentAction) {
         deploymentAction.env = forEnv
         return await addToPlanAndGetDeploymentStateFromStore(deploymentAction)
       },
@@ -325,5 +337,6 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       printPlan: printPlan,
       exportDeploymentDocuments: exportDeploymentDocuments,
     }
+    return myplan
   }
 }

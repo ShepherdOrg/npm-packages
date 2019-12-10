@@ -9,7 +9,7 @@ import {
   TFolderDeploymentPlan,
   TFolderHerdSpec,
   THerdFolderMap,
-  TImageDeploymentAction,
+  TDockerDeploymentAction,
   TImageMap,
   TInfrastructureImageMap,
   TK8sDockerImageDeploymentAction,
@@ -185,14 +185,14 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
                   if (!herdSpec.image && herdSpec.dockerImage) {
                     splitDockerImageTag(herdSpec)
                   }
-                  let promise: Promise<Array<TImageDeploymentAction | TK8sDockerImageDeploymentAction>> = loadImageMetadata(herdSpec)
+                  let promise: Promise<Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>> = loadImageMetadata(herdSpec)
                     .then(getShepherdMetadata)
                     .then(addMigrationImageToDependenciesPlan)/// This is pretty ugly, adding to external structure sideffect
                     .then(calculateDeploymentPlan)
-                    .then(function(imageDeploymentActions: Array<TImageDeploymentAction | TK8sDockerImageDeploymentAction>) {
+                    .then(function(imageDeploymentActions: Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>) {
                       return Bluebird.each(imageDeploymentActions, releasePlan.addDeployment)
                     })
-                    .then(function(imgPlans: Array<TImageDeploymentAction | TK8sDockerImageDeploymentAction>) {
+                    .then(function(imgPlans: Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>) {
                       return imgPlans
                     })
                     .catch(function(e) {

@@ -1,6 +1,6 @@
 import { expect } from "chai"
-import { ReleasePlanModule } from "./release-plan"
-import { TK8sDockerImageDeploymentAction } from "./deployment-types"
+import { ReleasePlanModule, TReleasePlan } from "./release-plan"
+import { ILog, TDockerDeploymentAction, TK8sDockerImageDeploymentAction } from "./deployment-types"
 import { executeDeploymentAction } from "./kubectl-deployer/create-kubectl-deployment-action"
 
 const FakeExec = require("../test-tools/fake-exec")
@@ -9,8 +9,9 @@ const FakeLogger = require("../test-tools/fake-logger")
 const k8sDeployments = require("./testdata/testplan.json").addedK8sDeployments
 const dockerDeployers = require("./testdata/testplan.json").addedDockerDeployers
 
-
-export function createKubectlTestDeployAction(serialisedAction: TK8sDockerImageDeploymentAction): TK8sDockerImageDeploymentAction {
+export function createKubectlTestDeployAction(
+  serialisedAction: TK8sDockerImageDeploymentAction
+): TK8sDockerImageDeploymentAction {
   let me = {
     execute(deploymentOptions, cmd, logger, saveDeploymentState) {
       return executeDeploymentAction(me, deploymentOptions, cmd, logger, saveDeploymentState)
@@ -21,12 +22,15 @@ export function createKubectlTestDeployAction(serialisedAction: TK8sDockerImageD
   return me
 }
 
+type TExec = any
+
 describe("Release plan", function() {
-  let releasePlan, checkedStates
-  let fakeStateStore
-  let fakeExec
-  let fakeLogger
-  let fakeUiDataPusher
+  let releasePlan: TReleasePlan
+  let checkedStates: any
+  let fakeStateStore : any
+  let fakeExec : TExec
+  let fakeLogger: ILog & {logStatements:Array<{data:string[]}>}
+  let fakeUiDataPusher: any
 
   beforeEach(function() {
     checkedStates = []
@@ -86,7 +90,8 @@ describe("Release plan", function() {
       return releasePlan
         .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]))
         .then(function(deploymentState) {
-          expect(deploymentState.state.testState).to.equal(true)
+          // @ts-ignore
+          expect(deploymentState?.state?.testState).to.equal(true)
           expect(checkedStates.length).to.equal(1)
           expect(checkedStates[0].env).to.equal("planSpecEnv")
         })
@@ -100,6 +105,8 @@ describe("Release plan", function() {
           .then(function() {
             return releasePlan
               .executePlan({
+                pushToUi: false,
+                waitForRollout: false,
                 dryRun: true,
                 dryRunOutputDir: "/tmp/",
               })
@@ -156,18 +163,18 @@ describe("Release plan", function() {
 
         return releasePlan
           .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]))
-          .then(
+          .then(() =>
             releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"]))
           )
-          .then(releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"])))
-          .then(function() {
-            return releasePlan.executePlan({
+          .then(() => releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"])))
+          .then(() =>
+            releasePlan.executePlan({
               dryRun: false,
               dryRunOutputDir: undefined,
               pushToUi: false,
               waitForRollout: false,
             })
-          })
+          )
       })
 
       it("should execute three commands and no rollout status command", () => {
@@ -189,18 +196,18 @@ describe("Release plan", function() {
 
         return releasePlan
           .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]))
-          .then(
+          .then(() =>
             releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"]))
           )
-          .then(releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"])))
-          .then(function() {
-            return releasePlan.executePlan({
+          .then(() => releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"])))
+          .then(() =>
+            releasePlan.executePlan({
               dryRun: false,
               dryRunOutputDir: undefined,
               pushToUi: true,
               waitForRollout: true,
             })
-          })
+          )
       })
 
       it("should execute two apply, one delete and a rollout status command", () => {
@@ -273,15 +280,15 @@ describe("Release plan", function() {
         fakeExec.nextResponse.success = "applied"
         return releasePlan
           .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"]))
-          .then(
+          .then(() =>
             releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"]))
           )
-          .then(releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"])))
-          .then(function() {
-            return releasePlan.executePlan().catch(function(err) {
+          .then(() => releasePlan.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"])))
+          .then(() =>
+            releasePlan.executePlan().catch(function(err) {
               saveError = err
             })
-          })
+          )
       })
 
       it("should propagate error to caller", function() {
@@ -326,7 +333,7 @@ describe("Release plan", function() {
 
   describe("- docker deployer -", function() {
     describe("basic state checking", function() {
-      let deploymentState
+      let deploymentState : TDockerDeploymentAction | TK8sDockerImageDeploymentAction
 
       beforeEach(function() {
         return releasePlan.addDeployment(dockerDeployers["testenvimage-migrations:0.0.0"]).then(function(ds) {
@@ -335,6 +342,7 @@ describe("Release plan", function() {
       })
 
       it("should check state for each added docker deployer", function() {
+        // @ts-ignore testState
         expect(deploymentState.state.testState).to.equal(true)
         expect(checkedStates.length).to.equal(1)
       })

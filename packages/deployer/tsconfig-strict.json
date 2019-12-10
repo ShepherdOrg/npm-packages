@@ -1,0 +1,30 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "lib": [
+      "es2019"
+    ],
+    "alwaysStrict": true,
+    "types": ["node", "mocha"],
+    "declaration": true,
+    "module": "commonjs",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strictNullChecks": true,
+    "target": "ES6",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outDir": "dist",
+    "sourceMap": false
+  },
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
+  "types": [
+    "@types/node",
+    "@types/mocha",
+    "@types/chai"
+  ]
+}

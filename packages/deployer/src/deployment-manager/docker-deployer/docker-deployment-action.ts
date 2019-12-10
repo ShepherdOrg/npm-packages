@@ -1,8 +1,8 @@
-import { TImageDeploymentAction } from "../deployment-types"
+import { TDockerDeploymentAction } from "../deployment-types"
 import { expandEnv } from "../../expandenv"
 import { expandTemplate } from "../../expandtemplate"
 
-export async function calculateDeployerAction(imageInformation): Promise<Array<TImageDeploymentAction>> {
+export async function calculateDeployerAction(imageInformation): Promise<Array<TDockerDeploymentAction>> {
 
   const shepherdMetadata = imageInformation.shepherdMetadata
   const herdKey: string = imageInformation.imageDefinition.key
@@ -12,7 +12,7 @@ export async function calculateDeployerAction(imageInformation): Promise<Array<T
     imageInformation.imageDefinition.dockerImage ||
     imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
 
-  const plan: TImageDeploymentAction = {
+  const plan: TDockerDeploymentAction = {
     descriptor: "", // TODO: Validate descriptor use here
     env: imageInformation.env,
     displayName: displayName,

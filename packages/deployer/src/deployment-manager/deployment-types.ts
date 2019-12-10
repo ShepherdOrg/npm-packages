@@ -57,6 +57,7 @@ export type THerdFolderMap = {
 }
 
 interface TFolderMetadata {
+  //TODO This will need git information from directory containing configuration
 }
 
 export interface TFolderDeploymentPlan {
@@ -80,29 +81,7 @@ export interface TBaseDeploymentAction {
   env: string
 }
 
-export type TDeploymentStateParamsForReference = {
-  version: string
-  identifier: string
-  env: string
-  descriptor: string
-  operation: string
-}
-
-
-export interface TFullDeploymentAction extends TBaseDeploymentAction{
-  herdSpec: TTempHerdSpec
-  // metadata: TTempMetadataType
-
-  descriptor: string
-  fileName: string
-  operation: string
-  origin: string
-  type: string
-  version: string
-}
-
-
-export interface TImageDeploymentAction extends TBaseDeploymentAction{
+export interface TDockerDeploymentAction extends TBaseDeploymentAction{
   herdSpec: TDockerImageHerdSpec;
   metadata: TDeployerMetadata;
 
@@ -118,8 +97,6 @@ export interface TImageDeploymentAction extends TBaseDeploymentAction{
   type: string;
 }
 
-export type TTempMetadataType = (TImageMetadata | TK8sMetadata)
-
 
 export interface TKubectlDeployAction {
   descriptorsByKind?: TDescriptorsByKind
@@ -134,6 +111,11 @@ export interface TKubectlDeployAction {
   execute(deploymentOptions:TActionExecutionOptions, cmd:string, logger:ILog, saveDeploymentState):void
 }
 
+export interface TK8sDirDeploymentAction extends TKubectlDeployAction, TBaseDeploymentAction{
+  herdSpec: TFolderHerdSpec
+  metadata: TFolderMetadata
+}
+
 export interface TK8sDockerImageDeploymentAction extends TKubectlDeployAction, TBaseDeploymentAction {
   herdSpec: TDockerImageHerdSpec
   metadata: TK8sMetadata
@@ -145,7 +127,7 @@ export interface TK8sDockerImageDeploymentAction extends TKubectlDeployAction, T
 
 export type TDeploymentPlan = {
   herdKey: string,
-  deployments: Array<TImageDeploymentAction | TKubectlDeployAction> // TODO Rename to deployment actions
+  deployments: Array<TDockerDeploymentAction | TKubectlDeployAction> // TODO Rename to deployment actions
 }
 
 export type TK8sDeploymentPlan = [string, any]

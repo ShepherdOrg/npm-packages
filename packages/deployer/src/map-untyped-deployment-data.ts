@@ -6,11 +6,11 @@ import {
   TImageMetadata,
 } from "@shepherdorg/metadata"
 import {
-  TImageDeploymentAction, TK8sDockerImageDeploymentAction,
+  TDockerDeploymentAction, TK8sDockerImageDeploymentAction,
 } from "./deployment-manager/deployment-types"
 
 
-export function mapUntypedDeploymentData(deploymentInfo: TImageDeploymentAction | TK8sDockerImageDeploymentAction | undefined): THerdK8sMetadata | THerdDeployerMetadata | undefined {
+export function mapUntypedDeploymentData(deploymentInfo: TDockerDeploymentAction | TK8sDockerImageDeploymentAction | undefined): THerdK8sMetadata | THerdDeployerMetadata | undefined {
 
   if(!deploymentInfo){
     return undefined
