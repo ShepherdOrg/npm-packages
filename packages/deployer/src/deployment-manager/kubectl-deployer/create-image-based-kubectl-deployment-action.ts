@@ -15,7 +15,7 @@ import { TK8sDockerImageDeploymentAction } from "../deployment-types"
 
 
 
-async function createImageBasedFileDeploymentAction(deploymentFileContent, imageInformation, fileName, branchModificationParams, logger): Promise<TK8sDockerImageDeploymentAction> {
+async function createImageBasedFileDeploymentAction(deploymentFileContent, imageInformation, fileName, branchModificationParams, logger, env: string): Promise<TK8sDockerImageDeploymentAction> {
   let origin =
     imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag + ":tar:" + fileName
 
@@ -37,6 +37,7 @@ async function createImageBasedFileDeploymentAction(deploymentFileContent, image
   // TODO: Create deployment action for each part of multipart deployment document
 
   const newK8sAction: TK8sDockerImageDeploymentAction = Object.assign(documentDeploymentAction,{
+    env: env,
     herdSpec: imageInformation.imageDefinition,
     metadata: imageInformation.shepherdMetadata,
     version: imageInformation.imageDefinition.imagetag,
@@ -109,7 +110,7 @@ export function calculateKubectlActions(imageInformation, kubeSupportedExtension
         //
         // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
         deploymentActions.push(
-          createImageBasedFileDeploymentAction(deploymentFileContent, imageInformation, fileName, branchModificationParams, logger),
+          createImageBasedFileDeploymentAction(deploymentFileContent, imageInformation, fileName, branchModificationParams, logger, ""),
         )
       }
     } catch (e) {

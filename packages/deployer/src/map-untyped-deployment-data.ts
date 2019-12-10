@@ -5,18 +5,26 @@ import {
   THerdSpec,
   TImageMetadata,
 } from "@shepherdorg/metadata"
-import { TFullDeploymentAction, TTempHerdSpec } from "./deployment-manager/deployment-types"
+import {
+  TImageDeploymentAction, TK8sDockerImageDeploymentAction,
+} from "./deployment-manager/deployment-types"
 
 
-export function mapUntypedDeploymentData(deploymentInfo: TFullDeploymentAction): THerdK8sMetadata | THerdDeployerMetadata {
+export function mapUntypedDeploymentData(deploymentInfo: TImageDeploymentAction | TK8sDockerImageDeploymentAction | undefined): THerdK8sMetadata | THerdDeployerMetadata | undefined {
+
+  if(!deploymentInfo){
+    return undefined
+  }
 
   if (!deploymentInfo.state) {
     throw new Error("Expecting state property on deploymentInfo object -> " + Object.keys(deploymentInfo).join(", "))
   }
 
-  function mapHerdSpec(herdSpec: TTempHerdSpec):THerdSpec {
-    let key = herdSpec.herdKey
+  function mapHerdSpec(herdSpec: THerdSpec):THerdSpec {
+    let unknownSpec = herdSpec as unknown as any
+    let key = unknownSpec.herdKey || unknownSpec.key
     let mappedHerdSpec = { key: key, ...herdSpec}
+    // @ts-ignore
     delete mappedHerdSpec.herdKey
     return mappedHerdSpec
   }
@@ -24,7 +32,7 @@ export function mapUntypedDeploymentData(deploymentInfo: TFullDeploymentAction):
   const mappedDeploymentInfo: THerdMetadata & TImageMetadata = {
     ...deploymentInfo.metadata,
     deploymentState: deploymentInfo.state,
-    herdSpec: mapHerdSpec(deploymentInfo.herdSpec),
+    herdSpec: mapHerdSpec(deploymentInfo.herdSpec as THerdSpec),
   }
 
   if(!mappedDeploymentInfo.herdSpec.key){

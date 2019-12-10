@@ -1,15 +1,17 @@
 import { TDeploymentType } from "@shepherdorg/metadata/dist"
-import { TFullDeploymentAction } from "../../deployment-manager/deployment-types"
+import { TK8sDockerImageDeploymentAction } from "../../deployment-manager/deployment-types"
 
 
-export function deploymentData0(): TFullDeploymentAction {
+type TK8sDockerImageDeploymentActionTestDataType = Omit<Omit<TK8sDockerImageDeploymentAction, "deploymentRollouts">, "execute">
+
+export function deploymentData0(): TK8sDockerImageDeploymentActionTestDataType {
   return {
     herdKey: "shepherd-ui-api",
     "herdSpec": {
       "image": "shepherdorg/shepherd-ui-api",
       "imagetag": "3.0.3-c481249",
       "description": "Shepherd web UI API",
-      "herdKey": "shepherd-ui-api",
+      "key": "shepherd-ui-api",
     },
     "metadata": {
       "buildDate": new Date("2019-10-29T14:53:42+00:00"),
@@ -59,14 +61,14 @@ export function deploymentData0(): TFullDeploymentAction {
 }
 
 
-export function deploymentData1(): TFullDeploymentAction {
+export function deploymentData1(): TK8sDockerImageDeploymentActionTestDataType {
 
   return {
     "herdSpec": {
       "image": "shepherdorg/shepherd-ui",
       "imagetag": "3.0.3-8d75408",
       "description": "Shepherd Web UI",
-      "herdKey": "shepherd-ui",
+      "key": "shepherd-ui",
     },
     "metadata": {
       "buildDate": new Date("2019-10-29T15:16:31+00:00"),

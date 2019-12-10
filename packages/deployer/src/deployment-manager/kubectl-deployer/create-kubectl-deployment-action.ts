@@ -1,6 +1,6 @@
 import { identifyDocument  } from "./k8s-deployment-document-identifier"
 import { TBranchModificationParams } from "./k8s-branch-deployment/create-name-change-index"
-import { ILog, TKubectlDeployAction } from "../deployment-types"
+import { ILog, TActionExecutionOptions, TKubectlDeployAction } from "../deployment-types"
 import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
 import { newProgrammerOops, Oops } from "oops-error"
 import { expandEnv } from "../../expandenv"
@@ -8,14 +8,10 @@ import { processLine } from "../../base64-env-subst"
 import { expandTemplate } from "../../expandtemplate"
 import * as path from "path"
 import { extendedExec, writeFile } from "../../promisified"
-import { TActionExecutionOptions } from "../release-plan"
 
 const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 
 import Bluebird = require("bluebird")
-
-
-
 
 
 export async function executeDeploymentAction(thisIsMe: TKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState) {
@@ -179,7 +175,6 @@ export function createKubectlDeployAction(_origin: string, deploymentFileDescrip
     }
 
     let documentDeploymentAction: TKubectlDeployAction = {
-      env: "", // TODO, get env in here
       async execute(deploymentOptions, cmd, logger, saveDeploymentState) {
         return executeDeploymentAction(documentDeploymentAction, deploymentOptions, cmd, logger, saveDeploymentState)
       },
@@ -189,7 +184,6 @@ export function createKubectlDeployAction(_origin: string, deploymentFileDescrip
       descriptor: deploymentDescriptor,
       identifier: loadedDescriptor.identifyingString,
       descriptorsByKind: loadedDescriptor.descriptorsByKind
-
     }
 
     return documentDeploymentAction

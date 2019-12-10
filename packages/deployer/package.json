@@ -35,14 +35,14 @@
     "mocha": "^6.2.1",
     "should": "^13.2.3",
     "ts-node": "^8.4.1",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   },
   "scripts": {
     "build-test-images": "cd src/integratedtest/testimages && ./build-test-images.sh",
     "start-postgres": "docker run --rm --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres",
     "kill-postgres": "docker stop postgres",
     "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
-    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh,json --watch 'src/**/*.spec.ts'",
+    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,sh,json --watch 'src/**/*.spec.ts'",
     "integratedtest": "yarn build && yarn build-test-images && mocha --exit --recursive 'dist/integratedtest/**/*.integratedtest.js'",
     "itdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/integratedtest/**/*.integratedtest.ts'",
     "test": "yarn specs",

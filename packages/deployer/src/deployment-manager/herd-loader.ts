@@ -3,29 +3,28 @@ import * as path from "path"
 import { emptyArray } from "../helpers/ts-functions"
 import { kubeSupportedExtensions } from "./kubectl-deployer/kube-supported-extensions"
 
+import {
+  ILog,
+  TDockerImageHerdSpec,
+  TFolderDeploymentPlan,
+  TFolderHerdSpec,
+  THerdFolderMap,
+  TImageDeploymentAction,
+  TImageMap,
+  TInfrastructureImageMap,
+  TK8sDockerImageDeploymentAction,
+} from "./deployment-types"
+import { getShepherdMetadata } from "./add-shepherd-metadata"
+import { createImageDeploymentPlanner } from "./image-deployment-planner"
+import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
+import { planFolderDeployment } from "./kubectl-deployer/folder-deployment-planner"
+import { TDeploymentType } from "@shepherdorg/metadata"
+
 const YAML = require("js-yaml")
 
 import Bluebird = require("bluebird")
 
-import {
-  ILog, TDockerImageHerdSpec,
-  TFolderDeploymentPlan, TFolderHerdSpec,
-  THerdFolderMap,
-  TImageDeploymentAction,
-  TImageMap,
-  TInfrastructureImageMap, TK8sDockerImageDeploymentAction,
-} from "./deployment-types"
-import { getShepherdMetadata } from "./add-shepherd-metadata"
-import { createImageDeploymentPlanner } from "./image-deployment-planner"
-import {
-  getDockerRegistryClientsFromConfig,
-} from "@shepherdorg/docker-image-metadata-loader"
-import { imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 // declare var Promise: Bluebird<any>;
-
-
-
-import {planFolderDeployment} from "./kubectl-deployer/folder-deployment-planner"
 
 function splitDockerImageTag(imgObj) {
   let colonIdx = imgObj.dockerImage.indexOf(":")
@@ -161,7 +160,7 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
                         deploymentPlan.metadata = {
                           displayName: deploymentPlan.fileName,
                           semanticVersion: "0",
-                          deploymentType: "k8s",
+                          deploymentType: TDeploymentType.Kubernetes,
                           buildDate: new Date(0), // Might make sense to extract change timestamp on file from filesystem or git
                           hyperlinks: [],
                         }

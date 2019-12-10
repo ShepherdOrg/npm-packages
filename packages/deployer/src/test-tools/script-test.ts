@@ -23,8 +23,6 @@ function relevantDifferences(diffArray:Array<TJsDifference>, ignoreList: string[
       }, false)
       if (!onIgnoreList) {
         result.push(diffObj)
-      } else {
-        console.log("IGNORING DIFF", diffObj)
       }
     }
   }
