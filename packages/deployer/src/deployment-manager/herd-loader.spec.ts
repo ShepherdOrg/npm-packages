@@ -6,8 +6,7 @@ const exec = require("@shepherdorg/exec")
 const fakeLogger = require("../test-tools/fake-logger")
 import * as path from "path"
 import * as fs from "fs"
-import { TK8sDockerImageDeploymentAction } from "./kubectl-deployer/create-kubectl-deployment-action"
-import { TImageDeploymentAction } from "./deployment-types"
+import { TImageDeploymentAction, TK8sDockerImageDeploymentAction } from "./deployment-types"
 
 /// Inject a mock image metadata loader with fake image information
 

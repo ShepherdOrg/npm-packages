@@ -13,6 +13,8 @@ export async function calculateDeployerAction(imageInformation): Promise<Array<T
     imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
 
   const plan: TImageDeploymentAction = {
+    descriptor: "", // TODO: Validate descriptor use here
+    env: imageInformation.env,
     displayName: displayName,
     metadata: shepherdMetadata,
     herdSpec: imageInformation.imageDefinition,
@@ -24,7 +26,7 @@ export async function calculateDeployerAction(imageInformation): Promise<Array<T
     operation: "run",
     command: "deploy",
     identifier: herdKey,
-    herdKey: herdKey,
+    herdKey: herdKey
   }
 
   let envList = ["ENV={{ ENV }}"]

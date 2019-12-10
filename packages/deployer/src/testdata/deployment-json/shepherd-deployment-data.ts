@@ -1,8 +1,8 @@
 import { TDeploymentType } from "@shepherdorg/metadata/dist"
-import { TTempDeploymentInfoType } from "../../deployment-manager/deployment-types"
+import { TFullDeploymentAction } from "../../deployment-manager/deployment-types"
 
 
-export function deploymentData0(): TTempDeploymentInfoType {
+export function deploymentData0(): TFullDeploymentAction {
   return {
     herdKey: "shepherd-ui-api",
     "herdSpec": {
@@ -59,7 +59,7 @@ export function deploymentData0(): TTempDeploymentInfoType {
 }
 
 
-export function deploymentData1(): TTempDeploymentInfoType {
+export function deploymentData1(): TFullDeploymentAction {
 
   return {
     "herdSpec": {

@@ -10,6 +10,8 @@ import {
   getDockerRegistryClientsFromConfig,
   imageLabelsLoader,
 } from "@shepherdorg/docker-image-metadata-loader"
+import { IStorageBackend } from "@shepherdorg/state-store"
+import { TFileSystemPath } from "./basic-types"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -104,7 +106,7 @@ let waitForRollout = process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process
 
 const exportDocuments = process.argv.indexOf("--export") > 0
 
-let outputDirectory
+let outputDirectory : TFileSystemPath | undefined
 
 if (process.argv.indexOf("--help") > 0) {
   printUsage()
@@ -125,8 +127,12 @@ if ((exportDocuments || dryRun) && !outputDirectory) {
   process.exit(255)
 }
 
-let stateStoreBackend
-let uiDataPusher
+let stateStoreBackend: IStorageBackend
+let uiDataPusher: {pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined>} // TODO: Need proper type export form uiDataPusher
+
+
+
+
 
 if (process.env.SHEPHERD_PG_HOST) {
   const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
@@ -151,7 +157,7 @@ const { CreateUpstreamTriggerDeploymentConfig } = require("./deployment-manager/
 
 const upgradeOrAddDeploymentInFile = require("./herd-file/herd-edit").upgradeOrAddDeploymentInFile
 
-function terminateProcess(exitCode) {
+function terminateProcess(exitCode:number) {
   stateStoreBackend.disconnect()
   process.exit(exitCode)
 }
@@ -214,7 +220,7 @@ stateStoreBackend
             .then(function() {
               terminateProcess(0)
             })
-            .catch(function(writeError) {
+            .catch(function(writeError:Error) {
               logger.error("Error exporting deployment document! ", writeError)
               terminateProcess(255)
             })
@@ -227,7 +233,7 @@ stateStoreBackend
                 terminateProcess(0)
               }, 1000)
             })
-            .catch(function(err) {
+            .catch(function(err:Error) {
               logger.error("Plan execution error", err)
               terminateProcess(255)
             })
@@ -239,7 +245,7 @@ stateStoreBackend
         process.exit(255)
       })
   })
-  .catch(function(err) {
+  .catch(function(err: Error) {
     console.error("Connection/migration error", err)
     process.exit(255)
   })

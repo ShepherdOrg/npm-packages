@@ -6,17 +6,17 @@ import { kubeSupportedExtensions } from "./kubectl-deployer/kube-supported-exten
 const YAML = require("js-yaml")
 
 import Bluebird = require("bluebird")
+
 import {
   ILog, TDockerImageHerdSpec,
   TFolderDeploymentPlan, TFolderHerdSpec,
   THerdFolderMap,
   TImageDeploymentAction,
   TImageMap,
-  TInfrastructureImageMap,
+  TInfrastructureImageMap, TK8sDockerImageDeploymentAction,
 } from "./deployment-types"
 import { getShepherdMetadata } from "./add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
-import { TK8sDockerImageDeploymentAction } from "./kubectl-deployer/create-kubectl-deployment-action"
 import {
   getDockerRegistryClientsFromConfig,
 } from "@shepherdorg/docker-image-metadata-loader"
@@ -141,21 +141,21 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
 
             infrastructurePromises.push(
               infrastructureLoader(herd.infrastructure || {})
-                .then(function(addedPromises) {
+                .then(function(addedPromises:Array<Promise<any>>) {
                   return Bluebird.all(addedPromises).catch(reject)
                 })
                 .catch(reject),
             )
 
             let loaders = {
-              "folders": async function(folders: THerdFolderMap) : Promise<Array<Promise<TFolderDeploymentPlan>>> {
+              "folders": async function(folders: THerdFolderMap) : Promise<any> {
 
-                return Object.entries(folders).flatMap(function([herdFolderName, herdSpec]:[string, TFolderHerdSpec]) {
+                let result:Promise<TFolderDeploymentPlan[]>[] = Object.entries(folders).flatMap(function([herdFolderName, herdSpec]:[string, TFolderHerdSpec]) {
                   herdSpec.key = herdFolderName
 
                   return calculateFoldersPlan(imagesPath, herdSpec)
-                    .then(function(plans) {
-                      return Bluebird.each(plans, function(deploymentPlan: TFolderDeploymentPlan) {
+                    .then(function(plans:Promise<any>) {
+                      let allActionsInFolder = Bluebird.each(plans, function(deploymentPlan: TFolderDeploymentPlan) {
                         deploymentPlan.herdKey = `${herdSpec.key} - ${deploymentPlan.origin}`
                         deploymentPlan.herdSpec = herdSpec
                         deploymentPlan.metadata = {
@@ -167,11 +167,13 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
                         }
                         return releasePlan.addDeployment(deploymentPlan)
                       })
+                      return allActionsInFolder
                     })
                     .catch(function(e) {
                       throw new Error("When processing folder " + herdFolderName + "\n" + e + (e.stack ? e.stack : ""))
                     })
                 })
+                return result
               },
               "images": async function(images: TImageMap)  {
                 let imageDeploymentPlans = Object.entries(images).map(function([imgName, herdSpec]:[string, TDockerImageHerdSpec ]) {

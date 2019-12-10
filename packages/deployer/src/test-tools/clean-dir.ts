@@ -1,6 +1,7 @@
 import * as fs from "fs"
+import { TFileSystemPath } from "../basic-types"
 
-const rmDir = function(dirPath, removeSelf=true) {
+const rmDir = function(dirPath:TFileSystemPath, removeSelf=true) {
   let files
   try {
     files = fs.readdirSync(dirPath)

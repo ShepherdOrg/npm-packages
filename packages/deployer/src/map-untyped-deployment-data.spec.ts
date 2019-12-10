@@ -3,10 +3,10 @@ import { mapUntypedDeploymentData} from "./map-untyped-deployment-data"
 import { deploymentData0, deploymentData1 } from "./testdata/deployment-json/shepherd-deployment-data"
 import { expectedK8sDeployment0, expectedK8sDeployment1 } from "./testdata/deployment-json/expected"
 import { TDeploymentType, THerdDeployerMetadata, THerdK8sMetadata } from "@shepherdorg/metadata/dist"
-import { TTempDeploymentInfoType } from "./deployment-manager/deployment-types"
+import { TFullDeploymentAction } from "./deployment-manager/deployment-types"
 
 
-function expectMappedToMatchExpectedData(deploymentInfo: TTempDeploymentInfoType, expectedData:THerdK8sMetadata | THerdDeployerMetadata, deploymentType: TDeploymentType) {
+function expectMappedToMatchExpectedData(deploymentInfo: TFullDeploymentAction, expectedData:THerdK8sMetadata | THerdDeployerMetadata, deploymentType: TDeploymentType) {
   let mappedData = mapUntypedDeploymentData(deploymentInfo)
 
   expect(deploymentType).to.equal(mappedData.deploymentType)

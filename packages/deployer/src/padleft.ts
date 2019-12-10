@@ -1,4 +1,4 @@
-export function padleft(pad, str?, padLeft?) {
+export function padLeft(pad:string, str?:string, padLeft?:boolean) {
   if (typeof str === "undefined") return pad
   if (padLeft) {
     return (pad + str).slice(-pad.length)

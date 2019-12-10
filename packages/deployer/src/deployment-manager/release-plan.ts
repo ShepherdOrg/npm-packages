@@ -3,15 +3,14 @@ import * as path from "path"
 import { emptyArray } from "../helpers/ts-functions"
 import { extendedExec, writeFile } from "../promisified"
 import {
-  TK8sDockerImageDeploymentAction,
-  TKubectlDeployAction,
-} from "./kubectl-deployer/create-kubectl-deployment-action"
-import { ILog, TImageDeploymentAction, TTempDeploymentInfoType } from "./deployment-types"
+  ILog,
+  TImageDeploymentAction, TK8sDockerImageDeploymentAction,
+  TFullDeploymentAction,
+} from "./deployment-types"
 import { mapUntypedDeploymentData } from "../map-untyped-deployment-data"
 import Bluebird = require("bluebird")
 
 
-declare var Promise: Bluebird<any>
 
 // function writeJsonToFile (path1 = "./shepherd-pushed.json") {
 //   return shepherdMetadata => {
@@ -42,13 +41,18 @@ export type TReleasePlanDependencies = {
   uiDataPusher: any
 }
 
+
+
+
+
+
 export function ReleasePlanModule(injected : TReleasePlanDependencies) {
   const stateStore = injected.stateStore
   const cmd = injected.cmd
   const logger = injected.logger
   const uiDataPusher = injected.uiDataPusher
 
-  return function(forEnv) {
+  return function(forEnv:string) {
     if (!forEnv) {
       throw new Error("must specify environment you are creating a deployment plan for")
     }
@@ -95,8 +99,9 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
       return stateStore.saveDeploymentState(deployment.state)
     }
 
-    async function addToPlanAndGetDeploymentStateFromStore(deploymentAction): Promise<TKubectlDeployAction> {
-      let state = await stateStore.getDeploymentState(deploymentAction)
+    async function addToPlanAndGetDeploymentStateFromStore(deploymentAction:TImageDeploymentAction | TK8sDockerImageDeploymentAction): Promise<TImageDeploymentAction | TK8sDockerImageDeploymentAction> {
+
+      console.log('deploymentAction', JSON.stringify(deploymentAction))
 
       if (!deploymentAction.type) {
         let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deploymentAction)
@@ -106,10 +111,11 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
         let message = "Illegal deployment, no identifier attribute in " + JSON.stringify(deploymentAction)
         throw new Error(message)
       }
-      deploymentAction.state = state
+
+      deploymentAction.state = await stateStore.getDeploymentState(deploymentAction)
 
       if (deploymentAction.type === "k8s") {
-        addK8sDeployment(deploymentAction)
+        addK8sDeployment(deploymentAction )
       } else if (deploymentAction.type === "deployer") {
         addDockerDeployer(deploymentAction)
       }
@@ -189,7 +195,7 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
 
 
     function mapDeploymentDataAndWriteTo(dryrunOutputDir) {
-      return async (deploymentData: TTempDeploymentInfoType) => {
+      return async (deploymentData: TFullDeploymentAction) => {
         if (!deploymentData) {
           return deploymentData
         } else {
@@ -220,7 +226,7 @@ export function ReleasePlanModule(injected : TReleasePlanDependencies) {
 
       // console.info('deploymentPromises', deploymentPromises)
 
-      const deployments = await Promise.all(deploymentPromises)
+      const deployments = await Bluebird.all(deploymentPromises)
       // deployments.forEach((deployment)=>{
       //   runOptions.uiBackend(deployment)
       // })

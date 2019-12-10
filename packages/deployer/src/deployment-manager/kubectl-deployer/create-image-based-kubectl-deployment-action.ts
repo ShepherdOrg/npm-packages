@@ -7,11 +7,11 @@ import * as path from "path"
 
 import { options } from "../options"
 import {
-  createKubectlDeployAction,
-  TK8sDockerImageDeploymentAction,
+  createKubectlDeployAction
 } from "./create-kubectl-deployment-action"
 
 import Bluebird = require("bluebird");
+import { TK8sDockerImageDeploymentAction } from "../deployment-types"
 
 
 

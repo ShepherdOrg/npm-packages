@@ -1,5 +1,7 @@
-const JsDiff = require("diff")
+import { FExecutionCallback, TFileSystemPath } from "../basic-types"
 import * as fs from "fs"
+
+const JsDiff = require("diff")
 
 const expect = require("expect.js")
 const { extend, sortedUniq } = require("lodash")
@@ -42,7 +44,7 @@ function renderDifferences(diffArray: Array<TJsDifference>): string {
   return result
 }
 
-function compareActualVsExpected(expectedFileName:TFileName, actualFileName:TFileName, ignoreList: string[] = []) {
+function compareActualVsExpected(expectedFileName:TFileSystemPath, actualFileName:TFileSystemPath, ignoreList: string[] = []) {
   let expectedFileContents = fs.readFileSync(expectedFileName, "utf-8")
   let actualFileContents = fs.readFileSync(actualFileName, "utf-8")
   let difference = JsDiff.diffTrimmedLines(expectedFileContents.trim(), actualFileContents.trim())
@@ -59,10 +61,6 @@ function compareActualVsExpected(expectedFileName:TFileName, actualFileName:TFil
   }
 }
 
-export type FExecutionCallback = (output: string) => {}
-
-export type TFileName = string
-
 type TOutputDSL = {
   shouldBeEmptyDir(): TScriptTestExecution
   shouldEqual(expectedOutputFileOrDir: any): TScriptTestExecution
@@ -70,12 +68,12 @@ type TOutputDSL = {
 
 type TStdOutDSL = {
   shouldContain(partialString: string): TScriptTestExecution
-  shouldEqual(expectedStdOutputRefFile: TFileName): TScriptTestExecution
+  shouldEqual(expectedStdOutputRefFile: TFileSystemPath): TScriptTestExecution
 }
 
 type TStdErrDSL = {
   shouldBeEmptyDir(): TScriptTestExecution
-  shouldEqual(expectedOutputFileOrDir: TFileName): TScriptTestExecution
+  shouldEqual(expectedOutputFileOrDir: TFileSystemPath): TScriptTestExecution
 }
 
 interface TScriptTestExecution {
@@ -85,15 +83,15 @@ interface TScriptTestExecution {
   processStderr?: string
   expectedPartialStrings: string[]
   actualFromStdout: boolean
-  expectedStdOutput: string | TFileName | undefined
+  expectedStdOutput: string | TFileSystemPath | undefined
   processOutput: string
   dirShouldBeEmpty: boolean
-  expectedOutputFileOrDir: TFileName | undefined
-  actualOutputFileOrDir: TFileName | undefined
+  expectedOutputFileOrDir: TFileSystemPath | undefined
+  actualOutputFileOrDir: TFileSystemPath | undefined
   ignoreList: string[]
   stderr: () => TStdErrDSL
   stdout: () => TStdOutDSL
-  output: (actualOutputFileOrDir: TFileName) => TOutputDSL
+  output: (actualOutputFileOrDir: TFileSystemPath) => TOutputDSL
   ignoreLinesWith: (ignoreList: string[]) => TScriptTestExecution
   expectExitCode: (expectedExitCode: number) => TScriptTestExecution
   done: (callback: FExecutionCallback) => void
@@ -106,16 +104,16 @@ function emptyArray<T>(): Array<T> {
 
 export type TExecuteOptions = {
   env: typeof process.env
-  debug: boolean
-  stdoutLineHandler: (line: string) => void
+  debug?: boolean
+  stdoutLineHandler?: (line: string) => void
 }
 
-module.exports = {
+export default {
   // Pass in debug=true if you want to see output of subject under test.
   execute: function(command:string, args:string[], options:TExecuteOptions) {
     let logfn = undefined
 
-    options.stdoutLineHandler = function(line:string) {
+    options.stdoutLineHandler = options.stdoutLineHandler || function(line:string) {
       if (options.debug) {
         console.debug(line.trim())
       }
@@ -188,7 +186,7 @@ module.exports = {
       stdout: function() {
         execution.actualFromStdout = true
         return {
-          shouldEqual(expectedStdOutputRefFile: TFileName) {
+          shouldEqual(expectedStdOutputRefFile: TFileSystemPath) {
             execution.expectedStdOutput = expectedStdOutputRefFile
             return execution
           },
@@ -201,7 +199,7 @@ module.exports = {
       stderr: function() {
         execution.actualFromStderr = true
         return {
-          shouldEqual(expectedOutputFileOrDir: TFileName) {
+          shouldEqual(expectedOutputFileOrDir: TFileSystemPath) {
             execution.expectedOutputFileOrDir = expectedOutputFileOrDir
             return execution
           },
@@ -238,8 +236,8 @@ module.exports = {
 
         if (execution.actualFromStdout) {
           let expectedOutput
-          if (fs.existsSync(execution.expectedStdOutput as TFileName)) {
-            expectedOutput = fs.readFileSync(execution.expectedStdOutput as TFileName, "utf-8")
+          if (fs.existsSync(execution.expectedStdOutput as TFileSystemPath)) {
+            expectedOutput = fs.readFileSync(execution.expectedStdOutput as TFileSystemPath, "utf-8")
           } else {
             expectedOutput = execution.expectedStdOutput
           }
@@ -266,7 +264,7 @@ module.exports = {
           let actualIsDir =execution.actualOutputFileOrDir && fs.lstatSync(execution.actualOutputFileOrDir).isDirectory()
           if (execution.dirShouldBeEmpty) {
             if (actualIsDir) {
-              let actualFiles = sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir as TFileName))
+              let actualFiles = sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir as TFileSystemPath))
               if (actualFiles.length > 0) {
                 expect().fail(
                   `Directory ${
@@ -310,8 +308,8 @@ module.exports = {
               )
             })
           } else {
-            let expectedFileName = execution.expectedOutputFileOrDir as TFileName
-            let actualFileName = execution.actualOutputFileOrDir as TFileName
+            let expectedFileName = execution.expectedOutputFileOrDir as TFileSystemPath
+            let actualFileName = execution.actualOutputFileOrDir as TFileSystemPath
             compareActualVsExpected(expectedFileName, actualFileName, execution.ignoreList)
           }
         }

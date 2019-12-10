@@ -2,7 +2,7 @@ import * as _ from "lodash"
 
 const Handlebars = require("handlebars")
 
-Handlebars.registerHelper("Base64Encode", (str, param) => {
+Handlebars.registerHelper("Base64Encode", (str:string, param:string|Object) => {
   let postfix
   if (typeof param !== "object") {
     postfix = param
@@ -12,7 +12,7 @@ Handlebars.registerHelper("Base64Encode", (str, param) => {
   return Buffer.from(str + postfix).toString("base64")
 })
 
-Handlebars.registerHelper("Base64Decode", str => {
+Handlebars.registerHelper("Base64Decode", (str:string | undefined) => {
   if (!str) {
     return ""
   }
@@ -20,7 +20,7 @@ Handlebars.registerHelper("Base64Decode", str => {
   return Buffer.from(str, "base64").toString()
 })
 
-export function expandTemplate(templateString) {
+export function expandTemplate(templateString: string) {
   var view = Object.assign({}, process.env)
 
   let template

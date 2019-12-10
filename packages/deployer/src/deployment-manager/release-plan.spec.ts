@@ -1,9 +1,7 @@
 import { expect } from "chai"
-import {
-  executeDeploymentAction, TK8sDockerImageDeploymentAction,
-
-} from "./kubectl-deployer/create-kubectl-deployment-action"
 import { ReleasePlanModule } from "./release-plan"
+import { TK8sDockerImageDeploymentAction } from "./deployment-types"
+import { executeDeploymentAction } from "./kubectl-deployer/create-kubectl-deployment-action"
 
 const FakeExec = require("../test-tools/fake-exec")
 const FakeLogger = require("../test-tools/fake-logger")

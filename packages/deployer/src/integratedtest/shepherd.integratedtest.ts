@@ -1,14 +1,15 @@
 import * as _ from "lodash"
 
-const script = require("../test-tools/script-test")
+import {PgConfig, PostgresStore as PgBackend} from '@shepherdorg/postgres-backend'
+
+import script from '../test-tools/script-test'
+import {TFileSystemPath} from '../basic-types'
+
 const fs = require("fs")
 const path = require("path")
-const PgBackend = require("@shepherdorg/postgres-backend").PostgresStore
-const PgConfig = require("@shepherdorg/postgres-backend").PgConfig
-
 const cleanDir = require("../test-tools/clean-dir")
 
-function ensureCleanOutputFolder(firstRoundFolder) {
+function ensureCleanOutputFolder(firstRoundFolder:TFileSystemPath) {
   if (!fs.existsSync(firstRoundFolder)) {
     fs.mkdirSync(firstRoundFolder)
   }
@@ -114,8 +115,8 @@ describe("run all deployers with infrastructure", function() {
       ensureCleanOutputFolder(firstRoundFolder)
       ensureCleanOutputFolder(secondRoundFolder)
 
-      let postgresConnectionError = (err)=>{
-        throw new Error('Error connecting to postgres!' + err)
+      let postgresConnectionError = (err: Error)=>{
+        throw new Error('Error connecting to postgres! Cause: ' + err.message)
       }
       return pgBackend
         .connect().catch(postgresConnectionError)
@@ -162,8 +163,8 @@ describe("run all deployers with infrastructure", function() {
 
       return pgBackend
         .connect()
-        .then(() => pgBackend.resetAllDeploymentStates()).catch((err)=>{
-          throw new Error('Error connecting to postgres!' + err)
+        .then(() => pgBackend.resetAllDeploymentStates()).catch((err: Error)=>{
+          throw new Error('Error connecting to postgres! Cause: ' + err.message)
         })
     })
 
@@ -178,7 +179,7 @@ describe("run all deployers with infrastructure", function() {
         })
     })
 
-    function base64Encode(teststring) {
+    function base64Encode(teststring:string) {
       return Buffer.from(teststring).toString("base64")
     }
 

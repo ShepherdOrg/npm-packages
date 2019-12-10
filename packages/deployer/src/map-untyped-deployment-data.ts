@@ -5,10 +5,10 @@ import {
   THerdSpec,
   TImageMetadata,
 } from "@shepherdorg/metadata"
-import { TTempDeploymentInfoType, TTempHerdSpec } from "./deployment-manager/deployment-types"
+import { TFullDeploymentAction, TTempHerdSpec } from "./deployment-manager/deployment-types"
 
 
-export function mapUntypedDeploymentData(deploymentInfo: TTempDeploymentInfoType): THerdK8sMetadata | THerdDeployerMetadata {
+export function mapUntypedDeploymentData(deploymentInfo: TFullDeploymentAction): THerdK8sMetadata | THerdDeployerMetadata {
 
   if (!deploymentInfo.state) {
     throw new Error("Expecting state property on deploymentInfo object -> " + Object.keys(deploymentInfo).join(", "))

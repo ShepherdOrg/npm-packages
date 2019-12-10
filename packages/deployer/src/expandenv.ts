@@ -1,7 +1,7 @@
-export function expandEnv(lineString) {
+export function expandEnv(lineString:string) {
   if (lineString === undefined || lineString === null) return lineString
 
-  return lineString.replace(/\${?[\w]+}?/g, function(match) {
+  return lineString.replace(/\${?[\w]+}?/g, function(match:string) {
     let curlySyntax = match.indexOf("{") > 0
     if (curlySyntax && match.indexOf("}") < 0) {
       return match
@@ -18,6 +18,6 @@ export function expandEnv(lineString) {
           lineString
       )
     }
-    return process.env[varName]
+    return process.env[varName] as string
   })
 }

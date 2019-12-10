@@ -9,7 +9,7 @@ describe("Herd editing", function() {
   })
 
   let logger = {
-    info:(message)=>{
+    info:(message:string)=>{
       logInfoEntries.push(message)
     }
   }

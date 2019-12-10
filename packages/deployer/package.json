@@ -26,6 +26,7 @@
     "tmp": "^0.1.0"
   },
   "devDependencies": {
+    "@types/bluebird": "^3.5.29",
     "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.11",

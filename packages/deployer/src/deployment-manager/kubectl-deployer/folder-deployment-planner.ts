@@ -1,8 +1,8 @@
 import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
-import { createKubectlDeployAction, TKubectlDeployAction } from "./create-kubectl-deployment-action"
-import { ILog } from "../deployment-types"
+import { createKubectlDeployAction  } from "./create-kubectl-deployment-action"
+import { ILog, TKubectlDeployAction } from "../deployment-types"
 
 export interface TFolderDeploymentPlannerDependencies {
   logger: ILog

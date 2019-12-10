@@ -1,4 +1,5 @@
 import { TDeployerMetadata, TDeploymentState, TImageMetadata, TK8sMetadata } from "@shepherdorg/metadata"
+import { TDescriptorsByKind } from "./kubectl-deployer/k8s-deployment-document-identifier"
 
 export type ILog = {
   info: typeof console.info,
@@ -14,7 +15,7 @@ export type THref = {
 
 export interface THerdSpec {
   key: string;
-  description: string;
+  description?: string;
   delete?: boolean;
 }
 
@@ -88,36 +89,73 @@ export interface TFolderDeploymentPlan {
   metadata: TMetadata;
 }
 
-export interface TImageDeploymentAction {
-  displayName: string;
-  herdKey: string;
-  metadata: TDeployerMetadata;
-  herdSpec: TDockerImageHerdSpec;
-  dockerParameters: string[];
-  forTestParameters?: string[];
-  imageWithoutTag?: string;
-  origin: string;
-  type: string;
-  operation: string;
-  command: string;
-  identifier: string;
-  env?: string;
+export interface TBaseDeploymentAction {
+  state?: TDeploymentState // State on action or deployment? StateDependentAction, StateMutatingAction (as opposed to wait actions). Model this differently?
+  identifier: string
+  env: string
 }
 
-export type TTempMetadataType = (TImageMetadata | TK8sMetadata)
+export type TDeploymentStateParamsForReference = {
+  version: string
+  identifier: string
+  env: string
+  descriptor: string
+  operation: string
+}
 
-export interface TTempDeploymentInfoType {
+
+export interface TFullDeploymentAction extends TBaseDeploymentAction{
   herdKey: string
   herdSpec: TTempHerdSpec
-  state: TDeploymentState
   metadata: TTempMetadataType
 
   descriptor: string
-  env: string
   fileName: string
-  identifier: string
   operation: string
   origin: string
   type: string
   version: string
 }
+
+
+export interface TImageDeploymentAction extends TBaseDeploymentAction{
+  herdSpec: TDockerImageHerdSpec;
+  metadata: TDeployerMetadata;
+
+  command: string;
+  descriptor: string;
+  displayName: string;
+  dockerParameters: string[];
+  forTestParameters?: string[];
+  herdKey: string;
+  identifier: string;
+  imageWithoutTag?: string;
+  operation: string;
+  origin: string;
+  type: string;
+}
+
+export type TTempMetadataType = (TImageMetadata | TK8sMetadata)
+
+
+export interface TKubectlDeployAction extends TBaseDeploymentAction{
+  descriptorsByKind: TDescriptorsByKind
+  identifier: string
+  descriptor: string
+  deploymentRollouts: string[] // TODO Move into deploymentActions
+  origin: string
+  operation: string
+
+  execute(deploymentOptions, cmd, logger, saveDeploymentState)
+}
+
+export interface TK8sDockerImageDeploymentAction extends TKubectlDeployAction {
+  herdSpec: THerdSpec
+  metadata: TK8sMetadata
+  version: string,
+  type: string,
+  fileName: string,
+  herdKey: string
+}
+
+

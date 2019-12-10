@@ -1,7 +1,6 @@
-import { ILog, TImageDeploymentAction } from "./deployment-types"
+import { ILog, TImageDeploymentAction, TK8sDockerImageDeploymentAction } from "./deployment-types"
 import { calculateKubectlActions } from "./kubectl-deployer/create-image-based-kubectl-deployment-action"
 import { calculateDeployerAction } from "./docker-deployer/docker-deployment-action"
-import { TK8sDockerImageDeploymentAction } from "./kubectl-deployer/create-kubectl-deployment-action"
 
 export type TImageDeploymentPlannerDependencies={
   logger: ILog
