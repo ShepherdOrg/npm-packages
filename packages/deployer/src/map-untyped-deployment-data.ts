@@ -1,16 +1,13 @@
 import {
-  THerdDeployerMetadata,
   THerdK8sMetadata,
-  THerdMetadata,
   THerdSpec,
-  TImageMetadata,
 } from "@shepherdorg/metadata"
 import {
-  TDockerDeploymentAction, TK8sDockerImageDeploymentAction,
+  TAnyDeploymentAction,
 } from "./deployment-manager/deployment-types"
 
 
-export function mapUntypedDeploymentData(deploymentInfo: TDockerDeploymentAction | TK8sDockerImageDeploymentAction | undefined): THerdK8sMetadata | THerdDeployerMetadata | undefined {
+export function mapUntypedDeploymentData(deploymentInfo: TAnyDeploymentAction | undefined): any { // TODO Type on output data here, depends on exported types from UI API
 
   if(!deploymentInfo){
     return undefined
@@ -29,7 +26,7 @@ export function mapUntypedDeploymentData(deploymentInfo: TDockerDeploymentAction
     return mappedHerdSpec
   }
 
-  const mappedDeploymentInfo: THerdMetadata & TImageMetadata = {
+  const mappedDeploymentInfo:  any = {
     ...deploymentInfo.metadata,
     deploymentState: deploymentInfo.state,
     herdSpec: mapHerdSpec(deploymentInfo.herdSpec as THerdSpec),
@@ -41,7 +38,11 @@ export function mapUntypedDeploymentData(deploymentInfo: TDockerDeploymentAction
 
   mappedDeploymentInfo.deploymentState.timestamp =
     mappedDeploymentInfo.deploymentState.timestamp && new Date(mappedDeploymentInfo.deploymentState.timestamp)
-  mappedDeploymentInfo.buildDate = deploymentInfo.metadata.buildDate && new Date(deploymentInfo.metadata.buildDate)
+  if(!deploymentInfo.metadata.buildDate){
+    console.warn('WARNING: Using temporary hack to set buildDate at mapping/deployment time! HerdKey:' + mappedDeploymentInfo.herdSpec.key)
+    deploymentInfo.metadata.buildDate = new Date().toISOString() // TODO Remove once filesystem buildtime is in place, this provides backwards compatibility for UI upload until then.
+  }
+  mappedDeploymentInfo.buildDate = new Date(deploymentInfo.metadata.buildDate)
 
   const typedInfo = mappedDeploymentInfo as THerdK8sMetadata
 

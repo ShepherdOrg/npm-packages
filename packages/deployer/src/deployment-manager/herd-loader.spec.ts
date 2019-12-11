@@ -189,7 +189,7 @@ describe("herd.yaml loading", function() {
         displayName: "monitors-namespace.yml",
         semanticVersion: "0",
         deploymentType: "k8s",
-        buildDate: new Date(0), // Might make sense to extract change timestamp on file from filesystem or git
+        buildDate: new Date(0).toISOString(), // Might make sense to extract change timestamp on file from filesystem or git
         hyperlinks: [],
       }
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].metadata).to.deep.equal(expectedMetadata)

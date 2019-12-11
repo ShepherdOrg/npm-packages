@@ -9,10 +9,9 @@ import {
   TFolderDeploymentPlan,
   TFolderHerdSpec,
   THerdFolderMap,
-  TDockerDeploymentAction,
   TImageMap,
   TInfrastructureImageMap,
-  TK8sDockerImageDeploymentAction,
+  TAnyDeploymentAction
 } from "./deployment-types"
 import { getShepherdMetadata } from "./add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
@@ -43,6 +42,7 @@ type THerdLoaderDependencies = {
     getDockerRegistryClientsFromConfig: typeof getDockerRegistryClientsFromConfig
   }
 }
+
 
 export function HerdLoader(injected: THerdLoaderDependencies) {
   const ReleasePlan = injected.ReleasePlan
@@ -161,7 +161,7 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
                           displayName: deploymentPlan.fileName,
                           semanticVersion: "0",
                           deploymentType: TDeploymentType.Kubernetes,
-                          buildDate: new Date(0), // Might make sense to extract change timestamp on file from filesystem or git
+                          buildDate: new Date(0).toISOString(), // Might make sense to extract change timestamp on file from filesystem or git
                           hyperlinks: [],
                         }
                         return releasePlan.addDeployment(deploymentPlan)
@@ -185,14 +185,14 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
                   if (!herdSpec.image && herdSpec.dockerImage) {
                     splitDockerImageTag(herdSpec)
                   }
-                  let promise: Promise<Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>> = loadImageMetadata(herdSpec)
+                  let promise: Promise<Array<TAnyDeploymentAction>> = loadImageMetadata(herdSpec)
                     .then(getShepherdMetadata)
                     .then(addMigrationImageToDependenciesPlan)/// This is pretty ugly, adding to external structure sideffect
                     .then(calculateDeploymentPlan)
-                    .then(function(imageDeploymentActions: Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>) {
+                    .then(function(imageDeploymentActions: Array<TAnyDeploymentAction>) {
                       return Bluebird.each(imageDeploymentActions, releasePlan.addDeployment)
                     })
-                    .then(function(imgPlans: Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>) {
+                    .then(function(imgPlans: Array<TAnyDeploymentAction>) {
                       return imgPlans
                     })
                     .catch(function(e) {

@@ -1,4 +1,7 @@
-import { ILog, TDockerDeploymentAction, TK8sDockerImageDeploymentAction } from "./deployment-types"
+import {
+  ILog,
+  TAnyDeploymentAction
+} from "./deployment-types"
 import { calculateKubectlActions } from "./kubectl-deployer/create-image-based-kubectl-deployment-action"
 import { calculateDeployerAction } from "./docker-deployer/docker-deployment-action"
 
@@ -11,7 +14,7 @@ export function createImageDeploymentPlanner(injected:TImageDeploymentPlannerDep
   const kubeSupportedExtensions = injected.kubeSupportedExtensions
   const logger = injected.logger
 
-  async function calculateDeploymentActions(imageInformation): Promise<Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction >>  {
+  async function calculateDeploymentActions(imageInformation): Promise<Array<TAnyDeploymentAction >>  {
     if (imageInformation.shepherdMetadata) {
 
       if (imageInformation.shepherdMetadata.deploymentType === "deployer") {

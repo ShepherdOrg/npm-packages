@@ -1,6 +1,10 @@
 import { expect } from "chai"
 import { ReleasePlanModule, TReleasePlan } from "./release-plan"
-import { ILog, TDockerDeploymentAction, TK8sDockerImageDeploymentAction } from "./deployment-types"
+import {
+  ILog, TAnyDeploymentAction,
+  TK8sDirDeploymentAction,
+  TK8sDockerImageDeploymentAction,
+} from "./deployment-types"
 import { executeDeploymentAction } from "./kubectl-deployer/create-kubectl-deployment-action"
 
 const FakeExec = require("../test-tools/fake-exec")
@@ -299,7 +303,7 @@ describe("Release plan", function() {
     })
 
     describe("modified, delete deployment and kubectl responds with not found", function() {
-      let saveError, executedAction
+      let saveError:Error, executedAction: TK8sDirDeploymentAction
 
       beforeEach(function() {
         fakeExec.nextResponse.err = "not found"
@@ -309,7 +313,7 @@ describe("Release plan", function() {
             return releasePlan
               .executePlan()
               .then(function(executionResults) {
-                executedAction = executionResults[0]
+                executedAction = executionResults[0] as TK8sDirDeploymentAction
               })
               .catch(function(err) {
                 saveError = err
@@ -325,15 +329,15 @@ describe("Release plan", function() {
       })
 
       it("should save call log with state", function() {
-        expect(executedAction.state.stdout).to.equal(undefined)
-        expect(executedAction.state.stderr).to.equal("not found")
+        expect(executedAction?.state?.stdout).to.equal(undefined)
+        expect(executedAction?.state?.stderr).to.equal("not found")
       })
     })
   })
 
   describe("- docker deployer -", function() {
     describe("basic state checking", function() {
-      let deploymentState : TDockerDeploymentAction | TK8sDockerImageDeploymentAction
+      let deploymentState : TAnyDeploymentAction
 
       beforeEach(function() {
         return releasePlan.addDeployment(dockerDeployers["testenvimage-migrations:0.0.0"]).then(function(ds) {

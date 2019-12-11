@@ -4,13 +4,12 @@ import { emptyArray } from "../helpers/ts-functions"
 import { extendedExec, writeFile } from "../promisified"
 import {
   ILog,
-  TActionExecutionOptions,
+  TActionExecutionOptions, TAnyDeploymentAction,
   TDeploymentPlan,
   TDockerDeploymentAction,
   TK8sDeploymentPlan,
   TK8sDirDeploymentAction,
   TK8sDockerImageDeploymentAction,
-  TKubectlDeployAction,
   TReleasePlanDependencies,
 } from "./deployment-types"
 import { mapUntypedDeploymentData } from "../map-untyped-deployment-data"
@@ -31,10 +30,10 @@ type TK8sDeploymentActionMap = { [key: string]: any }
 type TDockerDeploymentPlan = { [key: string]: any }
 
 export interface TReleasePlan {
-  executePlan: (runOptions?: TActionExecutionOptions) => Promise<Array<(TDockerDeploymentAction | TKubectlDeployAction | undefined)>>
+  executePlan: (runOptions?: TActionExecutionOptions) => Promise<Array<(TAnyDeploymentAction | undefined)>>
   printPlan: (logger: ILog) => void
   exportDeploymentDocuments: (exportDirectory: TFileSystemPath) => Promise<unknown>
-  addDeployment:(deploymentAction: (TDockerDeploymentAction | TK8sDockerImageDeploymentAction))=> Promise<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>
+  addDeployment:(deploymentAction: (TAnyDeploymentAction))=> Promise<TAnyDeploymentAction>
 }
 
 
@@ -95,8 +94,8 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
     }
 
     async function addToPlanAndGetDeploymentStateFromStore(
-      deploymentAction: TDockerDeploymentAction | TK8sDockerImageDeploymentAction,
-    ): Promise<TDockerDeploymentAction | TK8sDockerImageDeploymentAction> {
+      deploymentAction: TAnyDeploymentAction,
+    ): Promise<TAnyDeploymentAction> {
       if (!deploymentAction.type) {
         let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deploymentAction)
         throw new Error(message)
@@ -116,9 +115,9 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       return deploymentAction
     }
 
-    function K8sDeploymentPromises(deploymentOptions: TActionExecutionOptions): Array<Promise<TKubectlDeployAction>> {
+    function K8sDeploymentPromises(deploymentOptions: TActionExecutionOptions): Array<Promise<TK8sDockerImageDeploymentAction | TK8sDirDeploymentAction>> {
       return Object.values(k8sDeploymentActions).flatMap((k8sContainerDeployment: TDeploymentPlan) => {
-        return k8sContainerDeployment.deployments.map(async (k8sDeploymentAction: TKubectlDeployAction) => {
+        return k8sContainerDeployment.deployments.map(async (k8sDeploymentAction: TK8sDockerImageDeploymentAction | TK8sDirDeploymentAction) => { //TODO: Revisit typing of this once action is separated from deployment
           await k8sDeploymentAction.execute(deploymentOptions, cmd, logger, saveDeploymentState)
           return k8sDeploymentAction
         })
@@ -178,7 +177,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       })
     }
 
-    async function mapDeploymentDataAndPush(deploymentData: TDockerDeploymentAction | TK8sDockerImageDeploymentAction | undefined) {
+    async function mapDeploymentDataAndPush(deploymentData: TAnyDeploymentAction | undefined) {
       if (!deploymentData) {
         return deploymentData
       } else {
@@ -189,7 +188,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
     }
 
     function mapDeploymentDataAndWriteTo(dryrunOutputDir: TFileSystemPath) {
-      return async (deploymentData: TDockerDeploymentAction | TK8sDockerImageDeploymentAction | undefined) => {
+      return async (deploymentData: TAnyDeploymentAction | undefined) => {
         if (!deploymentData) {
           return deploymentData
         } else {
@@ -210,7 +209,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
       },
     ) {
       // let i = 0
-      let deploymentPromises: Array<Promise<TDockerDeploymentAction | TKubectlDeployAction | undefined>> = K8sDeploymentPromises(runOptions)
+      let deploymentPromises: Array<Promise<TAnyDeploymentAction | undefined>> = K8sDeploymentPromises(runOptions)
 
       let deployerPromises = DeployerPromises(runOptions)
       let allPromises = deploymentPromises.concat(deployerPromises)
@@ -329,7 +328,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
     }
 
     let myplan = {
-      async addDeployment(deploymentAction: TDockerDeploymentAction | TK8sDockerImageDeploymentAction) {
+      async addDeployment(deploymentAction: TAnyDeploymentAction) {
         deploymentAction.env = forEnv
         return await addToPlanAndGetDeploymentStateFromStore(deploymentAction)
       },

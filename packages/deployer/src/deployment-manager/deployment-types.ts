@@ -1,6 +1,7 @@
 import { TDeployerMetadata, TDeploymentState, TImageMetadata, TK8sMetadata } from "@shepherdorg/metadata"
 import { TDescriptorsByKind } from "./kubectl-deployer/k8s-deployment-document-identifier"
-import { TFileSystemPath } from "../basic-types"
+import { TFileSystemPath, TISODateString } from "../basic-types"
+import { TDeploymentType, THref } from "@shepherdorg/metadata"
 
 export type ILog = {
   info: typeof console.info,
@@ -58,6 +59,11 @@ export type THerdFolderMap = {
 
 interface TFolderMetadata {
   //TODO This will need git information from directory containing configuration
+  buildDate: TISODateString
+  displayName: string
+  semanticVersion: string,
+  deploymentType: TDeploymentType,
+  hyperlinks: Array<THref>,
 }
 
 export interface TFolderDeploymentPlan {
@@ -79,6 +85,7 @@ export interface TBaseDeploymentAction {
   state?: TDeploymentState // State on action or deployment? StateDependentAction, StateMutatingAction (as opposed to wait actions). Model this differently?
   identifier: string
   env: string
+  type: string
 }
 
 export interface TDockerDeploymentAction extends TBaseDeploymentAction{
@@ -94,7 +101,6 @@ export interface TDockerDeploymentAction extends TBaseDeploymentAction{
   imageWithoutTag?: string;
   operation: string;
   origin: string;
-  type: string;
 }
 
 
@@ -120,14 +126,16 @@ export interface TK8sDockerImageDeploymentAction extends TKubectlDeployAction, T
   herdSpec: TDockerImageHerdSpec
   metadata: TK8sMetadata
   version: string,
-  type: string,
   fileName: string,
 }
 
 
+export type TAnyDeploymentAction = TDockerDeploymentAction | TK8sDockerImageDeploymentAction | TK8sDirDeploymentAction
+
+
 export type TDeploymentPlan = {
   herdKey: string,
-  deployments: Array<TDockerDeploymentAction | TKubectlDeployAction> // TODO Rename to deployment actions
+  deployments: Array<TAnyDeploymentAction> // TODO Rename to deployment actions
 }
 
 export type TK8sDeploymentPlan = [string, any]
