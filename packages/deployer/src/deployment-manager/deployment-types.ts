@@ -1,7 +1,13 @@
-import { TDeployerMetadata, TDeploymentState, TImageMetadata, TK8sMetadata } from "@shepherdorg/metadata"
+import {
+  TDeployerMetadata,
+  TDeploymentState,
+  TDeploymentType,
+  THref,
+  TImageMetadata,
+  TK8sMetadata,
+} from "@shepherdorg/metadata"
 import { TDescriptorsByKind } from "./kubectl-deployer/k8s-deployment-document-identifier"
 import { TFileSystemPath, TISODateString } from "../basic-types"
-import { TDeploymentType, THref } from "@shepherdorg/metadata"
 
 export type ILog = {
   info: typeof console.info,
@@ -159,3 +165,4 @@ export type TReleasePlanDependencies = {
   uiDataPusher: any
 }
 
+export type FnDeploymentStateSave = () => {}

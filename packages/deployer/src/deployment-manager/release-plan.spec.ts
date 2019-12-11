@@ -1,11 +1,16 @@
 import { expect } from "chai"
 import { ReleasePlanModule, TReleasePlan } from "./release-plan"
 import {
-  ILog, TAnyDeploymentAction,
+  FnDeploymentStateSave,
+  ILog,
+  TActionExecutionOptions,
+  TAnyDeploymentAction,
   TK8sDirDeploymentAction,
   TK8sDockerImageDeploymentAction,
 } from "./deployment-types"
 import { executeDeploymentAction } from "./kubectl-deployer/create-kubectl-deployment-action"
+import { TDeploymentState } from "@shepherdorg/metadata"
+import { emptyArray } from "../helpers/ts-functions"
 
 const FakeExec = require("../test-tools/fake-exec")
 const FakeLogger = require("../test-tools/fake-logger")
@@ -17,7 +22,7 @@ export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentAction
 ): TK8sDockerImageDeploymentAction {
   let me = {
-    execute(deploymentOptions, cmd, logger, saveDeploymentState) {
+    execute(deploymentOptions:TActionExecutionOptions, cmd:string, logger:ILog, saveDeploymentState: FnDeploymentStateSave) {
       return executeDeploymentAction(me, deploymentOptions, cmd, logger, saveDeploymentState)
     },
     testInstance: true,
@@ -30,18 +35,18 @@ type TExec = any
 
 describe("Release plan", function() {
   let releasePlan: TReleasePlan
-  let checkedStates: any
+  let checkedStates: Array<any>
   let fakeStateStore : any
   let fakeExec : TExec
   let fakeLogger: ILog & {logStatements:Array<{data:string[]}>}
   let fakeUiDataPusher: any
 
   beforeEach(function() {
-    checkedStates = []
+    checkedStates = emptyArray<any>()
     fakeUiDataPusher = {
-      pushedData: [],
-      pushDeploymentStateToUI: async data => {
-        fakeUiDataPusher.pushedData.push(data)
+      pushedData: emptyArray<any>(),
+      pushDeploymentStateToUI: async (data:any) => { // TODO Eliminate this any once we have proper type on datastructure pushed to UI
+       fakeUiDataPusher.pushedData.push(data)
         return data
       },
     }
@@ -49,8 +54,8 @@ describe("Release plan", function() {
       fixedTimestamp: "1999-01-10T00:00:00.000Z",
       nextState: {},
       savedStates: [],
-      getDeploymentState: function(deployment) {
-        checkedStates.push(JSON.parse(JSON.stringify(deployment)))
+      getDeploymentState: function(deploymentAction: TAnyDeploymentAction) {
+        checkedStates.push(JSON.parse(JSON.stringify(deploymentAction)))
         let value = {
           testState: true,
           new: true,
@@ -59,14 +64,14 @@ describe("Release plan", function() {
           version: "0.0.0",
           lastVersion: undefined,
           signature: "fakesignature",
-          origin: deployment.origin,
+          origin: deploymentAction.origin,
           env: "UNITTEST",
           timestamp: fakeStateStore.fixedTimestamp,
           ...fakeStateStore.nextState,
         }
         return Promise.resolve(value)
       },
-      saveDeploymentState: function(deploymentState) {
+      saveDeploymentState: function(deploymentState: TDeploymentState) {
         return new Promise(function(resolve, reject) {
           if (fakeStateStore.nextState.saveFailure) {
             reject(new Error(fakeStateStore.nextState.message))
@@ -274,7 +279,7 @@ describe("Release plan", function() {
     })
 
     describe("modified, fail to save state", function() {
-      let saveError
+      let saveError: Error
 
       beforeEach(function() {
         fakeStateStore.nextState = {
@@ -296,8 +301,8 @@ describe("Release plan", function() {
       })
 
       it("should propagate error to caller", function() {
-        expect(saveError).to.equal(
-          "Failed to save state after successful deployment! testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls\nError: State store failure!"
+        expect(saveError.message).to.equal(
+          "Failed to save state after successful kubectl deployment! testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls\nError: State store failure!"
         )
       })
     })

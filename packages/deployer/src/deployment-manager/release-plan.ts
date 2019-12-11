@@ -153,12 +153,12 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
                     deployment.state = state
                     return deployment
                   } catch (err) {
-                    throw "Failed to save state after successful deployment! " +
+                    throw new Error("Failed to save state after successful deployment! " +
                     deployment.origin +
                     "/" +
                     deployment.identifier +
                     "\n" +
-                    err
+                    err)
                   }
                 } catch (e) {
                   console.error("Error running docker run" + JSON.stringify(deployment))

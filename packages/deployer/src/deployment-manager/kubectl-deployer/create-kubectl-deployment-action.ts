@@ -61,7 +61,7 @@ export async function executeDeploymentAction(thisIsMe: TKubectlDeployAction, ac
 
           return thisIsMe
         } catch (err) {
-          throw "Failed to save state after successful deployment! " +
+          throw "Failed to save state after successful kubectl deployment! " +
           thisIsMe.origin +
           "/" +
           thisIsMe.identifier +
@@ -69,7 +69,7 @@ export async function executeDeploymentAction(thisIsMe: TKubectlDeployAction, ac
           err
         }
       } catch (error) {
-        if (typeof error === "string") throw error
+        if (typeof error === "string") throw new Error(error)
         const { errCode, stdOut, message: err } = error
         if (thisIsMe.operation === "delete") {
           logger.info(
@@ -96,19 +96,19 @@ export async function executeDeploymentAction(thisIsMe: TKubectlDeployAction, ac
             thisIsMe.state = state
             return thisIsMe
           } catch (err) {
-            throw "Failed to save state after error in deleting deployment! " +
+            throw new Error("Failed to save state after error in deleting deployment! " +
             thisIsMe.origin +
             "/" +
             thisIsMe.identifier +
             "\n" +
-            err
+            err)
           }
         } else {
-          let message = "Failed to deploy from label for image " + JSON.stringify(thisIsMe)
+          let message = `Failed to perform ${thisIsMe.operation} from label for image ${JSON.stringify(thisIsMe)}`
           message += "\n" + err
           message += "\nCode:" + errCode
           message += "\nStdOut:" + stdOut
-          throw message
+          throw new Error(message)
         }
       }
     }
