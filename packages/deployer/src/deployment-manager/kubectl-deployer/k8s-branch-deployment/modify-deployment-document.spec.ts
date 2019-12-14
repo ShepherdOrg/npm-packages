@@ -1,12 +1,13 @@
-const JsDiff = require("diff")
+import * as JsDiff from "diff"
 import * as fs from "fs"
 import { modifyDeploymentDocument } from "./modify-deployment-document"
+import { Change } from "diff"
 
 const expect = require("expect.js")
 const CreateUpstreamTriggerDeploymentConfig = require('../../create-upstream-trigger-deployment-config').CreateUpstreamTriggerDeploymentConfig
 
-function containsDifference(diffArray) {
-  for (let diffObj of diffArray) {
+function containsDifference(differences:Change[]) {
+  for (let diffObj of differences) {
     if (diffObj.removed || diffObj.added) {
       return true
     }
@@ -14,7 +15,7 @@ function containsDifference(diffArray) {
   return false
 }
 
-function renderDifferences(diffArray) {
+function renderDifferences(diffArray:Change[]) {
   let result = ""
   for (let diffObj of diffArray) {
     if (diffObj.added) {
@@ -27,21 +28,21 @@ function renderDifferences(diffArray) {
   return result
 }
 
-function compareActualVsExpected(expectedFileName, actualFileName) {
+function compareActualVsExpected(expectedFileName:string, actualFileName: string) {
   let expectedFileContents = fs.readFileSync(expectedFileName, "utf-8")
   let actualFileContents = fs.readFileSync(actualFileName, "utf-8")
-  let difference = JsDiff.diffTrimmedLines(
+  let differences = JsDiff.diffTrimmedLines(
     expectedFileContents.trim(),
     actualFileContents.trim()
   )
-  if (containsDifference(difference)) {
+  if (containsDifference(differences)) {
     expect().fail(
       "Expected file " +
         expectedFileName +
         " differs from actual file " +
         actualFileName +
         "\n" +
-        renderDifferences(difference)
+        renderDifferences(differences)
     )
   }
 }

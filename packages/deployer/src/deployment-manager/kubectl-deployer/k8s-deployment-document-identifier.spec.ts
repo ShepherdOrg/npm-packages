@@ -1,11 +1,11 @@
 import * as fs from "fs"
 import { expect } from "chai"
-import { identifyDocument } from "./k8s-deployment-document-identifier"
+import { identifyDocument, TDescriptorsByKind } from "./k8s-deployment-document-identifier"
 
 describe("k8s deployment document identifier", function() {
 
-  let descriptorsInDoc
-  let fileIdentity
+  let descriptorsInDoc: TDescriptorsByKind
+  let fileIdentity: string
 
   before(()=>{
     let rawYamlDoc = fs.readFileSync(

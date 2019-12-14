@@ -1,17 +1,19 @@
 import * as path from "path"
 
-const yamlLoad = require('./multipart-yaml-load');
+import yaml = require("js-yaml")
 
-type TStringMap = {
+export type TStringMap = {
   [key:string]:string
 }
+
+export type TDocumentKindNameChangeMaps = { [documentKind: string]: TStringMap }
 
 export interface TBranchModificationParams {
   shouldModify: boolean
   origin?: string
   branchName?: string
   ttlHours?: number
-  nameChangeIndex?: TStringMap
+  nameChangeIndex?: TDocumentKindNameChangeMaps
 }
 
 
@@ -26,7 +28,7 @@ export function indexNameReferenceChange (deploymentDescriptor, branchModificati
     deploymentDescriptor.metadata.name + "-" + branchModificationParams.branchName
 }
 
-export function addResourceNameChangeIndex(plan, kubeSupportedExtensions, branchModificationParams) {
+export function addResourceNameChangeIndex(plan, kubeSupportedExtensions:string[], branchModificationParams:TBranchModificationParams) {
   branchModificationParams.nameChangeIndex = branchModificationParams.nameChangeIndex || {}
   Object.entries(plan.files  as Array<any>).forEach(([fileName, deploymentFileContent]) => {
     let fileExtension = path.extname(fileName)
@@ -39,7 +41,7 @@ export function addResourceNameChangeIndex(plan, kubeSupportedExtensions, branch
     }
 
     if (deploymentFileContent.content) {
-      let parsedMultiContent = yamlLoad(deploymentFileContent.content)
+      let parsedMultiContent = yaml.safeLoadAll(deploymentFileContent.content)
       parsedMultiContent.forEach(function(parsedContent) {
         if (parsedContent) {
           indexNameReferenceChange(parsedContent, branchModificationParams)
@@ -47,7 +49,6 @@ export function addResourceNameChangeIndex(plan, kubeSupportedExtensions, branch
           console.warn("Parsed content is NULL!!!", deploymentFileContent.content)
         }
       })
-
     }
   })
   return branchModificationParams

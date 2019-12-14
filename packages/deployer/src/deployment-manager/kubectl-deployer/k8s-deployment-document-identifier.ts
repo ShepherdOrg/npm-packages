@@ -1,39 +1,42 @@
+import { TK8sPartialDescriptor } from "./k8s-document-types"
+
 const YAML = require("js-yaml")
 
-
 export type TDescriptorsByKind = {
-  [key: string] : any
+  [key: string] : Array<TK8sPartialDescriptor>
 }
 
-export function identifyDocument(deploymentDocument):{identifyingString:string, descriptorsByKind:TDescriptorsByKind} {
+export function identifyDocument(deploymentDocument:string):{identifyingString:string, descriptorsByKind:TDescriptorsByKind} {
   try {
     let descriptorsByKind:TDescriptorsByKind = {}
 
-    let identifyingString:string=""
+    let documentKind:string=""
 
-    YAML.safeLoadAll(deploymentDocument, (documentPart)=>{
+    YAML.safeLoadAll(deploymentDocument, (documentPart:TK8sPartialDescriptor)=>{
       if(!documentPart){
+
         return
       }
-      if(!identifyingString){
-        identifyingString = documentPart.kind
+      let documentPartKind:string = documentPart.kind
+      if(!documentKind){
+        documentKind = documentPartKind
         if (documentPart.metadata) {
-          identifyingString += "_" + documentPart.metadata.name
+          documentKind += "_" + documentPart.metadata.name
 
           if (
             documentPart.metadata.namespace &&
             documentPart.metadata.namespace !== "default"
           ) {
-            identifyingString =
-              documentPart.metadata.namespace + "_" + identifyingString
+            documentKind =
+              documentPart.metadata.namespace + "_" + documentKind
           }
         }
       }
-      descriptorsByKind[documentPart.kind] = descriptorsByKind[documentPart.kind] || []
-      descriptorsByKind[documentPart.kind].push( documentPart)
+      descriptorsByKind[documentPartKind] = descriptorsByKind[documentPartKind] || []
+      descriptorsByKind[documentPartKind].push( documentPart)
     })
 
-    return {identifyingString, descriptorsByKind }
+    return {identifyingString: documentKind, descriptorsByKind }
   } catch (e) {
     console.error(deploymentDocument)
     console.error("Error classifying deployment document (see above).", e)

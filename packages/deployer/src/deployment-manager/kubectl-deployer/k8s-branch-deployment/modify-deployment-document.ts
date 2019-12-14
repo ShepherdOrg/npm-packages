@@ -1,12 +1,12 @@
-import { TBranchModificationParams } from "./create-name-change-index"
+import { TBranchModificationParams, TDocumentKindNameChangeMaps } from "./create-name-change-index"
 
-const JSYAML = require("js-yaml")
-const YAMLload = require("./multipart-yaml-load")
+import * as jsYaml from "js-yaml"
+import { TK8sHttpPath, TK8sIngressDoc, TK8sPartialContainer, TK8sPartialDescriptor } from "../k8s-document-types"
+
 const { indexNameReferenceChange } = require("./create-name-change-index")
 
-export function modifyDeploymentDocument(fileContents, branchModificationParams: TBranchModificationParams) {
 
-
+export function modifyDeploymentDocument(fileContents:string, branchModificationParams: TBranchModificationParams) {
   let cleanedName = branchModificationParams.branchName?.replace(/\//g, "-").toLowerCase()
 
   if (!Boolean(cleanedName)) {
@@ -15,7 +15,7 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
 
   let needToIndexChanges = Boolean(!branchModificationParams?.nameChangeIndex)
 
-  function addTimeToLive(deploymentDoc) {
+  function addTimeToLive(deploymentDoc:TK8sPartialDescriptor) {
     if (!deploymentDoc.metadata) {
       deploymentDoc.metadata = {}
     }
@@ -28,7 +28,7 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
     deploymentDoc.metadata.labels["ttl-hours"] = `${branchModificationParams.ttlHours}`
   }
 
-  function adjustEnvironment(container) {
+  function adjustEnvironment(container:TK8sPartialContainer) {
     if (container.env && container.env) {
       for (let env of container.env) {
         if (
@@ -39,14 +39,14 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
           branchModificationParams.nameChangeIndex["Secret"] &&
           branchModificationParams.nameChangeIndex["Secret"][env.valueFrom.secretKeyRef.name]
         ) {
-          env.valueFrom.secretKeyRef.name = branchModificationParams.nameChangeIndex["Secret"][env.valueFrom.secretKeyRef.name]
+          env.valueFrom.secretKeyRef.name =
+            branchModificationParams.nameChangeIndex["Secret"][env.valueFrom.secretKeyRef.name]
         }
       }
     }
   }
 
-
-  function adjustNames(deploymentSection) {
+  function adjustNames(deploymentSection: TK8sPartialDescriptor) {
     deploymentSection.name && (deploymentSection.name += "-" + cleanedName)
 
     if (deploymentSection.metadata) {
@@ -74,21 +74,23 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
         adjustNames(deploymentSection.spec.jobTemplate)
       }
 
-      let template = deploymentSection.spec.template
-      if (template) {
+      if (deploymentSection.spec.template) {
+        let template = deploymentSection.spec.template
         adjustNames(deploymentSection.spec.template)
 
         if (template.spec.volumes) {
           for (let volume of template.spec.volumes) {
+            let volumeConfigMapName: string | undefined = volume?.configMap?.name
+            let nameChangeIndex: TDocumentKindNameChangeMaps | undefined = branchModificationParams?.nameChangeIndex
+            let configMapNameChangeIndex = nameChangeIndex && nameChangeIndex["ConfigMap"]
             if (
-              volume.configMap &&
-              volume.configMap.name &&
+              volumeConfigMapName &&
               branchModificationParams &&
               branchModificationParams.nameChangeIndex &&
-              branchModificationParams.nameChangeIndex["ConfigMap"] &&
-              branchModificationParams.nameChangeIndex["ConfigMap"][volume.configMap.name]
+              configMapNameChangeIndex &&
+              Boolean(configMapNameChangeIndex[volumeConfigMapName])
             ) {
-              volume.configMap.name = branchModificationParams.nameChangeIndex["ConfigMap"][volume.configMap.name]
+              volume.configMap.name = configMapNameChangeIndex[volumeConfigMapName]
             }
           }
         }
@@ -113,22 +115,28 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
     }
   }
 
-
-  function adjustIngressSettings(deploymentDoc) {
+  function adjustIngressSettings(deploymentDoc: TK8sIngressDoc) {
     if (deploymentDoc.kind && deploymentDoc.kind === "Ingress" && deploymentDoc.spec) {
-      if ( deploymentDoc.metadata && deploymentDoc.metadata.annotations && deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"]) {
+      if (
+        deploymentDoc.metadata &&
+        deploymentDoc.metadata.annotations &&
+        deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"]
+      ) {
         deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"] = "false"
       }
-      if ( deploymentDoc?.spec?.rules[0]?.host) {
-        if (deploymentDoc.metadata && deploymentDoc.metadata.annotations && deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"]
-          && deploymentDoc?.spec?.rules[0]?.http?.paths[0]?.path
+      if (deploymentDoc?.spec?.rules[0]?.host) {
+        if (
+          deploymentDoc.metadata &&
+          deploymentDoc.metadata.annotations &&
+          deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"] &&
+          deploymentDoc?.spec?.rules[0]?.http?.paths[0]?.path
         ) {
           deploymentDoc.spec.rules[0].http.paths[0].path += `-${cleanedName}`
         } else {
           deploymentDoc.spec.rules[0].host = `${cleanedName}-${deploymentDoc.spec.rules[0].host}`
           const http = deploymentDoc.spec.rules[0].http
           if (http && http.paths) {
-            http.paths.forEach(path => {
+            http.paths.forEach((path: TK8sHttpPath) => {
               if (path && path.backend && path.backend.serviceName) {
                 path.backend.serviceName += `-${cleanedName}`
               }
@@ -139,13 +147,13 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
     }
   }
 
-  function setOneReplica(deploymentDoc) {
+  function setOneReplica(deploymentDoc: TK8sPartialDescriptor) {
     if (deploymentDoc.spec && deploymentDoc.spec.replicas) {
       deploymentDoc.spec.replicas = 1
     }
   }
 
-  let yamlFiles = YAMLload(fileContents)
+  let yamlFiles = jsYaml.safeLoadAll(fileContents)
 
   if (needToIndexChanges) {
     branchModificationParams.nameChangeIndex = {}
@@ -165,7 +173,7 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
     adjustIngressSettings(parsedDocument)
 
     try {
-      let yml = JSYAML.safeDump(parsedDocument)
+      let yml = jsYaml.safeDump(parsedDocument)
       if (outfiles.length > 0) {
         outfiles += "\n---\n"
       }
@@ -177,4 +185,3 @@ export function modifyDeploymentDocument(fileContents, branchModificationParams:
   }
   return outfiles
 }
-

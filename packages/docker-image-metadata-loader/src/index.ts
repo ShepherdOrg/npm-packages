@@ -1,3 +1,5 @@
+export * from "./registry-metadata-client"
+
 export {
   getDockerRegistryClientsFromConfig,
 } from "./docker-registry-clients-config"
