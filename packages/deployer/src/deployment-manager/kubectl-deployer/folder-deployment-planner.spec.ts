@@ -5,11 +5,19 @@ import { planFolderDeployment } from "./folder-deployment-planner"
 const Path = require("path")
 
 import Bluebird = require("bluebird")
+import { TFolderHerdSpec, TFolderMetadata, TK8sDirDeploymentAction } from "../deployment-types"
+import { TFileSystemPath } from "../../basic-types"
+import { TDeploymentType } from "@shepherdorg/metadata"
+
+type TTestPlan = {
+  addedK8sDeploymentActions: { [key:string]: TK8sDirDeploymentAction}
+  addDeployment: (deploymentAction: TK8sDirDeploymentAction)=>{}
+}
 
 describe("k8s deployment file directory structure release plan loader", function() {
-  let  scanDir
+  let  scanDir: (dir: (TFileSystemPath), herdSpec:TFolderHerdSpec) => Promise<Array<TK8sDirDeploymentAction>>
 
-  let plan = {
+  let plan: TTestPlan = {
     addedK8sDeploymentActions: {},
     async addDeployment(deployment) {
         plan.addedK8sDeploymentActions[deployment.identifier] = deployment
@@ -31,7 +39,7 @@ describe("k8s deployment file directory structure release plan loader", function
           debug: () => {},
         },
       }
-    )
+    ).scanDir
   })
 
   describe("successful load", function() {
@@ -48,7 +56,10 @@ describe("k8s deployment file directory structure release plan loader", function
         "../../testdata/deployment-dirs"
       )
 
-      return scanDir(deploymentDirsPath).then(function(plans) {
+      let fakeHerdSpec:TFolderHerdSpec = {
+        key: "spec", path: deploymentDirsPath
+      }
+      return scanDir(deploymentDirsPath, fakeHerdSpec).then(function(plans) {
         return Bluebird.each(plans, function(deploymentPlan) {
           plan.addDeployment(deploymentPlan)
         })
@@ -111,6 +122,13 @@ describe("k8s deployment file directory structure release plan loader", function
       )
     })
 
+    it("should have folder herdspec attached", () => {
+      expect(plan.addedK8sDeploymentActions["Namespace_monitors"].herdSpec.path).to.contain(
+        "deployment-dirs"
+      )
+    })
+
+
     it("should apply k8s deployment-time cluster policy", function() {
       expect(
         plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"]
@@ -137,5 +155,44 @@ describe("k8s deployment file directory structure release plan loader", function
           .operation
       ).to.equal("delete")
     })
+
+    describe("file deployment metadata", function() {
+      let metadata: TFolderMetadata
+
+      before(()=>{
+        metadata = plan.addedK8sDeploymentActions["Namespace_monitors"].metadata
+      })
+
+      it("should use file modification timestamp as build timestamp", () => {
+
+        expect(metadata.buildDate).to.contain(
+          "2019-02-15"
+        )
+      })
+
+      it("should use file name as displayname", () => {
+        expect(metadata.displayName).to.contain(
+          "monitors-namespace.yml"
+        )
+      })
+
+      it("should contain relative path to file", () => {
+        expect(metadata.path).to.equal('namespaces/monitors-namespace.yml')
+      })
+
+      it("should have no semanticVersion", () => {
+        expect(metadata.semanticVersion).to.equal('none')
+      })
+
+      it("should have k8s deployment type", () => {
+        expect(metadata.deploymentType).to.equal(TDeploymentType.Kubernetes)
+      })
+
+      it("should not have any hyperlinks", () => {
+        expect(metadata.hyperlinks.length).to.equal(0)
+      })
+
+    })
+
   })
 })

@@ -1,9 +1,13 @@
 import * as path from "path"
 
 import yaml = require("js-yaml")
+import { newProgrammerOops } from "oops-error"
+import { TExtensionsMap } from "../kube-supported-extensions"
+import { TK8sPartialDescriptor } from "../k8s-document-types"
+import { TK8sDeploymentPlan2 } from "../../deployment-types"
 
 export type TStringMap = {
-  [key:string]:string
+  [key: string]: string
 }
 
 export type TDocumentKindNameChangeMaps = { [documentKind: string]: TStringMap }
@@ -16,40 +20,50 @@ export interface TBranchModificationParams {
   nameChangeIndex?: TDocumentKindNameChangeMaps
 }
 
-
-export function indexNameReferenceChange (deploymentDescriptor, branchModificationParams) {
+export function indexNameReferenceChange(
+  deploymentDescriptor: TK8sPartialDescriptor,
+  branchModificationParams: TBranchModificationParams
+) {
   let nameChangeIndex = branchModificationParams.nameChangeIndex || {}
   if (!deploymentDescriptor.metadata) {
     console.warn("deploymentDescriptor without metadata!", deploymentDescriptor)
     return
   }
   nameChangeIndex[deploymentDescriptor.kind] = nameChangeIndex[deploymentDescriptor.kind] || {}
-  nameChangeIndex[deploymentDescriptor.kind][deploymentDescriptor.metadata.name] =
-    deploymentDescriptor.metadata.name + "-" + branchModificationParams.branchName
+  let name = deploymentDescriptor.metadata.name || "unknown"
+  nameChangeIndex[deploymentDescriptor.kind][name] = name + "-" + branchModificationParams.branchName
 }
 
-export function addResourceNameChangeIndex(plan, kubeSupportedExtensions:string[], branchModificationParams:TBranchModificationParams) {
+export function addResourceNameChangeIndex(
+  plan: TK8sDeploymentPlan2,
+  kubeSupportedExtensions: TExtensionsMap,
+  branchModificationParams: TBranchModificationParams
+) {
   branchModificationParams.nameChangeIndex = branchModificationParams.nameChangeIndex || {}
-  Object.entries(plan.files  as Array<any>).forEach(([fileName, deploymentFileContent]) => {
-    let fileExtension = path.extname(fileName)
-    if (!fileExtension) {
-      return
-    }
-    if (!kubeSupportedExtensions[fileExtension]) {
-      console.debug(`Unsupported extension ${fileExtension} on file ${fileName}`)
-      return
-    }
+  if (plan.files) {
+    Object.entries(plan.files).forEach(([fileName, deploymentFileContent]) => {
+      let fileExtension: string = path.extname(fileName)
+      if (!fileExtension) {
+        return
+      }
+      if (!kubeSupportedExtensions[fileExtension]) {
+        console.debug(`Unsupported extension ${fileExtension} on file ${fileName}`)
+        return
+      }
 
-    if (deploymentFileContent.content) {
-      let parsedMultiContent = yaml.safeLoadAll(deploymentFileContent.content)
-      parsedMultiContent.forEach(function(parsedContent) {
-        if (parsedContent) {
-          indexNameReferenceChange(parsedContent, branchModificationParams)
-        } else {
-          console.warn("Parsed content is NULL!!!", deploymentFileContent.content)
-        }
-      })
-    }
-  })
+      if (deploymentFileContent.content) {
+        let parsedMultiContent = yaml.safeLoadAll(deploymentFileContent.content)
+        parsedMultiContent.forEach(function(parsedContent) {
+          if (parsedContent) {
+            indexNameReferenceChange(parsedContent, branchModificationParams)
+          } else {
+            console.warn("Parsed content is NULL!!!", deploymentFileContent.content)
+          }
+        })
+      }
+    })
+  } else {
+    throw newProgrammerOops("plan.files no really optional here, in herd key " + plan.herdKey)
+  }
   return branchModificationParams
 }

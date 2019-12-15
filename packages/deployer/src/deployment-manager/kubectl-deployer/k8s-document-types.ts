@@ -22,6 +22,7 @@ export type TK8sPartialConfigmap = {
 }
 
 export type TK8sPartialSpec = {
+  loadBalancerSourceRanges: {}
   scaleTargetRef: {
     name: string
   }
@@ -48,6 +49,11 @@ type TK8sPartialMetadata = {
 }
 
 export type TK8sPartialDescriptor = {
+  resources: {
+    requests: {
+      cpu: string
+    }
+  }
   origin?: string
   app?: string
   name?: string

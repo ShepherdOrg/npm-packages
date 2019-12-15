@@ -4,17 +4,26 @@ import * as path from "path"
 
 import { options } from "../options"
 import { createKubectlDeployAction } from "./create-kubectl-deployment-action"
-import { TK8sDockerImageDeploymentAction } from "../deployment-types"
-import { TTarFolderStructure } from "@shepherdorg/metadata"
+import {
+  ILog,
+  TImageInformation,
+  TK8sDeploymentPlan2,
+  TK8sDockerImageDeploymentAction,
+} from "../deployment-types"
 import Bluebird = require("bluebird")
-import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
+import { TExtensionsMap } from "./kube-supported-extensions"
+import { TarFile } from "@shepherdorg/metadata"
+import { TFileSystemPath } from "../../basic-types"
+import { TK8sMetadata } from "@shepherdorg/metadata"
+
+// TODO: This file is badly covered in unit tests, especially branch deployments.
 
 async function createImageBasedFileDeploymentAction(
-  deploymentFileContent,
-  imageInformation,
-  fileName,
-  branchModificationParams,
-  logger,
+  deploymentFileContent: TarFile,
+  imageInformation: TImageInformation,
+  fileName: TFileSystemPath,
+  branchModificationParams:TBranchModificationParams,
+  logger:ILog,
   env: string
 ): Promise<TK8sDockerImageDeploymentAction> {
   let origin =
@@ -46,7 +55,7 @@ async function createImageBasedFileDeploymentAction(
   const newK8sAction: TK8sDockerImageDeploymentAction = Object.assign(documentDeploymentAction, {
     env: env,
     herdSpec: imageInformation.imageDefinition,
-    metadata: imageInformation.shepherdMetadata,
+    metadata: imageInformation.shepherdMetadata as TK8sMetadata,
     version: imageInformation.imageDefinition.imagetag,
     type: "k8s",
     fileName: fileName,
@@ -55,23 +64,15 @@ async function createImageBasedFileDeploymentAction(
   return newK8sAction
 }
 
-type TK8sDeploymentPlan2 = {
-  dockerLabels?: TDockerImageLabels
-  deployments?: {}
-  herdKey: string
-  displayName: string
-  files?: TTarFolderStructure
-}
-
 export function calculateKubectlActions(
-  imageInformation,
-  kubeSupportedExtensions,
-  logger
+  imageInformation:TImageInformation ,
+  kubeSupportedExtensions: TExtensionsMap,
+  logger:ILog
 ): Promise<Array<TK8sDockerImageDeploymentAction>> {
   const shepherdMetadata: any = imageInformation.shepherdMetadata
   const herdKey: string = imageInformation.imageDefinition.key
 
-  const displayName: string = imageInformation.shepherdMetadata.displayName
+  const displayName: string = imageInformation?.shepherdMetadata?.displayName || ''
 
   const plan: TK8sDeploymentPlan2 = {
     herdKey: herdKey,
@@ -80,7 +81,7 @@ export function calculateKubectlActions(
 
   plan.files = shepherdMetadata.kubeDeploymentFiles
   plan.deployments = {}
-  plan.dockerLabels = imageInformation.dockerLabels
+  // plan.dockerLabels = imageInformation.dockerLabels
 
   let deploymentActions = emptyArray<any>()
 
@@ -98,13 +99,13 @@ export function calculateKubectlActions(
     branchModificationParams.branchName =
       imageInformation.imageDefinition.branchName || imageInformation.imageDefinition.key
     branchModificationParams.origin =
-      imageInformation.imageDefinition.herdKey + "::" + branchModificationParams.branchName
+      imageInformation.imageDefinition.key + "::" + branchModificationParams.branchName
     branchModificationParams.shouldModify = true
 
     if (branchDeploymentEnabled) {
       if (!Boolean(branchModificationParams.ttlHours)) {
         throw new Error(
-          `${imageInformation.imageDefinition.herdKey}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`
+          `${imageInformation.imageDefinition.key}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`
         )
       }
       addResourceNameChangeIndex(plan, kubeSupportedExtensions, branchModificationParams)

@@ -1,7 +1,7 @@
 import { expect } from "chai"
 import { getShepherdMetadata } from "./add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
-import { ILog } from "./deployment-types"
+import { ILog, TDockerDeploymentAction, TK8sDockerImageDeploymentAction } from "./deployment-types"
 
 function createNewTestDeployerPlanner() {
   let fakeLogger = {
@@ -16,7 +16,7 @@ function createNewTestDeployerPlanner() {
         ".yaml": true,
         ".json": true,
       },
-      logger: fakeLogger as ILog
+      logger: fakeLogger as ILog,
     },
   ).calculateDeploymentActions
 }
@@ -25,7 +25,7 @@ function loadTestPlans(dockerDeployerMetadata) {
   return getShepherdMetadata(dockerDeployerMetadata).then(createNewTestDeployerPlanner())
 }
 
-function loadFirstTestPlan(dockerDeployerMetadata) {
+function loadFirstTestPlan(dockerDeployerMetadata ) {
   return loadTestPlans(dockerDeployerMetadata).then(plans => {
     // @ts-ignore
     return plans[0]
@@ -43,7 +43,7 @@ async function setEnv(envObj: TEnvObject) {
   return envObj
 }
 
-async function clearEnv(envObj) {
+async function clearEnv(envObj: typeof process.env) {
   Object.keys(envObj).forEach(key => {
     delete process.env[key]
   })
@@ -82,50 +82,50 @@ describe("Docker image plan loader", function() {
     }
 
     describe("with command specified", function() {
-      let firstPlan
+      let firstAction : TDockerDeploymentAction
       let testEnv = {
         EXPORT1: "export1",
         MICRO_SITES_DB_PASSWORD: "pass",
       }
 
       before(async function() {
-        firstPlan = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerDeployerMetadata ))
+        firstAction = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerDeployerMetadata)) as TDockerDeploymentAction
       })
 
       after(() => clearEnv(testEnv))
 
       it("should extract wanted environment variables from image metadata", function() {
-        expect(firstPlan).not.to.equal(undefined)
+        expect(firstAction).not.to.equal(undefined)
       })
 
       it("should have image", function() {
-        expect(firstPlan.dockerParameters).to.contain("testenvimage-migrations:0.0.0")
+        expect(firstAction.dockerParameters).to.contain("testenvimage-migrations:0.0.0")
       })
 
       it("should extract shepherd.deployer.command and use as plan command", function() {
-        expect(firstPlan.command).to.equal("ls")
+        expect(firstAction.command).to.equal("ls")
       })
 
       it("should add plan command as last parameter", function() {
-        expect(firstPlan.dockerParameters[firstPlan.dockerParameters.length - 1]).to.equal("ls")
+        expect(firstAction.dockerParameters[firstAction.dockerParameters.length - 1]).to.equal("ls")
       })
 
       it("should have herdKey", function() {
-        expect(firstPlan.herdKey).to.equal("testimage")
+        expect(firstAction.herdKey).to.equal("testimage")
       })
 
       it("should have metadata", () => {
-        expect(firstPlan.metadata).not.to.equal(undefined)
-        expect(firstPlan.metadata.displayName).to.equal("Testimage")
+        expect(firstAction.metadata).not.to.equal(undefined)
+        expect(firstAction.metadata.displayName).to.equal("Testimage")
       })
 
       it("should have herdspec", () => {
-        expect(firstPlan.herdSpec.key).to.equal("testimage")
+        expect(firstAction.herdSpec.key).to.equal("testimage")
       })
     })
 
     describe("no command specified", function() {
-      let firstPlan
+      let firstAction: TDockerDeploymentAction
 
       let dockerDeployerMetadata = {
         imageDefinition: {
@@ -154,13 +154,13 @@ describe("Docker image plan loader", function() {
       }
 
       before(async function() {
-        firstPlan = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerDeployerMetadata ))
+        firstAction = await setEnv(testEnv).then(async () => {return await loadFirstTestPlan(dockerDeployerMetadata) as TDockerDeploymentAction} )
       })
 
       after(() => clearEnv(testEnv))
 
       it("should use deploy as default command", function() {
-        expect(firstPlan.dockerParameters[firstPlan.dockerParameters.length - 1]).to.equal("deploy")
+        expect(firstAction.dockerParameters[firstAction.dockerParameters.length - 1]).to.equal("deploy")
       })
     })
 
@@ -194,10 +194,10 @@ describe("Docker image plan loader", function() {
       GLOBAL_MIGRATION_ENV_VARIABLE_ONE: "global_migration_env_value_one",
     }
 
-    let loadedPlan
+    let loadedPlan: TDockerDeploymentAction
 
     before(async () =>
-      setEnv(testEnv).then(async () => (loadedPlan = await loadFirstTestPlan(dockerDeployerMetadata))),
+      setEnv(testEnv).then(async () => (loadedPlan = await loadFirstTestPlan(dockerDeployerMetadata) as TDockerDeploymentAction )),
     )
     after(() => clearEnv(testEnv))
 
@@ -232,10 +232,10 @@ describe("Docker image plan loader", function() {
       },
     }
 
-    let firstPlan
+    let firstPlan: TDockerDeploymentAction
 
     before(async function() {
-      return (firstPlan = await loadFirstTestPlan(dockerImageMetadata))
+      return (firstPlan = await loadFirstTestPlan(dockerImageMetadata) as TDockerDeploymentAction)
     })
 
     it("should rewrite docker labels starting with is.icelandairlabs to labels starting with shepherd", () => {
@@ -267,7 +267,8 @@ describe("Docker image plan loader", function() {
     }
 
     describe("successful load", function() {
-      let loadedPlans, planNumberOne
+      let loadedPlans: Array<TK8sDockerImageDeploymentAction>
+      let planNumberOne: TK8sDockerImageDeploymentAction
       let testEnv = {
         EXPORT1: "na",
         SUB_DOMAIN_PREFIX: "na",
@@ -278,10 +279,10 @@ describe("Docker image plan loader", function() {
       before(async function() {
         return (planNumberOne = await setEnv(testEnv).then(() =>
           loadTestPlans(dockerImageMetadata).then(plans => {
-            loadedPlans = plans
+            loadedPlans = plans as Array<TK8sDockerImageDeploymentAction>
             // @ts-ignore
-            return plans[0]
-          }),
+            return plans[0] as TK8sDockerImageDeploymentAction
+          }) ,
         ))
       })
 
@@ -296,8 +297,8 @@ describe("Docker image plan loader", function() {
           return plan.identifier === "ConfigMap_www-icelandair-com-nginx-acls"
         })
 
-        expect(configMapPlan.descriptor).not.to.contain("WWW_ICELANDAIR_IP_WHITELIST")
-        expect(configMapPlan.descriptor).to.contain("bullshitlist")
+        expect(configMapPlan?.descriptor).not.to.contain("WWW_ICELANDAIR_IP_WHITELIST")
+        expect(configMapPlan?.descriptor).to.contain("bullshitlist")
       })
 
       it("should have loaded plan", function() {
@@ -326,7 +327,7 @@ describe("Docker image plan loader", function() {
     })
 
     describe("missing env variable", function() {
-      let loadError
+      let loadError: Error
       before(function() {
         delete process.env.EXPORT1
         return loadTestPlans(dockerImageMetadata)
@@ -382,7 +383,7 @@ describe("Docker image plan loader", function() {
     }
 
     describe("successful load", function() {
-      let planNumberOne
+      let planNumberOne: TK8sDockerImageDeploymentAction
       let testEnv = {
         EXPORT1: "na",
         SUB_DOMAIN_PREFIX: "na",
@@ -390,7 +391,7 @@ describe("Docker image plan loader", function() {
         WWW_ICELANDAIR_IP_WHITELIST: "YnVsbHNoaXRsaXN0Cg==",
       }
       before(async function() {
-        return (planNumberOne = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerImageMetadata)))
+        return (planNumberOne = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerImageMetadata) as Promise<TK8sDockerImageDeploymentAction>))
       })
 
       after(() => clearEnv(testEnv))
@@ -409,7 +410,7 @@ describe("Docker image plan loader", function() {
     })
 
     describe("missing env variable", function() {
-      let loadError
+      let loadError: Error
       before(async function() {
         delete process.env.EXPORT1
         return (loadError = await loadTestPlans(dockerImageMetadata).catch(function(error) {
@@ -435,7 +436,7 @@ describe("Docker image plan loader", function() {
     })
 
     describe("missing env variable for base64 decoding", function() {
-      let loadError
+      let loadError: Error
       before(async function() {
         process.env.EXPORT1 = "qwerty"
         process.env.SUB_DOMAIN_PREFIX = "qwerty"

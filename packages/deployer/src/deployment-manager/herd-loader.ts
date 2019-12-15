@@ -6,18 +6,16 @@ import { kubeSupportedExtensions } from "./kubectl-deployer/kube-supported-exten
 import {
   ILog,
   TDockerImageHerdSpec,
-  TFolderDeploymentPlan,
   TFolderHerdSpec,
   THerdFolderMap,
   TImageMap,
   TInfrastructureImageMap,
-  TAnyDeploymentAction
+  TAnyDeploymentAction, TK8sDirDeploymentAction,
 } from "./deployment-types"
 import { getShepherdMetadata } from "./add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { planFolderDeployment } from "./kubectl-deployer/folder-deployment-planner"
-import { TDeploymentType } from "@shepherdorg/metadata"
 
 const YAML = require("js-yaml")
 
@@ -57,7 +55,7 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
     },
   ).calculateDeploymentActions
 
-  const scanDir = planFolderDeployment(
+  const folderPlanner = planFolderDeployment(
     {
       kubeSupportedExtensions: {
         ".yml": true,
@@ -78,7 +76,7 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
 
     logger.info(`Scanning ${resolvedPath} for kubernetes deployment documents`)
 
-    return scanDir(resolvedPath)
+    return folderPlanner.scanDir(resolvedPath, herdFolder)
   }
 
   function loadImageMetadata(imageDef) {
@@ -149,22 +147,22 @@ export function HerdLoader(injected: THerdLoaderDependencies) {
             let loaders = {
               "folders": async function(folders: THerdFolderMap) : Promise<any> {
 
-                let result:Promise<TFolderDeploymentPlan[]>[] = Object.entries(folders).flatMap(function([herdFolderName, herdSpec]:[string, TFolderHerdSpec]) {
+                let result:Promise<TK8sDirDeploymentAction[]>[] = Object.entries(folders).flatMap(function([herdFolderName, herdSpec]:[string, TFolderHerdSpec]) {
                   herdSpec.key = herdFolderName
 
                   return calculateFoldersPlan(imagesPath, herdSpec)
-                    .then(function(plans:Promise<any>) {
-                      let allActionsInFolder = Bluebird.each(plans, function(deploymentPlan: TFolderDeploymentPlan) {
-                        deploymentPlan.herdKey = `${herdSpec.key} - ${deploymentPlan.origin}`
-                        deploymentPlan.herdSpec = herdSpec
-                        deploymentPlan.metadata = {
-                          displayName: deploymentPlan.fileName,
-                          semanticVersion: "0",
-                          deploymentType: TDeploymentType.Kubernetes,
-                          buildDate: new Date(0).toISOString(), // Might make sense to extract change timestamp on file from filesystem or git
-                          hyperlinks: [],
-                        }
-                        return releasePlan.addDeployment(deploymentPlan)
+                    .then(function(plans:TK8sDirDeploymentAction[]) {
+                      let allActionsInFolder = Bluebird.each(plans, function(tk8sDirDeploymentAction: TK8sDirDeploymentAction) {
+                        tk8sDirDeploymentAction.herdKey = `${herdSpec.key} - ${tk8sDirDeploymentAction.origin}`
+                        tk8sDirDeploymentAction.herdSpec = herdSpec
+                        // tk8sDirDeploymentAction.metadata = {
+                        //   displayName: 'BULLSHIT',
+                        //   semanticVersion: "0",
+                        //   deploymentType: TDeploymentType.Kubernetes,
+                        //   buildDate: new Date(0).toISOString(), // Might make sense to extract change timestamp on file from filesystem or git
+                        //   hyperlinks: [],
+                        // }
+                        return releasePlan.addDeployment(tk8sDirDeploymentAction)
                       })
                       return allActionsInFolder
                     })

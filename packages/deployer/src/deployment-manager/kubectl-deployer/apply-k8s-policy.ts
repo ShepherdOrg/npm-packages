@@ -1,4 +1,6 @@
 import yaml = require("js-yaml")
+import { ILog } from "../deployment-types"
+import { TK8sPartialDescriptor } from "./k8s-document-types"
 
 type TK8SClusterPolicy = {
   removePublicServiceIpRestrictions: boolean
@@ -24,7 +26,7 @@ function readPoliciesFromEnv() {
   }
 }
 
-function applyServicePolicies(serviceDoc, logger) {
+function applyServicePolicies(serviceDoc:TK8sPartialDescriptor, logger:ILog) {
   let modified = false
   function applyPublicServicePolicy() {
     if (
@@ -53,7 +55,7 @@ function applyServicePolicies(serviceDoc, logger) {
   return modified
 }
 
-function applyMaxCpuRequestToContainer(containerSpec, logger) {
+function applyMaxCpuRequestToContainer(containerSpec:TK8sPartialDescriptor, logger:ILog) {
   if (containerSpec.resources && containerSpec.resources.requests && containerSpec.resources.requests.cpu) {
     logger.info(
       "Changing CPU request",
@@ -63,23 +65,24 @@ function applyMaxCpuRequestToContainer(containerSpec, logger) {
       "to",
       policies.clusterPolicyMaxCpuRequest
     )
-    containerSpec.resources.requests.cpu = policies.clusterPolicyMaxCpuRequest
+    containerSpec.resources.requests.cpu = policies.clusterPolicyMaxCpuRequest || ""
     return true
   }
   return false
 }
 
-function applyDeploymentPolicies(deploymentDoc, logger) {
+function applyDeploymentPolicies(deploymentDoc:TK8sPartialDescriptor, logger:ILog) {
   let modified = false
 
   function applyReplicasPolicy() {
     if (policies.maxReplicasPolicy !== 0) {
-      if (deploymentDoc.spec && deploymentDoc.spec.replicas > policies.maxReplicasPolicy) {
+      let replicas = deploymentDoc.spec.replicas || 0
+      if (deploymentDoc.spec && replicas > policies.maxReplicasPolicy) {
         logger.info(
           "Reducing number of replicas in",
           deploymentDoc.metadata.name,
           "from",
-          deploymentDoc.spec.replicas,
+          replicas,
           "to",
           policies.maxReplicasPolicy
         )
@@ -105,16 +108,17 @@ function applyDeploymentPolicies(deploymentDoc, logger) {
   return modified
 }
 
-function applyHPAPolicies(deploymentDoc, logger) {
+function applyHPAPolicies(deploymentDoc:TK8sPartialDescriptor, logger:ILog) {
   let modified = false
   function applyReplicasPolicy() {
     if (policies.maxReplicasPolicy !== 0) {
-      if (deploymentDoc.spec && deploymentDoc.spec.maxReplicas > policies.maxReplicasPolicy) {
+      let maxReplicas = deploymentDoc.spec.maxReplicas || 0
+      if (deploymentDoc.spec && maxReplicas > policies.maxReplicasPolicy) {
         logger.info(
           "Reducing maxreplicas in HPA ",
           deploymentDoc.metadata.name,
           "from",
-          deploymentDoc.spec.maxReplicas,
+          maxReplicas,
           "to",
           policies.maxReplicasPolicy
         )
@@ -149,7 +153,7 @@ function applyHPAPolicies(deploymentDoc, logger) {
   return modified
 }
 
-function applyPolicies(parsedDoc, logger) {
+function applyPolicies(parsedDoc:TK8sPartialDescriptor, logger: ILog) {
   readPoliciesFromEnv()
   let modified = false
   if (parsedDoc.kind === "Service") {
@@ -164,7 +168,7 @@ function applyPolicies(parsedDoc, logger) {
   return modified
 }
 
-function applyPoliciesToDoc(rawDoc, logger) {
+function applyPoliciesToDoc(rawDoc:string, logger:ILog) {
   readPoliciesFromEnv()
   try {
     let files = rawDoc.split("\n---\n")

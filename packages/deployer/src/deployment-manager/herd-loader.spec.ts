@@ -184,12 +184,13 @@ describe("herd.yaml loading", function() {
       )
     })
 
-    it("should have metadata", () => {
+    it("should have metadata in dir execution plan", () => {
       let expectedMetadata = {
         displayName: "monitors-namespace.yml",
-        semanticVersion: "0",
+        semanticVersion: "none",
         deploymentType: "k8s",
-        buildDate: new Date(0).toISOString(), // Might make sense to extract change timestamp on file from filesystem or git
+        path: "namespaces/monitors-namespace.yml",
+        buildDate: "2019-02-15T09:33:58.000Z",
         hyperlinks: [],
       }
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].metadata).to.deep.equal(expectedMetadata)

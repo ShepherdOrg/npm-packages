@@ -1,6 +1,6 @@
-import { identifyDocument  } from "./k8s-deployment-document-identifier"
+import { identifyDocument, TDescriptorsByKind } from "./k8s-deployment-document-identifier"
 import { TBranchModificationParams } from "./k8s-branch-deployment/create-name-change-index"
-import { ILog, TActionExecutionOptions, TKubectlDeployAction } from "../deployment-types"
+import { FnDeploymentStateSave, ILog, TActionExecutionOptions, TKubectlDeployAction } from "../deployment-types"
 import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
 import { newProgrammerOops, Oops } from "oops-error"
 import { expandEnv } from "../../expandenv"
@@ -8,13 +8,15 @@ import { processLine } from "../../base64-env-subst"
 import { expandTemplate } from "../../expandtemplate"
 import * as path from "path"
 import { extendedExec, writeFile } from "../../promisified"
+import { TK8sPartialDescriptor } from "./k8s-document-types"
+import { emptyArray } from "../../helpers/ts-functions"
 
 const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 
 import Bluebird = require("bluebird")
 
 
-export async function executeDeploymentAction(thisIsMe: TKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState) {
+export async function executeDeploymentAction(thisIsMe: TKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState:FnDeploymentStateSave) {
 
   if(!thisIsMe.state){
     throw newProgrammerOops("Missing state object on deployment action ! " + thisIsMe.origin)
@@ -45,8 +47,7 @@ export async function executeDeploymentAction(thisIsMe: TKubectlDeployAction, ac
         logger.info(stdOut || "[empty output]")
 
         try {
-          const state = await saveDeploymentState(thisIsMe)
-          thisIsMe.state = state
+          thisIsMe.state = await saveDeploymentState(thisIsMe)
 
           if (actionExecutionOptions.waitForRollout && thisIsMe.deploymentRollouts && thisIsMe.operation === "apply") {
             await Bluebird.all(thisIsMe.deploymentRollouts.map(async (deploymentRollout) => {
@@ -119,8 +120,8 @@ export async function executeDeploymentAction(thisIsMe: TKubectlDeployAction, ac
 }
 
 
-function listDeploymentRollouts(descriptorsByKind) {
-  return descriptorsByKind["Deployment"].map((deploymentDoc) => {
+function listDeploymentRollouts(descriptorsByKind: TDescriptorsByKind) : Array<string> {
+  return descriptorsByKind["Deployment"].map((deploymentDoc:TK8sPartialDescriptor) => {
     return deploymentDoc.kind + "/" + deploymentDoc.metadata.name
   })
 }
@@ -167,7 +168,7 @@ export function createKubectlDeployAction(_origin: string, deploymentFileDescrip
     let deploymentDescriptor = applyClusterPolicies(finalDescriptor, logger)
     let loadedDescriptor = identifyDocument(deploymentDescriptor)
 
-    let deploymentRollouts = []
+    let deploymentRollouts = emptyArray<string>()
 
     let descriptorsByKind = loadedDescriptor.descriptorsByKind
     if (Boolean(descriptorsByKind["Deployment"])) {
@@ -175,7 +176,7 @@ export function createKubectlDeployAction(_origin: string, deploymentFileDescrip
     }
 
     let documentDeploymentAction: TKubectlDeployAction = {
-      async execute(deploymentOptions, cmd, logger, saveDeploymentState) {
+      async execute(deploymentOptions:TActionExecutionOptions, cmd:any, logger:ILog, saveDeploymentState) {
         return executeDeploymentAction(documentDeploymentAction, deploymentOptions, cmd, logger, saveDeploymentState)
       },
       operation: operation,

@@ -8,6 +8,8 @@ import {
 } from "@shepherdorg/metadata"
 import { TDescriptorsByKind } from "./kubectl-deployer/k8s-deployment-document-identifier"
 import { TFileSystemPath, TISODateString } from "../basic-types"
+import { TTarFolderStructure } from "@shepherdorg/metadata"
+import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 
 export type ILog = {
   info: typeof console.info,
@@ -19,6 +21,10 @@ export interface THerdSpec {
   key: string;
   description?: string;
   delete?: boolean;
+
+  featureDeployment?: boolean
+  timeToLiveHours?: number
+  branchName?: string
 }
 
 export type TFolderHerdSpec = THerdSpec & {
@@ -36,13 +42,19 @@ export function isDockerImageHerdSpec(spec: TDockerImageHerdSpec | TFolderHerdSp
   return Boolean((spec as TDockerImageHerdSpec).image)
 }
 
-export type TTempHerdSpec = {
+export type TK8sDeploymentPlan2 = {
+  dockerLabels?: TDockerImageLabels
+  deployments?: {}
   herdKey: string
-  image: string
-  imagetag: string
-  description: string
+  displayName: string
+  files?: TTarFolderStructure
 }
 
+export type TImageInformation = {
+  shepherdMetadata?: TImageMetadata
+  imageDefinition: TDockerImageHerdSpec
+  dockerLabels: {[key: string]: any}
+}
 
 
 /// From metadata module, discrepancy here...key and herdKey
@@ -63,8 +75,9 @@ export type THerdFolderMap = {
   [property: string]: TFolderHerdSpec
 }
 
-interface TFolderMetadata {
+export type TFolderMetadata = {
   //TODO This will need git information from directory containing configuration
+  path: TFileSystemPath
   buildDate: TISODateString
   displayName: string
   semanticVersion: string,
@@ -72,18 +85,18 @@ interface TFolderMetadata {
   hyperlinks: Array<THref>,
 }
 
-export interface TFolderDeploymentPlan {
-  operation: string;
-  identifier: string;
-  version: string;
-  descriptor: string;
-  origin: string;
-  type: string;
-  fileName: string;
-  herdKey: string;
-  herdSpec: TFolderHerdSpec;
-  metadata: TFolderMetadata;
-}
+// export interface TFolderDeploymentPlan {
+//   operation: string;
+//   identifier: string;
+//   version: string;
+//   descriptor: string;
+//   origin: string;
+//   type: string;
+//   fileName: string;
+//   herdKey: string;
+//   herdSpec: TFolderHerdSpec;
+//   metadata: TFolderMetadata;
+// }
 
 export interface TBaseDeploymentAction {
   metadata: TImageMetadata | TFolderMetadata;
@@ -92,6 +105,7 @@ export interface TBaseDeploymentAction {
   identifier: string
   env: string
   type: string
+  version?: string
 }
 
 export interface TDockerDeploymentAction extends TBaseDeploymentAction{
@@ -131,7 +145,6 @@ export interface TK8sDirDeploymentAction extends TKubectlDeployAction, TBaseDepl
 export interface TK8sDockerImageDeploymentAction extends TKubectlDeployAction, TBaseDeploymentAction {
   herdSpec: TDockerImageHerdSpec
   metadata: TK8sMetadata
-  version: string,
   fileName: string,
 }
 
@@ -158,11 +171,11 @@ export type TActionExecutionOptions = TDeploymentOptions & {
   pushToUi: boolean
 }
 
-export type TReleasePlanDependencies = {
+export type TReleasePlanDependencies = {   // TODO: Really need good types on this
   stateStore: any
   cmd: any
   logger: ILog
   uiDataPusher: any
 }
 
-export type FnDeploymentStateSave = () => {}
+export type FnDeploymentStateSave = (stateSignatureObject:any)=> Promise<TDeploymentState>
