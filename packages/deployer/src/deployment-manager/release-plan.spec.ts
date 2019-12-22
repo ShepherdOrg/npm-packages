@@ -1,19 +1,20 @@
 import { expect } from "chai"
-import { ReleasePlanModule, TReleasePlan } from "./release-plan"
+import { ReleasePlanModule} from "./release-plan"
 import {
   FnDeploymentStateSave,
   ILog,
   TActionExecutionOptions,
   TAnyDeploymentAction,
   TK8sDirDeploymentAction,
-  TK8sDockerImageDeploymentAction,
+  TK8sDockerImageDeploymentAction, TReleasePlan,
 } from "./deployment-types"
 import { executeDeploymentAction } from "./kubectl-deployer/create-kubectl-deployment-action"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { emptyArray } from "../helpers/ts-functions"
+import { CreateFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
 
 const FakeExec = require("../test-tools/fake-exec")
-const FakeLogger = require("../test-tools/fake-logger")
+
 
 const k8sDeployments = require("./testdata/testplan.json").addedK8sDeployments
 const dockerDeployers = require("./testdata/testplan.json").addedDockerDeployers
@@ -38,7 +39,7 @@ describe("Release plan", function() {
   let checkedStates: Array<any>
   let fakeStateStore : any
   let fakeExec : TExec
-  let fakeLogger: ILog & {logStatements:Array<{data:string[]}>}
+  let fakeLogger: IFakeLogging
   let fakeUiDataPusher: any
 
   beforeEach(function() {
@@ -83,7 +84,7 @@ describe("Release plan", function() {
         })
       },
     }
-    fakeLogger = FakeLogger()
+    fakeLogger = CreateFakeLogger()
 
     fakeExec = FakeExec()
     releasePlan = ReleasePlanModule({
@@ -154,7 +155,7 @@ describe("Release plan", function() {
       })
 
       it("should print plan stating no changes", function() {
-        let outputLogger = new FakeLogger()
+        let outputLogger = CreateFakeLogger()
         releasePlan.printPlan(outputLogger)
         expect(outputLogger.logStatements.length).to.equal(1)
         expect(outputLogger.logStatements[0].data[0]).to.contain("No modified deployments in ")
@@ -384,7 +385,7 @@ describe("Release plan", function() {
       })
 
       it("should print info about modified deployments", function() {
-        let outputLogger = new FakeLogger()
+        let outputLogger = CreateFakeLogger()
 
         releasePlan.printPlan(outputLogger)
         expect(outputLogger.logStatements.length).to.equal(2)

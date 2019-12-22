@@ -5,10 +5,10 @@ import {
   THref,
   TImageMetadata,
   TK8sMetadata,
+  TTarFolderStructure,
 } from "@shepherdorg/metadata"
 import { TDescriptorsByKind } from "./kubectl-deployer/k8s-deployment-document-identifier"
 import { TFileSystemPath, TISODateString } from "../basic-types"
-import { TTarFolderStructure } from "@shepherdorg/metadata"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 
 export type ILog = {
@@ -17,7 +17,7 @@ export type ILog = {
   warn: typeof console.warn
 }
 
-export interface THerdSpec {
+export type THerdSpec = {
   key: string;
   description?: string;
   delete?: boolean;
@@ -27,9 +27,12 @@ export interface THerdSpec {
   branchName?: string
 }
 
+
 export type TFolderHerdSpec = THerdSpec & {
   path: string;
 }
+
+export type OmitKey<T> = Omit<T, 'key'>
 
 export type TDockerImageHerdSpec = THerdSpec & {
   dockerImage?: string;
@@ -51,6 +54,7 @@ export type TK8sDeploymentPlan2 = {
 }
 
 export type TImageInformation = {
+  env: string
   shepherdMetadata?: TImageMetadata
   imageDefinition: TDockerImageHerdSpec
   dockerLabels: {[key: string]: any}
@@ -68,7 +72,7 @@ export type TInfrastructureImageMap = {
 
 
 export type TImageMap = {
-  [property: string]: any
+  [property: string]: TDockerImageHerdSpec
 }
 
 export type THerdFolderMap = {
@@ -134,7 +138,7 @@ export interface TKubectlDeployAction {
 
   state?: TDeploymentState
 
-  execute(deploymentOptions:TActionExecutionOptions, cmd:string, logger:ILog, saveDeploymentState):void
+  execute(deploymentOptions:TActionExecutionOptions, cmd:string, logger:ILog, saveDeploymentState:FnDeploymentStateSave):void
 }
 
 export interface TK8sDirDeploymentAction extends TKubectlDeployAction, TBaseDeploymentAction{
@@ -159,7 +163,9 @@ export type TDeploymentPlan = {
 
 export type TK8sDeploymentPlan = [string, any]
 
-export type TDockerDeploymentPlan = [string, any]
+export type TDockerDeploymentPlanTuple = [string, any]
+
+export type TDockerDeploymentPlan = { [key: string]: any }
 
 export type TDeploymentOptions = {
   dryRunOutputDir: TFileSystemPath | undefined
@@ -179,3 +185,14 @@ export type TReleasePlanDependencies = {   // TODO: Really need good types on th
 }
 
 export type FnDeploymentStateSave = (stateSignatureObject:any)=> Promise<TDeploymentState>
+
+export type TK8sDeploymentActionMap = { [key: string]: any }
+
+export interface TReleasePlan {
+  executePlan: (runOptions?: TActionExecutionOptions) => Promise<Array<(TAnyDeploymentAction | undefined)>>
+  printPlan: (logger: ILog) => void
+  exportDeploymentDocuments: (exportDirectory: TFileSystemPath) => Promise<unknown>
+  addDeployment: (deploymentAction: (TAnyDeploymentAction)) => Promise<TAnyDeploymentAction>
+}
+
+export type FReleasePlanner = (env: string) => TReleasePlan

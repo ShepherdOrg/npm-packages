@@ -1,12 +1,14 @@
-import { TDockerDeploymentAction } from "../deployment-types"
+import { TDockerDeploymentAction, TImageInformation } from "../deployment-types"
 import { expandEnv } from "../../expandenv"
 import { expandTemplate } from "../../expandtemplate"
+import { TNamedValue } from "../../basic-types"
+import { TDeployerMetadata } from "@shepherdorg/metadata"
 
-export async function calculateDeployerAction(imageInformation): Promise<Array<TDockerDeploymentAction>> {
+export async function calculateDeployerAction(imageInformation: TImageInformation): Promise<Array<TDockerDeploymentAction>> {
 
-  const shepherdMetadata = imageInformation.shepherdMetadata
+  const shepherdMetadata = imageInformation.shepherdMetadata  as TDeployerMetadata
   const herdKey: string = imageInformation.imageDefinition.key
-  const displayName: string = imageInformation.shepherdMetadata.displayName
+  const displayName: string = imageInformation.shepherdMetadata?.displayName || ''
 
   let dockerImageWithVersion =
     imageInformation.imageDefinition.dockerImage ||
@@ -16,7 +18,7 @@ export async function calculateDeployerAction(imageInformation): Promise<Array<T
     descriptor: "", // TODO: Validate descriptor use here
     env: imageInformation.env,
     displayName: displayName,
-    metadata: shepherdMetadata,
+    metadata: shepherdMetadata as TDeployerMetadata,
     herdSpec: imageInformation.imageDefinition,
     dockerParameters: ["-i", "--rm"],
     forTestParameters: undefined,
@@ -37,7 +39,7 @@ export async function calculateDeployerAction(imageInformation): Promise<Array<T
     envList = envList.concat(envLabel.split(","))
   }
   if (shepherdMetadata.environment) {
-    envList = envList.concat(shepherdMetadata.environment.map(value => `${value.name}=${value.value}`))
+    envList = envList.concat(shepherdMetadata.environment.map((value:TNamedValue<string>) => `${value.name}=${value.value}`))
   }
 
   envList.forEach(function(env_item) {

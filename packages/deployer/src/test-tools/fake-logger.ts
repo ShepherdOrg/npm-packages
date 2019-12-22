@@ -1,10 +1,22 @@
 import { emptyArray } from "../helpers/ts-functions"
+import { ILog } from "../deployment-manager/deployment-types"
 
-module.exports = function() {
+export interface IFakeLogging extends ILog{
+  log: string,
+  logStatements: Array<IFakeLogEntry>,
+  infoLogEntries: Array<IFakeLogEntry>,
+}
+
+export type IFakeLogEntry = {
+  logLevel:string
+  data: IArguments
+}
+
+export function CreateFakeLogger() : IFakeLogging {
   let fakeLogger = {
     log: "",
-    logStatements: emptyArray(),
-    infoLogEntries: emptyArray(),
+    logStatements: emptyArray<IFakeLogEntry>(),
+    infoLogEntries: emptyArray<IFakeLogEntry>(),
     info() {
       fakeLogger.log +=
         "info            " + Array.prototype.join.call(arguments, " ") + "\n"
@@ -12,6 +24,11 @@ module.exports = function() {
       fakeLogger.infoLogEntries.push({ logLevel: "info", data: arguments })
     },
     debug() {
+      fakeLogger.log +=
+        "debug           " + Array.prototype.join.call(arguments, " ") + "\n"
+      fakeLogger.logStatements.push({ logLevel: "debug", data: arguments })
+    },
+    warn() {
       fakeLogger.log +=
         "debug           " + Array.prototype.join.call(arguments, " ") + "\n"
       fakeLogger.logStatements.push({ logLevel: "debug", data: arguments })

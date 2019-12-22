@@ -1,4 +1,8 @@
-import { CreateUpstreamTriggerDeploymentConfig } from "./create-upstream-trigger-deployment-config"
+import {
+  CreateUpstreamTriggerDeploymentConfig,
+  TFeatureDeploymentConfig,
+} from "./create-upstream-trigger-deployment-config"
+import { CreateFakeLogger } from "../test-tools/fake-logger"
 
 const expect = require("chai").expect
 
@@ -22,16 +26,17 @@ describe("Upstream triggered deployment config ", function() {
       branchName: "newnamein-alllowercaps",
       ttlHours: 999,
     }
-    let config
+    let config : TFeatureDeploymentConfig
 
     before(() => {
-      config = CreateUpstreamTriggerDeploymentConfig({ info: () => {} })
+      config = CreateUpstreamTriggerDeploymentConfig(CreateFakeLogger())
       config.loadFromEnvironment("herdFilePath", configObject)
     })
 
     it("should load from process.env like config object", () => {
+      const coercedConfig = config as unknown as {[key:string]: any}
       Object.entries(expectedConfigObject).forEach(([key, value]) => {
-        expect(config[key]).to.equal(value)
+        expect(coercedConfig[key]).to.equal(value)
       })
     })
 
@@ -48,10 +53,10 @@ describe("Upstream triggered deployment config ", function() {
       UPSTREAM_HERD_DESCRIPTION: "env description",
     }
 
-    let config
+    let config : TFeatureDeploymentConfig
 
     before(() => {
-      config = CreateUpstreamTriggerDeploymentConfig({ info: () => {} })
+      config = CreateUpstreamTriggerDeploymentConfig(CreateFakeLogger())
       config.loadFromEnvironment("herdFilePath", configObject)
     })
 
@@ -79,11 +84,14 @@ describe("Upstream triggered deployment config ", function() {
 
     it("should generate a herdfile like structure for creating a deployment plan for branch deployment", () => {
       let asHerd = config.asHerd()
-      expect(asHerd.images["thekey"].image).to.equal("repo/someimage")
-      expect(asHerd.images["thekey"].imagetag).to.equal("9999")
-      expect(asHerd.images["thekey"].description).to.equal("yet another test")
-      expect(asHerd.images["thekey"].timeToLiveHours).to.equal(676)
-      expect(asHerd.images["thekey"].featureDeployment).to.equal(true)
+      if(asHerd.images){
+        let image = asHerd.images["thekey"]
+        expect(image.image).to.equal("repo/someimage")
+        expect(image.imagetag).to.equal("9999")
+        expect(image.description).to.equal("yet another test")
+        expect(image.timeToLiveHours).to.equal(676)
+        expect(image.featureDeployment).to.equal(true)
+      }
     })
 
     it("should not indicate herdfile modification", () => {

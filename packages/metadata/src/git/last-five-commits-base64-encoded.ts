@@ -14,5 +14,5 @@ async function main(){
 }
 
 main().then((encodedCommits)=>{
-  console.log(encodedCommits)
+  console.info(encodedCommits)
 })

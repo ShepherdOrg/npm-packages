@@ -1,5 +1,9 @@
+
 export type TDockerImageInspection = any
 export type TCompressedMetadata = string
+
+export type TNamedEnvironmentValue<TValueType> = { name: string, value: TValueType, secret?: boolean }
+
 
 export type TarFile ={
   path: string
@@ -70,7 +74,10 @@ export type TDeployerMetadata = TImageMetadata & {
   rollbackCommand?: string
   // TODO: Support dryrun command
   dryrunCommand?: string
+  // TODO: Make obsolete
   environmentVariablesExpansionString: string
+  // TODO: Add tests for environment array
+  environment: Array<TNamedEnvironmentValue<string>>
   deployerRole: TDeployerRole
 }
 

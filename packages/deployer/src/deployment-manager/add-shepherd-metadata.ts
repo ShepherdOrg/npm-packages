@@ -1,13 +1,15 @@
 import * as _ from "lodash"
 import { TDeployerMetadata, TK8sMetadata  } from "@shepherdorg/metadata"
+import { TImageInformation } from "./deployment-types"
+import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 
 const extractShepherdMetadata = require("@shepherdorg/metadata/dist/dockerLabelParser")
   .extractShepherdMetadata
 
 function rewriteDockerLabels(
-  dockerLabelsObject,
-  obsoleteQualifier,
-  newQualifier
+  dockerLabelsObject: TDockerImageLabels,
+  obsoleteQualifier: string,
+  newQualifier: string
 ) {
   const result = Object.assign({}, dockerLabelsObject)
   _(result)
@@ -22,7 +24,7 @@ function rewriteDockerLabels(
   return result
 }
 
-export async function getShepherdMetadata (dockerImageMetadata:any) {
+export async function getShepherdMetadata (dockerImageMetadata:TImageInformation) {
   let imageLabels = rewriteDockerLabels(
     dockerImageMetadata.dockerLabels,
     "is.icelandairlabs",

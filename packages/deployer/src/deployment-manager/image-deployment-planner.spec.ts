@@ -1,9 +1,9 @@
 import { expect } from "chai"
 import { getShepherdMetadata } from "./add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
-import { ILog, TDockerDeploymentAction, TK8sDockerImageDeploymentAction } from "./deployment-types"
+import { ILog, TDockerDeploymentAction, TImageInformation, TK8sDockerImageDeploymentAction } from "./deployment-types"
 
-function createNewTestDeployerPlanner() {
+function calculateTestDeploymentActions() {
   let fakeLogger = {
     info: () => {
       console.error("INFO", arguments)
@@ -21,11 +21,14 @@ function createNewTestDeployerPlanner() {
   ).calculateDeploymentActions
 }
 
-function loadTestPlans(dockerDeployerMetadata) {
-  return getShepherdMetadata(dockerDeployerMetadata).then(createNewTestDeployerPlanner())
+function loadTestPlans(dockerDeployerMetadata: TImageInformation) {
+  return getShepherdMetadata(dockerDeployerMetadata).then((shepherdMeta)=>{
+    // @ts-ignore
+    return calculateTestDeploymentActions()(shepherdMeta)
+  })
 }
 
-function loadFirstTestPlan(dockerDeployerMetadata ) {
+function loadFirstTestPlan(dockerDeployerMetadata: TImageInformation ) {
   return loadTestPlans(dockerDeployerMetadata).then(plans => {
     // @ts-ignore
     return plans[0]
@@ -59,11 +62,12 @@ describe("Docker image plan loader", function() {
   after(() => clearEnv(testEnv))
 
   describe("image deployer, old style docker labels", function() {
-    let dockerDeployerMetadata = {
+    let dockerDeployerMetadata: TImageInformation = {
+
       imageDefinition: {
         key: "testimage",
         image: "testenvimage-migrations",
-        imagetag: "0.0.0",
+        imagetag: "0.0.0"
       },
       dockerLabels: {
         "shepherd.builddate": "Tue 26 Dec 14:52:52 GMT 2017",
@@ -79,6 +83,7 @@ describe("Docker image plan loader", function() {
         "shepherd.name": "Testimage",
         "shepherd.version": "0.0.0",
       },
+      env: 'testenv'
     }
 
     describe("with command specified", function() {
@@ -146,6 +151,7 @@ describe("Docker image plan loader", function() {
           "shepherd.name": "Testimage",
           "shepherd.version": "0.0.0",
         },
+        env: 'testenv'
       }
 
       let testEnv = {
@@ -188,6 +194,7 @@ describe("Docker image plan loader", function() {
         "shepherd.metadata":
           "H4sIAIvzv10AA+1U0W6bMBTd874C8bqRmCSQgjRpkLYEKYGtyeiWaaqMccCNwZltmqZV/n0mZO06ad3LpmlSjoTsXM65vtfnElHgdYF51rkWrHrxdwAAsAcDrVmHtrVfQa/9vd8C29TMvmUNh0PTNvsaMAfAAi808JfqeYJaSMhVKXlNKXmGp2jL5TPv2160h/U/wb2e1oRmp1Bi3dV7wHQM0zTAYA4cd2C7lvkKABcA/XXLGzMhI1g23KCmsM5rLowpRD5jK+MdZx3KEKSKnTG0wjwsYY7nMFd0iYU0SpJzKAmrDNK8MSq8WTJeQulS2BCeCgMiCyiK34tBB3Rs24BDkJ04Ta05keNW+STmc1ihJlpCITFvgx84VRG1eaueok47iJXu7PBZxDzvVuvSWEO0UmeKjuK0shErS7V3dcc2wcC2rOUQ9WxzOUwhAEuYOelJH5040LGsLBta4ETJqDq21QklDM+jIhtt8inx47T/KZ9ee7fxzLuNTtldPGebaOvx6am3mY58gmf+OEPxJg3OzUU/2Ybn0zo8Syp4eXuHek49IZ6czEB+UdIafoxYOI5MNPZvUPU+X5TONgySOivpNu1ZcnFpgTBwCCyT62zkr1Pi38Eg2ahnuxhZX5t8YbC4QcRfLT76Iu1TiqppPsrfvFFNCFzCShKUYC6UGaqR9vob74hYU7g9DMj0u19aY9/eM+3BM60WpMo1XN0QzqoSV1K7gbTGKssPMd39fK9Xh3RhcOHNwzi6OouSq8S7CD1/cnYVR2dK02pd/f5eCyax702ufk3Xdjt99/p3eeeX8Q95l+QWZ8mhQIERx6o2yWu8+6LaxmvKto2xsMoUmQpF4ozSVE3NYxjBZnSK7RpzSqqV2DcniaTNATNWc4SFpm5HkwVpMtT7wSykXAu3230czq44DCf7aTi7D5u2Isy7uIeby+8+OCC6z39L+mNDjQFzVa0q4ns+fffyX/9hHXHEEUcc8UfwDW0OlrUADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
       },
+      env: 'testenv'
     }
 
     const testEnv = {
@@ -230,6 +237,7 @@ describe("Docker image plan loader", function() {
         "is.icelandairlabs.name": "TestimageFromIcelandairlabs",
         "is.icelandairlabs.version": "0.1.2",
       },
+      env: 'testenv'
     }
 
     let firstPlan: TDockerDeploymentAction
@@ -264,6 +272,7 @@ describe("Docker image plan loader", function() {
         "shepherd.name": "Testimage",
         "shepherd.version": "0.0.0",
       },
+      env: 'testenv'
     }
 
     describe("successful load", function() {
@@ -380,6 +389,7 @@ describe("Docker image plan loader", function() {
         "shepherd.name": "Testimage",
         "shepherd.version": "0.0.0",
       },
+      env: 'testenv'
     }
 
     describe("successful load", function() {

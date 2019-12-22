@@ -1,4 +1,5 @@
 import * as fs from 'fs'
+import { TFileSystemPath } from "../../basic-types"
 
 const omit = require('lodash').omit
 
@@ -24,7 +25,7 @@ module.exports = function() {
   reservedNames = reservedNames.concat(RESERVED_NAMES)
 
   let dockerEnvGenerator = {
-    generateEnvString(env) {
+    generateEnvString(env: string) {
       let retracted = omit(env, reservedNames)
       let buffer:Array<any> = []
       Object.entries(retracted).forEach(([key, value])=>{
@@ -37,7 +38,7 @@ module.exports = function() {
       })
       return buffer.join("")
     },
-    generateEnvFile(fileName, env) {
+    generateEnvFile(fileName: TFileSystemPath, env: string) {
       let data = this.generateEnvString(env)
       fs.writeFileSync(fileName, data)
     },

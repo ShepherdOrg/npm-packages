@@ -3,13 +3,17 @@ import * as path from "path"
 import { emptyArray } from "../helpers/ts-functions"
 import { extendedExec, writeFile } from "../promisified"
 import {
+  FReleasePlanner,
   ILog,
-  TActionExecutionOptions, TAnyDeploymentAction,
+  TActionExecutionOptions,
+  TAnyDeploymentAction,
   TDeploymentPlan,
-  TDockerDeploymentAction,
+  TDockerDeploymentAction, TDockerDeploymentPlan, TDockerDeploymentPlanTuple,
+  TK8sDeploymentActionMap,
   TK8sDeploymentPlan,
   TK8sDirDeploymentAction,
   TK8sDockerImageDeploymentAction,
+  TReleasePlan,
   TReleasePlanDependencies,
 } from "./deployment-types"
 import { mapUntypedDeploymentData } from "../map-untyped-deployment-data"
@@ -26,18 +30,8 @@ import Bluebird = require("bluebird")
 //   }
 // }
 
-type TK8sDeploymentActionMap = { [key: string]: any }
-type TDockerDeploymentPlan = { [key: string]: any }
 
-export interface TReleasePlan {
-  executePlan: (runOptions?: TActionExecutionOptions) => Promise<Array<(TAnyDeploymentAction | undefined)>>
-  printPlan: (logger: ILog) => void
-  exportDeploymentDocuments: (exportDirectory: TFileSystemPath) => Promise<unknown>
-  addDeployment:(deploymentAction: (TAnyDeploymentAction))=> Promise<TAnyDeploymentAction>
-}
-
-
-export function ReleasePlanModule(injected: TReleasePlanDependencies) {
+export function ReleasePlanModule(injected: TReleasePlanDependencies) : FReleasePlanner {
   const stateStore = injected.stateStore
   const cmd = injected.cmd
   const logger = injected.logger
@@ -268,7 +262,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
           logger.info("No modified deployments in " + plan.herdKey)
         }
       })
-      Object.entries(dockerDeploymentPlan as TDockerDeploymentPlan).forEach(([_key, plan]) => {
+      Object.entries(dockerDeploymentPlan as TDockerDeploymentPlan).forEach(([_key, plan] : TDockerDeploymentPlanTuple) => {
         let modified = false
 
         if (plan.deployments) {
@@ -303,7 +297,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) {
             fileWrites.push(writePromise)
           })
         })
-        Object.entries(dockerDeploymentPlan as TDockerDeploymentPlan).forEach(function([_key, plan]) {
+        Object.entries(dockerDeploymentPlan as TDockerDeploymentPlan).forEach(function([_key, plan]: TDockerDeploymentPlanTuple) {
           plan.deployments.forEach(function(deploymentAction: TDockerDeploymentAction) {
             if (!deploymentAction.forTestParameters) {
               throw new Error("Missing forTestParameters!")

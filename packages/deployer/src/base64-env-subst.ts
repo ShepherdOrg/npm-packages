@@ -1,4 +1,4 @@
-export function processLine(line, options) {
+export function processLine(line: string, options:{appendNewline?:boolean}):string {
   let result = ""
 
   let postfix = ""
@@ -11,16 +11,16 @@ export function processLine(line, options) {
     postfix = "\n"
   }
 
-  let KEYWORDS = {
-    Base64Encode: function(str) {
+  let KEYWORDS: { [idx: string]: (str:string)=>string} = {
+    "Base64Encode": function(str) {
       return Buffer.from(str + postfix).toString("base64")
     },
-    Base64Decode: function(str) {
+    "Base64Decode": function(str) {
       return Buffer.from(str, "base64").toString()
     },
   }
 
-  function expandVariable(keyword, variable, context) {
+  function expandVariable(keyword:string, variable:string, context:string) {
     // Expands a variable and applies any of the functions that match :keyword:
     // to that value prior to returning it
     //
@@ -75,7 +75,7 @@ export function processLine(line, options) {
 
     // If we have something of the string left(whatever comes after our ${keyword:variable} token
     // we have to process that as well before finishing.
-    let tail = line.slice(matches.index + full_match.length, line.length)
+    let tail = line.slice(matches.index || 0 + full_match.length, line.length)
     if (tail.length > 0) {
       return result + processLine(tail, options)
     }

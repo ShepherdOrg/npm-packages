@@ -1,23 +1,44 @@
 import { expect } from "chai"
 
-import {HerdLoader} from "./herd-loader"
-
-const exec = require("@shepherdorg/exec")
-const fakeLogger = require("../test-tools/fake-logger")
+import { HerdLoader, TDockerMetadataLoader, THerdLoader } from "./herd-loader"
 import * as path from "path"
 import * as fs from "fs"
-import { TDockerDeploymentAction, TK8sDockerImageDeploymentAction } from "./deployment-types"
+import {
+  FReleasePlanner,
+  ILog,
+  TActionExecutionOptions,
+  TDockerDeploymentAction,
+  TFolderHerdSpec,
+  TK8sDirDeploymentAction,
+  TK8sDockerImageDeploymentAction,
+  TReleasePlan,
+} from "./deployment-types"
+import { detectRecursion } from "../helpers/obj-functions"
+import { CreateFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
+import { TFileSystemPath } from "../basic-types"
+import { TFeatureDeploymentConfig } from "./create-upstream-trigger-deployment-config"
+
+const exec = require("@shepherdorg/exec")
 
 /// Inject a mock image metadata loader with fake image information
 
 
-const CreateFeatureDeploymentConfig = require('./create-upstream-trigger-deployment-config').CreateUpstreamTriggerDeploymentConfig
+const CreateFeatureDeploymentConfig = require("./create-upstream-trigger-deployment-config").CreateUpstreamTriggerDeploymentConfig
+
+export type TTestReleasePlan =
+  TReleasePlan
+  & {
+  addedK8sDeploymentActions: { [key: string]: TK8sDockerImageDeploymentAction | TK8sDirDeploymentAction }
+  addedDockerDeployerActions: { [key: string]: TDockerDeploymentAction }
+}
+
+type FCreateTestReleasePlan = () => TTestReleasePlan
 
 describe("herd.yaml loading", function() {
-  let labelsLoader
-  let loader
-  let CreateTestReleasePlan
-  let loaderLogger
+  let labelsLoader: TDockerMetadataLoader
+  let loader: THerdLoader
+  let CreateTestReleasePlan: FCreateTestReleasePlan
+  let loaderLogger: IFakeLogging
 
   let featureDeploymentConfig = CreateFeatureDeploymentConfig()
 
@@ -33,15 +54,15 @@ describe("herd.yaml loading", function() {
     delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
   })
 
-  function createTestHerdLoader(labelsLoader, featureDeploymentConfig) {
+  function createTestHerdLoader(labelsLoader: TDockerMetadataLoader, featureDeploymentConfig: TFeatureDeploymentConfig) {
     loader = HerdLoader(
       {
         logger: loaderLogger,
-        ReleasePlan: CreateTestReleasePlan,
+        ReleasePlan: CreateTestReleasePlan as FReleasePlanner,
         exec: exec,
         labelsLoader: labelsLoader,
         featureDeploymentConfig,
-      }
+      },
     )
   }
 
@@ -60,11 +81,18 @@ describe("herd.yaml loading", function() {
     process.env.EXPORT2 = "NeitherFromInfrastructure"
 
 
-
     CreateTestReleasePlan = function() {
-      let addedK8sDeployerActions: {[key:string]:TK8sDockerImageDeploymentAction} = {}
-      let addedDockerDeployerActions: {[key:string]:TDockerDeploymentAction} = {}
-      let releasePlan = {
+      let addedK8sDeployerActions: { [key: string]: TK8sDockerImageDeploymentAction } = {}
+      let addedDockerDeployerActions: { [key: string]: TDockerDeploymentAction } = {}
+      let releasePlan: TTestReleasePlan = {
+        executePlan: function(_p1: TActionExecutionOptions) {
+          return Promise.resolve([])
+        },
+        exportDeploymentDocuments: function(_p1: TFileSystemPath) {
+          return Promise.resolve()
+        },
+        printPlan: function(_p1: ILog) {
+        },
         addedDockerDeployerActions: addedDockerDeployerActions,
         addedK8sDeploymentActions: addedK8sDeployerActions,
         addDeployment(deployment: TK8sDockerImageDeploymentAction | TDockerDeploymentAction) {
@@ -82,27 +110,27 @@ describe("herd.yaml loading", function() {
             } else if (deployment.type === "deployer") {
               releasePlan.addedDockerDeployerActions[deployment.identifier] = deployment as TDockerDeploymentAction
             }
-            resolve({ fakeState: true })
+            resolve(undefined)
           })
         },
       }
       return releasePlan
     }
 
-    loaderLogger = fakeLogger()
+    loaderLogger = CreateFakeLogger()
 
     labelsLoader = {
       getDockerRegistryClientsFromConfig() {
         return {}
       },
-      imageLabelsLoader(_injected:any) {
+      imageLabelsLoader(_injected: any) {
         return {
           getImageLabels(imageDef) {
             let dockerImageMetadataFile = path.join(
               __dirname,
               "testdata",
               "inspected-dockers",
-              imageDef.image + ".json"
+              imageDef.image + ".json",
             )
             if (fs.existsSync(dockerImageMetadataFile)) {
               const dockerInspection = require(dockerImageMetadataFile)
@@ -113,7 +141,7 @@ describe("herd.yaml loading", function() {
               })
             } else {
               return Promise.reject(
-                new Error(`dockerImageMetadataFile ${dockerImageMetadataFile} not found in testdata`)
+                new Error(`dockerImageMetadataFile ${dockerImageMetadataFile} not found in testdata`),
               )
             }
           },
@@ -150,7 +178,7 @@ describe("herd.yaml loading", function() {
   })
 
   describe("directory execution plan", function() {
-    let loadedPlan
+    let loadedPlan: TTestReleasePlan
 
     before(() => {
       process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "anotherValue"
@@ -162,7 +190,7 @@ describe("herd.yaml loading", function() {
 
     beforeEach(function() {
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
-        loadedPlan = plan
+        loadedPlan = plan as TTestReleasePlan
       })
     })
 
@@ -178,9 +206,9 @@ describe("herd.yaml loading", function() {
 
     it("should have herdspec", () => {
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdSpec.key).to.equal("kube-config")
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdSpec.path).to.equal("./")
+      expect((loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdSpec as TFolderHerdSpec).path).to.equal("./")
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdSpec.description).to.equal(
-        "Kubernetes pull secrets, namespaces, common config"
+        "Kubernetes pull secrets, namespaces, common config",
       )
     })
 
@@ -198,7 +226,7 @@ describe("herd.yaml loading", function() {
   })
 
   describe("k8s feature deployment plan", function() {
-    let loadedPlan
+    let loadedPlan: TTestReleasePlan
 
     before(() => {
       featureDeploymentConfig.imageFileName = "feature-deployment"
@@ -207,11 +235,11 @@ describe("herd.yaml loading", function() {
       featureDeploymentConfig.upstreamImageTag = "9999"
       featureDeploymentConfig.upstreamHerdDescription = "Very much a testing image"
       featureDeploymentConfig.upstreamFeatureDeployment = true
-      featureDeploymentConfig.ttlHours = '22'
-      featureDeploymentConfig.branchName = 'feature-XYZ'
+      featureDeploymentConfig.ttlHours = "22"
+      featureDeploymentConfig.branchName = "feature-XYZ"
     })
 
-    after(()=>{
+    after(() => {
       featureDeploymentConfig.upstreamFeatureDeployment = false
 
       delete featureDeploymentConfig.imageFileName
@@ -225,7 +253,7 @@ describe("herd.yaml loading", function() {
 
     beforeEach(function() {
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
-        loadedPlan = plan
+        loadedPlan = plan as TTestReleasePlan
       })
     })
 
@@ -240,7 +268,7 @@ describe("herd.yaml loading", function() {
   })
 
   describe("k8s deployment plan", function() {
-    let loadedPlan
+    let loadedPlan: TTestReleasePlan
 
     before(() => {
       process.env.CLUSTER_POLICY_MAX_CPU_REQUEST = "25m"
@@ -250,7 +278,7 @@ describe("herd.yaml loading", function() {
     beforeEach(function() {
       createTestHerdLoader(labelsLoader, featureDeploymentConfig)
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
-        loadedPlan = plan
+        loadedPlan = plan as TTestReleasePlan
       })
     })
 
@@ -261,7 +289,7 @@ describe("herd.yaml loading", function() {
 
     it("should base64decode and untar deployment files under file path", function() {
       expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].origin).to.equal(
-        "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml"
+        "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml",
       )
     })
 
@@ -288,29 +316,6 @@ describe("herd.yaml loading", function() {
     })
 
     it("should be serializable", function() {
-      function detectRecursion(obj) {
-        function detect(obj, seenObjects) {
-          if (obj && typeof obj === "object") {
-            if (seenObjects.indexOf(obj) !== -1) {
-              return ["RECURSION!"]
-            }
-            seenObjects.push(obj)
-            for (let key in obj) {
-              if (obj.hasOwnProperty(key)) {
-                let detected = detect(obj[key], seenObjects)
-                if (detected.length) {
-                  detected.unshift(key)
-                  return detected
-                }
-              }
-            }
-            seenObjects.pop()
-          }
-          return []
-        }
-
-        return detect(obj, [])
-      }
 
       let serializable = detectRecursion(loadedPlan)
       expect(serializable.join(".")).to.equal("")
@@ -319,12 +324,12 @@ describe("herd.yaml loading", function() {
   })
 
   describe("deployer execution plan", function() {
-    let loadedPlan:any
+    let loadedPlan: TTestReleasePlan
 
     beforeEach(function() {
       process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "happyValueOne"
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
-        loadedPlan = plan
+        loadedPlan = plan as TTestReleasePlan
       })
     })
 
@@ -334,11 +339,11 @@ describe("herd.yaml loading", function() {
 
     it("should  have herdSpec and metadata on all loaded plans", () => {
 
-      Object.entries(loadedPlan.addedK8sDeploymentActions as Array<any>).forEach(function([_dname, deployment]) {
+      Object.entries(loadedPlan.addedK8sDeploymentActions).forEach(function([_dname, deployment]) {
         expect(deployment.herdSpec.key).not.to.equal(undefined)
         expect(deployment.metadata.displayName).not.to.equal(undefined)
       })
-      Object.entries(loadedPlan.addedDockerDeployerActions as Array<any>).forEach(function([_dname, deployment]) {
+      Object.entries(loadedPlan.addedDockerDeployerActions).forEach(function([_dname, deployment]) {
         expect(deployment.herdSpec.key).not.to.equal(undefined)
         expect(deployment.metadata.displayName).not.to.equal(undefined)
       })
@@ -346,14 +351,13 @@ describe("herd.yaml loading", function() {
 
     it("should load deployer plan by migration image reference", function() {
       expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].dockerParameters).to.contain(
-        "testenvimage-migrations:0.0.0"
+        "testenvimage-migrations:0.0.0",
       )
       expect(Object.keys(loadedPlan.addedDockerDeployerActions)).to.contain("testenvimage-migrations:0.0.0")
     })
 
     it("should forward metadata with execution plan", () => {
       expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].herdSpec).to.deep.equal({
-        dockerImage: "testenvimage-migrations:0.0.0",
         key: "testenvimage-migrations:0.0.0",
         image: "testenvimage-migrations",
         imagetag: "0.0.0",
@@ -362,7 +366,7 @@ describe("herd.yaml loading", function() {
   })
 
   xdescribe("SLOW TEST: non-existing image", function() {
-    let loadError
+    let loadError: Error
 
     // beforeEach(function() {
     //     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
@@ -377,6 +381,7 @@ describe("herd.yaml loading", function() {
       expect(loadError).to.contain("nonexistingimage:0.0.0")
     })
 
-    xit("should not output stderr from docker calls unless end result is an error", function() {})
+    xit("should not output stderr from docker calls unless end result is an error", function() {
+    })
   })
 })
