@@ -1,6 +1,14 @@
-export function processLine(line: string, options:{appendNewline?:boolean}):string {
-  let result = ""
+export function base64Encode(stringToEncode:string) {
+  return Buffer.from(stringToEncode).toString("base64")
+}
 
+export function base64Decode(str: string) {
+  return Buffer.from(str, "base64").toString()
+}
+
+export function processLine(line: string, options:{appendNewline?:boolean}):string {
+
+  let result = ""
   let postfix = ""
   if (!options) {
     throw new Error(
@@ -13,10 +21,10 @@ export function processLine(line: string, options:{appendNewline?:boolean}):stri
 
   let KEYWORDS: { [idx: string]: (str:string)=>string} = {
     "Base64Encode": function(str) {
-      return Buffer.from(str + postfix).toString("base64")
+      return base64Encode(str + postfix)
     },
     "Base64Decode": function(str) {
-      return Buffer.from(str, "base64").toString()
+      return base64Decode(str)
     },
   }
 
@@ -71,14 +79,17 @@ export function processLine(line: string, options:{appendNewline?:boolean}):stri
       value = value_lines.join("\n")
     }
 
-    result += line.replace(full_match, value)
-
     // If we have something of the string left(whatever comes after our ${keyword:variable} token
     // we have to process that as well before finishing.
-    let tail = line.slice(matches.index || 0 + full_match.length, line.length)
-    if (tail.length > 0) {
-      return result + processLine(tail, options)
+    let index = matches.index
+    if(index !== undefined){
+      let head = line.slice(0, index + full_match.length).replace(full_match, value)
+      let tail = line.slice(index + full_match.length, line.length)
+      if (tail.length > 0) {
+        return head + processLine(tail, options)
+      }
     }
+    result += line.replace(full_match, value)
     return result
   }
 }

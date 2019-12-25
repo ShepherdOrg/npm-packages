@@ -4,6 +4,7 @@ import {PgConfig, PostgresStore as PgBackend} from '@shepherdorg/postgres-backen
 
 import script from '../test-tools/script-test'
 import {TFileSystemPath} from '../basic-types'
+import { base64Encode } from "../base64-env-subst"
 
 const fs = require("fs")
 const path = require("path")
@@ -179,9 +180,6 @@ describe("run all deployers with infrastructure", function() {
         })
     })
 
-    function base64Encode(teststring:string) {
-      return Buffer.from(teststring).toString("base64")
-    }
 
     const testEnv = {
       SHEPHERD_FILESTORE_DIR: "./.build/.shepherdstore",
@@ -197,6 +195,8 @@ describe("run all deployers with infrastructure", function() {
       EXPORT1: "nowhardcoded",
       NO_REBUILD_IMAGES: true,
     }
+
+    console.log(`base64Encoded ${testEnv.WWW_ICELANDAIR_IP_WHITELIST}`)
 
     beforeEach(function() {
       if (!fs.existsSync(".build")) {
