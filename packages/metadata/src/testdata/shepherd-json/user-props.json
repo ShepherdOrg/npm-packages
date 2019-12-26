@@ -14,6 +14,7 @@
   ],
   "deployCommand": "ls",
   "rollbackCommand": "cat",
+  "end2endTestCommand": "e2etest",
   "hyperlinks": [
     {
       "title": "TestlinkOne",

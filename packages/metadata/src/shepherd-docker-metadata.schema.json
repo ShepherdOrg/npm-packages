@@ -19,6 +19,10 @@
       "type": "string",
       "description": "Command to pass into a deployer for executing rollback script"
     },
+    "end2endTestCommand": {
+      "type": "string",
+      "description": "Command to pass into container for executing end2end tests after deployment. Failed tests result in rollback to last working version."
+    },
     "migrationImage": {
       "type": "string"
     },

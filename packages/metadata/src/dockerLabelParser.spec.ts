@@ -87,14 +87,6 @@ describe("Shepherd metadata reading", function() {
         metaData.kubeDeploymentFiles["./deployment/kube.yaml"].content
       ).to.be.a("string")
     })
-
-    xit("TODO should read hyperlinks", () => {
-      if (metaData.hyperlinks) {
-        expect(metaData.hyperlinks.length).to.equal(1)
-      } else {
-        expect.fail("Should have hyperlinks property")
-      }
-    })
   })
 
   describe("from docker labels, k8s deployment, old style", function() {
