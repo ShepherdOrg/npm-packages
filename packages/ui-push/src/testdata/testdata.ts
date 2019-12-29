@@ -3,6 +3,7 @@ import { TDeployerRole, TDeploymentType } from "@shepherdorg/metadata/dist"
 
 export function getValidHerdDeployerMetadata() {
   const input: THerdDeployerMetadata = {
+    environment: [],
     deploymentState: {
       new: false,
       key: "dev-images-plain-deployer",

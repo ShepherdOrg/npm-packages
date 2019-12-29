@@ -293,7 +293,7 @@ describe("herd.yaml loading", function() {
       )
     })
 
-    // it.only("should extract herdKey from herd.yaml", function() {
+    // it("should extract herdKey from herd.yaml", function() {
     //   // console.log('loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"]', loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"])
     //   expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].herdKey).to.equal("test-image")
     // })

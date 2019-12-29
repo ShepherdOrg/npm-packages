@@ -151,6 +151,10 @@ describe("run all deployers with infrastructure", function() {
     })
   })
 
+  it("should rollback deployment that fails end2endTest", () => {
+
+  })
+
   describe("with state storage", function() {
     beforeEach(function() {
       if (!process.env.SHEPHERD_PG_HOST) {

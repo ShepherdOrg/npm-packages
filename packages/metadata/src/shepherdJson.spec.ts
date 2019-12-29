@@ -144,7 +144,7 @@ describe("shepherd json load and validation", function() {
     it('should parse dockerImageTag from json', ()=>{
       expect(combinedProps.dockerImageTag).to.be.a('string')
     })
-    it('should parse e2eTestCommand from json', ()=>{
+    it('should parse end2endTestCommand from json', ()=>{
       expect(combinedProps.end2endTestCommand).to.be.a('string')
     })
     it('should parse gitBranch from json', ()=>{

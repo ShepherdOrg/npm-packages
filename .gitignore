@@ -5,3 +5,5 @@ dist/
 .testrun/
 .actual/
 *.log
+coverage/
+.nyc_output/

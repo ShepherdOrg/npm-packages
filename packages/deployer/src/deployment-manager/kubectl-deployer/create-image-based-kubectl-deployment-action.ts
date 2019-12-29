@@ -16,8 +16,6 @@ import { TarFile } from "@shepherdorg/metadata"
 import { TFileSystemPath } from "../../basic-types"
 import { TK8sMetadata } from "@shepherdorg/metadata"
 
-// TODO: This file is badly covered in unit tests, especially branch deployments.
-
 async function createImageBasedFileDeploymentAction(
   deploymentFileContent: TarFile,
   imageInformation: TImageInformation,

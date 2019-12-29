@@ -63,6 +63,7 @@ export function upgradeOrAddDeployment(
   return herd
 }
 
+/* istanbul ignore next */
 export function upgradeOrAddDeploymentInFile(
   {
     imageFileName,

@@ -28,8 +28,8 @@ Usage (bash):
 
 	If push parameter is present, docker push will be performed at end of successful build.
 
-Options:
-  IMAGE_NAME:              Specify image name. Defaults to directory name containing the dockerfile if not specified.
+Environment variable options:
+	IMAGE_NAME:              Specify image name. Defaults to directory name containing the dockerfile if not specified.
 	DOCKER_REGISTRY_HOST:    Set if using self-hosted docker registry. Will be prepended to docker name along with a /
 	DOCKER_REPOSITORY_ORG:   Docker repository organization/namespace. If not provided, defaults to no organization / no namespace.
 	DOCKER_REPOSITORY_NAME:  Docker repository name used to tag the docker image. Defaults to the directory name containing the dockerfile if not provided.
@@ -131,14 +131,13 @@ export DOCKER_IMAGE_GITHASH=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOC
 if [ -z "${FORCE_REBUILD}" ]; then
 
 	set +e
-	echo "Check if version already in repo. ${DOCKER_IMAGE_GITHASH}"
+	echo "Check if ${DOCKER_IMAGE_GITHASH} is already in docker registry "
 	PULLRESULT=$(docker pull ${DOCKER_IMAGE_GITHASH} 2>&1)
 	if [ "$?" = "0" ]; then
-		echo ${DOCKER_IMAGE_GITHASH} is up to date.
+		echo "... is up to date."
 		exit 0
 	else
-		echo ${DOCKER_IMAGE_GITHASH}: ${PULLRESULT}
-		echo "Image ${DOCKER_IMAGE_GITHASH} not pulled. Building."
+		echo "...image not in registry. Building."
 	fi
 	set -e
 fi
@@ -155,7 +154,7 @@ then
   echo "Missing SHEPHERD_METADATA label from ${DOCKERFILE}. Please append"
   echo ""
   echo "ARG SHEPHERD_METADATA"
-  echo "LABEL shepherd.metadata=${SHEPHERD_METADATA}"
+  echo "LABEL shepherd.metadata=\${SHEPHERD_METADATA}"
   echo ""
   echo "to ${DOCKERFILE}"
   exit 255
@@ -277,9 +276,9 @@ else
 fi
 
 # TODO Port completely to nodejs
-# TODO Error if docker image produced is not configured with enough information to deploy
+# TODO Return error if docker image produced is not configured with enough information to deploy
 # Create command shepherd-validate-image
-# TODO Add SHEPHERD_METADATA arg and label to Dockerfile if missing.
+# TODO Add SHEPHERD_METADATA arg and label to Dockerfile if missing, rather than throwing error
 
 popd >/dev/null
 

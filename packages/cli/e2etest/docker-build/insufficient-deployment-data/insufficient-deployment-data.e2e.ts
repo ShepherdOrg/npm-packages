@@ -16,6 +16,7 @@ describe("Build docker with insufficient deployment information", function() {
 
   it("Implement should exit with error indicating problem", () => {
     expect(buildOutput).to.contain('Missing SHEPHERD_METADATA label')
+    expect(buildOutput).to.contain('${SHEPHERD_METADATA}')
     expect(buildExitCode).to.equal(255)
   })
 
