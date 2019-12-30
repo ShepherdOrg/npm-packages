@@ -8,7 +8,9 @@ import {
   TActionExecutionOptions,
   TAnyDeploymentAction,
   TDeploymentPlan,
-  TDockerDeploymentAction, TDockerDeploymentPlan, TDockerDeploymentPlanTuple,
+  TDockerDeploymentAction,
+  TDockerDeploymentPlan,
+  TDockerDeploymentPlanTuple,
   TK8sDeploymentActionMap,
   TK8sDeploymentPlan,
   TK8sDirDeploymentAction,
@@ -227,14 +229,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) : FRelease
         }
       })
 
-      // console.info('deploymentPromises', deploymentPromises)
-
-      const deployments = await Bluebird.all(deploymentPromises)
-      // deployments.forEach((deployment)=>{
-      //   runOptions.uiBackend(deployment)
-      // })
-      // console.info('deployments', deployments)
-      return deployments
+      return Bluebird.all(deploymentPromises)
     }
 
     function printPlan(logger: ILog) {
@@ -283,7 +278,7 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) : FRelease
       })
     }
 
-    function exportDeploymentDocuments(exportDirectory: TFileSystemPath):Promise<unknown> {
+    function exportDeploymentDocuments(exportDirectory: TFileSystemPath):Promise<void> {
       return new Promise(function(resolve, reject) {
         let fileWrites = emptyArray<any>()
 
@@ -316,7 +311,9 @@ export function ReleasePlanModule(injected: TReleasePlanDependencies) : FRelease
           })
         })
         Promise.all(fileWrites)
-          .then(resolve)
+          .then(()=>{
+            resolve()
+          })
           .catch(reject)
       })
     }

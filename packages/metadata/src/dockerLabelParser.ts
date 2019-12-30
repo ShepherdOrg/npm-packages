@@ -49,8 +49,7 @@ function decodeBase64String(base64EncodedString: string): string {
 function determineDeploymentType(imageLabels: any): TDeploymentType {
   if (
     Boolean(imageLabels["shepherd.deployer"]) ||
-    Boolean(imageLabels["shepherd.deployer.command"]) ||
-    imageLabels["shepherd.infrastructure"] === "true"
+    Boolean(imageLabels["shepherd.deployer.command"])
   ) {
     return TDeploymentType.Deployer
   } else if (Boolean(imageLabels["shepherd.kube.config.tar.base64"])) {

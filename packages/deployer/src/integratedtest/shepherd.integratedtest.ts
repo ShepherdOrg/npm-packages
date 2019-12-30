@@ -1,16 +1,16 @@
 import * as _ from "lodash"
 
-import {PgConfig, PostgresStore as PgBackend} from '@shepherdorg/postgres-backend'
+import { PgConfig, PostgresStore as PgBackend } from "@shepherdorg/postgres-backend"
 
-import script from '../test-tools/script-test'
-import {TFileSystemPath} from '../basic-types'
+import script from "../test-tools/script-test"
+import { TFileSystemPath } from "../basic-types"
 import { base64Encode } from "../base64-env-subst"
 
 const fs = require("fs")
 const path = require("path")
 const cleanDir = require("../test-tools/clean-dir")
 
-function ensureCleanOutputFolder(firstRoundFolder:TFileSystemPath) {
+function ensureCleanOutputFolder(firstRoundFolder: TFileSystemPath) {
   if (!fs.existsSync(firstRoundFolder)) {
     fs.mkdirSync(firstRoundFolder)
   }
@@ -18,7 +18,7 @@ function ensureCleanOutputFolder(firstRoundFolder:TFileSystemPath) {
 }
 
 describe("run all deployers with infrastructure", function() {
-  let shepherdTestHarness = path.join(process.cwd(),'testbin/test-shepherd.sh')
+  let shepherdTestHarness = path.join(process.cwd(), "testbin/test-shepherd.sh")
 
   this.timeout(40000)
 
@@ -48,10 +48,11 @@ describe("run all deployers with infrastructure", function() {
           env: _.extend({}, process.env, {
             NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
+            INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
           }),
-          debug: false, // debug:false suppresses stdout of process
+          debug: true, // debug:false suppresses stdout of process
         })
-        .ignoreLinesWith(['buildDate','lastCommits','kubeConfigB64', 'gitHash'])
+        .ignoreLinesWith(["buildDate", "lastCommits", "kubeConfigB64", "gitHash"])
         .output("./.build/.testdata/kubeapply")
         .shouldEqual("./src/integratedtest/expected/all-deployments")
         .done(function() {
@@ -62,14 +63,14 @@ describe("run all deployers with infrastructure", function() {
 
   describe("adding to herd", function() {
 
-    let tempHerdFilePath = path.resolve('./.build/herd-for-editing.yaml')
+    let tempHerdFilePath = path.resolve("./.build/herd-for-editing.yaml")
 
     beforeEach(() => {
       let shepherdStoreDir = "./.build/.shepherdstore"
       cleanDir(shepherdStoreDir)
       cleanDir("./.build/.testdata/testexport", false)
 
-      fs.copyFileSync('./src/deployment-manager/testdata/herd-editing/herd.yaml', tempHerdFilePath)
+      fs.copyFileSync("./src/deployment-manager/testdata/herd-editing/herd.yaml", tempHerdFilePath)
     })
 
 
@@ -79,19 +80,19 @@ describe("run all deployers with infrastructure", function() {
           env: _.extend({}, process.env, {
             NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
-            UPSTREAM_IMAGE_NAME:"testenvimage",
-            UPSTREAM_IMAGE_TAG:"0.0.0",
-            UPSTREAM_HERD_KEY:'addedimage',
-            UPSTREAM_HERD_DESCRIPTION:'Just a casual e2e test'
+            UPSTREAM_IMAGE_NAME: "testenvimage",
+            UPSTREAM_IMAGE_TAG: "0.0.0",
+            UPSTREAM_HERD_KEY: "addedimage",
+            UPSTREAM_HERD_DESCRIPTION: "Just a casual e2e test",
           }),
           debug: false, // debug:false suppresses stdout of process
         })
         .stdout()
-        .shouldContain('Adding addedimage')
+        .shouldContain("Adding addedimage")
         .stdout()
-        .shouldContain('From addedimage')
+        .shouldContain("From addedimage")
         .stdout()
-        .shouldContain('Plan execution complete')
+        .shouldContain("Plan execution complete")
         .done(function() {
           done()
         })
@@ -102,7 +103,7 @@ describe("run all deployers with infrastructure", function() {
     const firstRoundFolder = path.join(process.cwd(), "./.build/kubeapply")
     const secondRoundFolder = path.join(
       process.cwd(),
-      "./.build/kubeapply-secondround"
+      "./.build/kubeapply-secondround",
     )
 
     beforeEach(function() {
@@ -110,14 +111,14 @@ describe("run all deployers with infrastructure", function() {
         process.env.SHEPHERD_PG_HOST = "localhost"
       }
       process.env.RESET_FOR_REAL = "yes-i-really-want-to-drop-deployments-table"
-      process.env.UPSTREAM_WAIT_FOR_ROLLOUT="true"
+      process.env.UPSTREAM_WAIT_FOR_ROLLOUT = "true"
       let pgBackend = PgBackend(PgConfig())
 
       ensureCleanOutputFolder(firstRoundFolder)
       ensureCleanOutputFolder(secondRoundFolder)
 
-      let postgresConnectionError = (err: Error)=>{
-        throw new Error('Error connecting to postgres! Cause: ' + err.message)
+      let postgresConnectionError = (err: Error) => {
+        throw new Error("Error connecting to postgres! Cause: " + err.message)
       }
       return pgBackend
         .connect().catch(postgresConnectionError)
@@ -127,9 +128,10 @@ describe("run all deployers with infrastructure", function() {
     it("should deploy once in two runs", function(done) {
       process.env.KUBECTL_OUTPUT_FOLDER = firstRoundFolder
 
+      let testEnv = { NO_REBUILD_IMAGES: true, INFRASTRUCTURE_IMPORTED_ENV: "thatsme" }
       script
         .execute(shepherdTestHarness, [], {
-          env: _.extend({ NO_REBUILD_IMAGES: true }, process.env),
+          env: _.extend(testEnv, process.env),
           debug: false, // debug:false suppresses stdout of process
         })
         .output(firstRoundFolder)
@@ -139,7 +141,7 @@ describe("run all deployers with infrastructure", function() {
 
           script
             .execute(shepherdTestHarness, [], {
-              env: _.extend({ NO_REBUILD_IMAGES: true }, process.env),
+              env: _.extend(testEnv, process.env),
               debug: false, // debug:false suppresses stdout of process
             })
             .output(secondRoundFolder)
@@ -151,7 +153,11 @@ describe("run all deployers with infrastructure", function() {
     })
   })
 
-  it("should rollback deployment that fails end2endTest", () => {
+  xit("should rollback deployment that fails end2endTest", () => {
+
+  })
+
+  xit("should execute infrastructure deployers first to completion", () => {
 
   })
 
@@ -168,15 +174,18 @@ describe("run all deployers with infrastructure", function() {
 
       return pgBackend
         .connect()
-        .then(() => pgBackend.resetAllDeploymentStates()).catch((err: Error)=>{
-          throw new Error('Error connecting to postgres! Cause: ' + err.message)
+        .then(() => pgBackend.resetAllDeploymentStates()).catch((err: Error) => {
+          throw new Error("Error connecting to postgres! Cause: " + err.message)
         })
     })
 
     it("should modify branch deployment", function(done) {
       script
         .execute(shepherdTestHarness, ["--dryrun"], {
-          env: _.extend({ NO_REBUILD_IMAGES: true }, process.env),
+          env: _.extend({
+            NO_REBUILD_IMAGES: true,
+            INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
+          }, process.env),
           debug: false, // debug:false suppresses stdout of process
         })
         .done(function() {
@@ -225,10 +234,11 @@ describe("run all deployers with infrastructure", function() {
           ],
           {
             env: _.extend({
-              GLOBAL_MIGRATION_ENV_VARIABLE_ONE:'justAValue'
+              GLOBAL_MIGRATION_ENV_VARIABLE_ONE: "justAValue",
+              INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
             }, testEnv, process.env),
             debug: false, // debug:false suppresses stdout of process
-          }
+          },
         )
         .output(".build/testexport")
         .shouldEqual(expectedOutputFileOrDir)

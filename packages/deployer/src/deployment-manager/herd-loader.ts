@@ -72,7 +72,6 @@ export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
           Object.entries(herd).forEach(([herdDeclarationType, herdDeclaration]) => {
             if (loaders[herdDeclarationType]) {
               let loadHerdDeclarations: FHerdDeclarationLoader = loaders[herdDeclarationType]
-
               declaredPlannedActionPromises.push(
                 loadHerdDeclarations(herdDeclaration, herdFilePath )
               )
@@ -80,14 +79,17 @@ export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
               throw new Error('No loader registered for type ' + herdDeclarationType + JSON.stringify(herdDeclaration))
             }
           })
-          Bluebird.all(declaredPlannedActionPromises).then((deploymentActions)=>{
-            deploymentActions.flatMap((allActions)=>{
-              allActions.map((deploymentAction)=>{
-                releasePlan.addDeployment(deploymentAction)
+
+          Bluebird.all(declaredPlannedActionPromises).then(async (deploymentActions)=>{
+            return deploymentActions.flatMap((allActions)=>{
+              return allActions.map((deploymentAction)=>{
+                return releasePlan.addDeployment(deploymentAction)
               })
             })
+          }).then(Bluebird.all).then((_addedActions)=>{
+            // All add deployment actions should be resolved
             resolve( releasePlan)
-          })
+          }).catch(reject)
 
         } else {
           reject(new Error(fileName + " does not exist!"))

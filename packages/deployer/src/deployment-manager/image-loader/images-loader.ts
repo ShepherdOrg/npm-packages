@@ -68,7 +68,7 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
             console.error(e)
             errorMessage = e
           } else {
-            errorMessage = "When processing image " + imgName + "\n" + e.message + (e.stack ? e.stack : "")
+            errorMessage = "When processing image " + imgName + "\n" + e.message
           }
           throw new Error(errorMessage)
         })
@@ -77,15 +77,11 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
   }
 
   async function imagesLoader(images: TDockerImageHerdSpecs, _herdPath: TFileSystemPath ): Promise<Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>> {
-    let value: Array<Promise<Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>>> = loadDockerImageHerdSpecs(images )
-    let imageDeploymentPlans: Array<Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>> = await Bluebird.all(value)
-
-    let derivedDeploymentActionPromises = loadDockerImageHerdSpecs(derivedDeployments )
-    imageDeploymentPlans = imageDeploymentPlans.concat(await Bluebird.all(derivedDeploymentActionPromises))
-
-    return imageDeploymentPlans.flatMap((array) => array.map(identityMap))
+      let value: Array<Promise<Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>>> = loadDockerImageHerdSpecs(images )
+      let imageDeploymentPlans: Array<Array<TDockerDeploymentAction | TK8sDockerImageDeploymentAction>> = await Bluebird.all(value)
+      let derivedDeploymentActionPromises = loadDockerImageHerdSpecs(derivedDeployments )
+      imageDeploymentPlans = imageDeploymentPlans.concat(await Bluebird.all(derivedDeploymentActionPromises))
+      return imageDeploymentPlans.flatMap((array) => array.map(identityMap))
   }
-
-
   return { imagesLoader }
 }

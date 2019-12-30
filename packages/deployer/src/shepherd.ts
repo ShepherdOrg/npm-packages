@@ -6,10 +6,7 @@ import * as fs from "fs"
 import { ReleasePlanModule } from "./deployment-manager/release-plan"
 
 import { HerdLoader } from "./deployment-manager/herd-loader"
-import {
-  getDockerRegistryClientsFromConfig,
-  imageLabelsLoader,
-} from "@shepherdorg/docker-image-metadata-loader"
+import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { IStorageBackend } from "@shepherdorg/state-store"
 import { TFileSystemPath } from "./basic-types"
 
@@ -19,7 +16,7 @@ let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 This is the main entry point for shepherd deployer agent
  */
 
-function printUsage () {
+function printUsage() {
   console.info(`Usage: shepherd /path/to/a/herd.yaml ENVIRONMENT <options>
 
 Supported options:
@@ -106,7 +103,7 @@ let waitForRollout = process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process
 
 const exportDocuments = process.argv.indexOf("--export") > 0
 
-let outputDirectory : TFileSystemPath | undefined
+let outputDirectory: TFileSystemPath | undefined
 
 if (process.argv.indexOf("--help") > 0) {
   printUsage()
@@ -128,11 +125,7 @@ if ((exportDocuments || dryRun) && !outputDirectory) {
 }
 
 let stateStoreBackend: IStorageBackend
-let uiDataPusher: {pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined>} // TODO: Need proper type export form uiDataPusher
-
-
-
-
+let uiDataPusher: { pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined> } // TODO: Need proper type export form uiDataPusher
 
 if (process.env.SHEPHERD_PG_HOST) {
   const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
@@ -153,18 +146,19 @@ if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
 
 const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
 const exec = require("@shepherdorg/exec")
-const { CreateUpstreamTriggerDeploymentConfig } = require("./deployment-manager/create-upstream-trigger-deployment-config")
+const {
+  CreateUpstreamTriggerDeploymentConfig,
+} = require("./deployment-manager/create-upstream-trigger-deployment-config")
 
 const upgradeOrAddDeploymentInFile = require("./herd-file/herd-edit").upgradeOrAddDeploymentInFile
 
-function terminateProcess(exitCode:number) {
+function terminateProcess(exitCode: number) {
   stateStoreBackend.disconnect()
   process.exit(exitCode)
 }
 
 let herdFilePath = process.argv[2]
 let environment = process.argv[3]
-
 
 stateStoreBackend
   .connect()
@@ -176,31 +170,27 @@ stateStoreBackend
     const featureDeploymentConfig = CreateUpstreamTriggerDeploymentConfig(logger)
     featureDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
 
-    const ReleasePlan = ReleasePlanModule(
-      {
-        cmd: exec,
-        logger: Logger(console),
-        stateStore: releaseStateStore,
-        uiDataPusher: uiDataPusher,
-      }
-    )
+    const ReleasePlan = ReleasePlanModule({
+      cmd: exec,
+      logger: Logger(console),
+      stateStore: releaseStateStore,
+      uiDataPusher: uiDataPusher,
+    })
 
-    if(featureDeploymentConfig.herdFileEditNeeded()){
+    if (featureDeploymentConfig.herdFileEditNeeded()) {
       upgradeOrAddDeploymentInFile(featureDeploymentConfig, logger)
     }
 
-    let loader = HerdLoader(
-      {
-        logger: Logger(console),
-        ReleasePlan: ReleasePlan,
-        exec: exec,
-        featureDeploymentConfig,
-        labelsLoader: {
-          imageLabelsLoader:imageLabelsLoader,
-          getDockerRegistryClientsFromConfig:getDockerRegistryClientsFromConfig
-        }
-      }
-    )
+    let loader = HerdLoader({
+      logger: Logger(console),
+      ReleasePlan: ReleasePlan,
+      exec: exec,
+      featureDeploymentConfig,
+      labelsLoader: {
+        imageLabelsLoader: imageLabelsLoader,
+        getDockerRegistryClientsFromConfig: getDockerRegistryClientsFromConfig,
+      },
+    })
 
     if (!environment) {
       printUsage()
@@ -210,37 +200,42 @@ stateStoreBackend
     logger.info("Shepherding herd from file " + herdFilePath + " for environment " + environment)
     loader
       .loadHerd(herdFilePath, environment)
-      .then(function(plan:any) {
+      .then(function(plan: any) {
         plan.printPlan(logger)
         if (exportDocuments) {
           logger.info("Testrun mode set - exporting all deployment documents to " + outputDirectory)
           logger.info("Testrun mode set - no deployments will be performed")
           plan
-            .exportDeploymentDocuments(outputDirectory)
+            .exportDeploymentDocuments(outputDirectory as TFileSystemPath)
             .then(function() {
               terminateProcess(0)
             })
-            .catch(function(writeError:Error) {
+            .catch(function(writeError: Error) {
               logger.error("Error exporting deployment document! ", writeError)
               terminateProcess(255)
             })
         } else {
           plan
-            .executePlan({ dryRun: dryRun, dryRunOutputDir: outputDirectory, pushToUi: pushToUi, waitForRollout: waitForRollout })
+            .executePlan({
+              dryRun: dryRun,
+              dryRunOutputDir: outputDirectory,
+              pushToUi: pushToUi,
+              waitForRollout: waitForRollout,
+            })
             .then(function() {
               logger.info("Plan execution complete. Exiting shepherd.")
               setTimeout(() => {
                 terminateProcess(0)
               }, 1000)
             })
-            .catch(function(err:Error) {
+            .catch(function(err: Error) {
               logger.error("Plan execution error", err)
               terminateProcess(255)
             })
         }
       })
       .catch(function(loadError) {
-        logger.error("Plan load error.", loadError)
+        logger.error(`Plan load error. ${loadError.message}`)
         stateStoreBackend.disconnect()
         process.exit(255)
       })

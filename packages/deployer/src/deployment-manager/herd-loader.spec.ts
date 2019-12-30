@@ -64,6 +64,7 @@ describe("herd.yaml loading", function() {
     delete process.env.EXPORT1
     delete process.env.EXPORT2
     delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
+    delete process.env.INFRASTRUCTURE_IMPORTED_ENV
   })
 
 
@@ -75,6 +76,7 @@ describe("herd.yaml loading", function() {
     process.env.MICRO_SITES_DB_PASSWORD = "testing123"
     process.env.WWW_ICELANDAIR_IP_WHITELIST = "YnVsbHNoaXRsaXN0Cg=="
     process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "anotherValue"
+    process.env.INFRASTRUCTURE_IMPORTED_ENV = "thatsme"
 
     delete process.env.TPL_DOCKER_IMAGE
 
@@ -98,20 +100,23 @@ describe("herd.yaml loading", function() {
         addedK8sDeploymentActions: addedK8sDeployerActions,
         addDeployment(deployment: TK8sDockerImageDeploymentAction | TDockerDeploymentAction) {
           return new Promise(function(resolve, reject) {
-            if (!deployment.type) {
-              let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deployment)
-              reject(new Error(message))
-            }
-            if (!deployment.identifier) {
-              let message = "Illegal deployment, no identifier attribute in " + JSON.stringify(deployment)
-              reject(new Error(message))
-            }
-            if (deployment.type === "k8s") {
-              releasePlan.addedK8sDeploymentActions[deployment.identifier] = deployment as TK8sDockerImageDeploymentAction
-            } else if (deployment.type === "deployer") {
-              releasePlan.addedDockerDeployerActions[deployment.identifier] = deployment as TDockerDeploymentAction
-            }
-            resolve(undefined)
+            setTimeout(()=>{
+              if (!deployment.type) {
+                let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deployment)
+                reject(new Error(message))
+              }
+              if (!deployment.identifier) {
+                let message = "Illegal deployment, no identifier attribute in " + JSON.stringify(deployment)
+                reject(new Error(message))
+              }
+              if (deployment.type === "k8s") {
+                releasePlan.addedK8sDeploymentActions[deployment.identifier] = deployment as TK8sDockerImageDeploymentAction
+              } else if (deployment.type === "deployer") {
+                releasePlan.addedDockerDeployerActions[deployment.identifier] = deployment as TDockerDeploymentAction
+              }
+              resolve()
+            }, 1)
+
           })
         },
       }
@@ -295,7 +300,6 @@ describe("herd.yaml loading", function() {
     })
 
     // it("should extract herdKey from herd.yaml", function() {
-    //   // console.log('loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"]', loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"])
     //   expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].herdKey).to.equal("test-image")
     // })
 

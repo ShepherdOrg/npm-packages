@@ -33,8 +33,7 @@
             "Cmd": [
                 "/bin/sh",
                 "-c",
-                "#(nop) ",
-                "LABEL shepherd.infrastructure=true"
+                "#(nop) "
             ],
             "Image": "sha256:7a82cf41a461808e941ff7aa8023b5227c85f28c7f3ee08d53dde4d3e2704c1d",
             "Volumes": {
@@ -51,7 +50,6 @@
                 "shepherd.git.branch": "master",
                 "shepherd.git.hash": "0aa28463d74e9d0fc1c74eb1c9646c0c2d3f308e",
                 "shepherd.git.url": "git@github.com:ShepherdOrg/npm-packages.git",
-                "shepherd.infrastructure": "true",
                 "shepherd.lastcommits": "VHVlLCAyOSBPY3QgMjAxOSAxMTozNTowNyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRml4IGJhc2U2NCBlbmNvZGUgb24gbGFzdCBmaXZlIGNvbW1pdHMuIFR1ZSwgMjkgT2N0IDIwMTkgMTE6MDE6NTMgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIERlZmVuZCBhZ2FpbnN0IG5ld2xpbmVzIGluIGJhc2U2NCBvdXRwdXQgVHVlLCAyOSBPY3QgMjAxOSAxMDowNDo0MyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRml4IG1ldGFkYXRhIGRlcGVuZGVuY3kgVHVlLCAyOSBPY3QgMjAxOSAwOTo1OTowNSArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRXhwb3J0IHR5cGVzLiBUdWUsIDI5IE9jdCAyMDE5IDA5OjUxOjUzICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBFbmFibGUgc3BlY2lmeSBpbWFnZSBuYW1lIHRocm91Z2ggSU1BR0VfTkFNRQo=",
                 "shepherd.name": "Infrastructure",
                 "shepherd.version": "0.0.1"
@@ -96,7 +94,6 @@
                 "shepherd.git.branch": "master",
                 "shepherd.git.hash": "0aa28463d74e9d0fc1c74eb1c9646c0c2d3f308e",
                 "shepherd.git.url": "git@github.com:ShepherdOrg/npm-packages.git",
-                "shepherd.infrastructure": "true",
                 "shepherd.lastcommits": "VHVlLCAyOSBPY3QgMjAxOSAxMTozNTowNyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRml4IGJhc2U2NCBlbmNvZGUgb24gbGFzdCBmaXZlIGNvbW1pdHMuIFR1ZSwgMjkgT2N0IDIwMTkgMTE6MDE6NTMgKzAwMDAgYnkgR3XDsGxhdWd1ciBTLiBFZ2lsc3Nvbi4gLS0tIERlZmVuZCBhZ2FpbnN0IG5ld2xpbmVzIGluIGJhc2U2NCBvdXRwdXQgVHVlLCAyOSBPY3QgMjAxOSAxMDowNDo0MyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRml4IG1ldGFkYXRhIGRlcGVuZGVuY3kgVHVlLCAyOSBPY3QgMjAxOSAwOTo1OTowNSArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gRXhwb3J0IHR5cGVzLiBUdWUsIDI5IE9jdCAyMDE5IDA5OjUxOjUzICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBFbmFibGUgc3BlY2lmeSBpbWFnZSBuYW1lIHRocm91Z2ggSU1BR0VfTkFNRQo=",
                 "shepherd.name": "Infrastructure",
                 "shepherd.version": "0.0.1"

@@ -1,0 +1,17 @@
+{
+  "displayName": "Infrastructure image",
+  "environment": [
+    {
+      "name": "INFRASTRUCTURE_IMPORTED_ENV",
+      "value": "{{ INFRASTRUCTURE_IMPORTED_ENV }}"
+    }
+  ],
+  "deployCommand": "deploy",
+  "rollbackCommand": "rollback",
+  "hyperlinks": [
+    {
+      "title": "Sources for this",
+      "url": "https://github.com/shepherdorg/npm-packages/packages/deployer/src/integratedtest/testimages/test-infrastructure"
+    }
+  ]
+}
