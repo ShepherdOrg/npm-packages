@@ -1,7 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
-import { createKubectlDeployAction } from "./create-kubectl-deployment-action"
+import { createKubectlDeployAction } from "../kubectl-deployer/create-kubectl-deployment-action"
 import {
   ILog,
   TFolderHerdSpec,
@@ -103,7 +103,7 @@ export function planFolderDeployment(injected: TFolderDeploymentPlannerDependenc
             function calculateFileDeploymentPlan(resolvedPath: TFileSystemPath) {
               return new Promise(function(resolve, reject) {
                 fs.readFile(resolvedPath, "utf-8", function(err, data) {
-                  if (err) reject(err)
+                  if (err) return reject(err)
 
                   let dirName = path.basename(path.dirname(resolvedPath))
                   const fileName = path.basename(resolvedPath)

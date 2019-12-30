@@ -1,5 +1,5 @@
 import { ILog, TFolderHerdSpec, TFolderHerdSpecs, TK8sDirDeploymentAction } from "../deployment-types"
-import { planFolderDeployment } from "../kubectl-deployer/folder-deployment-planner"
+import { planFolderDeployment } from "./folder-deployment-planner"
 import { identityMap, TFileSystemPath } from "../../basic-types"
 import * as path from "path"
 import Bluebird = require("bluebird")
