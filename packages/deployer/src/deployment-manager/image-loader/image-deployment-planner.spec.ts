@@ -1,7 +1,7 @@
 import { expect } from "chai"
-import { getShepherdMetadata } from "./add-shepherd-metadata"
+import { getShepherdMetadata } from "../add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
-import { ILog, TDockerDeploymentAction, TImageInformation, TK8sDockerImageDeploymentAction } from "./deployment-types"
+import { ILog, TDockerDeploymentAction, TImageInformation, TK8sDockerImageDeploymentAction } from "../deployment-types"
 
 function calculateTestDeploymentActions() {
   let fakeLogger = {

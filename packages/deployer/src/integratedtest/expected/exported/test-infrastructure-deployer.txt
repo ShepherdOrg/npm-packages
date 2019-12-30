@@ -1,0 +1,1 @@
+docker run -i --rm -e ENV=testit -e DB_HOST=postgres-local -e DB_PASS=somedbpass test-infrastructure:[image_version] deploy

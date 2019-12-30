@@ -200,8 +200,6 @@ describe("run all deployers with infrastructure", function() {
       NO_REBUILD_IMAGES: true,
     }
 
-    console.log(`base64Encoded ${testEnv.WWW_ICELANDAIR_IP_WHITELIST}`)
-
     beforeEach(function() {
       if (!fs.existsSync(".build")) {
         fs.mkdirSync(".build")

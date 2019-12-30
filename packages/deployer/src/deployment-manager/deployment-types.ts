@@ -53,10 +53,14 @@ export type TK8sDeploymentPlan2 = {
   files?: TTarFolderStructure
 }
 
-export type TImageInformation = {
-  env: string
-  shepherdMetadata?: TImageMetadata
+
+export type TShepherdMetadata = {
   imageDefinition: TDockerImageHerdSpec
+  shepherdMetadata?: TImageMetadata
+}
+
+export type TImageInformation = TShepherdMetadata & {
+  env: string
   dockerLabels: {[key: string]: any}
 }
 
@@ -65,20 +69,14 @@ export type TImageInformation = {
 
 /// New types below
 
+export type TDockerImageHerdSpecs = { [imageKey: string]: OmitKey<TDockerImageHerdSpec> }
+export type TFolderHerdSpecs = { [imageKey: string]: OmitKey<TFolderHerdSpec> }
 
-export type TInfrastructureImageMap = {
-  [property: string]: any
+export type THerdFileStructure = {
+  folders?: TFolderHerdSpecs
+  infrastructure?: TDockerImageHerdSpecs
+  images?: TDockerImageHerdSpecs
 }
-
-
-export type TImageMap = {
-  [property: string]: TDockerImageHerdSpec
-}
-
-export type THerdFolderMap = {
-  [property: string]: TFolderHerdSpec
-}
-
 export type TFolderMetadata = {
   //TODO This will need git information from directory containing configuration
   path: TFileSystemPath

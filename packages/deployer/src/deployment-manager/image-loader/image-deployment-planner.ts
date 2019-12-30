@@ -1,10 +1,10 @@
 import {
   ILog,
   TAnyDeploymentAction, TImageInformation,
-} from "./deployment-types"
-import { calculateKubectlActions } from "./kubectl-deployer/create-image-based-kubectl-deployment-action"
-import { calculateDeployerAction } from "./docker-deployer/docker-deployment-action"
-import { TExtensionsMap } from "./kubectl-deployer/kube-supported-extensions"
+} from "../deployment-types"
+import { calculateKubectlActions } from "../kubectl-deployer/create-image-based-kubectl-deployment-action"
+import { calculateDeployerAction } from "../docker-deployer/docker-deployment-action"
+import { TExtensionsMap } from "../kubectl-deployer/kube-supported-extensions"
 
 export type TImageDeploymentPlannerDependencies={
   logger: ILog
@@ -26,9 +26,9 @@ export function createImageDeploymentPlanner(injected:TImageDeploymentPlannerDep
         throw new Error(`Unexpected: No planner in place for deploymentType ${imageInformation.shepherdMetadata.deploymentType} in ${imageInformation.shepherdMetadata.displayName} `)
       }
     } else {
-      return Promise.resolve([])
+      // return Promise.resolve([])
       // Todo looks like a probable bug around infrastructure. Resolve this!
-      // throw new Error('No shepherd metadata present! Do not know what to do with ' + JSON.stringify(imageInformation))
+      throw new Error('No shepherd metadata present! Do not know what to do with ' + JSON.stringify(imageInformation))
     }
   }
 

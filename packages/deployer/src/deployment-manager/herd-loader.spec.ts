@@ -42,6 +42,18 @@ describe("herd.yaml loading", function() {
 
   let featureDeploymentConfig = CreateFeatureDeploymentConfig()
 
+  function createTestHerdLoader(labelsLoader: TDockerMetadataLoader, featureDeploymentConfig: TFeatureDeploymentConfig) {
+    loader = HerdLoader(
+      {
+        logger: loaderLogger,
+        ReleasePlan: CreateTestReleasePlan as FReleasePlanner,
+        exec: exec,
+        labelsLoader: labelsLoader,
+        featureDeploymentConfig,
+      },
+    )
+  }
+
   afterEach(() => {
     delete process.env.www_icelandair_com_image
     delete process.env.SUB_DOMAIN_PREFIX
@@ -54,17 +66,6 @@ describe("herd.yaml loading", function() {
     delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
   })
 
-  function createTestHerdLoader(labelsLoader: TDockerMetadataLoader, featureDeploymentConfig: TFeatureDeploymentConfig) {
-    loader = HerdLoader(
-      {
-        logger: loaderLogger,
-        ReleasePlan: CreateTestReleasePlan as FReleasePlanner,
-        exec: exec,
-        labelsLoader: labelsLoader,
-        featureDeploymentConfig,
-      },
-    )
-  }
 
   beforeEach(() => {
     process.env.www_icelandair_com_image = "testimage123"
@@ -152,11 +153,11 @@ describe("herd.yaml loading", function() {
     createTestHerdLoader(labelsLoader, featureDeploymentConfig)
   })
 
-
   it("should load herd.yaml", function() {
-    return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
-      expect(plan).not.to.equal(undefined)
-    })
+    return loader
+      .loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
+        expect(plan).not.to.equal(undefined)
+      })
   })
 
   it("should not log any execution after herd load.", function() {
@@ -350,7 +351,8 @@ describe("herd.yaml loading", function() {
     })
 
     it("should load deployer plan by migration image reference", function() {
-      expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].dockerParameters).to.contain(
+      expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"
+        ].dockerParameters).to.contain(
         "testenvimage-migrations:0.0.0",
       )
       expect(Object.keys(loadedPlan.addedDockerDeployerActions)).to.contain("testenvimage-migrations:0.0.0")

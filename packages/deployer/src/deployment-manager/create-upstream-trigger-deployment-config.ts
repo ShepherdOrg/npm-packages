@@ -1,13 +1,6 @@
 import { newProgrammerOops } from "oops-error"
-import { ILog, OmitKey, TDockerImageHerdSpec } from "./deployment-types"
+import { ILog, TDockerImageHerdSpecs, THerdFileStructure } from "./deployment-types"
 import { TFileSystemPath } from "../basic-types"
-
-type TDockerImageHerdSpecs = { [imageKey: string]: OmitKey<TDockerImageHerdSpec> }
-
-export type THerdFileStructure = {
-  infrastructure?: {}
-  images?: TDockerImageHerdSpecs
-}
 
 export interface TFeatureDeploymentConfig {
   origin?: string
