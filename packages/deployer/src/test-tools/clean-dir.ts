@@ -1,5 +1,5 @@
 import * as fs from "fs"
-import { TFileSystemPath } from "../basic-types"
+import { TFileSystemPath } from "../helpers/basic-types"
 
 const rmDir = function(dirPath:TFileSystemPath, removeSelf=true) {
   let files

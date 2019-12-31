@@ -3,12 +3,12 @@
 import * as path from "path"
 
 import * as fs from "fs"
-import { ReleasePlanModule } from "./deployment-manager/release-plan"
+import { DeploymentOrchestrationModule } from "./deployment-orchestration/deployment-orchestration"
 
-import { HerdLoader } from "./deployment-manager/herd-loader"
+import { HerdLoader } from "./herd-loading/herd-loader"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { IStorageBackend } from "@shepherdorg/state-store"
-import { TFileSystemPath } from "./basic-types"
+import { TFileSystemPath } from "./helpers/basic-types"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -87,7 +87,7 @@ if (process.argv.indexOf("--version") > 0) {
 global._ = require("lodash")
 global.Promise = require("bluebird")
 
-let Logger = require("./deployment-manager/logger")
+let Logger = require("./logging/logger")
 
 const logger = Logger(console)
 
@@ -148,7 +148,7 @@ const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
 const exec = require("@shepherdorg/exec")
 const {
   CreateUpstreamTriggerDeploymentConfig,
-} = require("./deployment-manager/create-upstream-trigger-deployment-config")
+} = require("./triggered-deployment/create-upstream-trigger-deployment-config")
 
 const upgradeOrAddDeploymentInFile = require("./herd-file/herd-edit").upgradeOrAddDeploymentInFile
 
@@ -170,7 +170,7 @@ stateStoreBackend
     const featureDeploymentConfig = CreateUpstreamTriggerDeploymentConfig(logger)
     featureDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
 
-    const ReleasePlan = ReleasePlanModule({
+    const ReleasePlan = DeploymentOrchestrationModule({
       cmd: exec,
       logger: Logger(console),
       stateStore: releaseStateStore,

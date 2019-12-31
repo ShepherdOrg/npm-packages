@@ -1,4 +1,4 @@
-import { FExecutionCallback, TFileSystemPath } from "../basic-types"
+import { FExecutionCallback, TFileSystemPath } from "../helpers/basic-types"
 import * as fs from "fs"
 
 const JsDiff = require("diff")

@@ -3,8 +3,8 @@ import * as _ from "lodash"
 import { PgConfig, PostgresStore as PgBackend } from "@shepherdorg/postgres-backend"
 
 import script from "../test-tools/script-test"
-import { TFileSystemPath } from "../basic-types"
-import { base64Encode } from "../base64-env-subst"
+import { TFileSystemPath } from "../helpers/basic-types"
+import { base64Encode } from "../template/base64-env-subst"
 
 const fs = require("fs")
 const path = require("path")

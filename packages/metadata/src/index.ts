@@ -57,6 +57,7 @@ export type TImageMetadata = {
   deploymentType: TDeploymentType
   displayName: string
   dockerImageTag?: string
+  dockerImageGithash?: string
   end2endTestCommand?: string
   gitBranch: string
   gitCommit?: string

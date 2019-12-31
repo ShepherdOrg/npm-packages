@@ -1,17 +1,21 @@
 import { TDeploymentType } from "@shepherdorg/metadata/dist"
-import { TK8sDockerImageDeploymentAction } from "../../deployment-manager/deployment-types"
+import { THerdSectionType, IK8sDockerImageDeploymentAction } from "../../deployment-types"
 
 
-type TK8sDockerImageDeploymentActionTestDataType = Omit<Omit<TK8sDockerImageDeploymentAction, "deploymentRollouts">, "execute">
+type TK8sDockerImageDeploymentActionTestDataType = Omit<Omit<IK8sDockerImageDeploymentAction, "deploymentRollouts">, "execute">
 
 export function deploymentData0(): TK8sDockerImageDeploymentActionTestDataType {
   return {
     herdKey: "shepherd-ui-api",
-    "herdSpec": {
+    "herdDeclaration": {
       "image": "shepherdorg/shepherd-ui-api",
       "imagetag": "3.0.3-c481249",
       "description": "Shepherd web UI API",
       "key": "shepherd-ui-api",
+      "sectionDeclaration":{
+        "herdSectionIndex":1,
+        "herdSectionType":THerdSectionType.images,
+      }
     },
     "metadata": {
       "buildDate": new Date("2019-10-29T14:53:42+00:00"),
@@ -64,11 +68,15 @@ export function deploymentData0(): TK8sDockerImageDeploymentActionTestDataType {
 export function deploymentData1(): TK8sDockerImageDeploymentActionTestDataType {
 
   return {
-    "herdSpec": {
+    "herdDeclaration": {
       "image": "shepherdorg/shepherd-ui",
       "imagetag": "3.0.3-8d75408",
       "description": "Shepherd Web UI",
       "key": "shepherd-ui",
+      "sectionDeclaration":{
+        "herdSectionIndex":1,
+        "herdSectionType":THerdSectionType.images,
+      }
     },
     "metadata": {
       "buildDate": new Date("2019-10-29T15:16:31+00:00"),

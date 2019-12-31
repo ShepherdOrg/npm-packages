@@ -1,6 +1,6 @@
 import { emptyArray } from "../helpers/ts-functions"
 import { expect } from "chai"
-import { FExecutionCallback } from "../basic-types"
+import { FExecutionCallback } from "../helpers/basic-types"
 
 function emptyVariable<T>() {
   return undefined as unknown as T

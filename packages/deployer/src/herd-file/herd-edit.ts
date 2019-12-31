@@ -1,13 +1,13 @@
 "use strict"
 
-import { TFileSystemPath } from "../basic-types"
+import { TFileSystemPath } from "../helpers/basic-types"
 import * as fs from "fs"
-import { TDockerImageHerdSpec } from "../deployment-manager/deployment-types"
+import { TDockerImageHerdDeclaration } from "../deployment-types"
 
 const YAML = require("js-yaml")
 
 export type THerdImagesSpec = {
-  images: { [key: string]: Omit<TDockerImageHerdSpec, "key"> }
+  images: { [key: string]: Omit<TDockerImageHerdDeclaration, "key"> }
 }
 
 export type TDeploymentUpgradeParamsFromLoadedHerd = TDeploymentUpgradeParams & {

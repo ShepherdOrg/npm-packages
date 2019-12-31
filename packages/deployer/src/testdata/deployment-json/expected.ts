@@ -1,6 +1,6 @@
 import { TDeploymentType, THerdK8sMetadata } from "@shepherdorg/metadata"
 
-export function expectedK8sDeployment0():THerdK8sMetadata {
+export function expectedK8sDeployment0(): THerdK8sMetadata {
   return {
     buildDate: new Date("2019-10-29T14:53:42.000Z"),
     buildHostName: "db704622a3b2",
