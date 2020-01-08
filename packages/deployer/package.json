@@ -48,7 +48,7 @@
     "kill-postgres": "docker stop postgres",
     "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
     "coverage": "TS_NODE_COMPILER_OPTIONS='{\"removeComments\":false}' nyc mocha --require ts-node/register --require source-map-support/register --recursive 'src/**/*.spec.ts'",
-    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,sh,json --watch 'src/**/*.spec.ts'",
+    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts --watch 'src/**/*.spec.ts'",
     "integratedtest": "yarn build && yarn build-test-images && mocha --exit --recursive 'dist/integratedtest/**/*.integratedtest.js'",
     "itdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/integratedtest/**/*.integratedtest.ts'",
     "test": "yarn specs",

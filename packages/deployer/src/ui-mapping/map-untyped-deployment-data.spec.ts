@@ -1,6 +1,6 @@
 import { expect } from "chai"
 import { mapUntypedDeploymentData} from "./map-untyped-deployment-data"
-import { deploymentData0, deploymentData1 } from "../testdata/deployment-json/shepherd-deployment-data"
+import { deploymentData0, deploymentData1 } from "./testdata/shepherd-deployment-data"
 import { expectedK8sDeployment0, expectedK8sDeployment1 } from "../testdata/deployment-json/expected"
 import { TDeploymentType, THerdDeployerMetadata, THerdK8sMetadata } from "@shepherdorg/metadata/dist"
 import { IK8sDockerImageDeploymentAction } from "../deployment-types"

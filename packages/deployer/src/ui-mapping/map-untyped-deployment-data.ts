@@ -13,6 +13,10 @@ export function mapUntypedDeploymentData(deploymentInfo: IAnyDeploymentAction | 
     return undefined
   }
 
+  if(!deploymentInfo.herdDeclaration){
+    return undefined
+  }
+
   if (!deploymentInfo.state) {
     throw new Error("Expecting state property on deploymentInfo object -> " + Object.keys(deploymentInfo).join(", "))
   }

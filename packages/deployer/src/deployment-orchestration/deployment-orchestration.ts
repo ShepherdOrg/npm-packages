@@ -5,38 +5,34 @@ import { writeFile } from "../helpers/promisified"
 import {
   FDeploymentOrchestrationConstructor,
   IAnyDeploymentAction,
-  IBaseDeploymentAction,
   IDockerDeploymentAction,
   IK8sDirDeploymentAction,
   IK8sDockerImageDeploymentAction,
-  IKubectlDeployAction,
   ILog,
   TActionExecutionOptions,
   TDeploymentOrchestration,
-  TDeploymentPlan,
-  TDockerDeploymentPlan,
-  TDockerDeploymentPlanTuple,
   TK8sDeploymentActionMap,
-  TK8sDeploymentPlan,
   TReleasePlanDependencies,
 } from "../deployment-types"
 import { mapUntypedDeploymentData } from "../ui-mapping/map-untyped-deployment-data"
 import { TFileSystemPath } from "../helpers/basic-types"
 import { newProgrammerOops, Oops } from "oops-error"
+import {
+  DeploymentPlanFactory,
+  TDeploymentPlan,
+  TDockerDeploymentPlan,
+  TDockerDeploymentPlanTuple,
+  TK8sDeploymentPlan,
+} from "../deployment-plan/deployment-plan-factory"
 import Bluebird = require("bluebird")
 
-function CreateDeploymentPlan<TActionType extends IBaseDeploymentAction>(deployment: TActionType) : TDeploymentPlan<TActionType> {
-  return {
-    herdKey: deployment.herdKey,
-    deploymentActions: [],
-  }
-}
-
-export function DeploymentOrchestrationModule(injected: TReleasePlanDependencies) : FDeploymentOrchestrationConstructor {
+export function DeploymentOrchestration(injected: TReleasePlanDependencies) : FDeploymentOrchestrationConstructor {
   const stateStore = injected.stateStore
   const cmd = injected.cmd
   const logger = injected.logger
   const uiDataPusher = injected.uiDataPusher
+
+  const planFactory = DeploymentPlanFactory({...injected })
 
   return function(forEnv: string): TDeploymentOrchestration {
     if (!forEnv) {
@@ -50,9 +46,9 @@ export function DeploymentOrchestrationModule(injected: TReleasePlanDependencies
 
     const k8sDeploymentsByIdentifier: { [key: string]: IK8sDockerImageDeploymentAction } = {}
 
-    function addKubectlDeploymentAction(deploymentAction: IK8sDockerImageDeploymentAction) {
-      k8sDeploymentActions[deploymentAction.origin] = k8sDeploymentActions[deploymentAction.origin] || CreateDeploymentPlan<IK8sDockerImageDeploymentAction>(deploymentAction)
-      k8sDeploymentActions[deploymentAction.origin].deploymentActions.push(deploymentAction)
+    async function addKubectlDeploymentAction(deploymentAction: IK8sDockerImageDeploymentAction) {
+      k8sDeploymentActions[deploymentAction.origin] = k8sDeploymentActions[deploymentAction.origin] || planFactory.createDeploymentPlan( deploymentAction.herdKey)
+      await k8sDeploymentActions[deploymentAction.origin].addAction(deploymentAction)
 
       if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
         throw new Error(
@@ -67,10 +63,10 @@ export function DeploymentOrchestrationModule(injected: TReleasePlanDependencies
       k8sDeploymentsByIdentifier[deploymentAction.identifier] = deploymentAction
     }
 
-    function addDockerDeploymentAction(deploymentAction: IDockerDeploymentAction) {
-      dockerDeploymentPlan[deploymentAction.origin] = dockerDeploymentPlan[deploymentAction.origin] || CreateDeploymentPlan<IDockerDeploymentAction>(deploymentAction)
+    async function addDockerDeploymentAction(deploymentAction: IDockerDeploymentAction) {
+      dockerDeploymentPlan[deploymentAction.origin] = dockerDeploymentPlan[deploymentAction.origin] || planFactory.createDeploymentPlan(deploymentAction.herdKey)
 
-      dockerDeploymentPlan[deploymentAction.origin].deploymentActions.push(deploymentAction)
+      await dockerDeploymentPlan[deploymentAction.origin].addAction(deploymentAction)
     }
 
     function saveDeploymentState(deployment: IK8sDockerImageDeploymentAction | IDockerDeploymentAction | IK8sDirDeploymentAction) {
@@ -92,19 +88,17 @@ export function DeploymentOrchestrationModule(injected: TReleasePlanDependencies
         throw new Error(message)
       }
 
-      deploymentAction.state = await stateStore.getDeploymentState(deploymentAction)
-
       if (deploymentAction.type === "k8s") {
-        addKubectlDeploymentAction(deploymentAction as IK8sDockerImageDeploymentAction)
+        await addKubectlDeploymentAction(deploymentAction as IK8sDockerImageDeploymentAction)
       } else if (deploymentAction.type === "deployer") {
-        addDockerDeploymentAction(deploymentAction as IDockerDeploymentAction)
+        await addDockerDeploymentAction(deploymentAction as IDockerDeploymentAction)
       }
       return deploymentAction
     }
 
 
     function K8sDeploymentPromises(deploymentOptions: TActionExecutionOptions): Array<Promise<IK8sDockerImageDeploymentAction | IK8sDirDeploymentAction>> {
-      return Object.values(k8sDeploymentActions).flatMap((k8sContainerDeployment: TDeploymentPlan<IKubectlDeployAction>) => {
+      return Object.values(k8sDeploymentActions).flatMap((k8sContainerDeployment: TDeploymentPlan) => {
         return k8sContainerDeployment.deploymentActions.map(async (k8sDeploymentAction: IK8sDockerImageDeploymentAction | IK8sDirDeploymentAction) => {
           await k8sDeploymentAction.execute(deploymentOptions, cmd, logger, saveDeploymentState)
           return k8sDeploymentAction
@@ -113,7 +107,7 @@ export function DeploymentOrchestrationModule(injected: TReleasePlanDependencies
     }
 
     function DeployerPromises(deploymentOptions: TActionExecutionOptions): Array<Promise<IDockerDeploymentAction | undefined>> {
-      return Object.values(dockerDeploymentPlan).flatMap((deploymentPlan: TDeploymentPlan<IDockerDeploymentAction>) => {
+      return Object.values(dockerDeploymentPlan).flatMap((deploymentPlan: TDeploymentPlan) => {
         return deploymentPlan.deploymentActions.map(async (deployment: IDockerDeploymentAction) => {
           if (deployment.state?.modified) {
             return await deployment.execute(deploymentOptions, cmd, logger, saveDeploymentState)
@@ -140,9 +134,13 @@ export function DeploymentOrchestrationModule(injected: TReleasePlanDependencies
           return deploymentData
         } else {
           const mappedData = mapUntypedDeploymentData(deploymentData)
-          const writePath = path.join(dryrunOutputDir, `send-to-ui-${mappedData?.deploymentState.key}.json`)
-          await writeFile(writePath, JSON.stringify(deploymentData, null, 2))
-          return deploymentData
+          if(mappedData){
+            const writePath = path.join(dryrunOutputDir, `send-to-ui-${mappedData?.deploymentState.key}.json`)
+            await writeFile(writePath, JSON.stringify(deploymentData, null, 2))
+            return deploymentData
+          } else{
+            return deploymentData
+          }
         }
       }
     }

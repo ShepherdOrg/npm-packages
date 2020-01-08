@@ -3,7 +3,7 @@ import { TDeployerMetadata, TK8sMetadata } from "@shepherdorg/metadata"
 import { TImageInformation, TShepherdMetadata } from "../deployment-types"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 
-const extractShepherdMetadata = require("@shepherdorg/metadata/dist/dockerLabelParser")
+const extractImageMetadata = require("@shepherdorg/metadata/dist/dockerLabelParser")
   .extractShepherdMetadata
 
 function rewriteDockerLabels(
@@ -24,13 +24,13 @@ function rewriteDockerLabels(
   return result
 }
 
-export async function getShepherdMetadata (dockerImageMetadata:TImageInformation): Promise<TShepherdMetadata> {
+export async function extractShepherdMetadata (dockerImageMetadata:TImageInformation): Promise<TShepherdMetadata> {
   let imageLabels = rewriteDockerLabels(
     dockerImageMetadata.dockerLabels,
     "is.icelandairlabs",
     "shepherd"
   )
-  const shepherdMetadata: TDeployerMetadata | TK8sMetadata = await extractShepherdMetadata(imageLabels)
+  const shepherdMetadata: TDeployerMetadata | TK8sMetadata = await extractImageMetadata(imageLabels)
 
   return {
     imageDefinition: dockerImageMetadata.imageDefinition,

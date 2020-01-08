@@ -10,11 +10,10 @@ import * as path from "path"
 import { extendedExec, writeFile } from "../../helpers/promisified"
 import { TK8sPartialDescriptor } from "./k8s-document-types"
 import { emptyArray } from "../../helpers/ts-functions"
+import { TFileSystemPath } from "../../helpers/basic-types"
 
 const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 
-import Bluebird = require("bluebird")
-import { TFileSystemPath } from "../../helpers/basic-types"
 
 
 export async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState:FnDeploymentStateSave) {
@@ -49,17 +48,6 @@ export async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAct
 
         try {
           thisIsMe.state = await saveDeploymentState(thisIsMe)
-
-          if (actionExecutionOptions.waitForRollout && thisIsMe.deploymentRollouts && thisIsMe.operation === "apply") {
-            await Bluebird.all(thisIsMe.deploymentRollouts.map(async (deploymentRollout) => {
-              const stdOut = await extendedExec(cmd)("kubectl", ["rollout", "status", deploymentRollout], {
-                env: process.env,
-                stdin: thisIsMe.descriptor,
-                debug: true,
-              })
-              logger.info(deploymentRollout + " rolled out", stdOut)
-            }))
-          }
 
           return thisIsMe
         } catch (err) {

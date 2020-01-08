@@ -52,14 +52,14 @@ export async function executeDeployerAction(deployerAction: IDockerDeploymentAct
         throw e
       }
     } catch (err) {
-      let message = "Failed to run docker deployer " + JSON.stringify(deployerAction)
-      message += err
+      let message = "Failed to run docker deployer " +  deployerAction.descriptor + ": \n"
+      message += err.message || err
       throw message
     }
   }
 }
 
-export async function calculateDeployerAction(imageInformation: TImageInformation): Promise<Array<IDockerDeploymentAction>> {
+export async function createDockerDeploymentActions(imageInformation: TImageInformation): Promise<Array<IDockerDeploymentAction>> {
 
   const shepherdMetadata = imageInformation.shepherdMetadata  as TDeployerMetadata
   const herdKey: string = imageInformation.imageDefinition.key

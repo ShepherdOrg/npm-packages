@@ -10,6 +10,7 @@ import {
 import { TDescriptorsByKind } from "./deployment-actions/kubectl-deployer/k8s-deployment-document-identifier"
 import { TFileSystemPath, TISODateString } from "./helpers/basic-types"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
+import { ReleaseStateStore } from "@shepherdorg/state-store"
 
 export type ILog = {
   info: typeof console.info,
@@ -101,6 +102,8 @@ export type TFolderMetadata = {
 }
 
 export interface IExecutableAction{
+  state?: TDeploymentState
+  descriptor: string
   execute(deploymentOptions:TActionExecutionOptions, cmd:any, logger:ILog, saveDeploymentState:FnDeploymentStateSave):Promise<IExecutableAction>
 }
 
@@ -146,6 +149,11 @@ export interface IKubectlDeployAction extends IExecutableAction{
   execute(deploymentOptions:TActionExecutionOptions, cmd:any, logger:ILog, saveDeploymentState:FnDeploymentStateSave):Promise<IKubectlDeployAction>
 }
 
+export function isKubectlDeployAction(deployAction: IExecutableAction): deployAction is IKubectlDeployAction {
+  return Boolean((deployAction as IKubectlDeployAction).deploymentRollouts)
+}
+
+
 export interface IK8sDirDeploymentAction extends IKubectlDeployAction, IBaseDeploymentAction{
   herdDeclaration: TFolderHerdDeclaration
   metadata: TFolderMetadata
@@ -161,17 +169,6 @@ export interface IK8sDockerImageDeploymentAction extends IKubectlDeployAction, I
 export type IAnyDeploymentAction = IDockerDeploymentAction | IK8sDockerImageDeploymentAction | IK8sDirDeploymentAction
 
 
-export type TDeploymentPlan<TActionType> = {
-  herdKey: string,
-  deploymentActions: Array<TActionType> // TODO Rename to deployment actions
-}
-
-export type TK8sDeploymentPlan = { [key: string]: TDeploymentPlan<IKubectlDeployAction> }
-
-export type TDockerDeploymentPlanTuple = [string, TDeploymentPlan<IDockerDeploymentAction>]
-
-export type TDockerDeploymentPlan = { [key: string]: TDeploymentPlan<IDockerDeploymentAction> }
-
 export type TDeploymentOptions = {
   dryRunOutputDir: TFileSystemPath | undefined
   dryRun: boolean
@@ -182,8 +179,8 @@ export type TActionExecutionOptions = TDeploymentOptions & {
   pushToUi: boolean
 }
 
-export type TReleasePlanDependencies = {   // TODO: Really need good types on this
-  stateStore: any
+export type TReleasePlanDependencies = {   // TODO: Need to create types for this
+  stateStore: ReturnType<typeof ReleaseStateStore>
   cmd: any
   logger: ILog
   uiDataPusher: any

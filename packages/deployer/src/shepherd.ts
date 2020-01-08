@@ -3,7 +3,7 @@
 import * as path from "path"
 
 import * as fs from "fs"
-import { DeploymentOrchestrationModule } from "./deployment-orchestration/deployment-orchestration"
+import { DeploymentOrchestration } from "./deployment-orchestration/deployment-orchestration"
 
 import { HerdLoader } from "./herd-loading/herd-loader"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
@@ -170,7 +170,7 @@ stateStoreBackend
     const featureDeploymentConfig = CreateUpstreamTriggerDeploymentConfig(logger)
     featureDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
 
-    const ReleasePlan = DeploymentOrchestrationModule({
+    const ReleasePlan = DeploymentOrchestration({
       cmd: exec,
       logger: Logger(console),
       stateStore: releaseStateStore,

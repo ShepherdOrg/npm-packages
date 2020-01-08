@@ -6,7 +6,9 @@ function emptyVariable<T>() {
   return undefined as unknown as T
 }
 
-module.exports = function() {
+export type TFakeExec = { nextResponse: { err: string | undefined; success: string | undefined }; extendedExec: (command: string, params: string[], options: Object, err: FExecutionCallback, success: FExecutionCallback) => void; onExec: undefined; executedCommands: any[] }
+
+export  function createFakeExec() : TFakeExec {
   let fakeExec = {
     executedCommands: emptyArray<any>(),
     nextResponse: {

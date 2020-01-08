@@ -10,7 +10,7 @@ import {
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
 import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-deployer/kube-supported-extensions"
 import { TDockerImageReference } from "@shepherdorg/docker-image-metadata-loader/dist/local-image-metadata"
-import { getShepherdMetadata } from "../add-shepherd-metadata"
+import { extractShepherdMetadata } from "../add-shepherd-metadata"
 import { TFileSystemPath } from "../../helpers/basic-types"
 import { ILoadDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 
@@ -33,11 +33,11 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
 
   function loadDockerImageHerdSpecs(images: TDockerImageHerdSpecs, sectionDeclaration: THerdSectionDeclaration) {
 
-    const calculateDeploymentPlan = createImageDeploymentPlanner({
+    const createImageDeploymentActions = createImageDeploymentPlanner({
       kubeSupportedExtensions,
       logger: injected.logger,
       herdSectionDeclaration: sectionDeclaration
-    }).calculateDeploymentActions
+    }).createDeploymentActions
 
 
     function addMigrationImageToDependenciesPlan(imageMetaData: TImageInformation) {
@@ -63,9 +63,9 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
         Object.assign(herdSpec, splitDockerImageTag(herdSpec.dockerImage))
       }
       let promise: Promise<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> = loadImageMetadata(herdSpec)
-        .then(getShepherdMetadata)
+        .then(extractShepherdMetadata)
         .then(addMigrationImageToDependenciesPlan)
-        .then(calculateDeploymentPlan)
+        .then(createImageDeploymentActions)
         .catch(function(e: Error | string) {
           let errorMessage: string
           if (typeof e === "string") {

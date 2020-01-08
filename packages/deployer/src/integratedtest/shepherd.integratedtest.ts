@@ -70,7 +70,7 @@ describe("run all deployers with infrastructure", function() {
       cleanDir(shepherdStoreDir)
       cleanDir("./.build/.testdata/testexport", false)
 
-      fs.copyFileSync("./src/deployment-manager/testdata/herd-editing/herd.yaml", tempHerdFilePath)
+      fs.copyFileSync("./src/herd-loading/testdata/herd-editing/herd.yaml", tempHerdFilePath)
     })
 
 
@@ -226,7 +226,7 @@ describe("run all deployers with infrastructure", function() {
         .execute(
           "./dist/shepherd.js",
           [
-            "./src/deployment-manager/testdata/happypath/herd.yaml",
+            "./src/herd-loading/testdata/happypath/herd.yaml",
             "integratedtestenv",
             "--export",
             "--outputDir",

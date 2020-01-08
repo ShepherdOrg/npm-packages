@@ -1,67 +1,6 @@
 import { expect } from "chai"
-import { getShepherdMetadata } from "../add-shepherd-metadata"
-import { createImageDeploymentPlanner } from "./image-deployment-planner"
-import {
-  ILog,
-  IDockerDeploymentAction,
-  THerdSectionType,
-  TImageInformation,
-  IK8sDockerImageDeploymentAction,
-} from "../../deployment-types"
-
-function calculateTestDeploymentActions() {
-  let fakeLogger = {
-    info: () => {
-      console.error("INFO", arguments)
-    },
-  }
-  return createImageDeploymentPlanner(
-    {
-      kubeSupportedExtensions: {
-        ".yml": true,
-        ".yaml": true,
-        ".json": true,
-      },
-      logger: fakeLogger as ILog,
-      herdSectionDeclaration: {
-        "herdSectionIndex":1,
-        "herdSectionType":THerdSectionType.images,
-      }
-    },
-  ).calculateDeploymentActions
-}
-
-function loadTestPlans(dockerDeployerMetadata: TImageInformation) {
-  return getShepherdMetadata(dockerDeployerMetadata).then((shepherdMeta)=>{
-    // @ts-ignore
-    return calculateTestDeploymentActions()(shepherdMeta)
-  })
-}
-
-function loadFirstTestPlan(dockerDeployerMetadata: TImageInformation ) {
-  return loadTestPlans(dockerDeployerMetadata).then(plans => {
-    // @ts-ignore
-    return plans[0]
-  })
-}
-
-type TEnvObject = {
-  [property: string]: string | undefined;
-}
-
-async function setEnv(envObj: TEnvObject) {
-  Object.entries(envObj).forEach(([key, value]) => {
-    process.env[key] = value
-  })
-  return envObj
-}
-
-async function clearEnv(envObj: typeof process.env) {
-  Object.keys(envObj).forEach(key => {
-    delete process.env[key]
-  })
-  return envObj
-}
+import { IDockerDeploymentAction, IK8sDockerImageDeploymentAction, TImageInformation } from "../../deployment-types"
+import { clearEnv, loadFirstTestPlan, createTestActions, setEnv } from "../../deployment-actions/test-action-factory"
 
 describe("Docker image plan loader", function() {
   let testEnv = {
@@ -182,7 +121,7 @@ describe("Docker image plan loader", function() {
 
     describe("missing env variables", function() {
       it("should fail with message indicating label containing problematic env reference.", function() {
-        return loadTestPlans(dockerDeployerMetadata)
+        return createTestActions(dockerDeployerMetadata)
           .then(function() {
             expect.fail("Not expecting to load plan successfully")
           })
@@ -263,7 +202,7 @@ describe("Docker image plan loader", function() {
   })
 
   describe("k8s deployment using base64 tar", function() {
-    const dockerImageMetadata = {
+    const dockerImageMetadata : TImageInformation = {
       imageDefinition: {
         key: "testimage",
         image: "testenvimage-migrations",
@@ -297,7 +236,7 @@ describe("Docker image plan loader", function() {
 
       before(async function() {
         return (planNumberOne = await setEnv(testEnv).then(() =>
-          loadTestPlans(dockerImageMetadata).then(plans => {
+          createTestActions(dockerImageMetadata).then(plans => {
             loadedPlans = plans as Array<IK8sDockerImageDeploymentAction>
             // @ts-ignore
             return plans[0] as IK8sDockerImageDeploymentAction
@@ -349,7 +288,7 @@ describe("Docker image plan loader", function() {
       let loadError: Error
       before(function() {
         delete process.env.EXPORT1
-        return loadTestPlans(dockerImageMetadata)
+        return createTestActions(dockerImageMetadata)
           .then(function() {
             expect.fail("Not expected to succeed!")
           })
@@ -433,7 +372,7 @@ describe("Docker image plan loader", function() {
       let loadError: Error
       before(async function() {
         delete process.env.EXPORT1
-        return (loadError = await loadTestPlans(dockerImageMetadata).catch(function(error) {
+        return (loadError = await createTestActions(dockerImageMetadata).catch(function(error) {
           return error
         }))
       })
@@ -462,7 +401,7 @@ describe("Docker image plan loader", function() {
         process.env.SUB_DOMAIN_PREFIX = "qwerty"
         process.env.PREFIXED_TOP_DOMAIN_NAME = "qwerty"
         delete process.env.WWW_ICELANDAIR_IP_WHITELIST
-        return (loadError = await loadTestPlans(dockerImageMetadata).catch(function(error) {
+        return (loadError = await createTestActions(dockerImageMetadata).catch(function(error) {
           return error
         }))
       })

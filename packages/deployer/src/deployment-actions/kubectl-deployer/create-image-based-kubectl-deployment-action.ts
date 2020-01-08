@@ -62,7 +62,7 @@ async function createImageBasedFileDeploymentAction(
   return newK8sAction
 }
 
-export function calculateKubectlActions(
+export function createKubectlDeploymentActions(
   imageInformation:TImageInformation ,
   kubeSupportedExtensions: TExtensionsMap,
   logger:ILog
