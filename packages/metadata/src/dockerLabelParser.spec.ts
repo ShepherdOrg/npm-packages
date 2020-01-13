@@ -191,7 +191,6 @@ describe("Shepherd metadata reading", function() {
 
 describe("Load all inspected docker files", function() {
   const installImages = [
-    "test-infrastructure.json",
     "plain-deployer-repo.json",
     "testenvimage-migrations.json",
     "testenvimage.json",
