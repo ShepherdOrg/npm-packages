@@ -206,7 +206,7 @@ stateStoreBackend
           logger.info("Testrun mode set - exporting all deployment documents to " + outputDirectory)
           logger.info("Testrun mode set - no deployments will be performed")
           plan
-            .exportDeploymentDocuments(outputDirectory as TFileSystemPath)
+            .exportDeploymentActions(outputDirectory as TFileSystemPath)
             .then(function() {
               terminateProcess(0)
             })
@@ -236,6 +236,9 @@ stateStoreBackend
       })
       .catch(function(loadError) {
         logger.error(`Plan load error. ${loadError.message}`)
+        if(loadError.context){
+          logger.error(` ${JSON.stringify(loadError.context)}`)
+        }
         stateStoreBackend.disconnect()
         process.exit(255)
       })

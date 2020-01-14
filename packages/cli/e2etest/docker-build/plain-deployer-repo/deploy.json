@@ -1,0 +1,9 @@
+{
+  "deploymentKey": "plain-deployer-repo",
+  "semanticVersion": "NotSet",
+  "herdDescription": "Plain Deployer Repo",
+  "waitForRollout": false,
+  "environments": [
+    "dev"
+  ]
+}

@@ -123,7 +123,9 @@ export function DeploymentOrchestration(injected: TReleasePlanDependencies) : FD
         return deploymentData
       } else {
         const mappedData = mapUntypedDeploymentData(deploymentData)
-        uiDataPusher && (await uiDataPusher.pushDeploymentStateToUI(mappedData))
+        if(uiDataPusher && deploymentData.pushToUI){
+           await uiDataPusher.pushDeploymentStateToUI(mappedData)
+        }
         return deploymentData
       }
     }
@@ -220,7 +222,11 @@ export function DeploymentOrchestration(injected: TReleasePlanDependencies) : FD
                 }
               }
               modified = true
-              logger.info(`  -  kubectl ${deploymentAction.operation} ${deploymentAction.identifier}`)
+              if(deploymentAction.planString){
+                logger.info(`  -  ${deploymentAction.planString()}`)
+              } else {
+                logger.info(`  -  kubectl ${deploymentAction.operation} ${deploymentAction.identifier}`)
+              }
             }
           })
         }
@@ -236,12 +242,15 @@ export function DeploymentOrchestration(injected: TReleasePlanDependencies) : FD
 
         Object.entries(k8sDeploymentActions as TK8sDeploymentPlan).forEach(function([_key, plan]) {
           plan.deploymentActions.forEach(function(deployment: IK8sDockerImageDeploymentAction) {
-            let writePath = path.join(
-              exportDirectory,
-              deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml",
-            )
-            let writePromise = writeFile(writePath, deployment.descriptor.trim())
-            fileWrites.push(writePromise)
+            if(deployment.identifier){
+              let writePath = path.join(
+                exportDirectory,
+                deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml",
+              )
+              let writePromise = writeFile(writePath, deployment.descriptor.trim())
+              fileWrites.push(writePromise)
+
+            } // else its a followup action, such as rollout status or e2e test, which we do not export
           })
         })
         Object.entries(dockerDeploymentPlan as TDockerDeploymentPlan).forEach(function([_key, plan]: TDockerDeploymentPlanTuple) {
@@ -274,7 +283,7 @@ export function DeploymentOrchestration(injected: TReleasePlanDependencies) : FD
       async addDeployment(deploymentAction: IAnyDeploymentAction) {
         deploymentAction.env = forEnv
         if (!deploymentAction.herdDeclaration.sectionDeclaration) {
-          throw newProgrammerOops('Must get herd section declaration with deployment action to determine execution order')
+          throw newProgrammerOops('Must get herd section declaration with deployment action to determine execution order', deploymentAction)
         }
         return await addToPlanAndGetDeploymentStateFromStore(deploymentAction)
       },

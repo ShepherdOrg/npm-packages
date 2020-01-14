@@ -17,7 +17,7 @@ function ensureCleanOutputFolder(firstRoundFolder: TFileSystemPath) {
   cleanDir(firstRoundFolder, false)
 }
 
-describe("run all deployers with infrastructure", function() {
+describe("running shepherd", function() {
   let shepherdTestHarness = path.join(process.cwd(), "testbin/test-shepherd.sh")
 
   this.timeout(40000)
@@ -50,7 +50,7 @@ describe("run all deployers with infrastructure", function() {
             SHEPHERD_PG_HOST: "",
             INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
           }),
-          debug: true, // debug:false suppresses stdout of process
+          debug: false, // debug:false suppresses stdout of process
         })
         .ignoreLinesWith(["buildDate", "lastCommits", "kubeConfigB64", "gitHash"])
         .output("./.build/.testdata/kubeapply")
@@ -90,7 +90,7 @@ describe("run all deployers with infrastructure", function() {
         .stdout()
         .shouldContain("Adding addedimage")
         .stdout()
-        .shouldContain("From addedimage")
+        .shouldContain("Applying addedimage")
         .stdout()
         .shouldContain("Plan execution complete")
         .done(function() {

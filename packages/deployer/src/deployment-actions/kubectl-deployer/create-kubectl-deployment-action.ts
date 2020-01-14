@@ -1,6 +1,6 @@
 import { identifyDocument, TDescriptorsByKind } from "./k8s-deployment-document-identifier"
 import { TBranchModificationParams } from "./k8s-branch-deployment/create-name-change-index"
-import { FnDeploymentStateSave, ILog, TActionExecutionOptions, IKubectlDeployAction } from "../../deployment-types"
+import { FnDeploymentStateSave, IKubectlDeployAction, ILog, TActionExecutionOptions } from "../../deployment-types"
 import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
 import { newProgrammerOops, Oops } from "oops-error"
 import { expandEnv } from "../../template/expandenv"
@@ -15,10 +15,9 @@ import { TFileSystemPath } from "../../helpers/basic-types"
 const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 
 
+export async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState: FnDeploymentStateSave) {
 
-export async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState:FnDeploymentStateSave) {
-
-  if(!thisIsMe.state){
+  if (!thisIsMe.state) {
     throw newProgrammerOops("Missing state object on deployment action ! " + thisIsMe.origin)
   }
   if (thisIsMe.state?.modified) {
@@ -73,7 +72,9 @@ export async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAct
           logger.info(
             "Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows.",
           )
-          logger.info(err || "[empty error]")
+          if (err) {
+            logger.info(err || "[empty error]")
+          }
           logger.info(stdOut || "[empty output]")
 
           // @ts-ignore
@@ -87,11 +88,11 @@ export async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAct
             return thisIsMe
           } catch (err) {
             throw new Error("Failed to save state after error in deleting deployment! " +
-            thisIsMe.origin +
-            "/" +
-            thisIsMe.identifier +
-            "\n" +
-            err)
+              thisIsMe.origin +
+              "/" +
+              thisIsMe.identifier +
+              "\n" +
+              err)
           }
         } else {
           let message = `Failed to perform ${thisIsMe.operation} from label for image ${JSON.stringify(thisIsMe)}`
@@ -109,8 +110,8 @@ export async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAct
 }
 
 
-function listDeploymentRollouts(descriptorsByKind: TDescriptorsByKind) : Array<string> {
-  return descriptorsByKind["Deployment"].map((deploymentDoc:TK8sPartialDescriptor) => {
+function listDeploymentRollouts(descriptorsByKind: TDescriptorsByKind): Array<string> {
+  return descriptorsByKind["Deployment"].map((deploymentDoc: TK8sPartialDescriptor) => {
     return deploymentDoc.kind + "/" + deploymentDoc.metadata.name
   })
 }
@@ -137,14 +138,14 @@ function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: st
 export function createKubectlDeployAction(_origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, logger: ILog, branchModificationParams?: TBranchModificationParams): IKubectlDeployAction {
   let origin: string = _origin
   try {
-    if(branchModificationParams && branchModificationParams.shouldModify){
+    if (branchModificationParams && branchModificationParams.shouldModify) {
       process.env.BRANCH_NAME = branchModificationParams.branchName
       process.env.BRANCH_NAME_PREFIX = `${branchModificationParams.branchName}-`
       process.env.BRANCH_NAME_POSTFIX = `-${branchModificationParams.branchName}`
     } else {
-      process.env.BRANCH_NAME = ''
-      process.env.BRANCH_NAME_PREFIX = ''
-      process.env.BRANCH_NAME_POSTFIX = ''
+      process.env.BRANCH_NAME = ""
+      process.env.BRANCH_NAME_PREFIX = ""
+      process.env.BRANCH_NAME_POSTFIX = ""
     }
 
     let finalDescriptor = expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent)
@@ -165,16 +166,17 @@ export function createKubectlDeployAction(_origin: string, deploymentFileDescrip
     }
 
     let documentDeploymentAction: IKubectlDeployAction = {
-      async execute(deploymentOptions:TActionExecutionOptions, cmd:any, logger:ILog, saveDeploymentState) {
+      async execute(deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState) {
         return executeKubectlDeploymentAction(documentDeploymentAction, deploymentOptions, cmd, logger, saveDeploymentState)
       },
       operation: operation,
+      pushToUI: true,
       origin: origin,
       deploymentRollouts: deploymentRollouts,
       descriptor: deploymentDescriptor,
       fileName,
       identifier: loadedDescriptor.identifyingString,
-      descriptorsByKind: loadedDescriptor.descriptorsByKind
+      descriptorsByKind: loadedDescriptor.descriptorsByKind,
     }
 
     return documentDeploymentAction

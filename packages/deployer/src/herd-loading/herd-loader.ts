@@ -77,14 +77,14 @@ export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
 
           const herdFilePath = path.dirname(fileName)
           Object.entries(herd).forEach(([herdDeclarationType, herdDeclaration], idx) => {
-            const herdSectionSpec:THerdSectionDeclaration = {
+            const herdSectionDeclaration:THerdSectionDeclaration = {
               herdSectionIndex: idx, herdSectionType: herdDeclarationType as THerdSectionType
 
             }
             if (loaders[herdDeclarationType]) {
               let loadHerdDeclarations: FHerdDeclarationLoader = loaders[herdDeclarationType]
               plannedActionPromises.push(
-                loadHerdDeclarations(herdSectionSpec, herdDeclaration, herdFilePath )
+                loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath )
               )
             } else {
               throw new Error('No loader registered for type ' + herdDeclarationType + JSON.stringify(herdDeclaration))

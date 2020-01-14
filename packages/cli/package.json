@@ -20,6 +20,7 @@
     "shepherd-delete-expired-resources": "bin/delete-expired-resources.sh",
     "kube-filter-expired-resources.js": "dist/kube-filter-expired-resources.js",
     "shepherd-inspect": "dist/shepherd-inspect-cmd.js",
+    "add-to-deployment-queue": "dist/add-to-deployment-queue.js",
     "join-metadata-files": "dist/join-metadata-files.js",
     "base64encode": "dist/base64/base64encode.js",
     "shepherd.js": "dist/shepherd.js"
@@ -30,7 +31,7 @@
     "e2etest": "mocha --exit --require ts-node/register --recursive 'e2etest/**/*.e2e.ts'",
     "e2etdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'e2etest/**/*.e2e.ts'",
     "test": "yarn specs && yarn e2etest",
-    "build": "tsc && chmod +x ./dist/shepherd-inspect-cmd.js",
+    "build": "tsc && chmod +x ./dist/shepherd-inspect-cmd.js ./dist/add-to-deployment-queue.js",
     "prepublishOnly": "yarn build"
   },
   "dependencies": {

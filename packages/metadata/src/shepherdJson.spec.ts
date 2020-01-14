@@ -168,8 +168,17 @@ describe("shepherd json load and validation", function() {
     it('should parse migrationImage from json', ()=>{
       expect(combinedProps.migrationImage).to.be.a('string')
     })
+
     it('should parse semanticVersion from json', ()=>{
       expect(combinedProps.semanticVersion).to.be.a('string')
+    })
+
+    it('should parse dockeRegistry from json', ()=>{
+      expect(combinedProps.dockerRegistry).to.be.a('string')
+    })
+
+    it('should parse dockerRepository from json', ()=>{
+      expect(combinedProps.dockerRepository).to.be.a('string')
     })
 
 

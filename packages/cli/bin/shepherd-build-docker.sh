@@ -29,7 +29,7 @@ Usage (bash):
 	If push parameter is present, docker push will be performed at end of successful build.
 
 Environment variable options:
-	IMAGE_NAME:              Specify image name. Defaults to directory name containing the dockerfile if not specified.
+	IMAGE_NAME:              Specify image name. Defaults to directory name containing the dockerfile if not specified. If specified in shepherd.json (recommended), that will override other options.
 	DOCKER_REGISTRY_HOST:    Set if using self-hosted docker registry. Will be prepended to docker name along with a /
 	DOCKER_REPOSITORY_ORG:   Docker repository organization/namespace. If not provided, defaults to no organization / no namespace.
 	DOCKER_REPOSITORY_NAME:  Docker repository name used to tag the docker image. Defaults to the directory name containing the dockerfile if not provided.
@@ -53,8 +53,6 @@ export THISDIR=$(installationDir ${BASH_SOURCE[0]})
 
 . ${THISDIR}/deploy/functions.sh
 
-DOCKER_REPOSITORY_NAME=${IMAGE_NAME}
-
 if [[ "${1}" = "" ]]; then
 	outputUsage
 	exit 0
@@ -65,10 +63,28 @@ if has_param '--help' "$@"; then
 	exit 0
 fi
 
+if has_param '--version' "$@"; then
+	outputUsage
+	exit 0
+fi
+
+if has_param '--dryrun' "$@"; then
+	DRYRUN=1
+else
+	DRYRUN=0
+fi
+
 DOCKERFILE=$1
 PUSH_ARG=$2
 
+export DOCKERDIR=$(dirname $(echo "$(cd "$(dirname "${DOCKERFILE}")"; pwd -P)/$(basename "${DOCKERFILE}")"))
+
+if [[ -z "${DOCKER_REGISTRY_HOST}" && -e "${DOCKERDIR}/shepherd.json" ]]; then
+	export DOCKER_REGISTRY_HOST=$(node -e "console.log(require('${DOCKERDIR}/shepherd.json').dockerRegistry || '')")
+fi
+
 if [ -z "${DOCKER_REGISTRY_HOST}" ]; then
+# Still empty
 	export DOCKER_REGISTRY_HOST=""
 else
 	export DOCKER_REGISTRY_HOST=${DOCKER_REGISTRY_HOST}/
@@ -81,7 +97,16 @@ else
 	export DOCKER_REPOSITORY_ORG="${DOCKER_REPOSITORY_ORG}/"
 fi
 
-export DOCKERDIR=$(dirname $(echo "$(cd "$(dirname "${DOCKERFILE}")"; pwd -P)/$(basename "${DOCKERFILE}")"))
+if [ -e "${DOCKERDIR}/shepherd.json" ]; then
+	SHEPHERD_JSON_IMAGE_NAME=$(node -e "console.log(require('${DOCKERDIR}/shepherd.json').imageName || '')")
+fi
+
+if [ -z "${SHEPHERD_JSON_IMAGE_NAME}" ]; then
+	DOCKER_REPOSITORY_NAME=${IMAGE_NAME}
+else
+	DOCKER_REPOSITORY_NAME=${SHEPHERD_JSON_IMAGE_NAME}
+fi
+
 
 if [[ -z "${DOCKER_REPOSITORY_NAME}" ]]; then
 	export DOCKER_REPOSITORY_NAME=${DOCKERDIR##*/}
@@ -105,9 +130,13 @@ if [ -e "${DOCKERDIR}/.buildignore" ]; then
 fi
 
 if [ -z "${SEMANTIC_VERSION}" ]; then
-
 	if [ -e "${DOCKERDIR}/version.txt" ]; then
 		export SEMANTIC_VERSION=$(cat ${DOCKERDIR}/version.txt)
+		echo "Using versiontxt version ${SEMANTIC_VERSION}"
+	elif [ -e "${DOCKERDIR}/package.json" ];
+	then
+		export SEMANTIC_VERSION=$(node -e 'console.log(require("./package.json").version)')
+		echo "Using package.json version ${SEMANTIC_VERSION}"
 	else
 		SEMANTIC_VERSION=$(cat ${DOCKERFILE} | grep '^FROM.*' | sed "s/^.*:\(.*\)/\1/" )
 
@@ -264,16 +293,29 @@ if [ ! -z "${LAYERCACHE_TAR}" ]; then
 	docker save -o ${LAYERCACHE_TAR} ${DOCKER_IMAGE_LATEST}
 fi
 
-if [ "${PUSH_ARG}" = "push" ]; then
+
+if test ${DRYRUN} -eq 1; then
+	if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
+		echo "DRYRUN - Queueing deployment of ${DOCKER_IMAGE_GITHASH}"
+		add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json ./.build/metadata/shepherd.json
+	fi
+elif [ "${PUSH_ARG}" = "push" ]; then
 	docker push ${DOCKER_IMAGE}
 	echo "pushed ${DOCKER_IMAGE}"
 	docker push ${DOCKER_IMAGE_LATEST}
 	echo "pushed ${DOCKER_IMAGE_LATEST}"
 	docker push ${DOCKER_IMAGE_GITHASH}
 	echo "pushed ${DOCKER_IMAGE_GITHASH}"
+
+	if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
+		echo "Queueing deployment of ${DOCKER_IMAGE_GITHASH}"
+		add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json ./.build/metadata/shepherd.json
+	fi
+
 else
 	echo "Not pushing ${DOCKER_IMAGE}"
 fi
+
 
 # TODO Port completely to nodejs
 # TODO Return error if docker image produced is not configured with enough information to deploy

@@ -19,9 +19,9 @@ export type ILog = {
 }
 
 export enum THerdSectionType {
-  infrastructure='infrastructure',
-  images='images',
-  folders='folders'
+  infrastructure = "infrastructure",
+  images = "images",
+  folders = "folders"
 }
 
 export type THerdSectionDeclaration = {
@@ -46,7 +46,7 @@ export type TFolderHerdDeclaration = THerdDeclaration & {
   path: string;
 }
 
-export type OmitKey<T> = Omit<T, 'key'>
+export type OmitKey<T> = Omit<T, "key">
 
 export type TDockerImageHerdDeclaration = THerdDeclaration & {
   dockerImage?: string;
@@ -75,7 +75,7 @@ export type TShepherdMetadata = {
 
 export type TImageInformation = TShepherdMetadata & {
   env: string
-  dockerLabels: {[key: string]: any}
+  dockerLabels: { [key: string]: any }
 }
 
 
@@ -101,10 +101,19 @@ export type TFolderMetadata = {
   hyperlinks: Array<THref>,
 }
 
-export interface IExecutableAction{
+export interface IExecutableAction {
+  pushToUI: boolean
   state?: TDeploymentState
   descriptor: string
-  execute(deploymentOptions:TActionExecutionOptions, cmd:any, logger:ILog, saveDeploymentState:FnDeploymentStateSave):Promise<IExecutableAction>
+
+  planString?():string
+
+  execute(
+    deploymentOptions: TActionExecutionOptions,
+    cmd: any,
+    logger: ILog,
+    saveDeploymentState: FnDeploymentStateSave
+  ): Promise<IExecutableAction>
 }
 
 export interface IBaseDeploymentAction {
@@ -117,7 +126,7 @@ export interface IBaseDeploymentAction {
   version?: string
 }
 
-export interface IDockerDeploymentAction extends IBaseDeploymentAction, IExecutableAction{
+export interface IDockerDeploymentAction extends IBaseDeploymentAction, IExecutableAction {
   herdDeclaration: TDockerImageHerdDeclaration;
   metadata: TDeployerMetadata;
 
@@ -131,11 +140,11 @@ export interface IDockerDeploymentAction extends IBaseDeploymentAction, IExecuta
   operation: string;
   origin: string;
 
-  execute(deploymentOptions:TActionExecutionOptions, cmd:any, logger:ILog, saveDeploymentState:FnDeploymentStateSave):Promise<IDockerDeploymentAction>
+  execute(deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState: FnDeploymentStateSave): Promise<IDockerDeploymentAction>
 }
 
 
-export interface IKubectlDeployAction extends IExecutableAction{
+export interface IKubectlDeployAction extends IExecutableAction {
   deploymentRollouts: string[] // TODO Move into deploymentActions
   descriptor: string
   descriptorsByKind?: TDescriptorsByKind
@@ -146,7 +155,7 @@ export interface IKubectlDeployAction extends IExecutableAction{
 
   state?: TDeploymentState
 
-  execute(deploymentOptions:TActionExecutionOptions, cmd:any, logger:ILog, saveDeploymentState:FnDeploymentStateSave):Promise<IKubectlDeployAction>
+  execute(deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState: FnDeploymentStateSave): Promise<IKubectlDeployAction>
 }
 
 export function isKubectlDeployAction(deployAction: IExecutableAction): deployAction is IKubectlDeployAction {
@@ -154,7 +163,7 @@ export function isKubectlDeployAction(deployAction: IExecutableAction): deployAc
 }
 
 
-export interface IK8sDirDeploymentAction extends IKubectlDeployAction, IBaseDeploymentAction{
+export interface IK8sDirDeploymentAction extends IKubectlDeployAction, IBaseDeploymentAction {
   herdDeclaration: TFolderHerdDeclaration
   metadata: TFolderMetadata
 }
@@ -186,7 +195,7 @@ export type TReleasePlanDependencies = {   // TODO: Need to create types for thi
   uiDataPusher: any
 }
 
-export type FnDeploymentStateSave = (stateSignatureObject:any)=> Promise<TDeploymentState>
+export type FnDeploymentStateSave = (stateSignatureObject: any) => Promise<TDeploymentState>
 
 export type TK8sDeploymentActionMap = { [key: string]: any }
 

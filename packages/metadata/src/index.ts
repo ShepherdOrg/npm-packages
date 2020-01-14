@@ -52,6 +52,8 @@ export type TDeploymentState = {
 }
 
 export type TImageMetadata = {
+  dockerRegistry?: string
+  dockerRepository?: string
   buildDate: Date
   buildHostName?: string
   deploymentType: TDeploymentType

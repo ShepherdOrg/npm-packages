@@ -10,7 +10,7 @@ export PATH=$(pwd)/testbin:$(pwd)/bin:${PATH}
 
 
 if [ -z "${HERDFILE}" ]; then
-	export HERDFILE="$(pwd)/src/deployment-manager/testdata/happypath/herd.yaml"
+	export HERDFILE="$(pwd)/src/herd-loading/testdata/happypath/herd.yaml"
 fi
 
 

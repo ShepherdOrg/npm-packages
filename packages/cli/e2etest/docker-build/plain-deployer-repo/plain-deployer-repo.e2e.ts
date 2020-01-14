@@ -1,3 +1,4 @@
+import * as fs from "fs"
 import { expect } from "chai"
 import { exec } from "child-process-promise"
 
@@ -5,10 +6,15 @@ describe("Build docker with kube.yaml deployment", function() {
   this.timeout(10000)
   let shepherdMeta, buildOutput
   let dockerMeta: any
+  let queuedDeployment: any
 
   before(() => {
     let dockerDir = __dirname
-    return exec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile`).then(
+    process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE = __dirname + '/deploymentq.jsonl'
+
+    fs.writeFileSync(process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE, '')
+    // fs.closeSync(fs.openSync(process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE as string, 'a'));
+    return exec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile --dryrun`).then(
       ({ stdout, stderr }) => {
         if (stderr) expect.fail("GOT ERROR> " + stderr)
         shepherdMeta = require(__dirname + '/.build/metadata/shepherd.json')
@@ -18,6 +24,7 @@ describe("Build docker with kube.yaml deployment", function() {
           "docker inspect plain-deployer-repo:latest"
         ).then(({ stdout }) => {
           dockerMeta = JSON.parse(stdout)
+          queuedDeployment = JSON.parse(fs.readFileSync(process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE as string, "utf-8"))
         })
       }
     )
@@ -39,6 +46,17 @@ describe("Build docker with kube.yaml deployment", function() {
     expect(dockerMeta[0].Id).not.to.equal(undefined)
   })
 
+  it("should append to deploymentq.jsonl", () => {
+    expect(queuedDeployment.semanticVersion).not.to.equal('latest')
+  })
+
+  it("should have correct deploymentKey", () => {
+    expect(queuedDeployment.deploymentKey).to.equal('plain-deployer-repo')
+  })
+
+  it("should log adding to deployment queue", () => {
+    expect(buildOutput).to.contain("Queueing deployment of mylocalregistry:5000/plain-deployer-repo")
+  })
 
   xit("should suppress tslint warnings", () => {
     console.info(shepherdMeta)

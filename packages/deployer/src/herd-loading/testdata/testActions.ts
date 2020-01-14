@@ -1,8 +1,8 @@
 import {
   IDockerDeploymentAction,
-  THerdSectionType,
   IK8sDirDeploymentAction,
   IK8sDockerImageDeploymentAction,
+  THerdSectionType,
 } from "../../deployment-types"
 import { TDeployerRole, TDeploymentType } from "@shepherdorg/metadata"
 import { emptyArray } from "../../helpers/ts-functions"
@@ -15,8 +15,9 @@ export type TK8sDockerImageDeploymentActionStruct = OmitExecute<IK8sDockerImageD
 
 type TTestActionsMap = { [idx: string]: { [idx2: string]: TDockerDeploymentActionStruct | TK8sDirDeploymentActionStruct | TK8sDockerImageDeploymentActionStruct } }
 
-let namespaceMonitors : TK8sDirDeploymentActionStruct = {
+let namespaceMonitors: TK8sDirDeploymentActionStruct = {
   "operation": "delete",
+  "pushToUI": true,
   "identifier": "Namespace_monitors",
   "version": "immutable",
   "descriptor": "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: monitors\n",
@@ -24,7 +25,7 @@ let namespaceMonitors : TK8sDirDeploymentActionStruct = {
   "type": "k8s",
   "fileName": "namespaces.yml",
   "herdKey": "kube-config - /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces",
-  "env":"testenv",
+  "env": "testenv",
   "deploymentRollouts": emptyArray<string>(),
   "herdDeclaration": {
     "key": "kube-config",
@@ -42,11 +43,13 @@ let namespaceMonitors : TK8sDirDeploymentActionStruct = {
     "deploymentType": "k8s" as TDeploymentType,
     "buildDate": "1970-01-01T00:00:00.000Z",
     "hyperlinks": [],
-    "path":"/to/nowhere"
+    "path": "/to/nowhere",
   },
 }
 let serviceWwwFromDir: TK8sDirDeploymentActionStruct = {
   "operation": "apply",
+  "pushToUI": true,
+
   "identifier": "Service_www-fromdir",
   "version": "immutable",
   "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: www-fromdir\n  annotations: \n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: \"*\"\n  labels:\n    name: www\n    team: flip\nspec:\n  type: LoadBalancer\n  ports:\n  - port: 80\n    targetPort: 81\n    name: http-proxy-protocol\n  - port: 443\n    targetPort: 444\n    name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com\n    tier: frontend\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-part2\n  annotations:\n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: \"*\"\n  labels:\n    name: www-com\n    team: flip\nspec:\n  type: LoadBalancer\n  ports:\n  - port: 80\n    targetPort: 81\n    name: http-proxy-protocol\n  - port: 443\n    targetPort: 444\n    name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com\n    tier: frontend\n",
@@ -54,7 +57,7 @@ let serviceWwwFromDir: TK8sDirDeploymentActionStruct = {
   "type": "k8s",
   "fileName": "www.service.yml",
   "herdKey": "kube-config - /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/www-deployment",
-  "env":"testenv",
+  "env": "testenv",
   "deploymentRollouts": emptyArray<string>(),
   "herdDeclaration": {
     "key": "kube-config",
@@ -62,16 +65,16 @@ let serviceWwwFromDir: TK8sDirDeploymentActionStruct = {
     "description": "Kubernetes pull secrets, namespaces, common config",
     "sectionDeclaration": {
       "herdSectionIndex": 2,
-      "herdSectionType": THerdSectionType.images
+      "herdSectionType": THerdSectionType.images,
     },
   },
   "metadata": {
-    "path":"/to/nowhere",
+    "path": "/to/nowhere",
     "displayName": "www.service.yml",
     "semanticVersion": "0",
     "deploymentType": "k8s" as TDeploymentType,
     "buildDate": "1970-01-01T00:00:00.000Z",
-    "hyperlinks": []
+    "hyperlinks": [],
   },
 }
 export const TestActions: TTestActionsMap = {
@@ -138,6 +141,8 @@ export const TestActions: TTestActionsMap = {
       "origin": "testenvimage-migrations:0.0.0",
       "type": "deployer",
       "operation": "run",
+      "pushToUI": true,
+
       "command": "ls",
       "identifier": "testenvimage-migrations:0.0.0",
     },
@@ -204,13 +209,15 @@ export const TestActions: TTestActionsMap = {
       "origin": "test-infrastructure:1.0.0",
       "type": "deployer",
       "operation": "run",
+      "pushToUI": true,
+
       "command": "ls",
       "identifier": "test-infrastructure:1.0.0",
     },
   },
   "addedK8sDeployments": {
     "Service_www-icelandair-com-internal": {
-      "env":"testenv",
+      "env": "testenv",
       "deploymentRollouts": emptyArray<string>(),
       "herdDeclaration": {
         "image": "testenvimage",
@@ -262,6 +269,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
+      "pushToUI": true,
+
       "identifier": "Service_www-icelandair-com-internal",
       "version": "0.0.0",
       "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-internal\n  labels:\n    name: www-icelandair-com-internal\nspec:\n  ports:\n  - port: 10000\n    name: http\n  selector:\n    name: www-icelandair-com\n    tier: frontend\n",
@@ -271,7 +280,7 @@ export const TestActions: TTestActionsMap = {
       "herdKey": "test-image",
     },
     "Service_image2": {
-      "env":"testenv",
+      "env": "testenv",
       "deploymentRollouts": emptyArray<string>(),
       "herdDeclaration": {
         "image": "testenvimage2",
@@ -315,6 +324,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "delete",
+      "pushToUI": true,
+
       "identifier": "Service_image2",
       "version": "999.999.99999",
       "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: image2\n  annotations: \n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: \"*\"\n  labels:\n    name: image2\n    team: flip\nspec:\n  type: LoadBalancer\n  ports:\n  - port: 80\n    targetPort: 81\n    name: http-proxy-protocol\n  - port: 443\n    targetPort: 444\n    name: https-proxy-protocol\n  selector:\n    name: image2\n    tier: frontend\n",
@@ -324,7 +335,7 @@ export const TestActions: TTestActionsMap = {
       "herdKey": "test-image-to-delete",
     },
     "Service_www-icelandair-com-internal-test1": {
-      "env":"testenv",
+      "env": "testenv",
       "deploymentRollouts": emptyArray<string>(),
       "herdDeclaration": {
         "image": "testenvimage",
@@ -378,6 +389,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
+      "pushToUI": true,
+
       "identifier": "Service_www-icelandair-com-internal-test1",
       "version": "0.0.0",
       "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-internal-test1\n  labels:\n    name: www-icelandair-com-internal-test1\n    ttl-hours: '48'\nspec:\n  ports:\n    - port: 10000\n      name: http\n  selector:\n    name: www-icelandair-com-test1\n    tier: frontend",
@@ -387,7 +400,7 @@ export const TestActions: TTestActionsMap = {
       "herdKey": "test1",
     },
     "ConfigMap_www-icelandair-com-nginx-acls": {
-      "env":"testenv",
+      "env": "testenv",
       "deploymentRollouts": emptyArray<string>(),
       "herdDeclaration": {
         "image": "testenvimage",
@@ -439,6 +452,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
+      "pushToUI": true,
+
       "identifier": "ConfigMap_www-icelandair-com-nginx-acls",
       "version": "0.0.0",
       "descriptor": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: www-icelandair-com-nginx-acls\n  labels:\n    team: flip\ndata:\n  whitelist: |-\n    bullshitlist\n    \n",
@@ -448,7 +463,7 @@ export const TestActions: TTestActionsMap = {
       "herdKey": "test-image",
     },
     "Deployment_image2": {
-      "env":"testenv",
+      "env": "testenv",
       "deploymentRollouts": emptyArray<string>(),
       "herdDeclaration": {
         "image": "testenvimage2",
@@ -492,6 +507,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "delete",
+      "pushToUI": true,
+
       "identifier": "Deployment_image2",
       "version": "999.999.99999",
       "descriptor": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: image2\n  labels:\n    name: image2\n    tier: frontend\nspec:\n  replicas: 2\n  template:\n    metadata:\n      labels:\n        name: image2\n        tier: frontend\n    spec:\n      imagePullSecrets:\n        - name: registry-pull-secret\n      containers:\n        - image: testenvimage2:999.999.99999\n          name: image2\n          resources:\n            limits:\n              cpu: 0.8\n              memory: 512M\n            requests:\n              cpu: 0.4\n              memory: 256M\n          ports:\n            - containerPort: 81\n              name: http-proxy\n              protocol: TCP\n            - containerPort: 444\n              name: https-proxy\n              protocol: TCP\n          volumeMounts:\n            - name: certs-volume\n              readOnly: true\n              mountPath: \"/volumes/certs\"\n            - name: nginx-acls\n              readOnly: true\n              mountPath: \"/etc/nginx/acls/\"\n          env:\n            - name: RUNTIME_ENVIRONMENT\n              valueFrom:\n                configMapKeyRef:\n                  name: NotFromInfrastructureAnyMore\n                  key: ENV\n        - image: DOCKER_IMAGE_SSR\n          name: image2-ssr\n          resources:\n            limits:\n              cpu: 0.6\n              memory: 512M\n            requests:\n              cpu: 0.4\n              memory: 256M\n      volumes:\n        - name: certs-volume\n          secret:\n            secretName: star-cert-secret\n        - name: nginx-acls\n          configMap:\n            name: image2-nginx-acls\n            items:\n              - key: whitelist\n                path: whitelist.conf\n",
@@ -501,7 +518,7 @@ export const TestActions: TTestActionsMap = {
       "herdKey": "test-image-to-delete",
     },
     "ConfigMap_www-icelandair-com-nginx-acls-test1": {
-      "env":"testenv",
+      "env": "testenv",
       "deploymentRollouts": emptyArray<string>(),
       "herdDeclaration": {
         "image": "testenvimage",
@@ -555,6 +572,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
+      "pushToUI": true,
+
       "identifier": "ConfigMap_www-icelandair-com-nginx-acls-test1",
       "version": "0.0.0",
       "descriptor": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: www-icelandair-com-nginx-acls-test1\n  labels:\n    team: flip\n    ttl-hours: '48'\ndata:\n  whitelist: bullshitlist",
@@ -564,7 +583,7 @@ export const TestActions: TTestActionsMap = {
       "herdKey": "test1",
     },
     "Deployment_www-icelandair-com": {
-      "env":"testenv",
+      "env": "testenv",
       "herdDeclaration": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
@@ -615,6 +634,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
+      "pushToUI": true,
+
       "identifier": "Deployment_www-icelandair-com",
       "version": "0.0.0",
       "descriptor": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: www-icelandair-com\n  labels:\n    name: www-icelandair-com\n    tier: frontend\nspec:\n  replicas: 2\n  template:\n    metadata:\n      labels:\n        name: www-icelandair-com\n        tier: frontend\n    spec:\n      imagePullSecrets:\n        - name: registry-pull-secret\n      containers:\n        - image: testenvimage:0.0.0\n          name: www-icelandair-com\n          resources:\n            limits:\n              cpu: 0.8\n              memory: 512M\n            requests:\n              cpu: 0.4\n              memory: 256M\n          ports:\n            - containerPort: 81\n              name: http-proxy\n              protocol: TCP\n            - containerPort: 444\n              name: https-proxy\n              protocol: TCP\n          volumeMounts:\n            - name: certs-volume\n              readOnly: true\n              mountPath: \"/volumes/certs\"\n            - name: nginx-acls\n              readOnly: true\n              mountPath: \"/etc/nginx/acls/\"\n          env:\n            - name: RUNTIME_ENVIRONMENT\n              valueFrom:\n                configMapKeyRef:\n                  name: NotFromInfrastructureAnyMore\n                  key: ENV\n        - image: DOCKER_IMAGE_SSR\n          name: www-icelandair-com-ssr\n          resources:\n            limits:\n              cpu: 0.6\n              memory: 512M\n            requests:\n              cpu: 0.4\n              memory: 256M\n      volumes:\n        - name: certs-volume\n          secret:\n            secretName: star-cert-secret\n        - name: nginx-acls\n          configMap:\n            name: www-icelandair-com-nginx-acls\n            items:\n              - key: whitelist\n                path: whitelist.conf\n",
@@ -625,7 +646,7 @@ export const TestActions: TTestActionsMap = {
       "deploymentRollouts": ["Deployment/www-icelandair-com-test1"],
     },
     "ConfigMap_image2-config": {
-      "env":"testenv",
+      "env": "testenv",
       "deploymentRollouts": emptyArray<string>(),
       "herdDeclaration": {
         "image": "testenvimage2",
@@ -669,6 +690,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "delete",
+      "pushToUI": true,
+
       "identifier": "ConfigMap_image2-config",
       "version": "999.999.99999",
       "descriptor": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: image2-config\n  labels:\n    team: flip\ndata:\n  whitelist: |-\n    bullshitlist\n    \n",
@@ -678,7 +701,7 @@ export const TestActions: TTestActionsMap = {
       "herdKey": "test-image-to-delete",
     },
     "Deployment_www-icelandair-com-test1": {
-      "env":"testenv",
+      "env": "testenv",
       "deploymentRollouts": emptyArray<string>(),
       "herdDeclaration": {
         "image": "testenvimage",
@@ -732,6 +755,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
+      "pushToUI": true,
+
       "identifier": "Deployment_www-icelandair-com-test1",
       "version": "0.0.0",
       "descriptor": "apiVersion: extensions/v1beta1\nkind: Deployment\nmetadata:\n  name: www-icelandair-com-test1\n  labels:\n    name: www-icelandair-com-test1\n    tier: frontend\n    ttl-hours: '48'\nspec:\n  replicas: 1\n  template:\n    metadata:\n      labels:\n        name: www-icelandair-com-test1\n        tier: frontend\n    spec:\n      imagePullSecrets:\n        - name: registry-pull-secret\n      containers:\n        - image: 'testenvimage:0.0.0'\n          name: www-icelandair-com-test1\n          resources:\n            limits:\n              cpu: 0.8\n              memory: 512M\n            requests:\n              cpu: 0.4\n              memory: 256M\n          ports:\n            - containerPort: 81\n              name: http-proxy\n              protocol: TCP\n            - containerPort: 444\n              name: https-proxy\n              protocol: TCP\n          volumeMounts:\n            - name: certs-volume\n              readOnly: true\n              mountPath: /volumes/certs\n            - name: nginx-acls\n              readOnly: true\n              mountPath: /etc/nginx/acls/\n          env:\n            - name: RUNTIME_ENVIRONMENT\n              valueFrom:\n                configMapKeyRef:\n                  name: NotFromInfrastructureAnyMore\n                  key: ENV\n        - image: DOCKER_IMAGE_SSR\n          name: www-icelandair-com-ssr-test1\n          resources:\n            limits:\n              cpu: 0.6\n              memory: 512M\n            requests:\n              cpu: 0.4\n              memory: 256M\n      volumes:\n        - name: certs-volume\n          secret:\n            secretName: star-cert-secret\n        - name: nginx-acls\n          configMap:\n            name: www-icelandair-com-nginx-acls-test1\n            items:\n              - key: whitelist\n                path: whitelist.conf",
@@ -741,7 +766,7 @@ export const TestActions: TTestActionsMap = {
       "herdKey": "test1",
     },
     "Service_www-icelandair-com": {
-      "env":"testenv",
+      "env": "testenv",
       "deploymentRollouts": emptyArray<string>(),
       "herdDeclaration": {
         "image": "testenvimage",
@@ -793,6 +818,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
+      "pushToUI": true,
+
       "identifier": "Service_www-icelandair-com",
       "version": "0.0.0",
       "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com\n  annotations: \n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: \"*\"\n  labels:\n    name: www-icelandair-com\n    subdomain: 'testing123beta'\n    topdomain: testing123\n    team: flip\nspec:\n  type: LoadBalancer\n  ports:\n  - port: 80\n    targetPort: 81\n    name: http-proxy-protocol\n  - port: 443\n    targetPort: 444\n    name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com\n    tier: frontend\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com\n  annotations:\n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: \"*\"\n  labels:\n    name: www-icelandair-com\n    subdomain: testing123beta\n    topdomain: testing123\n    team: flip\nspec:\n  type: LoadBalancer\n  ports:\n  - port: 80\n    targetPort: 81\n    name: http-proxy-protocol\n  - port: 443\n    targetPort: 444\n    name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com\n    tier: frontend\n",
@@ -802,7 +829,7 @@ export const TestActions: TTestActionsMap = {
       "herdKey": "test-image",
     },
     "Service_www-icelandair-com-test1": {
-      "env":"testenv",
+      "env": "testenv",
       "deploymentRollouts": emptyArray<string>(),
       "herdDeclaration": {
         "image": "testenvimage",
@@ -856,6 +883,8 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
+      "pushToUI": true,
+
       "identifier": "Service_www-icelandair-com-test1",
       "version": "0.0.0",
       "descriptor": "apiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-test1\n  annotations:\n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'\n  labels:\n    name: www-icelandair-com-test1\n    subdomain: testing123beta\n    topdomain: testing123\n    team: flip\n    ttl-hours: '48'\nspec:\n  type: LoadBalancer\n  ports:\n    - port: 80\n      targetPort: 81\n      name: http-proxy-protocol\n    - port: 443\n      targetPort: 444\n      name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com-test1\n    tier: frontend\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: www-icelandair-com-test1\n  annotations:\n    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'\n  labels:\n    name: www-icelandair-com-test1\n    subdomain: testing123beta\n    topdomain: testing123\n    team: flip\n    ttl-hours: '48'\nspec:\n  type: LoadBalancer\n  ports:\n    - port: 80\n      targetPort: 81\n      name: http-proxy-protocol\n    - port: 443\n      targetPort: 444\n      name: https-proxy-protocol\n  selector:\n    name: www-icelandair-com-test1\n    tier: frontend",

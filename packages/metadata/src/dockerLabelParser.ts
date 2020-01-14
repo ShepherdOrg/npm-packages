@@ -76,6 +76,8 @@ export async function extractShepherdMetadata(
     let deploymentType = determineDeploymentType(imageLabels)
 
     let imageInfo = {
+      dockerRepository: imageLabels["shepherd.name"],
+      dockerRegistry: imageLabels["shepherd.name"],
       displayName: imageLabels["shepherd.name"],
       buildDate: imageLabels["shepherd.builddate"],
       migrationImage: imageLabels["shepherd.dbmigration"],

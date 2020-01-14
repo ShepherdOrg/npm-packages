@@ -1,6 +1,8 @@
 {
-  "displayName": "plain-deployer-repo",
+  "displayName": "Plain Deployer Repo",
   "deployerRole": "install",
+  "dockerRegistry": "myownregistry.com:666",
+  "dockerRepository": "plain-deployer-repo",
   "environment": [
     {
       "name": "DB_HOST",

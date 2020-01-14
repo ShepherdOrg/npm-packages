@@ -81,6 +81,7 @@ export async function createDockerDeploymentActions(imageInformation: TImageInfo
     origin: herdKey,
     type: "deployer",
     operation: "run",
+    pushToUI: true,
     command: "deploy",
     identifier: herdKey,
     herdKey: herdKey,

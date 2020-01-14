@@ -26,6 +26,14 @@
     "migrationImage": {
       "type": "string"
     },
+    "dockerRepository": {
+      "type": "string",
+      "description": "Docker repository part of docker tag, often referred to as image name. Does not include version information."
+    },
+    "dockerRegistry": {
+      "type": "string",
+      "description": "Docker registry portion of docker image tag. Not used if using dockerhub."
+    },
     "environment": {
       "type": "array",
       "items": {

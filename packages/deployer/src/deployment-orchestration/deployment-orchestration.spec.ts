@@ -29,11 +29,11 @@ export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
 ): IK8sDockerImageDeploymentAction {
   let testAction = {
-    execute(deploymentOptions:TActionExecutionOptions, cmd:string, logger:ILog, saveDeploymentState: FnDeploymentStateSave) {
+    execute(deploymentOptions: TActionExecutionOptions, cmd: string, logger: ILog, saveDeploymentState: FnDeploymentStateSave) {
       return executeKubectlDeploymentAction(testAction, deploymentOptions, cmd, logger, saveDeploymentState)
     },
     testInstance: true,
-    ...serialisedAction
+    ...serialisedAction,
   }
   return testAction
 }
@@ -42,11 +42,11 @@ export function createDockerTestDeployerAction(
   serialisedAction: TDockerDeploymentActionStruct,
 ): IDockerDeploymentAction {
   let testAction = {
-    execute(deploymentOptions:TActionExecutionOptions, cmd:string, logger:ILog, saveDeploymentState: FnDeploymentStateSave) {
+    execute(deploymentOptions: TActionExecutionOptions, cmd: string, logger: ILog, saveDeploymentState: FnDeploymentStateSave) {
       return executeDeployerAction(testAction, deploymentOptions, cmd, logger, saveDeploymentState)
     },
     testInstance: true,
-    ...serialisedAction
+    ...serialisedAction,
   }
   return testAction
 }
@@ -55,16 +55,16 @@ type TExec = any
 
 describe("Deployment orchestration", function() {
   let deploymentOrchestration: TDeploymentOrchestration
-  let fakeStateStore : any
-  let fakeExec : TExec
+  let fakeStateStore: any
+  let fakeExec: TExec
   let fakeLogger: IFakeLogging
   let fakeUiDataPusher: any
 
   beforeEach(function() {
     fakeUiDataPusher = {
       pushedData: emptyArray<any>(),
-      pushDeploymentStateToUI: async (data:any) => { // TODO Eliminate this any once we have proper type on datastructure pushed to UI
-       fakeUiDataPusher.pushedData.push(data)
+      pushDeploymentStateToUI: async (data: any) => { // TODO Eliminate this any once we have proper type on datastructure pushed to UI
+        fakeUiDataPusher.pushedData.push(data)
         return data
       },
     }
@@ -159,7 +159,7 @@ describe("Deployment orchestration", function() {
         return deploymentOrchestration
           .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
           .then(() =>
-            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction))
+            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
           )
           .then(() => deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
           .then(() =>
@@ -168,7 +168,7 @@ describe("Deployment orchestration", function() {
               dryRunOutputDir: undefined,
               pushToUi: false,
               waitForRollout: false,
-            })
+            }),
           )
       })
 
@@ -187,12 +187,12 @@ describe("Deployment orchestration", function() {
           saveFailure: false,
           message: "",
         }
-        fakeExec.nextResponse.success = "applied"
+        fakeExec.nextResponse.success = "done"
 
         return deploymentOrchestration
           .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
           .then(() =>
-            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction))
+            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
           )
           .then(() => deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
           .then(() =>
@@ -201,7 +201,7 @@ describe("Deployment orchestration", function() {
               dryRunOutputDir: undefined,
               pushToUi: true,
               waitForRollout: true,
-            })
+            }),
           )
       })
 
@@ -224,21 +224,21 @@ describe("Deployment orchestration", function() {
       })
 
       it("should execute kubectl rollout status to wait for deployment to complete", () => {
-        expect(fakeExec.executedCommands[3].command).to.equal("kubectl")
-        expect(fakeExec.executedCommands[3].params[0]).to.equal("rollout")
-        expect(fakeExec.executedCommands[3].params[1]).to.equal("status")
-        expect(fakeExec.executedCommands[3].params[2]).to.equal("Deployment/www-icelandair-com-test1")
+        expect(fakeExec.executedCommands[2].command).to.equal("kubectl")
+        expect(fakeExec.executedCommands[2].params[0]).to.equal("rollout")
+        expect(fakeExec.executedCommands[2].params[1]).to.equal("status")
+        expect(fakeExec.executedCommands[2].params[2]).to.equal("Deployment/www-icelandair-com-test1")
       })
 
       it("should push data to UI", () => {
         expect(fakeUiDataPusher.pushedData.length).to.equal(3)
+        let i=0
 
-        expect(fakeUiDataPusher.pushedData[0].displayName).to.equal("monitors-namespace.yml", 'zero')
+        expect(fakeUiDataPusher.pushedData[i].displayName).to.equal("Testimage", "one")
+        expect(fakeUiDataPusher.pushedData[i++].deploymentState.timestamp).to.eql(new Date("2019-10-31T11:03:52.381Z"))
 
-        expect(fakeUiDataPusher.pushedData[1].displayName).to.equal("Testimage", 'one')
-        expect(fakeUiDataPusher.pushedData[1].deploymentState.timestamp).to.eql(new Date("2019-10-31T11:03:52.381Z"))
-
-        expect(fakeUiDataPusher.pushedData[2].displayName).to.equal("Testimage", 'two')
+        expect(fakeUiDataPusher.pushedData[i++].displayName).to.equal("Testimage", "two")
+        expect(fakeUiDataPusher.pushedData[i++].displayName).to.equal("monitors-namespace.yml", "three")
       })
 
       it("should store state kubectl", function() {
@@ -246,21 +246,28 @@ describe("Deployment orchestration", function() {
 
         // expect(fakeStateStore.savedStates[0].origin).to.equal(k8sDeployments.Namespace_monitors.origin);
         expect(fakeStateStore.savedStates[0].origin).to.equal(
-          k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"].origin
+          k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"].origin,
         )
         // expect(fakeStateStore.savedStates[1].origin).to.equal(k8sDeployments["Deployment_www-icelandair-com"].origin);
       })
 
       it("should log deployments", function() {
-        expect(fakeLogger.logStatements.map(logs => logs.data[0]).join(" ")).to.equal(
-          "kubectl apply deployments in testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls applied kubectl apply deployments in testenvimage:0.0.0:kube.config.tar.base64/Deployment_www-icelandair-com applied kubectl delete deployments in /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces/Namespace_monitors applied Deployment/www-icelandair-com-test1 rolled out"
+        let infoLog = fakeLogger.logStatements.map(logs => logs.data[0]).join("\n")
+        expect(infoLog).to.equal(
+          `kubectl apply deployments in testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls
+done
+kubectl apply deployments in testenvimage:0.0.0:kube.config.tar.base64/Deployment_www-icelandair-com
+done
+kubectl rollout status Deployment/www-icelandair-com-test1
+done
+kubectl delete deployments in /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces/Namespace_monitors
+done`,
         )
-        expect(fakeLogger.logStatements.length).to.equal(7)
       })
 
       it("should log rollout complete", () => {
         expect(fakeLogger.logStatements.map(logs => logs.data[0]).join(" ")).to.contain(
-          "Deployment/www-icelandair-com-test1 rolled out"
+          "kubectl rollout status Deployment/www-icelandair-com-test1 done",
         )
       })
     })
@@ -277,25 +284,25 @@ describe("Deployment orchestration", function() {
         return deploymentOrchestration
           .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
           .then(() =>
-            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction))
+            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
           )
           .then(() => deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
           .then(() =>
             deploymentOrchestration.executePlan().catch(function(err) {
               saveError = err
-            })
+            }),
           )
       })
 
       it("should propagate error to caller", function() {
         expect(saveError.message).to.equal(
-          "Failed to save state after successful kubectl deployment! testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls\nError: State store failure!"
+          "Failed to save state after successful kubectl deployment! testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls\nError: State store failure!",
         )
       })
     })
 
     describe("modified, delete deployment and kubectl responds with not found", function() {
-      let saveError:Error, executedAction: IK8sDirDeploymentAction
+      let saveError: Error, executedAction: IK8sDirDeploymentAction
 
       beforeEach(function() {
         fakeExec.nextResponse.err = "not found"
@@ -329,7 +336,7 @@ describe("Deployment orchestration", function() {
 
   describe("- docker deployer planning -", function() {
     describe("basic state checking", function() {
-      let deploymentState : IAnyDeploymentAction
+      let deploymentState: IAnyDeploymentAction
 
       beforeEach(function() {
         return deploymentOrchestration.addDeployment(dockerDeployers["testenvimage-migrations:0.0.0"] as IK8sDockerImageDeploymentAction).then(function(ds) {
@@ -380,12 +387,12 @@ describe("Deployment orchestration", function() {
         fakeExec.nextResponse.success = "this would be docker run output"
         fakeStateStore.nextState = { new: false, modified: true }
         return deploymentOrchestration.addDeployment(createDockerTestDeployerAction(dockerDeployers["testenvimage-migrations:0.0.0"] as IDockerDeploymentAction))
-          .then(()=>deploymentOrchestration.addDeployment(createDockerTestDeployerAction(dockerDeployers["test-infrastructure:1.0.0"] as IDockerDeploymentAction)))
-          .then(()=>deploymentOrchestration.addDeployment(createDockerTestDeployerAction(dockerDeployers["test-infrastructure:1.0.0"] as IDockerDeploymentAction)))
-          .then(()=>deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Service_www-icelandair-com-internal"] as IK8sDockerImageDeploymentAction)))
+          .then(() => deploymentOrchestration.addDeployment(createDockerTestDeployerAction(dockerDeployers["test-infrastructure:1.0.0"] as IDockerDeploymentAction)))
+          .then(() => deploymentOrchestration.addDeployment(createDockerTestDeployerAction(dockerDeployers["test-infrastructure:1.0.0"] as IDockerDeploymentAction)))
+          .then(() => deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Service_www-icelandair-com-internal"] as IK8sDockerImageDeploymentAction)))
           .then(function() {
-          return deploymentOrchestration.executePlan()
-        })
+            return deploymentOrchestration.executePlan()
+          })
       })
 
       xit("should execute each section to completion before starting next", () => {

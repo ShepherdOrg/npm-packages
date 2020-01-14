@@ -1,5 +1,7 @@
 {
-  "displayName": "Plain shepherd deployer",
+  "dockerRegistry": "mylocalregistry:5000",
+  "dockerRepository": "plan-deployer-image",
+  "displayName": "Just a plain deployer",
   "deployerRole": "install",
   "environment": [
     {
