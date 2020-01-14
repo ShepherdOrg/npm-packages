@@ -10,7 +10,10 @@ describe("Build docker with kube.yaml deployment", function() {
 
   before(() => {
     let dockerDir = __dirname
-    process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE = __dirname + '/deploymentq.jsonl'
+    if(!fs.existsSync(process.cwd() + '/.build')){
+      fs.mkdirSync(process.cwd() + '/.build')
+    }
+    process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE = process.cwd() + '/.build/deploymentq.jsonl'
 
     fs.writeFileSync(process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE, '')
     // fs.closeSync(fs.openSync(process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE as string, 'a'));
