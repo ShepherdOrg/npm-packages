@@ -232,7 +232,7 @@ describe("herd.yaml loading", function() {
         semanticVersion: "none",
         deploymentType: "k8s",
         path: "namespaces/monitors-namespace.yml",
-        buildDate: "2019-02-15T09:33:58.000Z",
+        buildDate: loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].metadata.buildDate,
         hyperlinks: [],
       }
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].metadata).to.deep.equal(expectedMetadata)
