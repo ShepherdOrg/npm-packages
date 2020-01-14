@@ -9,6 +9,7 @@ import { HerdLoader } from "./herd-loading/herd-loader"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { IStorageBackend } from "@shepherdorg/state-store"
 import { TFileSystemPath } from "./helpers/basic-types"
+import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -88,6 +89,8 @@ global._ = require("lodash")
 global.Promise = require("bluebird")
 
 let Logger = require("./logging/logger")
+
+flatMapPolyfill()
 
 const logger = Logger(console)
 

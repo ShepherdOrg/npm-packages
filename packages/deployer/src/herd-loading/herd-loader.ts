@@ -19,6 +19,9 @@ import { ImagesLoader } from "./image-loader/images-loader"
 const YAML = require("js-yaml")
 
 import Bluebird = require("bluebird")
+import { flatMapPolyfill } from "./folder-loader/flatmap-polyfill"
+
+flatMapPolyfill()
 
 export type TDockerMetadataLoader = {
   imageLabelsLoader: typeof imageLabelsLoader

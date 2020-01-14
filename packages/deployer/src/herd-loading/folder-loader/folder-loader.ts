@@ -1,15 +1,18 @@
 import {
+  IK8sDirDeploymentAction,
   ILog,
   TFolderHerdDeclaration,
   TFolderHerdSpecs,
   THerdSectionDeclaration,
-  IK8sDirDeploymentAction,
 } from "../../deployment-types"
 import { planFolderDeployment } from "./folder-deployment-planner"
 import { identityMap, TFileSystemPath } from "../../helpers/basic-types"
 import * as path from "path"
-import Bluebird = require("bluebird")
 import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-deployer/kube-supported-extensions"
+import { flatMapPolyfill } from "./flatmap-polyfill"
+import Bluebird = require("bluebird")
+
+flatMapPolyfill()
 
 interface TFolderLoaderDependencies {
   logger: ILog

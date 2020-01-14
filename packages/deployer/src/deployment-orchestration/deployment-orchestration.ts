@@ -1,5 +1,6 @@
 import * as path from "path"
 
+
 import { emptyArray } from "../helpers/ts-functions"
 import { writeFile } from "../helpers/promisified"
 import {
@@ -25,6 +26,10 @@ import {
   TK8sDeploymentPlan,
 } from "../deployment-plan/deployment-plan-factory"
 import Bluebird = require("bluebird")
+import { flatMapPolyfill } from "../herd-loading/folder-loader/flatmap-polyfill"
+
+
+flatMapPolyfill()
 
 export function DeploymentOrchestration(injected: TReleasePlanDependencies) : FDeploymentOrchestrationConstructor {
   const stateStore = injected.stateStore
