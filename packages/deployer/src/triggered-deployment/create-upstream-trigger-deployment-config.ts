@@ -67,9 +67,17 @@ export function CreateUpstreamTriggerDeploymentConfig(logger: ILog): TFeatureDep
       return Boolean(!featureDeploymentConfig.isUpstreamFeatureDeployment() && featureDeploymentConfig.isUpstreamTriggeredDeployment())
     },
     loadFromEnvironment(herdFilePath: TFileSystemPath, environment: typeof process.env = process.env): void {
-      if (environment.UPSTREAM_IMAGE_URL && environment.UPSTREAM_HERD_KEY) {
+
+      let upstreamImageUrl: string = ''
+
+      if(environment.UPSTREAM_IMAGE_NAME && environment.UPSTREAM_IMAGE_TAG){
+        upstreamImageUrl = environment.UPSTREAM_IMAGE_NAME + ':' + environment.UPSTREAM_IMAGE_TAG
+      } else if(environment.UPSTREAM_IMAGE_URL) {
+        upstreamImageUrl = environment.UPSTREAM_IMAGE_URL
+      }
+      if (Boolean(upstreamImageUrl) && environment.UPSTREAM_HERD_KEY) {
         logger.info("Upstream information available, using to modify deployment.")
-        const dockerUrl = parseImageUrl(environment.UPSTREAM_IMAGE_URL)
+        const dockerUrl = parseImageUrl(upstreamImageUrl)
         featureDeploymentConfig.imageFileName = herdFilePath
         featureDeploymentConfig.upstreamHerdKey = environment.UPSTREAM_HERD_KEY
         featureDeploymentConfig.upstreamImageName = dockerUrl.imageName

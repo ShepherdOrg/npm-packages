@@ -236,7 +236,7 @@ export function DeploymentOrchestration(injected: TReleasePlanDependencies) : FD
           })
         }
         if (!modified) {
-          logger.info("No modified deployments in " + plan.herdKey)
+          logger.debug("No modified deployments in " + plan.herdKey)
         }
       })
     }
