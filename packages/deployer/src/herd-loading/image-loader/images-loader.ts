@@ -13,13 +13,11 @@ import { TDockerImageReference } from "@shepherdorg/docker-image-metadata-loader
 import { extractShepherdMetadata } from "../add-shepherd-metadata"
 import { TFileSystemPath } from "../../helpers/basic-types"
 import { ILoadDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
+import { parseImageUrl, TDockerImageUrl, TDockerImageUrlStruct } from "../../helpers/parse-image-url"
 
-export function splitDockerImageTag(dockerImageRefWithTag: string): { image: string; imagetag: string } {
-  let colonIdx = dockerImageRefWithTag.indexOf(":")
-  return {
-    image: dockerImageRefWithTag.slice(0, colonIdx),
-    imagetag: dockerImageRefWithTag.slice(colonIdx + 1, dockerImageRefWithTag.length),
-  }
+
+export function parseDockerImageUrl(dockerImageUrl: TDockerImageUrl): TDockerImageUrlStruct {
+  return parseImageUrl(dockerImageUrl)
 }
 
 interface TImageDeclarationsLoaderDependencies {
@@ -42,7 +40,7 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
 
     function addMigrationImageToDependenciesPlan(imageMetaData: TImageInformation) {
       if (imageMetaData.shepherdMetadata && imageMetaData.shepherdMetadata.migrationImage) {
-        let dockerImageTag = splitDockerImageTag(
+        let dockerImageTag = parseDockerImageUrl(
           imageMetaData.shepherdMetadata.migrationImage,
         )
         derivedDeployments[imageMetaData.shepherdMetadata.migrationImage] = {sectionDeclaration: sectionDeclaration, ...dockerImageTag}
@@ -60,7 +58,7 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
       injected.logger.debug("Deployment image - loading image meta data for docker image", JSON.stringify(herdSpec))
 
       if (!herdSpec.image && herdSpec.dockerImage) {
-        Object.assign(herdSpec, splitDockerImageTag(herdSpec.dockerImage))
+        Object.assign(herdSpec, parseDockerImageUrl(herdSpec.dockerImage))
       }
       let promise: Promise<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> = loadImageMetadata(herdSpec)
         .then(extractShepherdMetadata)

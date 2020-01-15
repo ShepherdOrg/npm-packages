@@ -57,6 +57,10 @@ describe("Build docker with kube.yaml deployment", function() {
     expect(queuedDeployment.deploymentKey).to.equal('plain-deployer-repo')
   })
 
+  it("should have correct dockerImageTag", () => {
+    expect(queuedDeployment.dockerImageTag).to.contain('mylocalregistry:5000/plain-deployer-repo:0.1-')
+  })
+
   it("should log adding to deployment queue", () => {
     expect(buildOutput).to.contain("Queueing deployment of mylocalregistry:5000/plain-deployer-repo")
   })

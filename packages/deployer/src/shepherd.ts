@@ -37,8 +37,7 @@ Options through environment variables:
 
 Upstream build job input. The first three must be provided together or all skipped.    
     UPSTREAM_HERD_KEY           - Herd key from upstream trigger. Equivalent to key in images section in herd.yaml
-    UPSTREAM_IMAGE_NAME         - Docker image name from upstream. Always without tag. 
-    UPSTREAM_IMAGE_TAG          - Docker image tag from upstream trigger. 
+    UPSTREAM_IMAGE_URL          - Docker image url from upstream.  
     UPSTREAM_HERD_DESCRIPTION   - Short description that would otherwise be in the herd.yaml file.
     UPSTREAM_WAIT_FOR_ROLLOUT   - Upstream build wants rollout to complete before getting control back. Designed for e2e tests.
 

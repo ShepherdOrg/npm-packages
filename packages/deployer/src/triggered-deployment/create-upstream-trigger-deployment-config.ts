@@ -1,6 +1,7 @@
 import { newProgrammerOops } from "oops-error"
 import { ILog, TDockerImageHerdSpecs, THerdFileStructure } from "../deployment-types"
 import { TFileSystemPath } from "../helpers/basic-types"
+import { parseImageUrl } from "../helpers/parse-image-url"
 
 export interface TFeatureDeploymentConfig {
   origin?: string
@@ -66,12 +67,14 @@ export function CreateUpstreamTriggerDeploymentConfig(logger: ILog): TFeatureDep
       return Boolean(!featureDeploymentConfig.isUpstreamFeatureDeployment() && featureDeploymentConfig.isUpstreamTriggeredDeployment())
     },
     loadFromEnvironment(herdFilePath: TFileSystemPath, environment: typeof process.env = process.env): void {
-      if (environment.UPSTREAM_IMAGE_NAME && environment.UPSTREAM_IMAGE_TAG && environment.UPSTREAM_HERD_KEY) {
+      if (environment.UPSTREAM_IMAGE_URL && environment.UPSTREAM_HERD_KEY) {
         logger.info("Upstream information available, using to modify deployment.")
+        const dockerUrl = parseImageUrl(environment.UPSTREAM_IMAGE_URL)
         featureDeploymentConfig.imageFileName = herdFilePath
         featureDeploymentConfig.upstreamHerdKey = environment.UPSTREAM_HERD_KEY
-        featureDeploymentConfig.upstreamImageName = environment.UPSTREAM_IMAGE_NAME
-        featureDeploymentConfig.upstreamImageTag = environment.UPSTREAM_IMAGE_TAG
+        featureDeploymentConfig.upstreamImageName = dockerUrl.imageName
+        featureDeploymentConfig.upstreamImageTag = dockerUrl.dockerTag
+
         featureDeploymentConfig.upstreamHerdDescription = environment.UPSTREAM_HERD_DESCRIPTION
         if (environment.FEATURE_NAME && environment.FEATURE_TTL_HOURS) {
           logger.info("Feature deployment information available, new name: " + environment.FEATURE_NAME + " to live for " + environment.FEATURE_TTL_HOURS + " hours")

@@ -222,7 +222,7 @@ cat > ./.build/metadata/builddata.json <<_EOF_
 {
   "buildDate": "$(date +%Y-%m-%dT%H:%M:%S)+00:00"
 , "buildHostName": "${HOSTNAME}"
-, "dockerImageTag":"${DOCKER_IMAGE_LATEST}"
+, "dockerImageUrl":"${DOCKER_IMAGE_GITHASH}"
 , "dockerImageGithash":"${DOCKER_IMAGE_GITHASH}"
 , "gitHash":"${DIRHASH}"
 , "gitBranch":"${BRANCH_NAME}"

@@ -35,7 +35,7 @@ function main(){
 
   }
 
-  deployJson.dockerImageGithash = shepherdJson.dockerImageGithash
+  deployJson.dockerImageUrl = shepherdJson.dockerImageUrl
   deployJson.semanticVersion = shepherdJson.semanticVersion
   deployJson.herdDescription = shepherdJson.displayName
 

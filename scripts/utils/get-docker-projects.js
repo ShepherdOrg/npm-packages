@@ -41,7 +41,7 @@ const buildInfo = packages
       path: path.resolve(packageDirectory, package),
       dockerImageName: packageJson.name.replace(/^@/, '').toLowerCase(),
       version: packageJson.version,
-      tag: `${packageJson.version}-${process.env.BUILD_NUMBER || 'localbuild'}`,
+      dockerTag: `${packageJson.version}-${process.env.BUILD_NUMBER || 'localbuild'}`,
     }
   })
 

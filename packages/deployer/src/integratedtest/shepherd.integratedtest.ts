@@ -80,8 +80,7 @@ describe("running shepherd", function() {
           env: _.extend({}, process.env, {
             NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
-            UPSTREAM_IMAGE_NAME: "testenvimage",
-            UPSTREAM_IMAGE_TAG: "0.0.0",
+            UPSTREAM_IMAGE_URL: "testenvimage:0.0.0",
             UPSTREAM_HERD_KEY: "addedimage",
             UPSTREAM_HERD_DESCRIPTION: "Just a casual e2e test",
           }),

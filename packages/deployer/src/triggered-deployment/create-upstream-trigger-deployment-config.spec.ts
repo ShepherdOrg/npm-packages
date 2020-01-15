@@ -10,8 +10,7 @@ describe("Upstream triggered deployment config ", function() {
   describe("loading from process.env like config object", function() {
     const configObject = {
       UPSTREAM_HERD_KEY: "envKey",
-      UPSTREAM_IMAGE_NAME: "envimagename",
-      UPSTREAM_IMAGE_TAG: "envtag",
+      UPSTREAM_IMAGE_URL: "registry:5000/envimagename:version-one",
       UPSTREAM_HERD_DESCRIPTION: "env description",
       FEATURE_NAME: "newNamein/allLowerCaps",
       FEATURE_TTL_HOURS: "999",
@@ -20,8 +19,8 @@ describe("Upstream triggered deployment config ", function() {
     const expectedConfigObject = {
       imageFileName: "herdFilePath",
       upstreamHerdKey: "envKey",
-      upstreamImageName: "envimagename",
-      upstreamImageTag: "envtag",
+      upstreamImageName: "registry:5000/envimagename",
+      upstreamImageTag: "version-one",
       upstreamHerdDescription: "env description",
       branchName: "newnamein-alllowercaps",
       ttlHours: 999,
@@ -48,8 +47,7 @@ describe("Upstream triggered deployment config ", function() {
   describe("upstream deployment with no feature deployment", function() {
     const configObject = {
       UPSTREAM_HERD_KEY: "envKey",
-      UPSTREAM_IMAGE_NAME: "envimagename",
-      UPSTREAM_IMAGE_TAG: "envtag",
+      UPSTREAM_IMAGE_URL: "envimagename:envtag",
       UPSTREAM_HERD_DESCRIPTION: "env description",
     }
 

@@ -377,10 +377,17 @@ describe("herd.yaml loading", function() {
     })
 
     it("should forward metadata with execution plan", () => {
+      // TODO This image information passing around is a mess. Refactor and simplify!
       expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].herdDeclaration).to.deep.equal({
         key: "testenvimage-migrations:0.0.0",
         image: "testenvimage-migrations",
+        imageName: "testenvimage-migrations",
         imagetag: "0.0.0",
+        dockerRepository: "testenvimage-migrations",
+        originalUrl: "testenvimage-migrations:0.0.0",
+        dockerNamespace: "",
+        dockerRegistry: "",
+        dockerTag: "0.0.0",
         "sectionDeclaration": {
           "herdSectionIndex": 2,
           "herdSectionType": "images" as THerdSectionType,

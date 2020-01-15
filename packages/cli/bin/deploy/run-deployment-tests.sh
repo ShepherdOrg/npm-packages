@@ -33,7 +33,7 @@ echo "Loading environment for testrun from ${PWD}/deployments/central/testrun.en
 source ${PWD}/testreference/central/testrun.env
 source ${PWD}/load-deprecated-secret-env.sh
 
-if [ ! -z "${UPSTREAM_IMAGE_NAME}" ]; then
+if [ ! -z "${UPSTREAM_IMAGE_URL}" ]; then
 	# When triggered deployment, only compare generated files, do not check if all deployments are performed.
 	export TEST_PARTIAL_DEPLOYMENT=true
 fi
