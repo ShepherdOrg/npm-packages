@@ -44,7 +44,7 @@ describe("Upstream triggered deployment config ", function() {
     })
   })
 
-  describe.only("loading from process.env like config object, using image fields", function() {
+  describe("loading from process.env like config object, using image fields", function() {
     const configObject = {
       UPSTREAM_HERD_KEY: "envKey",
       UPSTREAM_IMAGE_TAG: "version-one",
