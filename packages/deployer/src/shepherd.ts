@@ -10,6 +10,7 @@ import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherd
 import { IStorageBackend } from "@shepherdorg/state-store"
 import { TFileSystemPath } from "./helpers/basic-types"
 import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
+import { CreateLogger } from "./logging/logger"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -87,11 +88,10 @@ if (process.argv.indexOf("--version") > 0) {
 global._ = require("lodash")
 global.Promise = require("bluebird")
 
-let Logger = require("./logging/logger")
 
 flatMapPolyfill()
 
-const logger = Logger(console)
+const logger = CreateLogger(console)
 
 console.debug = function() {
   // Array.prototype.unshift.call(arguments, 'SHEPDEBUG ');

@@ -16,6 +16,7 @@ export type ILog = {
   info: typeof console.info,
   debug: typeof console.debug,
   warn: typeof console.warn
+  error: typeof console.error
 }
 
 export enum THerdSectionType {

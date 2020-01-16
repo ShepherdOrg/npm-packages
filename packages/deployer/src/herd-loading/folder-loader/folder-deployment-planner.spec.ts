@@ -37,6 +37,7 @@ describe("k8s deployment file directory structure release plan loader", function
           info: () => {},
           warn: () => {},
           debug: () => {},
+          error: () => {},
         },
       }
     ).scanDir

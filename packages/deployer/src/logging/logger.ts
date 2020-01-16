@@ -1,4 +1,5 @@
 import {padLeft} from "./padleft"
+import { ILog } from "../deployment-types"
 
 let initialTime = new Date().getTime()
 const timePrefix = "        "
@@ -7,10 +8,8 @@ function elapsedTime () {
   return new Date().getTime() - initialTime
 }
 
-module.exports = function(consoleInstance:typeof console) {
-  let buildLogger = {
-    log: "",
-    logStatements: [],
+export function CreateLogger(consoleInstance:typeof console): ILog {
+  let buildLogger: ILog = {
     info() {
       Array.prototype.unshift.call(
         arguments,
@@ -25,6 +24,10 @@ module.exports = function(consoleInstance:typeof console) {
     },
     error() {
       Array.prototype.unshift.call(arguments, "ERROR   ")
+      consoleInstance.log.apply(consoleInstance, arguments)
+    },
+    warn() {
+      Array.prototype.unshift.call(arguments, "WARN   ")
       consoleInstance.log.apply(consoleInstance, arguments)
     },
   }
