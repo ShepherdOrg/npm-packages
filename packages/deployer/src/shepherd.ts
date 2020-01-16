@@ -174,7 +174,7 @@ stateStoreBackend
 
     const ReleasePlan = DeploymentOrchestration({
       cmd: exec,
-      logger: Logger(console),
+      logger: CreateLogger(console),
       stateStore: releaseStateStore,
       uiDataPusher: uiDataPusher,
     })
@@ -184,7 +184,7 @@ stateStoreBackend
     }
 
     let loader = HerdLoader({
-      logger: Logger(console),
+      logger: CreateLogger(console),
       ReleasePlan: ReleasePlan,
       exec: exec,
       featureDeploymentConfig,
