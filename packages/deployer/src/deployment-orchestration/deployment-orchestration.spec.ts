@@ -19,7 +19,7 @@ import {
   TK8sDockerImageDeploymentActionStruct,
 } from "../herd-loading/testdata/testActions"
 import { executeDeployerAction } from "../deployment-actions/docker-deployer/docker-deployment-action"
-import { createFakeExec } from "../test-tools/fake-exec"
+import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
 import { createFakeStateStore } from "./fake-state-store-factory"
 
 const k8sDeployments = TestActions.addedK8sDeployments
@@ -51,12 +51,11 @@ export function createDockerTestDeployerAction(
   return testAction
 }
 
-type TExec = any
 
 describe("Deployment orchestration", function() {
   let deploymentOrchestration: TDeploymentOrchestration
   let fakeStateStore: any
-  let fakeExec: TExec
+  let fakeExec: TFakeExec
   let fakeLogger: IFakeLogging
   let fakeUiDataPusher: any
 
@@ -178,6 +177,40 @@ describe("Deployment orchestration", function() {
         expect(fakeExec.executedCommands[1].params[0]).to.equal("apply", "1")
         expect(fakeExec.executedCommands[2].params[0]).to.equal("delete", "2")
       })
+    })
+
+    describe("unchanged deployment docs with rollout wait", function() {
+      beforeEach(function() {
+        fakeStateStore.fixedTimestamp = "2019-10-31T11:03:52.381Z"
+        fakeStateStore.nextState = {
+          saveFailure: false,
+          message: "",
+          modified: false
+        }
+        fakeExec.nextResponse.success = "done"
+
+        return deploymentOrchestration
+          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
+          .then(() =>
+            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
+          )
+          .then(() => deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
+          .then(() =>
+            deploymentOrchestration.executePlan({
+              dryRun: false,
+              dryRunOutputDir: undefined,
+              pushToUi: true,
+              waitForRollout: true,
+            }),
+          )
+      })
+
+      it("should not execute anything", () => {
+        // Uncomment for clearer insight
+        // console.log(`fakeExec.executedCommands`, fakeExec.executedCommands.map((ec:any)=> identifyDocument(ec.options.stdin).identifyingString + ' ... ' +  ec.params.join(' ')))
+        expect(fakeExec.executedCommands.length).to.equal(0)
+      })
+
     })
 
     describe("modified deployment docs with rollout wait", function() {

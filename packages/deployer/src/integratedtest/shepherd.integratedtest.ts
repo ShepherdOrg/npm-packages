@@ -135,7 +135,8 @@ describe("running shepherd", function() {
         })
         .output(firstRoundFolder)
         .shouldEqual(process.cwd() + "/src/integratedtest/expected/k8s-deployments")
-        .done(function() {
+        .done(function(_stdout) {
+          // console.log(`stdout`, stdout)
           process.env.KUBECTL_OUTPUT_FOLDER = secondRoundFolder
 
           script
@@ -146,6 +147,7 @@ describe("running shepherd", function() {
             .output(secondRoundFolder)
             .shouldBeEmptyDir()
             .done(function(_stdout) {
+
               done()
             })
         })

@@ -6,10 +6,10 @@ export type TFakeStateStore = {
   checkedStates: any[];
   storeDeploymentDirState: (_deployment: any) => void;
   fixedTimestamp: string;
-  saveDeploymentState: (deploymentState: TDeploymentState) => Promise<unknown>;
+  saveDeploymentState: (deploymentState: TDeploymentState) => Promise<TDeploymentState>;
   nextState: any;
   savedStates: TDeploymentState[];
-  getDeploymentState: (deploymentAction: IAnyDeploymentAction) => Promise<unknown>
+  getDeploymentState: (deploymentAction: IAnyDeploymentAction) => Promise<TDeploymentState>
 }
 
 export function createFakeStateStore(): TFakeStateStore {
@@ -21,7 +21,7 @@ export function createFakeStateStore(): TFakeStateStore {
     nextState: nextState,
     checkedStates: checkedStates,
     savedStates: emptyArray<TDeploymentState>(),
-    getDeploymentState: function(deploymentAction: IAnyDeploymentAction) {
+    getDeploymentState: function(deploymentAction: IAnyDeploymentAction): Promise<TDeploymentState> {
       checkedStates.push(JSON.parse(JSON.stringify(deploymentAction)))
       let value = {
         testState: true,
@@ -38,7 +38,7 @@ export function createFakeStateStore(): TFakeStateStore {
       }
       return Promise.resolve(value)
     },
-    saveDeploymentState: function(deploymentState: TDeploymentState) {
+    saveDeploymentState: function(deploymentState: TDeploymentState):Promise<TDeploymentState> {
       return new Promise(function(resolve, reject) {
         if (fakeStateStore.nextState.saveFailure) {
           reject(new Error(fakeStateStore.nextState.message))

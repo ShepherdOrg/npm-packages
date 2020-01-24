@@ -135,8 +135,8 @@ function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: st
   return expandTemplate(expandEnvVariables(deploymentFileDescriptorContent.split("\n")))
 }
 
-export function createKubectlDeployAction(_origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, logger: ILog, branchModificationParams?: TBranchModificationParams): IKubectlDeployAction {
-  let origin: string = _origin
+export function createKubectlDeployAction(origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, logger: ILog, branchModificationParams?: TBranchModificationParams): IKubectlDeployAction {
+  let actionOrigin: string = origin
   try {
     if (branchModificationParams && branchModificationParams.shouldModify) {
       process.env.BRANCH_NAME = branchModificationParams.branchName
@@ -152,7 +152,7 @@ export function createKubectlDeployAction(_origin: string, deploymentFileDescrip
 
     if (branchModificationParams && branchModificationParams.shouldModify) {
       finalDescriptor = modifyDeploymentDocument(finalDescriptor, branchModificationParams)
-      origin = branchModificationParams.origin || _origin + "/branch!"
+      actionOrigin = branchModificationParams.origin || origin + "/branch!"
     }
 
     let deploymentDescriptor = applyClusterPolicies(finalDescriptor, logger)
@@ -171,7 +171,7 @@ export function createKubectlDeployAction(_origin: string, deploymentFileDescrip
       },
       operation: operation,
       pushToUI: true,
-      origin: origin,
+      origin: actionOrigin,
       deploymentRollouts: deploymentRollouts,
       descriptor: deploymentDescriptor,
       fileName,
@@ -182,7 +182,7 @@ export function createKubectlDeployAction(_origin: string, deploymentFileDescrip
     return documentDeploymentAction
 
   } catch (error) {
-    let message = `In deployment descriptor, origin: ${origin}\n`
+    let message = `In deployment descriptor, origin: ${actionOrigin}\n`
     message += error.message
 
     throw new Oops({ message, category: "OperationalError", cause: error })

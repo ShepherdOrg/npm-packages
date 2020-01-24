@@ -74,7 +74,7 @@ type TStdErrDSL = {
   shouldEqual(expectedOutputFileOrDir: TFileSystemPath): TScriptTestExecution
 }
 
-interface TScriptTestExecution {
+export interface TScriptTestExecution {
   expectedExitCode: number | undefined
   callback?: FExecutionCallback
   actualFromStderr: boolean
@@ -92,7 +92,7 @@ interface TScriptTestExecution {
   output: (actualOutputFileOrDir: TFileSystemPath) => TOutputDSL
   ignoreLinesWith: (ignoreList: string[]) => TScriptTestExecution
   expectExitCode: (expectedExitCode: number) => TScriptTestExecution
-  done: (callback: FExecutionCallback) => void
+  done: (callback: FExecutionCallback) => TScriptTestExecution
   checkExpectations: () => void
 }
 
@@ -213,6 +213,7 @@ export default {
       },
       done(callback: FExecutionCallback) {
         execution.callback = callback
+        return execution
       },
       checkExpectations() {
         if (execution.actualFromStderr) {
