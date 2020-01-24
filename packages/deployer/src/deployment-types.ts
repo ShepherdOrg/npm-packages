@@ -11,6 +11,7 @@ import { TDescriptorsByKind } from "./deployment-actions/kubectl-deployer/k8s-de
 import { TFileSystemPath, TISODateString } from "./helpers/basic-types"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { ReleaseStateStore } from "@shepherdorg/state-store"
+import { TDeploymentRollout } from "./deployment-actions/kubectl-deployer/create-kubectl-deployment-action"
 
 export type ILog = {
   info: typeof console.info,
@@ -146,7 +147,7 @@ export interface IDockerDeploymentAction extends IBaseDeploymentAction, IExecuta
 
 
 export interface IKubectlDeployAction extends IExecutableAction {
-  deploymentRollouts: string[] // TODO Move into deploymentActions
+  deploymentRollouts: TDeploymentRollout[] // TODO Move into deploymentActions
   descriptor: string
   descriptorsByKind?: TDescriptorsByKind
   fileName: string,

@@ -6,6 +6,7 @@ import {
 } from "../../deployment-types"
 import { TDeployerRole, TDeploymentType } from "@shepherdorg/metadata"
 import { emptyArray } from "../../helpers/ts-functions"
+import { TDeploymentRollout } from "../../deployment-actions/kubectl-deployer/create-kubectl-deployment-action"
 
 type OmitExecute<T> = Omit<T, "execute">
 
@@ -26,7 +27,7 @@ let namespaceMonitors: TK8sDirDeploymentActionStruct = {
   "fileName": "namespaces.yml",
   "herdKey": "kube-config - /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces",
   "env": "testenv",
-  "deploymentRollouts": emptyArray<string>(),
+  "deploymentRollouts": emptyArray<TDeploymentRollout>(),
   "herdDeclaration": {
     "key": "kube-config",
     "path": "./",
@@ -58,7 +59,7 @@ let serviceWwwFromDir: TK8sDirDeploymentActionStruct = {
   "fileName": "www.service.yml",
   "herdKey": "kube-config - /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/www-deployment",
   "env": "testenv",
-  "deploymentRollouts": emptyArray<string>(),
+  "deploymentRollouts": emptyArray<TDeploymentRollout>(),
   "herdDeclaration": {
     "key": "kube-config",
     "path": "./",
@@ -218,7 +219,7 @@ export const TestActions: TTestActionsMap = {
   "addedK8sDeployments": {
     "Service_www-icelandair-com-internal": {
       "env": "testenv",
-      "deploymentRollouts": emptyArray<string>(),
+      "deploymentRollouts": emptyArray<TDeploymentRollout>(),
       "herdDeclaration": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
@@ -281,7 +282,7 @@ export const TestActions: TTestActionsMap = {
     },
     "Service_image2": {
       "env": "testenv",
-      "deploymentRollouts": emptyArray<string>(),
+      "deploymentRollouts": emptyArray<TDeploymentRollout>(),
       "herdDeclaration": {
         "image": "testenvimage2",
         "imagetag": "999.999.99999",
@@ -336,7 +337,7 @@ export const TestActions: TTestActionsMap = {
     },
     "Service_www-icelandair-com-internal-test1": {
       "env": "testenv",
-      "deploymentRollouts": emptyArray<string>(),
+      "deploymentRollouts": emptyArray<TDeploymentRollout>(),
       "herdDeclaration": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
@@ -401,7 +402,7 @@ export const TestActions: TTestActionsMap = {
     },
     "ConfigMap_www-icelandair-com-nginx-acls": {
       "env": "testenv",
-      "deploymentRollouts": emptyArray<string>(),
+      "deploymentRollouts": emptyArray<TDeploymentRollout>(),
       "herdDeclaration": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
@@ -464,7 +465,7 @@ export const TestActions: TTestActionsMap = {
     },
     "Deployment_image2": {
       "env": "testenv",
-      "deploymentRollouts": emptyArray<string>(),
+      "deploymentRollouts": emptyArray<TDeploymentRollout>(),
       "herdDeclaration": {
         "image": "testenvimage2",
         "imagetag": "999.999.99999",
@@ -519,7 +520,7 @@ export const TestActions: TTestActionsMap = {
     },
     "ConfigMap_www-icelandair-com-nginx-acls-test1": {
       "env": "testenv",
-      "deploymentRollouts": emptyArray<string>(),
+      "deploymentRollouts": emptyArray<TDeploymentRollout>(),
       "herdDeclaration": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
@@ -643,11 +644,11 @@ export const TestActions: TTestActionsMap = {
       "type": "k8s",
       "fileName": "./deployment/www-icelandair-com.deployment.yml",
       "herdKey": "test-image",
-      "deploymentRollouts": ["Deployment/www-icelandair-com-test1"],
+      "deploymentRollouts": [{namespace:"default", deploymentName:"www-icelandair-com-test1", deploymentKind:"Deployment"}],
     },
     "ConfigMap_image2-config": {
       "env": "testenv",
-      "deploymentRollouts": emptyArray<string>(),
+      "deploymentRollouts": emptyArray<TDeploymentRollout>(),
       "herdDeclaration": {
         "image": "testenvimage2",
         "imagetag": "999.999.99999",
@@ -702,7 +703,7 @@ export const TestActions: TTestActionsMap = {
     },
     "Deployment_www-icelandair-com-test1": {
       "env": "testenv",
-      "deploymentRollouts": emptyArray<string>(),
+      "deploymentRollouts": emptyArray<TDeploymentRollout>(),
       "herdDeclaration": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
@@ -767,7 +768,7 @@ export const TestActions: TTestActionsMap = {
     },
     "Service_www-icelandair-com": {
       "env": "testenv",
-      "deploymentRollouts": emptyArray<string>(),
+      "deploymentRollouts": emptyArray<TDeploymentRollout>(),
       "herdDeclaration": {
         "image": "testenvimage",
         "imagetag": "0.0.0",
@@ -830,7 +831,7 @@ export const TestActions: TTestActionsMap = {
     },
     "Service_www-icelandair-com-test1": {
       "env": "testenv",
-      "deploymentRollouts": emptyArray<string>(),
+      "deploymentRollouts": emptyArray<TDeploymentRollout>(),
       "herdDeclaration": {
         "image": "testenvimage",
         "imagetag": "0.0.0",

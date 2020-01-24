@@ -1,21 +1,21 @@
-// TODO: Create independent tests for this. Test exception handling. Add timeout specification, test timeout handling. Need support in fake kubectl
 import { IExecutableAction, ILog, TDeploymentOptions } from "../../deployment-types"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { extendedExec } from "../../helpers/promisified"
+import { TDeploymentRollout } from "./create-kubectl-deployment-action"
 
-export function RolloutWaitActionFactory(deploymentRollout: string): IExecutableAction {
+export function RolloutWaitActionFactory(deploymentRollout: TDeploymentRollout): IExecutableAction {
 
   function planString() {
-    return `kubectl rollout status ${deploymentRollout}`
+    return `kubectl --namespace ${deploymentRollout.namespace} rollout status ${deploymentRollout.deploymentKind}/${deploymentRollout.deploymentName}`
   }
 
   const waitAction: IExecutableAction = {
     pushToUI: false,
-    descriptor: deploymentRollout,
+    descriptor: planString(),
     planString: planString,
     execute(deploymentOptions: TDeploymentOptions & { waitForRollout: boolean; pushToUi: boolean }, cmd: any, logger: ILog, _saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>): Promise<IExecutableAction> {
       if (deploymentOptions.waitForRollout) {
-        return extendedExec(cmd)("kubectl", ["rollout", "status", deploymentRollout], {
+        return extendedExec(cmd)("kubectl", ["--namespace", deploymentRollout.namespace, "rollout", "status", `${deploymentRollout.deploymentKind}/${deploymentRollout.deploymentName}`], {
           env: process.env,
           debug: true,
         }).then((stdOut) => {

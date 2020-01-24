@@ -110,10 +110,18 @@ export async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAct
 }
 
 
-function listDeploymentRollouts(descriptorsByKind: TDescriptorsByKind): Array<string> {
+export type TDeploymentRollout = {
+  namespace: string
+  deploymentKind: string
+  deploymentName: string
+}
+
+function listDeploymentRollouts(descriptorsByKind: TDescriptorsByKind): Array<TDeploymentRollout> {
   return descriptorsByKind["Deployment"].map((deploymentDoc: TK8sPartialDescriptor) => {
-    return deploymentDoc.kind + "/" + deploymentDoc.metadata.name
-  })
+    return {deploymentKind: deploymentDoc.kind || "Deployment",
+      deploymentName: deploymentDoc.metadata.name || "",
+      namespace: deploymentDoc.metadata.namespace || "default"
+  }})
 }
 
 function expandEnvVariables(lines: string[]) {
@@ -158,7 +166,7 @@ export function createKubectlDeployAction(origin: string, deploymentFileDescript
     let deploymentDescriptor = applyClusterPolicies(finalDescriptor, logger)
     let loadedDescriptor = identifyDocument(deploymentDescriptor)
 
-    let deploymentRollouts = emptyArray<string>()
+    let deploymentRollouts = emptyArray<TDeploymentRollout>()
 
     let descriptorsByKind = loadedDescriptor.descriptorsByKind
     if (Boolean(descriptorsByKind["Deployment"])) {

@@ -1,20 +1,30 @@
 #!/usr/bin/env bash
 # echo >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 # echo $@ >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
-export KUBEOP=${1}
+export p0=1
+export p1=2
+export p2=3
+if [ "$1" = "--namespace" ]; then
+	export p0=3
+	export p1=4
+	export p2=5
+fi
+export KUBEOP=${!p0}
+export KUBEPARAM1=${!p1}
+export KUBEPARAM2=${!p2}
 
 if [ -z "${KUBECTL_OUTPUT_FOLDER}" ]; then
 	KUBECTL_OUTPUT_FOLDER="./.testrun"
 fi
 
 
-if [ "${1}" = "rollout" ]; then
+if [ "${KUBEOP}" = "rollout" ]; then
 	echo "rollout status fake ok"
 	exit 0
 fi
 
-if [ "${1}" = "delete" ]; then
-	if [ "${2}" = "-f" ] && [ "${3}" = "-" ];
+if [ "${KUBEOP}" = "delete" ]; then
+	if [ "${KUBEPARAM1}" = "-f" ] && [ "${KUBEPARAM2}" = "-" ];
 	then
 		input=$(cat)
 		if [ "${input}" = "" ]; then
@@ -25,59 +35,59 @@ if [ "${1}" = "delete" ]; then
 #		echo -n "${input}" >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 #		echo "<<<<-------------- delete stdin -----------------------" >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 		filename=$(echo "${input}" | testbin/deploymentdocument-classifier.js)
-		if [ -e "${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml" ]; then
-			echo "ERROR: ${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml already deployed. Probably means that deployment descriptor exists both in folders and is being extracted from image metadata"
+		if [ -e "${KUBECTL_OUTPUT_FOLDER}/${KUBEOP}-${filename}.yaml" ]; then
+			echo "ERROR: ${KUBECTL_OUTPUT_FOLDER}/${KUBEOP}-${filename}.yaml already deployed. Probably means that deployment descriptor exists both in folders and is being extracted from image metadata"
 			exit 255
 		fi
 
     if [ ! -d "${KUBECTL_OUTPUT_FOLDER}" ]; then
       mkdir -p "${KUBECTL_OUTPUT_FOLDER}"
     fi
-		echo -n "${input}" >> ${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml
-		echo "fake kubectl ${1} ${filename}.yaml DONE"
+		echo -n "${input}" >> ${KUBECTL_OUTPUT_FOLDER}/${KUBEOP}-${filename}.yaml
+		echo "fake kubectl ${KUBEOP} ${filename}.yaml DONE"
 
 		exit 0
 	fi
 fi
-if [ "${1}" = "create" ]; then
+if [ "${KUBEOP}" = "create" ]; then
 	echo "kubectl create requires no other input"
 	exit 0
 fi
-if [ -d "${3}" ]; then
-	find ${3} -name "*.yml" -or -name "*.yaml"  | xargs -n 1 -I {} bash -c 'kubectl ${KUBEOP} -f "$@"' _ {}
-elif [ -e "${3}" ]; then
-#	echo -n "-------------   ${3} contents -------------->>>>"  >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
-#	cat ${3} >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
-#    echo "<<<<-------------   ${3} contents --------------"  >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
+if [ -d "${KUBEPARAM2}" ]; then
+	find ${KUBEPARAM2} -name "*.yml" -or -name "*.yaml"  | xargs -n 1 -I {} bash -c 'kubectl ${KUBEOP} -f "$@"' _ {}
+elif [ -e "${KUBEPARAM2}" ]; then
+#	echo -n "-------------   ${KUBEPARAM2} contents -------------->>>>"  >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
+#	cat ${KUBEPARAM2} >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
+#    echo "<<<<-------------   ${KUBEPARAM2} contents --------------"  >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 
-	filename=$(cat ${3} | testbin/deploymentdocument-classifier.js)
+	filename=$(cat ${KUBEPARAM2} | testbin/deploymentdocument-classifier.js)
 
-	if [ -e "${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml" ]; then
-		echo "ERROR: ${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml already exists. Probably means that deployment descriptor exists both in aws-environment and is being extracted from image metadata"
+	if [ -e "${KUBECTL_OUTPUT_FOLDER}/${KUBEOP}-${filename}.yaml" ]; then
+		echo "ERROR: ${KUBECTL_OUTPUT_FOLDER}/${KUBEOP}-${filename}.yaml already exists. Probably means that deployment descriptor exists both in aws-environment and is being extracted from image metadata"
 		exit 255
 	fi
 
-	cat ${3} >> ${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml
-	echo "fake kubectl ${1} ${filename}.yaml DONE"
+	cat ${SUBJECT} >> ${KUBECTL_OUTPUT_FOLDER}/${KUBEOP}-${filename}.yaml
+	echo "fake kubectl ${KUBEOP} ${filename}.yaml DONE"
 
-else
-#		echo "apply -f - specified, reading stdin"
+elif [[ "${KUBEOP}" = "apply" && "${KUBEPARAM1}" = "-f"  &&  "${KUBEPARAM2}" = "-" ]]; then
+	echo "apply -f - specified, reading stdin"
 	input=$(cat)
 
 	filename=$(echo "${input}" | testbin/deploymentdocument-classifier.js)
 
-	if [ -e "${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml" ]; then
-		echo "ERROR: ${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml already exists. Probably means that deployment descriptor exists both in aws-environment and is being extracted from image metadata"
+	if [ -e "${KUBECTL_OUTPUT_FOLDER}/${KUBEOP}-${filename}.yaml" ]; then
+		echo "ERROR: ${KUBECTL_OUTPUT_FOLDER}/${KUBEOP}-${filename}.yaml already exists. Probably means that deployment descriptor exists both in aws-environment and is being extracted from image metadata"
 		exit 255
 	fi
 
-	echo -n "${input}" >> ${KUBECTL_OUTPUT_FOLDER}/${1}-${filename}.yaml
+	echo -n "${input}" >> ${KUBECTL_OUTPUT_FOLDER}/${KUBEOP}-${filename}.yaml
 
 	if [ "${input}" = "" ]; then
 		echo ERROR IN KUBECTL.... empty input!!!!
 		exit 255
 	fi
-	echo "fake kubectl ${1} ${filename}.yaml DONE"
+	echo "fake kubectl ${KUBEOP} ${filename}.yaml DONE"
 
 
 #   Fake deployment failure...uncomment lines below.
@@ -88,4 +98,7 @@ else
 #	echo -n "-------------- stdin ----------------------->>>>" >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 #	echo -n "${input}" >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
 #    echo "<<<<-------------- stdin -----------------------" >> ${KUBECTL_OUTPUT_FOLDER}/kubectl.txt
+else
+	echo "Do not know how to fake kubectl ${KUBEOP} ${KUBEPARAM1} ${KUBEPARAM2}  (full params: ${@}) "
+	exit -1
 fi

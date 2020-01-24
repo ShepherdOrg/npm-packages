@@ -244,7 +244,7 @@ describe("Deployment orchestration", function() {
         expect(fakeExec.executedCommands.length).to.equal(4)
         expect(fakeExec.executedCommands[idx++].params[0]).to.equal("apply", "configmap")
         expect(fakeExec.executedCommands[idx++].params[0]).to.equal("apply", "deployment")
-        expect(fakeExec.executedCommands[idx++].params[0]).to.equal("rollout", "wait for deployment")
+        expect(fakeExec.executedCommands[idx++].params[2]).to.equal("rollout", "wait for deployment")
         expect(fakeExec.executedCommands[idx++].params[0]).to.equal("delete", "delete namespace monitors")
       })
 
@@ -258,9 +258,11 @@ describe("Deployment orchestration", function() {
 
       it("should execute kubectl rollout status to wait for deployment to complete", () => {
         expect(fakeExec.executedCommands[2].command).to.equal("kubectl")
-        expect(fakeExec.executedCommands[2].params[0]).to.equal("rollout")
-        expect(fakeExec.executedCommands[2].params[1]).to.equal("status")
-        expect(fakeExec.executedCommands[2].params[2]).to.equal("Deployment/www-icelandair-com-test1")
+        expect(fakeExec.executedCommands[2].params[0]).to.equal("--namespace")
+        expect(fakeExec.executedCommands[2].params[1]).to.equal("default")
+        expect(fakeExec.executedCommands[2].params[2]).to.equal("rollout")
+        expect(fakeExec.executedCommands[2].params[3]).to.equal("status")
+        expect(fakeExec.executedCommands[2].params[4]).to.equal("Deployment/www-icelandair-com-test1")
       })
 
       it("should push data to UI", () => {
@@ -291,7 +293,7 @@ describe("Deployment orchestration", function() {
 done
 kubectl apply deployments in testenvimage:0.0.0:kube.config.tar.base64/Deployment_www-icelandair-com
 done
-kubectl rollout status Deployment/www-icelandair-com-test1
+kubectl --namespace default rollout status Deployment/www-icelandair-com-test1
 done
 kubectl delete deployments in /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces/Namespace_monitors
 done`,
@@ -300,7 +302,7 @@ done`,
 
       it("should log rollout complete", () => {
         expect(fakeLogger.logStatements.map(logs => logs.data[0]).join(" ")).to.contain(
-          "kubectl rollout status Deployment/www-icelandair-com-test1 done",
+          "kubectl --namespace default rollout status Deployment/www-icelandair-com-test1 done",
         )
       })
     })

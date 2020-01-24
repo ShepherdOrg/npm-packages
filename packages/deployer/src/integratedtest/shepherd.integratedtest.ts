@@ -194,7 +194,6 @@ describe("running shepherd", function() {
         })
     })
 
-
     const testEnv = {
       SHEPHERD_FILESTORE_DIR: "./.build/.shepherdstore",
       www_icelandair_com_image: "www-image:99",

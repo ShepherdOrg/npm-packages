@@ -247,7 +247,7 @@ describe("Docker image plan loader", function() {
       after(() => clearEnv(testEnv))
 
       it("should list all deployments to wait for completion", () => {
-        expect(loadedPlans[2].deploymentRollouts.join("")).to.equal("Deployment/www-icelandair-com")
+        expect(loadedPlans[2].deploymentRollouts.map((dr)=>`${dr.deploymentKind}/${dr.deploymentName}`).join("")).to.equal("Deployment/www-icelandair-com")
       })
 
       it("should expand handlebars template", () => {

@@ -21,15 +21,15 @@ describe("K8S deployment rollout status wait action factory", function() {
 
     fakeExec = createFakeExec()
 
-    rolloutAction = RolloutWaitActionFactory("Deployment/my-awesome-deployment")
+    rolloutAction = RolloutWaitActionFactory({namespace:'default', deploymentName:"my-awesome-deployment", deploymentKind:"Deployment"})
   })
 
   it("should remember descriptor", function() {
-    expect(rolloutAction.descriptor).to.equal("Deployment/my-awesome-deployment")
+    expect(rolloutAction.descriptor).to.equal("kubectl --namespace default rollout status Deployment/my-awesome-deployment")
   })
 
   it("should remember descriptor", function() {
-    expect(rolloutAction.planString && rolloutAction.planString()).to.equal("kubectl rollout status Deployment/my-awesome-deployment")
+    expect(rolloutAction.planString && rolloutAction.planString()).to.equal("kubectl --namespace default rollout status Deployment/my-awesome-deployment")
   })
 
 
@@ -53,8 +53,8 @@ describe("K8S deployment rollout status wait action factory", function() {
       expect(JSON.stringify(execResult.descriptor)).to.contain('Deployment/my-awesome-deployment')
     })
 
-    it("should execute kubectl rollout wait", () => {
-      expect(fakeExec.executedCommands.map((ec)=>ec.command + ' ' + ec.params.join(' ')).join('')).to.contain('kubectl rollout status Deployment/my-awesome-deployment')
+    it("should execute kubectl rollout status", () => {
+      expect(fakeExec.executedCommands.map((ec)=>ec.command + ' ' + ec.params.join(' ')).join('')).to.contain('kubectl --namespace default rollout status Deployment/my-awesome-deployment')
     })
   })
 
