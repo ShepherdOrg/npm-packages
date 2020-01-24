@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "Deployer application",
   "main": "dist/shepherd.js",
   "engines": {
@@ -14,7 +14,7 @@
     "@shepherdorg/nano-inject": "^3.0.0",
     "@shepherdorg/postgres-backend": "^3.0.0",
     "@shepherdorg/state-store": "^3.0.0",
-    "@shepherdorg/ui-push": "^3.0.0",
+    "@shepherdorg/ui-push": "^3.0.5",
     "@types/diff": "^4.0.2",
     "@types/js-yaml": "^3.12.1",
     "array.prototype.flatmap": "^1.2.3",
