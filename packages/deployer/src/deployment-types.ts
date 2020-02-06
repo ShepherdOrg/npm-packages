@@ -156,8 +156,6 @@ export interface IKubectlDeployAction extends IExecutableAction {
   origin: string
 
   state?: TDeploymentState
-
-  execute(deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState: FnDeploymentStateSave): Promise<IKubectlDeployAction>
 }
 
 export function isKubectlDeployAction(deployAction: IExecutableAction): deployAction is IKubectlDeployAction {

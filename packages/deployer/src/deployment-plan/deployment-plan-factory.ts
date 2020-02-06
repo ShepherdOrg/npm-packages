@@ -36,10 +36,10 @@ export function DeploymentPlanFactory(dependencies: TDeploymentPlanDependencies)
     const deploymentActions: Array<IExecutableAction> = []
 
 
-    async function addRolloutWaitActions(thisIsMe: IKubectlDeployAction) {
+    async function addRolloutWaitActions(kubectlDeployAction: IKubectlDeployAction) {
 
-      if (thisIsMe.deploymentRollouts && thisIsMe.operation === "apply" && thisIsMe.state?.modified) {
-        await Promise.all(thisIsMe.deploymentRollouts.map(async (deploymentRollout) => {
+      if (kubectlDeployAction.deploymentRollouts && kubectlDeployAction.operation === "apply" && kubectlDeployAction.state?.modified) {
+        await Promise.all(kubectlDeployAction.deploymentRollouts.map(async (deploymentRollout) => {
           await planInstance.addAction(RolloutWaitActionFactory(deploymentRollout))
         }, {}))
       }

@@ -20,7 +20,6 @@ This is the main entry point for shepherd deployer agent
 
 function printUsage() {
   console.info(`Usage: shepherd /path/to/a/herd.yaml ENVIRONMENT <options>
-
 Supported options:
 
     --export             Export deployment documents to outputDir
@@ -130,6 +129,7 @@ let stateStoreBackend: IStorageBackend
 let uiDataPusher: { pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined> } // TODO: Need proper type export form uiDataPusher
 
 if (process.env.SHEPHERD_PG_HOST) {
+  logger.info("Using postgres state store on ", process.env.SHEPHERD_PG_HOST )
   const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
   const PostgresStore = require("@shepherdorg/postgres-backend").PostgresStore
   stateStoreBackend = PostgresStore(pgConfig)
