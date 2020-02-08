@@ -52,6 +52,8 @@ export function createDockerTestDeployerAction(
 }
 
 
+/*TODO Majority of those tests are integrated. */
+
 describe("Deployment orchestration", function() {
   let deploymentOrchestration: TDeploymentOrchestration
   let fakeStateStore: any
@@ -62,7 +64,7 @@ describe("Deployment orchestration", function() {
   beforeEach(function() {
     fakeUiDataPusher = {
       pushedData: emptyArray<any>(),
-      pushDeploymentStateToUI: async (data: any) => { // TODO Eliminate this any once we have proper type on datastructure pushed to UI
+      pushDeploymentStateToUI: async (data: any) => { // TODO Eliminate this any once we have proper type on structure pushed to UI
         fakeUiDataPusher.pushedData.push(data)
         return data
       },
@@ -82,7 +84,7 @@ describe("Deployment orchestration", function() {
   describe("-k8s- deployment", function() {
     it("should check state for each added kubernetes deployment", function() {
       return deploymentOrchestration
-        .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
+        .addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
         .then(function(deploymentState) {
           // @ts-ignore
           expect(deploymentState?.state?.testState).to.equal(true)
@@ -95,10 +97,10 @@ describe("Deployment orchestration", function() {
       beforeEach(function() {
         fakeStateStore.nextState = { new: false, modified: true }
         return deploymentOrchestration
-          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
+          .addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
           .then(function() {
             return deploymentOrchestration
-              .executePlan({
+              .executePlans({
                 pushToUi: false,
                 waitForRollout: false,
                 dryRun: true,
@@ -124,9 +126,9 @@ describe("Deployment orchestration", function() {
       beforeEach(function() {
         fakeStateStore.nextState = { new: false, modified: false }
         return deploymentOrchestration
-          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
+          .addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
           .then(function() {
-            return deploymentOrchestration.executePlan()
+            return deploymentOrchestration.executePlans()
           })
       })
 
@@ -156,13 +158,13 @@ describe("Deployment orchestration", function() {
         fakeExec.nextResponse.success = "applied"
 
         return deploymentOrchestration
-          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
+          .addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
           .then(() =>
-            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
+            deploymentOrchestration.addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
           )
-          .then(() => deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
+          .then(() => deploymentOrchestration.addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
           .then(() =>
-            deploymentOrchestration.executePlan({
+            deploymentOrchestration.executePlans({
               dryRun: false,
               dryRunOutputDir: undefined,
               pushToUi: false,
@@ -190,13 +192,13 @@ describe("Deployment orchestration", function() {
         fakeExec.nextResponse.success = "done"
 
         return deploymentOrchestration
-          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
+          .addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
           .then(() =>
-            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
+            deploymentOrchestration.addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
           )
-          .then(() => deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
+          .then(() => deploymentOrchestration.addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
           .then(() =>
-            deploymentOrchestration.executePlan({
+            deploymentOrchestration.executePlans({
               dryRun: false,
               dryRunOutputDir: undefined,
               pushToUi: true,
@@ -223,13 +225,13 @@ describe("Deployment orchestration", function() {
         fakeExec.nextResponse.success = "done"
 
         return deploymentOrchestration
-          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
+          .addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
           .then(() =>
-            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
+            deploymentOrchestration.addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
           )
-          .then(() => deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
+          .then(() => deploymentOrchestration.addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
           .then(() =>
-            deploymentOrchestration.executePlan({
+            deploymentOrchestration.executePlans({
               dryRun: false,
               dryRunOutputDir: undefined,
               pushToUi: true,
@@ -317,13 +319,13 @@ done`,
         }
         fakeExec.nextResponse.success = "applied"
         return deploymentOrchestration
-          .addDeployment(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
+          .addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"] as IK8sDockerImageDeploymentAction))
           .then(() =>
-            deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
+            deploymentOrchestration.addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["Deployment_www-icelandair-com"] as IK8sDockerImageDeploymentAction)),
           )
-          .then(() => deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
+          .then(() => deploymentOrchestration.addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction)))
           .then(() =>
-            deploymentOrchestration.executePlan().catch(function(err) {
+            deploymentOrchestration.executePlans().catch(function(err) {
               saveError = err
             }),
           )
@@ -342,10 +344,10 @@ done`,
       beforeEach(function() {
         fakeExec.nextResponse.err = "not found"
         return deploymentOrchestration
-          .addDeployment(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction))
+          .addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["Namespace_monitors"] as IK8sDockerImageDeploymentAction))
           .then(function() {
             return deploymentOrchestration
-              .executePlan()
+              .executePlans()
               .then(function(executionResults) {
                 executedAction = executionResults[0] as IK8sDirDeploymentAction
               })
@@ -374,7 +376,7 @@ done`,
       let deploymentState: IAnyDeploymentAction
 
       beforeEach(function() {
-        return deploymentOrchestration.addDeployment(dockerDeployers["testenvimage-migrations:0.0.0"] as IK8sDockerImageDeploymentAction).then(function(ds) {
+        return deploymentOrchestration.addDeploymentAction(dockerDeployers["testenvimage-migrations:0.0.0"] as IK8sDockerImageDeploymentAction).then(function(ds) {
           deploymentState = ds
         })
       })
@@ -391,8 +393,8 @@ done`,
       beforeEach(function() {
         fakeExec.nextResponse.success = "this would be docker run output"
         fakeStateStore.nextState = { new: false, modified: true }
-        return deploymentOrchestration.addDeployment(createDockerTestDeployerAction(dockerDeployers["testenvimage-migrations:0.0.0"] as TDockerDeploymentActionStruct)).then(function() {
-          return deploymentOrchestration.executePlan()
+        return deploymentOrchestration.addDeploymentAction(createDockerTestDeployerAction(dockerDeployers["testenvimage-migrations:0.0.0"] as TDockerDeploymentActionStruct)).then(function() {
+          return deploymentOrchestration.executePlans()
         })
       })
 
@@ -421,12 +423,12 @@ done`,
       beforeEach(function() {
         fakeExec.nextResponse.success = "this would be docker run output"
         fakeStateStore.nextState = { new: false, modified: true }
-        return deploymentOrchestration.addDeployment(createDockerTestDeployerAction(dockerDeployers["testenvimage-migrations:0.0.0"] as IDockerDeploymentAction))
-          .then(() => deploymentOrchestration.addDeployment(createDockerTestDeployerAction(dockerDeployers["test-infrastructure:1.0.0"] as IDockerDeploymentAction)))
-          .then(() => deploymentOrchestration.addDeployment(createDockerTestDeployerAction(dockerDeployers["test-infrastructure:1.0.0"] as IDockerDeploymentAction)))
-          .then(() => deploymentOrchestration.addDeployment(createKubectlTestDeployAction(k8sDeployments["Service_www-icelandair-com-internal"] as IK8sDockerImageDeploymentAction)))
+        return deploymentOrchestration.addDeploymentAction(createDockerTestDeployerAction(dockerDeployers["testenvimage-migrations:0.0.0"] as IDockerDeploymentAction))
+          .then(() => deploymentOrchestration.addDeploymentAction(createDockerTestDeployerAction(dockerDeployers["test-infrastructure:1.0.0"] as IDockerDeploymentAction)))
+          .then(() => deploymentOrchestration.addDeploymentAction(createDockerTestDeployerAction(dockerDeployers["test-infrastructure:1.0.0"] as IDockerDeploymentAction)))
+          .then(() => deploymentOrchestration.addDeploymentAction(createKubectlTestDeployAction(k8sDeployments["Service_www-icelandair-com-internal"] as IK8sDockerImageDeploymentAction)))
           .then(function() {
-            return deploymentOrchestration.executePlan()
+            return deploymentOrchestration.executePlans()
           })
       })
 

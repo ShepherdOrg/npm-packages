@@ -21,6 +21,8 @@ interface TFolderLoaderDependencies {
 export function FolderLoader(folderLoaderDependencies: TFolderLoaderDependencies){
 
   const logger = folderLoaderDependencies.logger
+
+  // TODO Return a IDeploymentPlan instead of array of actions
   async function foldersLoader(sectionDeclaration: THerdSectionDeclaration, folders: TFolderHerdSpecs, imagesPath: string): Promise<Array<IK8sDirDeploymentAction>> {
     let arrayOfPromises: Array<Promise<Array<IK8sDirDeploymentAction>>> = Object.entries(folders).flatMap(function([
                                                              herdFolderName,

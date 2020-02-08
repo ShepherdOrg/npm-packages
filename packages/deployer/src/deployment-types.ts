@@ -188,7 +188,7 @@ export type TActionExecutionOptions = TDeploymentOptions & {
   pushToUi: boolean
 }
 
-export type TReleasePlanDependencies = {   // TODO: Need to create types for this
+export type TReleasePlanDependencies = {   // TODO: Need to create types for cmd and uiDataPusher
   stateStore: ReturnType<typeof ReleaseStateStore>
   cmd: any
   logger: ILog
@@ -197,13 +197,12 @@ export type TReleasePlanDependencies = {   // TODO: Need to create types for thi
 
 export type FnDeploymentStateSave = (stateSignatureObject: any) => Promise<TDeploymentState>
 
-export type TK8sDeploymentActionMap = { [key: string]: any }
 
 export interface TDeploymentOrchestration {
-  executePlan: (runOptions?: TActionExecutionOptions) => Promise<Array<(IAnyDeploymentAction | undefined)>>
+  executePlans: (runOptions?: TActionExecutionOptions) => Promise<Array<(IAnyDeploymentAction | undefined)>>
   printPlan: (logger: ILog) => void
   exportDeploymentActions: (exportDirectory: TFileSystemPath) => Promise<unknown>
-  addDeployment: (deploymentAction: (IAnyDeploymentAction)) => Promise<IAnyDeploymentAction>
+  addDeploymentAction: (deploymentAction: (IAnyDeploymentAction)) => Promise<IAnyDeploymentAction>
 }
 
 export type FDeploymentOrchestrationConstructor = (env: string) => TDeploymentOrchestration

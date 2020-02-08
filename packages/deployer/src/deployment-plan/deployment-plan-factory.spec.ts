@@ -1,4 +1,4 @@
-import { DeploymentPlanFactory, TDeploymentPlan } from "./deployment-plan-factory"
+import { DeploymentPlanFactory, IDeploymentPlan } from "./deployment-plan-factory"
 import { clearEnv, setEnv } from "../deployment-actions/test-action-factory"
 import { expect } from "chai"
 import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
@@ -73,8 +73,8 @@ function createFakeKubeCtlAction(fakeLambda:FFakeLambda, deploymentRollouts: any
 
 
 describe("Deployment plan", function() {
-  let depPlan: TDeploymentPlan
-  let depPlanner: { createDeploymentPlan: (herdKey: string) => TDeploymentPlan }
+  let depPlan: IDeploymentPlan
+  let depPlanner: { createDeploymentPlan: (herdKey: string) => IDeploymentPlan }
   let fakeExecCmd: TFakeExec
   let fakeStateStore: TFakeStateStore
 
@@ -119,9 +119,6 @@ describe("Deployment plan", function() {
     })
 
   })
-
-
-  // Implement preFlightTest and postFlightTest
 
   describe('Regular actions', ()=>{
 

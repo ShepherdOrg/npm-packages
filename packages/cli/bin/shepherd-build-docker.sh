@@ -317,7 +317,7 @@ else
 fi
 
 
-# TODO Port completely to nodejs
+# TODO Port completely to typescript
 # TODO Return error if docker image produced is not configured with enough information to deploy
 # Create command shepherd-validate-image
 # TODO Add SHEPHERD_METADATA arg and label to Dockerfile if missing, rather than throwing error

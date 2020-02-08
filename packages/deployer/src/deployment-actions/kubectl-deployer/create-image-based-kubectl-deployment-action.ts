@@ -49,7 +49,9 @@ async function createImageBasedFileDeploymentAction(
 
   delete process.env.TPL_DOCKER_IMAGE
 
-  // TODO: Create deployment action for each part of multipart deployment document
+  // TODO: Consider creating a deployment action for each part of multipart deployment document
+  // Investigate whether kubernetes does clean up removed deployment sections from document.
+  // Only do this if kubernetes in latest incarnations does not clean up.
 
   const newK8sAction: IK8sDockerImageDeploymentAction = Object.assign(documentDeploymentAction, {
     env: env,

@@ -143,7 +143,7 @@ export function planFolderDeployment(injected: TFolderDeploymentPlannerDependenc
                     herdDeclaration: herdSpec,
                     metadata: folderMetadata,
                     herdKey: herdSpec.key,
-                    env: 'hardcoded' // TODO Get rid of env from this level of detail!
+                    env: 'hardcoded' // TODO Get rid of env from this level of detail. This is a very potential bug!
 
                   })
                   resolve(deployment)

@@ -9,20 +9,33 @@ import { TDeploymentStateParams } from "@shepherdorg/state-store/dist/state-stor
 import { emptyArray } from "../helpers/ts-functions"
 import { RolloutWaitActionFactory } from "../deployment-actions/kubectl-deployer/rollout-wait-action-factory"
 
-export interface TDeploymentPlan {
+export interface IDeploymentPlan {
   herdKey: string,
-  deploymentActions: Array<IExecutableAction> // TODO Rename to deployment actions
+  deploymentActions: Array<IExecutableAction>
   addAction(action: IExecutableAction): Promise<void>
 
-  execute(deploymentOptions: TActionExecutionOptions): Promise<IExecutableAction[]>
+  execute(deploymentOptions: TActionExecutionOptions): Promise<IExecutableAction[]> // TODO: Introduce an IExecutableActionResult
 }
 
-export type TK8sDeploymentPlan = { [herdKey: string]: TDeploymentPlan }
-export type TDockerDeploymentPlanTuple = [string, TDeploymentPlan]
-export type TDockerDeploymentPlan = { [herdKey: string]: TDeploymentPlan }
+
+export type TK8sDeploymentPlansByKey = { [herdKey: string]: IDeploymentPlan }
+export type TDockerDeploymentPlanTuple = [string, IDeploymentPlan]
+export type TDockerDeploymentPlansByKey = { [herdKey: string]: IDeploymentPlan }
 
 /* At present, CreateDeploymentPlan is only supporting the orchestration part, not the actual planning part.
-* TODO : Move planning logic here (from image-deployment-planner), stop moving actions around and move deployment plans around instead. */
+* TODO : Move planning logic here (from image-deployment-planner), stop moving actions around and move deployment plans around instead.
+*  How does rollback on failure? We need to mark the deployment as failed. Or do we? Keep the UI simple and only display successful builds
+* there for now.
+* Deployment state updated with deployment action. Create on-failure action which deploys last good version.
+* Deployment action
+* Refactoring order:
+*      Change all loaders to return IDeploymentPlan
+*      Change orchestrator to accept and execute IDeploymentPlan
+*      Rollout wait action creation should be in image loader. Refactor and rethink derivedDeployments in this context ( derived deploymentActions ?).
+*         Derived deployments should go into deployment plan.
+*      Probably: Change loader concept into IImageDeploymentPlanFactory, IFolderDeploymentPlanFactory
+*      See what can be done about simplifying image data information passing around. Information hiding!
+*  */
 
 interface TDeploymentPlanDependencies {
   stateStore: any // Need to type this ReturnType<typeof ReleaseStateStore>
@@ -32,7 +45,7 @@ interface TDeploymentPlanDependencies {
 
 export function DeploymentPlanFactory(dependencies: TDeploymentPlanDependencies) {
 
-  function createDeploymentPlan(herdKey: string): TDeploymentPlan {
+  function createDeploymentPlan(herdKey: string): IDeploymentPlan {
     const deploymentActions: Array<IExecutableAction> = []
 
 

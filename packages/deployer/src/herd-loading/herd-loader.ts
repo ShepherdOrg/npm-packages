@@ -36,6 +36,7 @@ export type THerdLoaderDependencies = {
   labelsLoader: TDockerMetadataLoader
 }
 
+// TODO Return a deployment plan instead of an array of IAnyDeploymentAction
 export type FHerdDeclarationLoader = (herdSectionDeclaration: THerdSectionDeclaration, arg: any, imagesPath: string) => Promise<Array<IAnyDeploymentAction>>
 
 export type TLoaderMap = { [herdType: string]: FHerdDeclarationLoader }
@@ -72,6 +73,7 @@ export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
             herd = YAML.load(fs.readFileSync(fileName, "utf8"))
           }
 
+
           let loaders: TLoaderMap = {
             infrastructure: imagesLoaderObj.imagesLoader,
             folders: folderLoader.foldersLoader,
@@ -86,6 +88,8 @@ export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
             }
             if (loaders[herdDeclarationType]) {
               let loadHerdDeclarations: FHerdDeclarationLoader = loaders[herdDeclarationType]
+              // TODO Here I want to create a deployment plan instead of an array of deployment actions.
+              // deploymentPlans.push....
               plannedActionPromises.push(
                 loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath )
               )
@@ -97,7 +101,7 @@ export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
           Bluebird.all(plannedActionPromises).then(async (deploymentActions)=>{
             return deploymentActions.flatMap((allActions)=>{
               return allActions.map((deploymentAction)=>{
-                return releasePlan.addDeployment(deploymentAction)
+                return releasePlan.addDeploymentAction(deploymentAction)
               })
             })
           }).then(Bluebird.all).then((_addedActions)=>{

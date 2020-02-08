@@ -89,7 +89,7 @@ describe("herd.yaml loading", function() {
       let addedK8sDeployerActions: { [key: string]: IK8sDockerImageDeploymentAction } = {}
       let addedDockerDeployerActions: { [key: string]: IDockerDeploymentAction } = {}
       let releasePlan: TTestReleasePlan = {
-        executePlan: function(_p1: TActionExecutionOptions) {
+        executePlans: function(_p1: TActionExecutionOptions) {
           return Promise.resolve([])
         },
         exportDeploymentActions: function(_p1: TFileSystemPath) {
@@ -99,7 +99,8 @@ describe("herd.yaml loading", function() {
         },
         addedDockerDeployerActions: addedDockerDeployerActions,
         addedK8sDeploymentActions: addedK8sDeployerActions,
-        addDeployment(deployment: IK8sDockerImageDeploymentAction | IDockerDeploymentAction) {
+        // TODO addDeployentPlan(deploymentPlan: IDeploymentPlan)
+        addDeploymentAction(deployment: IK8sDockerImageDeploymentAction | IDockerDeploymentAction) {
           return new Promise(function(resolve, reject) {
             setTimeout(() => {
               if (!deployment.type) {
@@ -148,7 +149,7 @@ describe("herd.yaml loading", function() {
               })
             } else {
               return Promise.reject(
-                new Error(`dockerImageMetadataFile ${dockerImageMetadataFile} not found in testdata`),
+                new Error(`dockerImageMetadataFile ${dockerImageMetadataFile} for ${imageDef.image}:${imageDef.imagetag} not found in testdata`),
               )
             }
           },
@@ -166,13 +167,6 @@ describe("herd.yaml loading", function() {
       })
   })
 
-  it("should not log any execution after herd load.", function() {
-    return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
-      expect(plan).not.to.equal(undefined)
-      expect(loaderLogger.infoLogEntries.length).to.eq(1)
-    })
-  })
-
   it("should fail if file does not exist", function() {
     loader
       .loadHerd(__dirname + "/testdata/does-not-exist.yaml")
@@ -184,7 +178,8 @@ describe("herd.yaml loading", function() {
       })
   })
 
-  describe("directory execution plan", function() {
+  /* TODO Probably should move this test block to testing the folder deployment plan loader directly. Limit to checking that folder deployment planner is invoked correctly. */
+  describe("folder execution plan loading", function() {
     let loadedPlan: TTestReleasePlan
 
     before(() => {
@@ -206,12 +201,10 @@ describe("herd.yaml loading", function() {
     })
 
     it("loaded plan should have herd name", function() {
-      // expect().fail('LOADED PLAN' + JSON.stringify(loadedPlan, null, 2))
-
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdKey).to.contain("kube-config - namespaces")
     })
 
-    it("should have herdspec", () => {
+    it("should have herdDeclaration", () => {
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.key).to.equal("kube-config")
       expect((loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration).path).to.equal("./")
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.description).to.equal(
@@ -271,7 +264,6 @@ describe("herd.yaml loading", function() {
       })
     })
 
-
     it("should create plan from feature deployment config", () => {
       let addedK8sDeploymentActions = Object.keys(loadedPlan.addedK8sDeploymentActions)
       let addedDockerDeployerActions = Object.keys(loadedPlan.addedDockerDeployerActions)
@@ -281,11 +273,12 @@ describe("herd.yaml loading", function() {
     })
   })
 
+  // Move tests to k
   describe("k8s deployment plan", function() {
     let loadedPlan: TTestReleasePlan
 
     before(() => {
-      process.env.CLUSTER_POLICY_MAX_CPU_REQUEST = "25m"
+      process.env.CLUSTER_POLICY_MAX_CPU_REQUEST = "27m"
       process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "anotherValue"
     })
 
@@ -307,9 +300,9 @@ describe("herd.yaml loading", function() {
       )
     })
 
-    // it("should extract herdKey from herd.yaml", function() {
-    //   expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].herdKey).to.equal("test-image")
-    // })
+    it("should extract herdKey from herd.yaml", function() {
+      expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].herdKey).to.equal("test-image")
+    })
 
     it("should include metadata for k8s plan", function() {
       let addedK8sDeployment = loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"]
@@ -319,13 +312,8 @@ describe("herd.yaml loading", function() {
       expect(addedK8sDeployment.herdDeclaration.key).to.equal("test-image", "key")
     })
 
-    it("should modify deployment documents and file under deployments under k8s service identity", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].descriptor).not.to.contain("${EXPORT2}")
-    })
-
     it("should apply k8s deployment-time cluster policy", function() {
-      // expect(JSON.stringify(Object.keys(loadedPlan),undefined,2)).to.contain('25m');
-      expect(loadedPlan.addedK8sDeploymentActions["Deployment_www-icelandair-com"].descriptor).to.contain("25m")
+      expect(loadedPlan.addedK8sDeploymentActions["Deployment_www-icelandair-com"].descriptor).to.contain("27m")
     })
 
     it("should be serializable", function() {
@@ -350,7 +338,7 @@ describe("herd.yaml loading", function() {
       delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
     })
 
-    it("should  have herdSpec and metadata on all loaded plans", () => {
+    it("should have herdSpec and metadata on all loaded plans", () => {
 
       Object.entries(loadedPlan.addedK8sDeploymentActions).forEach(function([_dname, deployment]) {
         expect(deployment.herdDeclaration.key).not.to.equal(undefined)
@@ -396,7 +384,7 @@ describe("herd.yaml loading", function() {
     })
   })
 
-  xdescribe("SLOW TEST: non-existing image", function() {
+  describe("non-existing image", function() {
     let loadError: Error
 
     // beforeEach(function() {
@@ -405,14 +393,13 @@ describe("herd.yaml loading", function() {
     // });
 
     beforeEach(function() {
-      return loader.loadHerd(__dirname + "/testdata/nonexistingimage/herd.yaml")
+      return loader.loadHerd(__dirname + "/testdata/nonexistingimage/herd.yaml").catch((loadHerdError)=>{
+        loadError = loadHerdError
+      })
     })
 
-    it("should fail with meaningful error message", function() {
-      expect(loadError).to.contain("nonexistingimage:0.0.0")
-    })
-
-    xit("should not output stderr from docker calls unless end result is an error", function() {
+    it("should fail with meaningful error message from image loader", function() {
+      expect(loadError.message).to.contain("nonexistingimage:0.0.0")
     })
   })
 })

@@ -52,7 +52,6 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
       return injected.imageLabelsLoader.getImageLabels(imageDef)
     }
 
-
     return Object.entries(images).map(function([imgName, herdSpec]: [string, TDockerImageHerdDeclaration]) {
       herdSpec.key = imgName
       injected.logger.debug("Deployment image - loading image meta data for docker image", JSON.stringify(herdSpec))
@@ -79,6 +78,7 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
     })
   }
 
+  // TODO Return a IDeploymentPlan
   async function imagesLoader(herdSectionSpec: THerdSectionDeclaration, images: TDockerImageHerdSpecs, _herdPath: TFileSystemPath ): Promise<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> {
       let value: Array<Promise<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>>> = loadDockerImageHerdSpecs( images , herdSectionSpec)
       let imageDeploymentPlans: Array<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> = await Bluebird.all(value)
