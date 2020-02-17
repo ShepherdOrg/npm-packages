@@ -8,6 +8,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "dependencies": {
+    "@types/md5-file": "^4.0.1",
     "bluebird": "^3.7.1",
     "lodash": "^4.17.15",
     "md5-file": "^4.0.0"

@@ -12,6 +12,7 @@ import { TFileSystemPath, TISODateString } from "./helpers/basic-types"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { ReleaseStateStore } from "@shepherdorg/state-store"
 import { TDeploymentRollout } from "./deployment-actions/kubectl-deployer/create-kubectl-deployment-action"
+import { IDeploymentPlan, IDeploymentPlanExecutionResult } from "./deployment-plan/deployment-plan-factory"
 
 export type ILog = {
   info: typeof console.info,
@@ -108,7 +109,7 @@ export interface IExecutableAction {
   state?: TDeploymentState
   descriptor: string
 
-  planString?():string
+  planString():string
 
   execute(
     deploymentOptions: TActionExecutionOptions,
@@ -188,21 +189,22 @@ export type TActionExecutionOptions = TDeploymentOptions & {
   pushToUi: boolean
 }
 
-export type TReleasePlanDependencies = {   // TODO: Need to create types for cmd and uiDataPusher
+export type TDeploymentOrchestrationDependencies = {   // TODO: Need to create types for cmd and uiDataPusher
   stateStore: ReturnType<typeof ReleaseStateStore>
   cmd: any
   logger: ILog
-  uiDataPusher: any
 }
 
 export type FnDeploymentStateSave = (stateSignatureObject: any) => Promise<TDeploymentState>
 
 
-export interface TDeploymentOrchestration {
-  executePlans: (runOptions?: TActionExecutionOptions) => Promise<Array<(IAnyDeploymentAction | undefined)>>
-  printPlan: (logger: ILog) => void
+export interface IDeploymentOrchestration {
+  executePlans: (runOptions?: TActionExecutionOptions) => Promise<Array<IDeploymentPlanExecutionResult>>
+
+  /** Returns true if there is anything planned to be executed. */
+  printPlan: (logger: ILog) => boolean
   exportDeploymentActions: (exportDirectory: TFileSystemPath) => Promise<unknown>
-  addDeploymentAction: (deploymentAction: (IAnyDeploymentAction)) => Promise<IAnyDeploymentAction>
+  addDeploymentPlan(deploymentPlan: IDeploymentPlan): Promise<IDeploymentPlan>
 }
 
-export type FDeploymentOrchestrationConstructor = (env: string) => TDeploymentOrchestration
+export type FDeploymentOrchestrationConstructor = (env: string) => IDeploymentOrchestration

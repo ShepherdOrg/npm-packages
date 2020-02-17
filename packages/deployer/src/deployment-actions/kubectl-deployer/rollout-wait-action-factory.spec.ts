@@ -2,7 +2,7 @@ import { expect } from "chai"
 import { RolloutWaitActionFactory } from "./rollout-wait-action-factory"
 
 import { createFakeExec } from "../../test-tools/fake-exec"
-import { createFakeStateStore, TFakeStateStore } from "../../deployment-orchestration/fake-state-store-factory"
+import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { CreateFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
 import { IExecutableAction, TActionExecutionOptions } from "../../deployment-types"
 import { TFakeExec } from "../../test-tools/fake-exec"

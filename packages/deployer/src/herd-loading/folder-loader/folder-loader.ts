@@ -6,24 +6,25 @@ import {
   THerdSectionDeclaration,
 } from "../../deployment-types"
 import { planFolderDeployment } from "./folder-deployment-planner"
-import { identityMap, TFileSystemPath } from "../../helpers/basic-types"
+import {  TFileSystemPath } from "../../helpers/basic-types"
 import * as path from "path"
 import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-deployer/kube-supported-extensions"
 import { flatMapPolyfill } from "./flatmap-polyfill"
 import Bluebird = require("bluebird")
+import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan-factory"
 
 flatMapPolyfill()
 
 interface TFolderLoaderDependencies {
   logger: ILog
+  planFactory: IDeploymentPlanFactory
 }
 
-export function FolderLoader(folderLoaderDependencies: TFolderLoaderDependencies){
+export function FolderLoader(injected: TFolderLoaderDependencies){
 
-  const logger = folderLoaderDependencies.logger
+  const logger = injected.logger
 
-  // TODO Return a IDeploymentPlan instead of array of actions
-  async function foldersLoader(sectionDeclaration: THerdSectionDeclaration, folders: TFolderHerdSpecs, imagesPath: string): Promise<Array<IK8sDirDeploymentAction>> {
+  async function foldersLoader(sectionDeclaration: THerdSectionDeclaration, folders: TFolderHerdSpecs, imagesPath: string): Promise<IDeploymentPlan> {
     let arrayOfPromises: Array<Promise<Array<IK8sDirDeploymentAction>>> = Object.entries(folders).flatMap(function([
                                                              herdFolderName,
                                                              herdSpec,
@@ -61,7 +62,10 @@ export function FolderLoader(folderLoaderDependencies: TFolderLoaderDependencies
 
     let folderDeploymentActions: Array<Array<IK8sDirDeploymentAction>>  = await Bluebird.all(arrayOfPromises)
 
-    return folderDeploymentActions.flatMap((array)=> array.map(identityMap))
+    const plan = injected.planFactory.createDeploymentPlan(sectionDeclaration.herdSectionType)
+
+    folderDeploymentActions.flatMap((array)=> array.forEach(plan.addAction))
+    return plan
   }
 
   return {

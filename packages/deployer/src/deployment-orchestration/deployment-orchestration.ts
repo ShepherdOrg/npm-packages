@@ -3,314 +3,138 @@ import * as path from "path"
 import { emptyArray } from "../helpers/ts-functions"
 import { writeFile } from "../helpers/promisified"
 import {
-  FDeploymentOrchestrationConstructor,
   IAnyDeploymentAction,
+  IDeploymentOrchestration,
   IDockerDeploymentAction,
   IK8sDirDeploymentAction,
   IK8sDockerImageDeploymentAction,
   ILog,
   TActionExecutionOptions,
-  TDeploymentOrchestration,
-  TReleasePlanDependencies,
+  TDeploymentOrchestrationDependencies,
 } from "../deployment-types"
 import { mapUntypedDeploymentData } from "../ui-mapping/map-untyped-deployment-data"
 import { TFileSystemPath } from "../helpers/basic-types"
-import { newProgrammerOops, Oops } from "oops-error"
+import { Oops } from "oops-error"
 import {
   DeploymentPlanFactory,
   IDeploymentPlan,
-  TDockerDeploymentPlansByKey,
-  TDockerDeploymentPlanTuple,
   TK8sDeploymentPlansByKey,
 } from "../deployment-plan/deployment-plan-factory"
-import Bluebird = require("bluebird")
 import { flatMapPolyfill } from "../herd-loading/folder-loader/flatmap-polyfill"
 
 flatMapPolyfill()
 
-export function DeploymentOrchestration(injected: TReleasePlanDependencies): FDeploymentOrchestrationConstructor {
+export function DeploymentOrchestration(injected: TDeploymentOrchestrationDependencies): IDeploymentOrchestration {
   const stateStore = injected.stateStore
-  const cmd = injected.cmd
-  const logger = injected.logger
-  const uiDataPusher = injected.uiDataPusher
 
-  const planFactory = DeploymentPlanFactory({ ...injected })
+  const deploymentPlans: Array<IDeploymentPlan> = []
 
-  return function(forEnv: string): TDeploymentOrchestration {
-    if (!forEnv) {
-      throw new Error("must specify environment you are creating a deployment plan for")
-    }
+  const k8sDeploymentPlans: TK8sDeploymentPlansByKey = {}
 
-    // Need better typing and logic around DeploymentPlan for each declared deployment that contains declaration and actions in deployment. Probably key to simplifying codebase significantly.
+  const k8sDeploymentsByIdentifier: { [key: string]: IK8sDockerImageDeploymentAction } = {}
 
-    const k8sDeploymentPlans: TK8sDeploymentPlansByKey = {}
-    const dockerDeploymentPlan: TDockerDeploymentPlansByKey = {}
+  function addActionToCatalog(deploymentAction: IK8sDockerImageDeploymentAction) {
+    k8sDeploymentPlans[deploymentAction.origin] =
+      k8sDeploymentPlans[deploymentAction.origin] || deploymentAction.herdKey
+    // await k8sDeploymentPlans[deploymentAction.origin].addAction(deploymentAction)
 
-    const k8sDeploymentsByIdentifier: { [key: string]: IK8sDockerImageDeploymentAction } = {}
-
-    // TODO Manage IDeploymentPlans here, not actions
-    async function addKubectlDeploymentAction(deploymentAction: IK8sDockerImageDeploymentAction) {
-      k8sDeploymentPlans[deploymentAction.origin] =
-        k8sDeploymentPlans[deploymentAction.origin] || planFactory.createDeploymentPlan(deploymentAction.herdKey)
-      await k8sDeploymentPlans[deploymentAction.origin].addAction(deploymentAction)
-
-      if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
-        throw new Error(
-          deploymentAction.identifier +
-            " is already in deployment plan from " +
-            k8sDeploymentsByIdentifier[deploymentAction.identifier].origin +
-            ". When adding deployment from " +
-            deploymentAction.origin
-        )
-      }
-
-      k8sDeploymentsByIdentifier[deploymentAction.identifier] = deploymentAction
-    }
-
-    async function addDockerDeploymentAction(deploymentAction: IDockerDeploymentAction) {
-      dockerDeploymentPlan[deploymentAction.origin] =
-        dockerDeploymentPlan[deploymentAction.origin] || planFactory.createDeploymentPlan(deploymentAction.herdKey)
-
-      await dockerDeploymentPlan[deploymentAction.origin].addAction(deploymentAction)
-    }
-
-    function saveDeploymentState(
-      deployment: IK8sDockerImageDeploymentAction | IDockerDeploymentAction | IK8sDirDeploymentAction
-    ) {
-      if (!deployment.state) {
-        throw new Oops({ message: "State is mandatory here", category: "ProgrammerError" })
-      }
-      return stateStore.saveDeploymentState(deployment.state)
-    }
-
-    async function addToPlanAndGetDeploymentStateFromStore(
-      deploymentAction: IAnyDeploymentAction
-    ): Promise<IAnyDeploymentAction> {
-      if (!deploymentAction.type) {
-        let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deploymentAction)
-        throw new Error(message)
-      }
-      if (!deploymentAction.identifier) {
-        let message = "Illegal deployment, no identifier attribute in " + JSON.stringify(deploymentAction)
-        throw new Error(message)
-      }
-
-      if (deploymentAction.type === "k8s") {
-        await addKubectlDeploymentAction(deploymentAction as IK8sDockerImageDeploymentAction)
-      } else if (deploymentAction.type === "deployer") {
-        await addDockerDeploymentAction(deploymentAction as IDockerDeploymentAction)
-      }
-      return deploymentAction
-    }
-
-    // TODO Execute IDeploymentPlans instead of actions directly
-    function K8sDeploymentPromises(
-      deploymentOptions: TActionExecutionOptions
-    ): Array<Promise<IK8sDockerImageDeploymentAction | IK8sDirDeploymentAction>> {
-      return Object.values(k8sDeploymentPlans).flatMap((k8sContainerDeployment: IDeploymentPlan) => {
-        return k8sContainerDeployment.deploymentActions.map(
-          async (k8sDeploymentAction: IK8sDockerImageDeploymentAction | IK8sDirDeploymentAction) => {
-            await k8sDeploymentAction.execute(deploymentOptions, cmd, logger, saveDeploymentState)
-            return k8sDeploymentAction
-          }
-        )
-      })
-    }
-
-    function DeployerPromises(
-      deploymentOptions: TActionExecutionOptions
-    ): Array<Promise<IDockerDeploymentAction | undefined>> {
-      return Object.values(dockerDeploymentPlan).flatMap((deploymentPlan: IDeploymentPlan) => {
-        return deploymentPlan.deploymentActions.map(async (deployment: IDockerDeploymentAction) => {
-          if (deployment.state?.modified) {
-            return await deployment.execute(deploymentOptions, cmd, logger, saveDeploymentState)
-          } else {
-            return undefined
-          }
-        })
-      })
-    }
-
-    // TODO Map and push on IDeploymentPlan instead of actions
-    async function mapDeploymentDataAndPush(deploymentData: IAnyDeploymentAction | undefined) {
-      if (!deploymentData) {
-        return deploymentData
-      } else {
-        const mappedData = mapUntypedDeploymentData(deploymentData)
-        if (uiDataPusher && deploymentData.pushToUI) {
-          await uiDataPusher.pushDeploymentStateToUI(mappedData)
-        }
-        return deploymentData
-      }
-    }
-
-    function mapDeploymentDataAndWriteTo(dryrunOutputDir: TFileSystemPath) {
-      return async (deploymentData: IAnyDeploymentAction | undefined) => {
-        if (!deploymentData) {
-          return deploymentData
-        } else {
-          const mappedData = mapUntypedDeploymentData(deploymentData)
-          if (mappedData) {
-            const writePath = path.join(dryrunOutputDir, `send-to-ui-${mappedData?.deploymentState.key}.json`)
-            await writeFile(writePath, JSON.stringify(deploymentData, null, 2))
-            return deploymentData
-          } else {
-            return deploymentData
-          }
-        }
-      }
-    }
-
-    async function executePlans(
-      runOptions: TActionExecutionOptions = {
-        dryRun: false,
-        dryRunOutputDir: undefined,
-        pushToUi: true,
-        waitForRollout: false,
-      }
-    ) {
-      // let i = 0
-      let deploymentPromises: Array<Promise<IAnyDeploymentAction | undefined>> = K8sDeploymentPromises(runOptions)
-
-      let deployerPromises = DeployerPromises(runOptions)
-      let allPromises = deploymentPromises.concat(deployerPromises)
-
-      // Use map reduce method instead
-      deploymentPromises = allPromises.map(promise => {
-        if (runOptions.pushToUi) {
-          if (runOptions.dryRun) {
-            if (!runOptions.dryRunOutputDir) {
-              throw new Oops({
-                message: "dryRun and dryRunOutputDir must be specified together",
-                category: "OperationalError",
-              })
-            } else {
-              return promise.then(mapDeploymentDataAndWriteTo(runOptions.dryRunOutputDir))
-            }
-          } else {
-            return promise.then(mapDeploymentDataAndPush)
-          }
-        } else {
-          return promise.then()
-        }
-      })
-
-      return Bluebird.all(deploymentPromises)
-    }
-
-    function printPlan(logger: ILog) {
-      Object.entries(dockerDeploymentPlan as TDockerDeploymentPlansByKey).forEach(
-        ([_key, plan]: TDockerDeploymentPlanTuple) => {
-          let modified = false
-
-          if (plan.deploymentActions) {
-            plan.deploymentActions.forEach(function(deployment: IDockerDeploymentAction) {
-              if (!deployment.state) {
-                throw new Error("No state!")
-              }
-              if (deployment.state.modified) {
-                logger.info(`Running ${plan.herdKey} deployer`)
-                logger.info(`  -  docker run ${deployment.identifier} ${deployment.command}`)
-                modified = true
-              }
-            })
-          }
-          if (!modified) {
-            logger.info("No modifications to " + plan.herdKey)
-          }
-        }
+    if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
+      throw new Error(
+        deploymentAction.identifier +
+        " is already in deployment plan from " +
+        k8sDeploymentsByIdentifier[deploymentAction.identifier].origin +
+        ". When adding deployment from " +
+        deploymentAction.origin,
       )
-
-      Object.entries(k8sDeploymentPlans as TK8sDeploymentPlansByKey).forEach(([_key, plan]) => {
-        let modified = false
-        if (plan.deploymentActions) {
-          plan.deploymentActions.forEach(function(deploymentAction: IK8sDockerImageDeploymentAction) {
-            if (!deploymentAction.state) {
-              throw new Error("No state!")
-            }
-            if (deploymentAction.state.modified) {
-              if (!modified) {
-                if (plan.herdKey) {
-                  logger.info(`Applying ${plan.herdKey}`)
-                } else {
-                  logger.info("Missing herdKey for ", plan)
-                }
-              }
-              modified = true
-              if (deploymentAction.planString) {
-                logger.info(`  -  ${deploymentAction.planString()}`)
-              } else {
-                logger.info(`  -  kubectl ${deploymentAction.operation} ${deploymentAction.identifier}`)
-              }
-            }
-          })
-        }
-        if (!modified) {
-          logger.debug("No modified deployments in " + plan.herdKey)
-        }
-      })
     }
 
-    function exportDeploymentActions(exportDirectory: TFileSystemPath): Promise<void> {
-      return new Promise(function(resolve, reject) {
-        let fileWrites = emptyArray<any>()
+    k8sDeploymentsByIdentifier[deploymentAction.identifier] = deploymentAction
+  }
 
-        Object.entries(k8sDeploymentPlans as TK8sDeploymentPlansByKey).forEach(function([_key, plan]) {
-          plan.deploymentActions.forEach(function(deployment: IK8sDockerImageDeploymentAction) {
-            if (deployment.identifier) {
-              let writePath = path.join(
-                exportDirectory,
-                deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml"
-              )
-              let writePromise = writeFile(writePath, deployment.descriptor.trim())
-              fileWrites.push(writePromise)
-            } // else its a followup action, such as rollout status or e2e test, which we do not export
-          })
+
+  function preventDuplicateKubectlDeployment(
+    deploymentAction: IAnyDeploymentAction,
+  ): IAnyDeploymentAction {
+    if (deploymentAction.type === "k8s") {
+      addActionToCatalog(deploymentAction as IK8sDockerImageDeploymentAction)
+    }
+    return deploymentAction
+  }
+
+  async function executePlans(
+    runOptions: TActionExecutionOptions = {
+      dryRun: false,
+      dryRunOutputDir: undefined,
+      pushToUi: true,
+      waitForRollout: false,
+    },
+  ) {
+    return await Promise.all(deploymentPlans.map((deploymentPlan) => deploymentPlan.execute(runOptions)))
+  }
+
+  function printPlan(logger: ILog) {
+    let anythingPlanned = deploymentPlans.reduce((anyChanges, deploymentPlan,)=>{
+      return anyChanges || deploymentPlan.printPlan(logger)}, false)
+    if(!anythingPlanned){
+      logger.info('No plans to do anything this time')
+    }
+    return anythingPlanned
+  }
+
+  function exportDeploymentActions(_exportDirectory: TFileSystemPath): Promise<void> {
+    return new Promise(function(resolve, reject) {
+      let fileWrites = emptyArray<any>()
+
+      // Object.entries(k8sDeploymentPlans as TK8sDeploymentPlansByKey).forEach(function([_key, plan]) {
+      //   plan.deploymentActions.forEach(function(deployment: IK8sDockerImageDeploymentAction) {
+      //     if (deployment.identifier) {
+      //       let writePath = path.join(
+      //         exportDirectory,
+      //         deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml",
+      //       )
+      //       let writePromise = writeFile(writePath, deployment.descriptor.trim())
+      //       fileWrites.push(writePromise)
+      //     } // else its a followup action, such as rollout status or e2e test, which we do not export
+      //   })
+      // })
+      // Object.entries(dockerDeploymentPlan as TDockerDeploymentPlansByKey).forEach(function([
+      //                                                                                        _key,
+      //                                                                                        plan,
+      //                                                                                      ]: TDockerDeploymentPlanTuple) {
+      //   plan.deploymentActions.forEach(function(deploymentAction: IDockerDeploymentAction) {
+      //     if (!deploymentAction.forTestParameters) {
+      //       throw new Error("Missing forTestParameters!")
+      //     }
+      //     if (!deploymentAction.imageWithoutTag) {
+      //       throw new Error("Missing forTestParameters!")
+      //     }
+      //     let cmdLine = `docker run ${deploymentAction.forTestParameters.join(" ")}`
+      //
+      //     let writePath = path.join(
+      //       exportDirectory,
+      //       deploymentAction.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt",
+      //     )
+      //     let writePromise = writeFile(writePath, cmdLine)
+      //     fileWrites.push(writePromise)
+      //   })
+      // })
+      Promise.all(fileWrites)
+        .then(() => {
+          resolve()
         })
-        Object.entries(dockerDeploymentPlan as TDockerDeploymentPlansByKey).forEach(function([
-          _key,
-          plan,
-        ]: TDockerDeploymentPlanTuple) {
-          plan.deploymentActions.forEach(function(deploymentAction: IDockerDeploymentAction) {
-            if (!deploymentAction.forTestParameters) {
-              throw new Error("Missing forTestParameters!")
-            }
-            if (!deploymentAction.imageWithoutTag) {
-              throw new Error("Missing forTestParameters!")
-            }
-            let cmdLine = `docker run ${deploymentAction.forTestParameters.join(" ")}`
+        .catch(reject)
+    })
+  }
 
-            let writePath = path.join(
-              exportDirectory,
-              deploymentAction.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt"
-            )
-            let writePromise = writeFile(writePath, cmdLine)
-            fileWrites.push(writePromise)
-          })
-        })
-        Promise.all(fileWrites)
-          .then(() => {
-            resolve()
-          })
-          .catch(reject)
-      })
-    }
-
-    return {
-      // TODO This should go once we are only adding IDeploymentPlan instances
-      async addDeploymentAction(deploymentAction: IAnyDeploymentAction) {
-        deploymentAction.env = forEnv
-        if (!deploymentAction.herdDeclaration.sectionDeclaration) {
-          throw newProgrammerOops(
-            "Must get herd section declaration with deployment action to determine execution order",
-            deploymentAction
-          )
-        }
-        return await addToPlanAndGetDeploymentStateFromStore(deploymentAction)
-      },
-      executePlans: executePlans,
-      printPlan: printPlan,
-      exportDeploymentActions: exportDeploymentActions,
-    }
+  return {
+    // TODO This should go once we are only adding IDeploymentPlan instances
+    executePlans: executePlans,
+    printPlan: printPlan,
+    exportDeploymentActions: exportDeploymentActions,
+    async addDeploymentPlan(deploymentPlan: IDeploymentPlan): Promise<IDeploymentPlan> {
+      deploymentPlans.push(deploymentPlan)
+      deploymentPlan.deploymentActions.forEach(preventDuplicateKubectlDeployment)
+      return deploymentPlan
+    },
   }
 }

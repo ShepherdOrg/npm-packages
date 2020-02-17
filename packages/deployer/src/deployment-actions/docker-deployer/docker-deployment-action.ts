@@ -14,6 +14,7 @@ import * as path from "path"
 import { extendedExec, writeFile } from "../../helpers/promisified"
 
 export async function executeDeployerAction(deployerAction: IDockerDeploymentAction, deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>): Promise<IDockerDeploymentAction> {
+
   if (deploymentOptions.dryRun && deploymentOptions.dryRunOutputDir) {
     let writePath = path.join(
       deploymentOptions.dryRunOutputDir,
@@ -85,6 +86,9 @@ export async function createDockerDeploymentActions(imageInformation: TImageInfo
     command: "deploy",
     identifier: herdKey,
     herdKey: herdKey,
+    planString(): string {
+      return "docker run UNFINISHED IMPLEMENTATION"
+    },
     async execute(deploymentOptions: TDeploymentOptions & { waitForRollout: boolean; pushToUi: boolean }, cmd: any, logger: ILog, saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>): Promise<IDockerDeploymentAction> {
       return await executeDeployerAction(deploymentAction, deploymentOptions, cmd, logger, saveDeploymentState)
     }
@@ -93,8 +97,6 @@ export async function createDockerDeploymentActions(imageInformation: TImageInfo
   function allButImageParameter(params: string[]) {
     return params.slice(0, params.length - 1)
   }
-
-
 
   let envList = ["ENV={{ ENV }}"]
 

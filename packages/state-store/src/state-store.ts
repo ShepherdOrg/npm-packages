@@ -5,7 +5,7 @@ import path from "path"
 import md5File from "md5-file"
 import crypto from "crypto"
 
-export function DeploymentDir(operation, parameterizedDir) {
+export function DeploymentDir(operation: string, parameterizedDir:string) {
   if (!parameterizedDir) {
     throw new Error("Directory parameter is mandatory! ")
   }
@@ -37,9 +37,15 @@ export type TDeploymentStateParams = {
   env: string
   descriptor: string
   operation: string
+  origin: string
 }
 
-export function ReleaseStateStore(injected: TStateStoreDependencies) {
+export interface IReleaseStateStore {
+  getDeploymentState(deployment:TDeploymentStateParams): Promise<TDeploymentState>
+  saveDeploymentState(stateSignatureObject: TDeploymentState ): Promise<TDeploymentState>,
+}
+
+export function ReleaseStateStore(injected: TStateStoreDependencies): IReleaseStateStore {
   let storageBackend = injected.storageBackend
 
   async function getStateSignature(
@@ -74,7 +80,7 @@ export function ReleaseStateStore(injected: TStateStoreDependencies) {
     return newState
   }
 
-  async function saveDeploymentState(stateSignatureObject): Promise<TDeploymentState> {
+  async function saveDeploymentState(stateSignatureObject: TDeploymentState ): Promise<TDeploymentState> {
     if (stateSignatureObject.modified) {
       const timestampedObject = {
         ...stateSignatureObject,
@@ -83,6 +89,7 @@ export function ReleaseStateStore(injected: TStateStoreDependencies) {
 
       const storedKeyValuePair = await storageBackend.set(
         stateSignatureObject.key,
+        // @ts-ignore
         timestampedObject
       )
       return storedKeyValuePair.value
@@ -105,19 +112,6 @@ export function ReleaseStateStore(injected: TStateStoreDependencies) {
         deploymentSignature
       )
     },
-    saveDeploymentState,
-    storeDeploymentDirState(deployment) {
-      let deploymentSignature = DeploymentDir(
-        deployment.operation,
-        deployment.directory
-      ).signature()
-      return getStateSignature(
-        deployment.env,
-        deployment.identifier,
-        deployment.operation,
-        deployment.version,
-        deploymentSignature
-      ).then(saveDeploymentState)
-    },
+    saveDeploymentState
   }
 }

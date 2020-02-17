@@ -3,7 +3,7 @@ import {
   THerdSpec,
 } from "@shepherdorg/metadata"
 import {
-  IAnyDeploymentAction,
+  IAnyDeploymentAction, IExecutableAction,
 } from "../deployment-types"
 
 

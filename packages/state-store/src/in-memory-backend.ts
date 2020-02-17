@@ -2,17 +2,21 @@ import { IStorageBackend } from "./index"
 
 interface IInMemoryStorageBackend extends IStorageBackend {
   store(): any
-  resetAllDeploymentStates()
+  resetAllDeploymentStates():void
 }
 const wait = (ms: number) => new Promise(res => setTimeout(res, ms))
 
+type TAnyMap = { [key: string]: any }
+
 export function InMemoryStore(): IInMemoryStorageBackend {
-  let store = {}
+  let store : TAnyMap = {}
   return {
-    connect() {
+    async connect():Promise<void> {
+      await wait(0)
       // Noop
     },
-    disconnect() {
+    async disconnect():Promise<void> {
+      await wait(0)
       // Noop
     },
     resetAllDeploymentStates() {

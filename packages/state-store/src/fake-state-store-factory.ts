@@ -1,28 +1,30 @@
-import { emptyArray } from "../helpers/ts-functions"
 import { TDeploymentState } from "@shepherdorg/metadata"
-import { IAnyDeploymentAction } from "../deployment-types"
+import { IReleaseStateStore, TDeploymentStateParams } from "./state-store"
 
-export type TFakeStateStore = {
+export interface TFakeStateStore extends IReleaseStateStore {
   checkedStates: any[];
-  storeDeploymentDirState: (_deployment: any) => void;
   fixedTimestamp: string;
   saveDeploymentState: (deploymentState: TDeploymentState) => Promise<TDeploymentState>;
   nextState: any;
   savedStates: TDeploymentState[];
-  getDeploymentState: (deploymentAction: IAnyDeploymentAction) => Promise<TDeploymentState>
+  getDeploymentState: (deploymentAction: TDeploymentStateParams) => Promise<TDeploymentState>
+}
+
+function emptyArray<T>(): Array<T> {
+  return []
 }
 
 export function createFakeStateStore(): TFakeStateStore {
   let nextState: any = {}
-  let checkedStates = emptyArray<any>()
+  let checkedStates:any[] = []
 
   const fakeStateStore = {
     fixedTimestamp: "1999-01-10T00:00:00.000Z",
     nextState: nextState,
     checkedStates: checkedStates,
     savedStates: emptyArray<TDeploymentState>(),
-    getDeploymentState: function(deploymentAction: IAnyDeploymentAction): Promise<TDeploymentState> {
-      checkedStates.push(JSON.parse(JSON.stringify(deploymentAction)))
+    getDeploymentState: function(deploymentStateParams: TDeploymentStateParams ): Promise<TDeploymentState> {
+      checkedStates.push(JSON.parse(JSON.stringify(deploymentStateParams)))
       let value = {
         testState: true,
         new: true,
@@ -31,7 +33,7 @@ export function createFakeStateStore(): TFakeStateStore {
         version: "0.0.0",
         lastVersion: undefined,
         signature: "fakesignature",
-        origin: deploymentAction.origin,
+        origin: deploymentStateParams.origin,
         env: "UNITTEST",
         timestamp: fakeStateStore.fixedTimestamp,
         ...fakeStateStore.nextState,
@@ -48,10 +50,7 @@ export function createFakeStateStore(): TFakeStateStore {
         fakeStateStore.savedStates.push(deploymentState)
         resolve(deploymentState)
       })
-    },
-    storeDeploymentDirState: function(_deployment: any) {
-      throw new Error("Not supported in fake state store storeDeploymentDirState")
-    },
+    }
   }
   return fakeStateStore
 }

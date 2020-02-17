@@ -8,11 +8,11 @@ import { TDeployerRole, TDeploymentType } from "@shepherdorg/metadata"
 import { emptyArray } from "../../helpers/ts-functions"
 import { TDeploymentRollout } from "../../deployment-actions/kubectl-deployer/create-kubectl-deployment-action"
 
-type OmitExecute<T> = Omit<T, "execute">
+type OmitActionFunctions<T> = Omit<Omit<T, "execute">,"planString">
 
-export type TK8sDirDeploymentActionStruct = OmitExecute<IK8sDirDeploymentAction>
-export type TDockerDeploymentActionStruct = OmitExecute<IDockerDeploymentAction>
-export type TK8sDockerImageDeploymentActionStruct = OmitExecute<IK8sDockerImageDeploymentAction>
+export type TK8sDirDeploymentActionStruct = OmitActionFunctions<IK8sDirDeploymentAction>
+export type TDockerDeploymentActionStruct = OmitActionFunctions<IDockerDeploymentAction>
+export type TK8sDockerImageDeploymentActionStruct = OmitActionFunctions<IK8sDockerImageDeploymentAction>
 
 type TTestActionsMap = { [idx: string]: { [idx2: string]: TDockerDeploymentActionStruct | TK8sDirDeploymentActionStruct | TK8sDockerImageDeploymentActionStruct } }
 

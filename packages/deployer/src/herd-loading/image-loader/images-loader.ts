@@ -1,11 +1,12 @@
 import Bluebird = require("bluebird")
 import {
-  ILog,
   IDockerDeploymentAction,
-  TDockerImageHerdDeclaration,
-  TDockerImageHerdSpecs, THerdSectionDeclaration,
-  TImageInformation,
   IK8sDockerImageDeploymentAction,
+  ILog,
+  TDockerImageHerdDeclaration,
+  TDockerImageHerdSpecs,
+  THerdSectionDeclaration,
+  TImageInformation,
 } from "../../deployment-types"
 import { createImageDeploymentPlanner } from "./image-deployment-planner"
 import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-deployer/kube-supported-extensions"
@@ -14,19 +15,28 @@ import { extractShepherdMetadata } from "../add-shepherd-metadata"
 import { TFileSystemPath } from "../../helpers/basic-types"
 import { ILoadDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { parseImageUrl, TDockerImageUrl, TDockerImageUrlStruct } from "../../helpers/parse-image-url"
+import {
+  IDeploymentPlan,
+  IDeploymentPlanFactory,
+} from "../../deployment-plan/deployment-plan-factory"
 
 
 export function parseDockerImageUrl(dockerImageUrl: TDockerImageUrl): TDockerImageUrlStruct {
   return parseImageUrl(dockerImageUrl)
 }
 
+
 interface TImageDeclarationsLoaderDependencies {
   logger: ILog
   imageLabelsLoader: ILoadDockerImageLabels
+  planFactory : IDeploymentPlanFactory
 }
 
 export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
   let derivedDeployments: TDockerImageHerdSpecs = {}
+
+
+  const planFactory = injected.planFactory
 
 
   function loadDockerImageHerdSpecs(images: TDockerImageHerdSpecs, sectionDeclaration: THerdSectionDeclaration) {
@@ -34,7 +44,7 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
     const createImageDeploymentActions = createImageDeploymentPlanner({
       kubeSupportedExtensions,
       logger: injected.logger,
-      herdSectionDeclaration: sectionDeclaration
+      herdSectionDeclaration: sectionDeclaration,
     }).createDeploymentActions
 
 
@@ -43,7 +53,7 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
         let dockerImageTag = parseDockerImageUrl(
           imageMetaData.shepherdMetadata.migrationImage,
         )
-        derivedDeployments[imageMetaData.shepherdMetadata.migrationImage] = {sectionDeclaration: sectionDeclaration, ...dockerImageTag}
+        derivedDeployments[imageMetaData.shepherdMetadata.migrationImage] = { sectionDeclaration: sectionDeclaration, ...dockerImageTag }
       }
       return imageMetaData
     }
@@ -78,15 +88,17 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
     })
   }
 
-  // TODO Return a IDeploymentPlan
-  async function imagesLoader(herdSectionSpec: THerdSectionDeclaration, images: TDockerImageHerdSpecs, _herdPath: TFileSystemPath ): Promise<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> {
-      let value: Array<Promise<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>>> = loadDockerImageHerdSpecs( images , herdSectionSpec)
-      let imageDeploymentPlans: Array<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> = await Bluebird.all(value)
-      let derivedDeploymentActionPromises = loadDockerImageHerdSpecs(derivedDeployments, herdSectionSpec)
-      imageDeploymentPlans = imageDeploymentPlans.concat(await Bluebird.all(derivedDeploymentActionPromises))
-      return imageDeploymentPlans.flatMap((array) => array.map((imageDeploymentAction: IDockerDeploymentAction | IK8sDockerImageDeploymentAction)=>{
-        return imageDeploymentAction
-      }))
+  async function imagesLoader(herdSectionSpec: THerdSectionDeclaration, images: TDockerImageHerdSpecs, _herdPath: TFileSystemPath): Promise<IDeploymentPlan> {
+    let value: Array<Promise<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>>> = loadDockerImageHerdSpecs(images, herdSectionSpec)
+    let imageDeploymentPlans: Array<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> = await Bluebird.all(value)
+    let derivedDeploymentActionPromises = loadDockerImageHerdSpecs(derivedDeployments, herdSectionSpec)
+    imageDeploymentPlans = imageDeploymentPlans.concat(await Bluebird.all(derivedDeploymentActionPromises))
+
+    const resultingPlan = planFactory.createDeploymentPlan(herdSectionSpec.herdSectionType)
+
+    imageDeploymentPlans.flatMap((array) => array.forEach(resultingPlan.addAction))
+    return resultingPlan
   }
+
   return { imagesLoader }
 }

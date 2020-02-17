@@ -11,6 +11,11 @@ import { IStorageBackend } from "@shepherdorg/state-store"
 import { TFileSystemPath } from "./helpers/basic-types"
 import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
 import { CreateLogger } from "./logging/logger"
+import {
+  DeploymentPlanFactory,
+  IDeploymentPlanFactory,
+  TDeploymentPlanDependencies,
+} from "./deployment-plan/deployment-plan-factory"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -126,7 +131,9 @@ if ((exportDocuments || dryRun) && !outputDirectory) {
 }
 
 let stateStoreBackend: IStorageBackend
-let uiDataPusher: { pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined> } // TODO: Need proper type export form uiDataPusher
+
+export type IPushToShepherdUI = { pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined> }
+let uiDataPusher: IPushToShepherdUI // TODO: Need proper type export form uiDataPusher
 
 if (process.env.SHEPHERD_PG_HOST) {
   logger.info("Using postgres state store on ", process.env.SHEPHERD_PG_HOST )
@@ -172,22 +179,29 @@ stateStoreBackend
     const featureDeploymentConfig = CreateUpstreamTriggerDeploymentConfig(logger)
     featureDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
 
-    const ReleasePlan = DeploymentOrchestration({
+    const deploymentOrchestration = DeploymentOrchestration({
       cmd: exec,
       logger: CreateLogger(console),
-      stateStore: releaseStateStore,
-      uiDataPusher: uiDataPusher,
+      stateStore: releaseStateStore
     })
 
     if (featureDeploymentConfig.herdFileEditNeeded()) {
       upgradeOrAddDeploymentInFile(featureDeploymentConfig, logger)
     }
 
+    let planDependencies: TDeploymentPlanDependencies = {
+      uiDataPusher: uiDataPusher,
+      cmd: exec, logger: logger, stateStore: releaseStateStore
+    }
+
+    let planFactory: IDeploymentPlanFactory = DeploymentPlanFactory(planDependencies)
+
     let loader = HerdLoader({
       logger: CreateLogger(console),
-      ReleasePlan: ReleasePlan,
+      deploymentOrchestration: deploymentOrchestration,
       exec: exec,
       featureDeploymentConfig,
+      planFactory: planFactory,
       labelsLoader: {
         imageLabelsLoader: imageLabelsLoader,
         getDockerRegistryClientsFromConfig: getDockerRegistryClientsFromConfig,

@@ -2,11 +2,12 @@ import { DeploymentPlanFactory, IDeploymentPlan } from "./deployment-plan-factor
 import { clearEnv, setEnv } from "../deployment-actions/test-action-factory"
 import { expect } from "chai"
 import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
-import { createFakeStateStore, TFakeStateStore } from "../deployment-orchestration/fake-state-store-factory"
 import { CreateFakeLogger } from "../test-tools/fake-logger"
 import { IExecutableAction, IKubectlDeployAction, ILog, TDeploymentOptions } from "../deployment-types"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { emptyArray } from "../helpers/ts-functions"
+import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
+import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
 
 
 type FFakeLambda = () => Promise<void>
@@ -38,13 +39,17 @@ function fakeLambdaFactory() : IFakeLambdaFactory {
 }
 
 function createFakeAction(fakeLambda: FFakeLambda ):IExecutableAction{
-  let me = {
+  let me : IExecutableAction = {
     descriptor: "",
     pushToUI: false,
     execute(_deploymentOptions: TDeploymentOptions & { waitForRollout: boolean; pushToUi: boolean }, _cmd: any, _logger: ILog, _saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>): Promise<IExecutableAction> {
       return fakeLambda().then(()=>{
         return me
       })
+    },
+    planString(){
+      return "fake action"
+
     }
   }
   return me
@@ -101,7 +106,7 @@ describe("Deployment plan", function() {
     fakeStateStore.nextState = { new: false, modified: true }
 
     const fakeLogger = CreateFakeLogger()
-    depPlanner = DeploymentPlanFactory({ logger: fakeLogger, cmd: fakeExecCmd, stateStore: fakeStateStore})
+    depPlanner = DeploymentPlanFactory({ logger: fakeLogger, cmd: fakeExecCmd, stateStore: fakeStateStore, uiDataPusher: createFakeUIPusher()})
 
     depPlan = depPlanner.createDeploymentPlan("testKeyOne")
     faf = fakeLambdaFactory()
@@ -119,6 +124,29 @@ describe("Deployment plan", function() {
     })
 
   })
+
+  // TODO NEXT for migrations support, move derived action adding to plan or action
+  it.only("should forward metadata with execution plan", () => {
+    // TODO This image information passing around is a mess. Refactor and simplify!
+    console.log(`loadedPlan.addedDockerDeployerActions`, loadedPlan.addedDockerDeployerActions)
+
+    expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].herdDeclaration).to.deep.equal({
+      key: "testenvimage-migrations:0.0.0",
+      image: "testenvimage-migrations",
+      imageName: "testenvimage-migrations",
+      imagetag: "0.0.0",
+      dockerRepository: "testenvimage-migrations",
+      originalUrl: "testenvimage-migrations:0.0.0",
+      dockerNamespace: "",
+      dockerRegistry: "",
+      dockerTag: "0.0.0",
+      sectionDeclaration: {
+        herdSectionIndex: 2,
+        herdSectionType: "images" as THerdSectionType,
+      },
+    })
+  })
+
 
   describe('Regular actions', ()=>{
 
@@ -143,6 +171,7 @@ describe("Deployment plan", function() {
     })
 
   })
+
 
 
 })

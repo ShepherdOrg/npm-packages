@@ -10,7 +10,7 @@ function main(){
 
   function fileMustExist(path: string, message1: any) {
     if (!fs.existsSync(path)) {
-      console.log(`${path} not found. ${message1}`)
+      console.info(`${path} not found. ${message1}`)
 
     }
   }
