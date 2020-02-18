@@ -4,14 +4,15 @@ import { HerdLoader, TDockerMetadataLoader, THerdLoader } from "./herd-loader"
 import * as path from "path"
 import * as fs from "fs"
 import {
+  IAnyDeploymentAction,
+  IDeploymentOrchestration,
   IDockerDeploymentAction,
   IK8sDirDeploymentAction,
   IK8sDockerImageDeploymentAction,
   ILog,
   TActionExecutionOptions,
-  IDeploymentOrchestration,
   TFolderHerdDeclaration,
-  THerdSectionType, IAnyDeploymentAction,
+  THerdSectionType,
 } from "../deployment-types"
 import { detectRecursion } from "../helpers/obj-functions"
 import { CreateFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
@@ -304,7 +305,6 @@ describe("herd.yaml loading", function() {
     })
   })
 
-  // Move tests to k
   describe("k8s deployment plan", function() {
     let loadedPlan: TTestDeploymentOrchestration
 
@@ -366,17 +366,6 @@ describe("herd.yaml loading", function() {
 
     afterEach(() => {
       delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
-    })
-
-    it("should have herdSpec and metadata on all loaded plans", () => {
-      Object.entries(loadedPlan.addedK8sDeploymentActions).forEach(function([_dname, deployment]) {
-        expect(deployment.herdDeclaration.key).not.to.equal(undefined)
-        expect(deployment.metadata.displayName).not.to.equal(undefined)
-      })
-      Object.entries(loadedPlan.addedDockerDeployerActions).forEach(function([_dname, deployment]) {
-        expect(deployment.herdDeclaration.key).not.to.equal(undefined)
-        expect(deployment.metadata.displayName).not.to.equal(undefined)
-      })
     })
 
     it("should load deployer plan by migration image reference", function() {

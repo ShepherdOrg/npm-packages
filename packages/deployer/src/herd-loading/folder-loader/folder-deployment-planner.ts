@@ -3,11 +3,11 @@ import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
 import { createKubectlDeployAction } from "../../deployment-actions/kubectl-deployer/create-kubectl-deployment-action"
 import {
+  IK8sDirDeploymentAction,
+  IKubectlDeployAction,
   ILog,
   TFolderHerdDeclaration,
   TFolderMetadata,
-  IK8sDirDeploymentAction,
-  IKubectlDeployAction,
 } from "../../deployment-types"
 import { TFileSystemPath } from "../../helpers/basic-types"
 import { TDeploymentType } from "@shepherdorg/metadata"

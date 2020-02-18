@@ -89,9 +89,11 @@ describe("running shepherd", function() {
         .stdout()
         .shouldContain("Adding addedimage")
         .stdout()
-        .shouldContain("Applying addedimage")
+        .shouldContain("Deploying addedimage")
         .stdout()
-        .shouldContain("Plan execution complete")
+        .shouldContain("Executing deployment plan...")
+        .stdout()
+        .shouldContain("...plan execution complete")
         .done(function() {
           done()
         })
@@ -147,7 +149,6 @@ describe("running shepherd", function() {
             .output(secondRoundFolder)
             .shouldBeEmptyDir()
             .done(function(_stdout) {
-
               done()
             })
         })
@@ -155,11 +156,9 @@ describe("running shepherd", function() {
   })
 
   xit("should rollback deployment that fails end2endTest", () => {
-
   })
 
   xit("should execute infrastructure deployers first to completion", () => {
-
   })
 
   describe("with state storage", function() {

@@ -1,7 +1,4 @@
-import {
-  ILog,
-  IAnyDeploymentAction, THerdSectionDeclaration, TImageInformation,
-} from "../../deployment-types"
+import { IAnyDeploymentAction, ILog, THerdSectionDeclaration, TImageInformation } from "../../deployment-types"
 import { createKubectlDeploymentActions } from "../../deployment-actions/kubectl-deployer/create-image-based-kubectl-deployment-action"
 import { createDockerDeploymentActions } from "../../deployment-actions/docker-deployer/docker-deployment-action"
 import { TExtensionsMap } from "../../deployment-actions/kubectl-deployer/kube-supported-extensions"

@@ -2,16 +2,17 @@ import {
   IK8sDirDeploymentAction,
   ILog,
   TFolderHerdDeclaration,
-  TFolderHerdSpecs,
+  TFolderHerdDeclarations,
   THerdSectionDeclaration,
 } from "../../deployment-types"
 import { planFolderDeployment } from "./folder-deployment-planner"
-import {  TFileSystemPath } from "../../helpers/basic-types"
+import { TFileSystemPath } from "../../helpers/basic-types"
 import * as path from "path"
 import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-deployer/kube-supported-extensions"
 import { flatMapPolyfill } from "./flatmap-polyfill"
-import Bluebird = require("bluebird")
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan-factory"
+import { newProgrammerOops } from "oops-error"
+import Bluebird = require("bluebird")
 
 flatMapPolyfill()
 
@@ -24,8 +25,7 @@ export function FolderLoader(injected: TFolderLoaderDependencies){
 
   const logger = injected.logger
 
-  async function foldersLoader(sectionDeclaration: THerdSectionDeclaration, folders: TFolderHerdSpecs, imagesPath: string): Promise<IDeploymentPlan> {
-    let arrayOfPromises: Array<Promise<Array<IK8sDirDeploymentAction>>> = Object.entries(folders).flatMap(function([
+  async function foldersLoader(sectionDeclaration: THerdSectionDeclaration, folders: TFolderHerdDeclarations, imagesPath: string): Promise<Array<IDeploymentPlan>> {    let arrayOfPromises: Array<Promise<Array<IK8sDirDeploymentAction>>> = Object.entries(folders).flatMap(function([
                                                              herdFolderName,
                                                              herdSpec,
                                                            ]: [string, TFolderHerdDeclaration]) {
@@ -62,10 +62,17 @@ export function FolderLoader(injected: TFolderLoaderDependencies){
 
     let folderDeploymentActions: Array<Array<IK8sDirDeploymentAction>>  = await Bluebird.all(arrayOfPromises)
 
-    const plan = injected.planFactory.createDeploymentPlan(sectionDeclaration.herdSectionType)
 
-    folderDeploymentActions.flatMap((array)=> array.forEach(plan.addAction))
-    return plan
+    const plans = await Promise.all(folderDeploymentActions.flatMap(async (folderDeploymentActions)=> {
+      if(folderDeploymentActions.length===0){
+        throw newProgrammerOops("Zero actions loaded from herd section spec", folderDeploymentActions)
+      }
+
+      const plan = injected.planFactory.createDeploymentPlan(folderDeploymentActions[0].herdDeclaration)
+      await Promise.all(folderDeploymentActions.map(plan.addAction))
+      return plan
+    }))
+    return plans
   }
 
   return {

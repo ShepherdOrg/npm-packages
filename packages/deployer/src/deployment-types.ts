@@ -10,7 +10,6 @@ import {
 import { TDescriptorsByKind } from "./deployment-actions/kubectl-deployer/k8s-deployment-document-identifier"
 import { TFileSystemPath, TISODateString } from "./helpers/basic-types"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
-import { ReleaseStateStore } from "@shepherdorg/state-store"
 import { TDeploymentRollout } from "./deployment-actions/kubectl-deployer/create-kubectl-deployment-action"
 import { IDeploymentPlan, IDeploymentPlanExecutionResult } from "./deployment-plan/deployment-plan-factory"
 
@@ -62,6 +61,14 @@ export function isDockerImageHerdSpec(spec: TDockerImageHerdDeclaration | TFolde
   return Boolean((spec as TDockerImageHerdDeclaration).image)
 }
 
+export function isDockerDeploymentAction(spec: IAnyDeploymentAction): spec is IDockerDeploymentAction {
+  return Boolean((spec as IDockerDeploymentAction).dockerParameters)
+}
+
+export function isK8sDeploymentAction(spec: IExecutableAction): spec is IKubectlDeployAction {
+  return Boolean((spec as IKubectlDeployAction).descriptor)
+}
+
 export type TK8sDeploymentPlan2 = {
   dockerLabels?: TDockerImageLabels
   deployments?: {}
@@ -86,13 +93,13 @@ export type TImageInformation = TShepherdMetadata & {
 
 /// New types below
 
-export type TDockerImageHerdSpecs = { [imageKey: string]: OmitKey<TDockerImageHerdDeclaration> }
-export type TFolderHerdSpecs = { [imageKey: string]: OmitKey<TFolderHerdDeclaration> }
+export type TDockerImageHerdDeclarations = { [imageKey: string]: OmitKey<TDockerImageHerdDeclaration> }
+export type TFolderHerdDeclarations = { [imageKey: string]: OmitKey<TFolderHerdDeclaration> }
 
 export type THerdFileStructure = {
-  folders?: TFolderHerdSpecs
-  infrastructure?: TDockerImageHerdSpecs
-  images?: TDockerImageHerdSpecs
+  folders?: TFolderHerdDeclarations
+  infrastructure?: TDockerImageHerdDeclarations
+  images?: TDockerImageHerdDeclarations
 }
 export type TFolderMetadata = {
   //TODO This will need git information from directory containing configuration
@@ -146,14 +153,17 @@ export interface IDockerDeploymentAction extends IBaseDeploymentAction, IExecuta
   execute(deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState: FnDeploymentStateSave): Promise<IDockerDeploymentAction>
 }
 
+export interface IKubectlAction extends  IExecutableAction{
+  identifier: string
+  type: string
+  operation: string
+}
 
-export interface IKubectlDeployAction extends IExecutableAction {
+export interface IKubectlDeployAction extends IKubectlAction {
   deploymentRollouts: TDeploymentRollout[] // TODO Move into deploymentActions
   descriptor: string
   descriptorsByKind?: TDescriptorsByKind
   fileName: string,
-  identifier: string
-  operation: string
   origin: string
 
   state?: TDeploymentState
@@ -189,10 +199,7 @@ export type TActionExecutionOptions = TDeploymentOptions & {
   pushToUi: boolean
 }
 
-export type TDeploymentOrchestrationDependencies = {   // TODO: Need to create types for cmd and uiDataPusher
-  stateStore: ReturnType<typeof ReleaseStateStore>
-  cmd: any
-  logger: ILog
+export type TDeploymentOrchestrationDependencies = {
 }
 
 export type FnDeploymentStateSave = (stateSignatureObject: any) => Promise<TDeploymentState>

@@ -1,10 +1,9 @@
-import Bluebird = require("bluebird")
 import {
   IDockerDeploymentAction,
   IK8sDockerImageDeploymentAction,
   ILog,
   TDockerImageHerdDeclaration,
-  TDockerImageHerdSpecs,
+  TDockerImageHerdDeclarations,
   THerdSectionDeclaration,
   TImageInformation,
 } from "../../deployment-types"
@@ -15,10 +14,8 @@ import { extractShepherdMetadata } from "../add-shepherd-metadata"
 import { TFileSystemPath } from "../../helpers/basic-types"
 import { ILoadDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { parseImageUrl, TDockerImageUrl, TDockerImageUrlStruct } from "../../helpers/parse-image-url"
-import {
-  IDeploymentPlan,
-  IDeploymentPlanFactory,
-} from "../../deployment-plan/deployment-plan-factory"
+import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan-factory"
+import { newProgrammerOops } from "oops-error"
 
 
 export function parseDockerImageUrl(dockerImageUrl: TDockerImageUrl): TDockerImageUrlStruct {
@@ -33,13 +30,9 @@ interface TImageDeclarationsLoaderDependencies {
 }
 
 export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
-  let derivedDeployments: TDockerImageHerdSpecs = {}
+  let derivedDeployments: TDockerImageHerdDeclarations = {}
 
-
-  const planFactory = injected.planFactory
-
-
-  function loadDockerImageHerdSpecs(images: TDockerImageHerdSpecs, sectionDeclaration: THerdSectionDeclaration) {
+  function loadDockerImageHerdSpecs(images: TDockerImageHerdDeclarations, sectionDeclaration: THerdSectionDeclaration) {
 
     const createImageDeploymentActions = createImageDeploymentPlanner({
       kubeSupportedExtensions,
@@ -88,16 +81,26 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
     })
   }
 
-  async function imagesLoader(herdSectionSpec: THerdSectionDeclaration, images: TDockerImageHerdSpecs, _herdPath: TFileSystemPath): Promise<IDeploymentPlan> {
+
+  // Must unwrap and simplify this stuff
+  async function imagesLoader(herdSectionSpec: THerdSectionDeclaration,
+                              images: TDockerImageHerdDeclarations,
+                              _herdPath: TFileSystemPath): Promise<Array<IDeploymentPlan>> {
     let value: Array<Promise<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>>> = loadDockerImageHerdSpecs(images, herdSectionSpec)
-    let imageDeploymentPlans: Array<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> = await Bluebird.all(value)
+    let imageDeploymentActions: Array<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> = await Promise.all(value)
     let derivedDeploymentActionPromises = loadDockerImageHerdSpecs(derivedDeployments, herdSectionSpec)
-    imageDeploymentPlans = imageDeploymentPlans.concat(await Bluebird.all(derivedDeploymentActionPromises))
+    imageDeploymentActions = imageDeploymentActions.concat(await Promise.all(derivedDeploymentActionPromises))
 
-    const resultingPlan = planFactory.createDeploymentPlan(herdSectionSpec.herdSectionType)
+    let resultingPlans = await Promise.all(imageDeploymentActions.flatMap(async (deploymentActions) => {
+      if(deploymentActions.length===0){
+        throw newProgrammerOops("Zero actions loaded from herd section spec", herdSectionSpec)
+      }
 
-    imageDeploymentPlans.flatMap((array) => array.forEach(resultingPlan.addAction))
-    return resultingPlan
+      const resultingPlan = injected.planFactory.createDeploymentPlan(deploymentActions[0].herdDeclaration)
+      await Promise.all(deploymentActions.map(resultingPlan.addAction))
+      return resultingPlan
+    }))
+    return resultingPlans
   }
 
   return { imagesLoader }

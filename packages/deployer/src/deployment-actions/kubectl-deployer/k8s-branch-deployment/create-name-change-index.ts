@@ -1,10 +1,9 @@
 import * as path from "path"
-
-import yaml = require("js-yaml")
 import { newProgrammerOops } from "oops-error"
 import { TExtensionsMap } from "../kube-supported-extensions"
 import { TK8sPartialDescriptor } from "../k8s-document-types"
 import { TK8sDeploymentPlan2 } from "../../../deployment-types"
+import yaml = require("js-yaml")
 
 export type TStringMap = {
   [key: string]: string

@@ -1,10 +1,5 @@
-import {
-  THerdK8sMetadata,
-  THerdSpec,
-} from "@shepherdorg/metadata"
-import {
-  IAnyDeploymentAction, IExecutableAction,
-} from "../deployment-types"
+import { THerdK8sMetadata, THerdSpec } from "@shepherdorg/metadata"
+import { IAnyDeploymentAction } from "../deployment-types"
 
 
 export function mapUntypedDeploymentData(deploymentInfo: IAnyDeploymentAction | undefined): any { // TODO Type on output data here, depends on exported types from UI API

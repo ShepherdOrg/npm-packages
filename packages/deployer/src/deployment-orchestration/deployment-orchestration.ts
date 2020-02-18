@@ -1,31 +1,18 @@
-import * as path from "path"
-
-import { emptyArray } from "../helpers/ts-functions"
-import { writeFile } from "../helpers/promisified"
 import {
   IAnyDeploymentAction,
   IDeploymentOrchestration,
-  IDockerDeploymentAction,
-  IK8sDirDeploymentAction,
   IK8sDockerImageDeploymentAction,
   ILog,
   TActionExecutionOptions,
   TDeploymentOrchestrationDependencies,
 } from "../deployment-types"
-import { mapUntypedDeploymentData } from "../ui-mapping/map-untyped-deployment-data"
 import { TFileSystemPath } from "../helpers/basic-types"
-import { Oops } from "oops-error"
-import {
-  DeploymentPlanFactory,
-  IDeploymentPlan,
-  TK8sDeploymentPlansByKey,
-} from "../deployment-plan/deployment-plan-factory"
+import { IDeploymentPlan, TK8sDeploymentPlansByKey } from "../deployment-plan/deployment-plan-factory"
 import { flatMapPolyfill } from "../herd-loading/folder-loader/flatmap-polyfill"
 
 flatMapPolyfill()
 
-export function DeploymentOrchestration(injected: TDeploymentOrchestrationDependencies): IDeploymentOrchestration {
-  const stateStore = injected.stateStore
+export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDependencies): IDeploymentOrchestration {
 
   const deploymentPlans: Array<IDeploymentPlan> = []
 
@@ -74,56 +61,18 @@ export function DeploymentOrchestration(injected: TDeploymentOrchestrationDepend
 
   function printPlan(logger: ILog) {
     let anythingPlanned = deploymentPlans.reduce((anyChanges, deploymentPlan,)=>{
-      return anyChanges || deploymentPlan.printPlan(logger)}, false)
+      const planChanges = deploymentPlan.printPlan(logger)
+      return anyChanges || planChanges}, false)
     if(!anythingPlanned){
       logger.info('No plans to do anything this time')
     }
     return anythingPlanned
   }
 
-  function exportDeploymentActions(_exportDirectory: TFileSystemPath): Promise<void> {
-    return new Promise(function(resolve, reject) {
-      let fileWrites = emptyArray<any>()
-
-      // Object.entries(k8sDeploymentPlans as TK8sDeploymentPlansByKey).forEach(function([_key, plan]) {
-      //   plan.deploymentActions.forEach(function(deployment: IK8sDockerImageDeploymentAction) {
-      //     if (deployment.identifier) {
-      //       let writePath = path.join(
-      //         exportDirectory,
-      //         deployment.operation + "-" + deployment.identifier.toLowerCase() + ".yaml",
-      //       )
-      //       let writePromise = writeFile(writePath, deployment.descriptor.trim())
-      //       fileWrites.push(writePromise)
-      //     } // else its a followup action, such as rollout status or e2e test, which we do not export
-      //   })
-      // })
-      // Object.entries(dockerDeploymentPlan as TDockerDeploymentPlansByKey).forEach(function([
-      //                                                                                        _key,
-      //                                                                                        plan,
-      //                                                                                      ]: TDockerDeploymentPlanTuple) {
-      //   plan.deploymentActions.forEach(function(deploymentAction: IDockerDeploymentAction) {
-      //     if (!deploymentAction.forTestParameters) {
-      //       throw new Error("Missing forTestParameters!")
-      //     }
-      //     if (!deploymentAction.imageWithoutTag) {
-      //       throw new Error("Missing forTestParameters!")
-      //     }
-      //     let cmdLine = `docker run ${deploymentAction.forTestParameters.join(" ")}`
-      //
-      //     let writePath = path.join(
-      //       exportDirectory,
-      //       deploymentAction.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt",
-      //     )
-      //     let writePromise = writeFile(writePath, cmdLine)
-      //     fileWrites.push(writePromise)
-      //   })
-      // })
-      Promise.all(fileWrites)
-        .then(() => {
-          resolve()
-        })
-        .catch(reject)
-    })
+  async function exportDeploymentActions(_exportDirectory: TFileSystemPath): Promise<void> {
+    await Promise.all(deploymentPlans.map(async (deploymentPlan)=>{
+      return deploymentPlan.exportActions(_exportDirectory)
+    }))
   }
 
   return {

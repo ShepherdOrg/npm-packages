@@ -1,6 +1,6 @@
 import { expect } from "chai"
 
-import {expandEnv} from "./expandenv"
+import { expandEnv } from "./expandenv"
 
 describe("expand environment vars in string", function() {
   beforeEach(function() {

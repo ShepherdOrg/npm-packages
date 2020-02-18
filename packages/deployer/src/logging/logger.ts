@@ -1,4 +1,4 @@
-import {padLeft} from "./padleft"
+import { padLeft } from "./padleft"
 import { ILog } from "../deployment-types"
 
 let initialTime = new Date().getTime()

@@ -1,13 +1,13 @@
 import { expect } from "chai"
 
 import { planFolderDeployment } from "./folder-deployment-planner"
+import { IK8sDirDeploymentAction, TFolderHerdDeclaration, TFolderMetadata } from "../../deployment-types"
+import { TFileSystemPath } from "../../helpers/basic-types"
+import { TDeploymentType } from "@shepherdorg/metadata"
 
 const Path = require("path")
 
 import Bluebird = require("bluebird")
-import { TFolderHerdDeclaration, TFolderMetadata, IK8sDirDeploymentAction } from "../../deployment-types"
-import { TFileSystemPath } from "../../helpers/basic-types"
-import { TDeploymentType } from "@shepherdorg/metadata"
 
 type TTestPlan = {
   addedK8sDeploymentActions: { [key:string]: IK8sDirDeploymentAction}

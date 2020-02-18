@@ -8,7 +8,7 @@
     "types": ["node", "mocha"],
     "declaration": true,
     "module": "commonjs",
-    "noUnusedLocals": false,
+    "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strictNullChecks": true,
     "target": "ES6",

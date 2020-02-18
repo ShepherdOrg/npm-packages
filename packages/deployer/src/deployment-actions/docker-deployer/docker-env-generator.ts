@@ -1,4 +1,4 @@
-import * as fs from 'fs'
+import * as fs from "fs"
 import { TFileSystemPath } from "../../helpers/basic-types"
 
 const omit = require('lodash').omit

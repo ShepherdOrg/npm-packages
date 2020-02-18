@@ -1,4 +1,4 @@
-import { DeploymentPlanFactory, IDeploymentPlan } from "./deployment-plan-factory"
+import { DeploymentPlanFactory, IDeploymentPlan, IDeploymentPlanFactory } from "./deployment-plan-factory"
 import { clearEnv, setEnv } from "../deployment-actions/test-action-factory"
 import { expect } from "chai"
 import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
@@ -64,6 +64,7 @@ function createFakeKubeCtlAction(fakeLambda:FFakeLambda, deploymentRollouts: any
   }
   return {
     ...fakeAction,
+    type:"kubectl",
     deploymentRollouts: deploymentRollouts,
     descriptor: "so fake",
     fileName: "/path/to/nowhere",
@@ -79,7 +80,7 @@ function createFakeKubeCtlAction(fakeLambda:FFakeLambda, deploymentRollouts: any
 
 describe("Deployment plan", function() {
   let depPlan: IDeploymentPlan
-  let depPlanner: { createDeploymentPlan: (herdKey: string) => IDeploymentPlan }
+  let depPlanner: IDeploymentPlanFactory
   let fakeExecCmd: TFakeExec
   let fakeStateStore: TFakeStateStore
 
@@ -108,7 +109,7 @@ describe("Deployment plan", function() {
     const fakeLogger = CreateFakeLogger()
     depPlanner = DeploymentPlanFactory({ logger: fakeLogger, cmd: fakeExecCmd, stateStore: fakeStateStore, uiDataPusher: createFakeUIPusher()})
 
-    depPlan = depPlanner.createDeploymentPlan("testKeyOne")
+    depPlan = depPlanner.createDeploymentPlan({key:"testKeyOne"})
     faf = fakeLambdaFactory()
   })
 
@@ -125,27 +126,25 @@ describe("Deployment plan", function() {
 
   })
 
-  // TODO NEXT for migrations support, move derived action adding to plan or action
-  it.only("should forward metadata with execution plan", () => {
-    // TODO This image information passing around is a mess. Refactor and simplify!
-    console.log(`loadedPlan.addedDockerDeployerActions`, loadedPlan.addedDockerDeployerActions)
+  // describe("plan for image with migration reference", function() {
+  //
+  //   beforeEach(async ()=>{
+  //     const testActions = await createTestActions( k8sImageInformation)
+  //
+  //     await depPlan.addAction(testActions[0])
+  //   })
+  //
+  //   // TODO NEXT for migrations support, move derived action adding to plan or action
+  //   it.only("should add migration action to deployment plan", () => {
+  //     expect(depPlan.deploymentActions.length).to.equal(2)
+  //   })
+  //
+  //   it("should be a migration action", () => {
+  //     expect(depPlan.deploymentActions[1].planString()).to.equal("docker run ....")
+  //   })
+  //
+  // })
 
-    expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].herdDeclaration).to.deep.equal({
-      key: "testenvimage-migrations:0.0.0",
-      image: "testenvimage-migrations",
-      imageName: "testenvimage-migrations",
-      imagetag: "0.0.0",
-      dockerRepository: "testenvimage-migrations",
-      originalUrl: "testenvimage-migrations:0.0.0",
-      dockerNamespace: "",
-      dockerRegistry: "",
-      dockerTag: "0.0.0",
-      sectionDeclaration: {
-        herdSectionIndex: 2,
-        herdSectionType: "images" as THerdSectionType,
-      },
-    })
-  })
 
 
   describe('Regular actions', ()=>{

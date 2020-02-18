@@ -4,17 +4,11 @@ import * as path from "path"
 
 import { shepherdOptions } from "../../shepherd-options"
 import { createKubectlDeployAction } from "./create-kubectl-deployment-action"
-import {
-  ILog,
-  TImageInformation,
-  TK8sDeploymentPlan2,
-  IK8sDockerImageDeploymentAction,
-} from "../../deployment-types"
-import Bluebird = require("bluebird")
+import { IK8sDockerImageDeploymentAction, ILog, TImageInformation, TK8sDeploymentPlan2 } from "../../deployment-types"
 import { TExtensionsMap } from "./kube-supported-extensions"
-import { TarFile } from "@shepherdorg/metadata"
+import { TarFile, TK8sMetadata } from "@shepherdorg/metadata"
 import { TFileSystemPath } from "../../helpers/basic-types"
-import { TK8sMetadata } from "@shepherdorg/metadata"
+import Bluebird = require("bluebird")
 
 async function createImageBasedFileDeploymentAction(
   deploymentFileContent: TarFile,

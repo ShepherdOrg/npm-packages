@@ -1,5 +1,5 @@
 import { TDeploymentType } from "@shepherdorg/metadata/dist"
-import { THerdSectionType, IK8sDockerImageDeploymentAction } from "../../deployment-types"
+import { IK8sDockerImageDeploymentAction, THerdSectionType } from "../../deployment-types"
 
 
 type TK8sDockerImageDeploymentActionTestDataType = Omit<Omit<Omit<IK8sDockerImageDeploymentAction, "deploymentRollouts">, "execute">, "planString">

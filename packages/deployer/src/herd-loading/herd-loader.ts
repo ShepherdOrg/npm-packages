@@ -1,7 +1,6 @@
 import * as fs from "fs"
 
 import {
-  FDeploymentOrchestrationConstructor,
   IDeploymentOrchestration,
   ILog,
   THerdFileStructure,
@@ -35,7 +34,7 @@ export type THerdLoaderDependencies = {
   labelsLoader: TDockerMetadataLoader
 }
 
-export type FHerdDeclarationLoader = (herdSectionDeclaration: THerdSectionDeclaration, arg: any, imagesPath: string) => Promise<IDeploymentPlan>
+export type FHerdDeclarationLoader = (herdSectionDeclaration: THerdSectionDeclaration, arg: any, imagesPath: string) => Promise<Array<IDeploymentPlan>>
 
 export type TLoaderMap = { [herdType: string]: FHerdDeclarationLoader }
 
@@ -77,32 +76,24 @@ export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
       }
 
       const herdFilePath = path.dirname(fileName)
+
       await Promise.all(Object.entries(herd).map(async ([herdDeclarationType, herdDeclaration], idx) => {
           const herdSectionDeclaration: THerdSectionDeclaration = {
             herdSectionIndex: idx, herdSectionType: herdDeclarationType as THerdSectionType,
 
           }
           if (loaders[herdDeclarationType]) {
-            let loadHerdDeclarations: FHerdDeclarationLoader = loaders[herdDeclarationType]
-            await loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath)
-              .then(deploymentOrchestration.addDeploymentPlan)
+            let loadHerdDeclarations: FHerdDeclarationLoader = loaders[herdDeclarationType] // folders, infrastructure, or images
+            await loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath )
+              .then((plans)=>{
+                return Promise.all(plans.map(deploymentOrchestration.addDeploymentPlan))
+              })
 
           } else {
             throw new Error("No loader registered for type " + herdDeclarationType + JSON.stringify(herdDeclaration))
           }
         })
       )
-      // Bluebird.all(plannedActionPromises).then(async (deploymentActions)=>{
-      //   return deploymentActions.flatMap((allActions)=>{
-      //     return allActions.map((deploymentAction)=>{
-      //       return releasePlan.addDeploymentAction(deploymentAction)
-      //     })
-      //   })
-      // }).then(Bluebird.all).then((_addedActions)=>{
-      //   // All add deployment actions should be resolved
-      //   resolve( releasePlan)
-      // }).catch(reject)
-      // TODO MUST TODO for migrations support, handle derived (secondary actions) in deployment plan or action
       return deploymentOrchestration
 
     } else {

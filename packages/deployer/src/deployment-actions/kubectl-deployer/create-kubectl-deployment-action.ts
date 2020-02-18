@@ -175,10 +175,10 @@ export function createKubectlDeployAction(origin: string, deploymentFileDescript
 
     let documentDeploymentAction: IKubectlDeployAction = {
       planString(){
-        return `-  kubectl ${operation} ${loadedDescriptor.identifyingString}`
+        return `kubectl ${operation} ${loadedDescriptor.identifyingString}`
       },
       async execute(deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState) {
-        return executeKubectlDeploymentAction(documentDeploymentAction, deploymentOptions, cmd, logger, saveDeploymentState)
+        return await executeKubectlDeploymentAction(documentDeploymentAction, deploymentOptions, cmd, logger, saveDeploymentState)
       },
       operation: operation,
       pushToUI: true,
@@ -188,6 +188,7 @@ export function createKubectlDeployAction(origin: string, deploymentFileDescript
       fileName,
       identifier: loadedDescriptor.identifyingString,
       descriptorsByKind: loadedDescriptor.descriptorsByKind,
+      type: "kubectl"
     }
 
     return documentDeploymentAction

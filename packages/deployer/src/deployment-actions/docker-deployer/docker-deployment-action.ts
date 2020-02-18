@@ -1,15 +1,14 @@
 import {
+  IDockerDeploymentAction,
   ILog,
   TActionExecutionOptions,
   TDeploymentOptions,
-  IDockerDeploymentAction,
   TImageInformation,
 } from "../../deployment-types"
 import { expandEnv } from "../../template/expandenv"
 import { expandTemplate } from "../../template/expandtemplate"
 import { TNamedValue } from "../../helpers/basic-types"
-import { TDeployerMetadata } from "@shepherdorg/metadata"
-import { TDeploymentState } from "@shepherdorg/metadata"
+import { TDeployerMetadata, TDeploymentState } from "@shepherdorg/metadata"
 import * as path from "path"
 import { extendedExec, writeFile } from "../../helpers/promisified"
 
@@ -32,6 +31,7 @@ export async function executeDeployerAction(deployerAction: IDockerDeploymentAct
       })
       try {
         // logger.enterDeployment(plan.origin + '/' + plan.identifier);
+        logger.info(deployerAction.planString())
         logger.info(stdout)
         // logger.exitDeployment(plan.origin + '/' + plan.identifier);
 
@@ -70,8 +70,10 @@ export async function createDockerDeploymentActions(imageInformation: TImageInfo
     imageInformation.imageDefinition.dockerImage ||
     imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
 
+  let operation = "run"
+  let command = shepherdMetadata.deployCommand || "deploy"
   const deploymentAction: IDockerDeploymentAction = {
-    descriptor: "", // TODO: Validate descriptor use here
+    descriptor: "",
     env: imageInformation.env,
     displayName: displayName,
     metadata: shepherdMetadata as TDeployerMetadata,
@@ -81,13 +83,13 @@ export async function createDockerDeploymentActions(imageInformation: TImageInfo
     imageWithoutTag: dockerImageWithVersion.replace(/:.*/g, ""), // For regression testing
     origin: herdKey,
     type: "deployer",
-    operation: "run",
+    operation: operation,
     pushToUI: true,
-    command: "deploy",
+    command: command,
     identifier: herdKey,
     herdKey: herdKey,
     planString(): string {
-      return "docker run UNFINISHED IMPLEMENTATION"
+      return `docker ${operation} ${dockerImageWithVersion} ${command}`
     },
     async execute(deploymentOptions: TDeploymentOptions & { waitForRollout: boolean; pushToUi: boolean }, cmd: any, logger: ILog, saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>): Promise<IDockerDeploymentAction> {
       return await executeDeployerAction(deploymentAction, deploymentOptions, cmd, logger, saveDeploymentState)
@@ -100,7 +102,6 @@ export async function createDockerDeploymentActions(imageInformation: TImageInfo
 
   let envList = ["ENV={{ ENV }}"]
 
-  deploymentAction.command = shepherdMetadata.deployCommand || deploymentAction.command
   if (shepherdMetadata.environmentVariablesExpansionString) {
     const envLabel = expandEnv(shepherdMetadata.environmentVariablesExpansionString)
     envList = envList.concat(envLabel.split(","))

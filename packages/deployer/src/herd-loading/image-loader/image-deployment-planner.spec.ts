@@ -1,6 +1,6 @@
 import { expect } from "chai"
 import { IDockerDeploymentAction, IK8sDockerImageDeploymentAction, TImageInformation } from "../../deployment-types"
-import { clearEnv, loadFirstTestPlan, createTestActions, setEnv } from "../../deployment-actions/test-action-factory"
+import { clearEnv, createTestActions, loadFirstTestPlan, setEnv } from "../../deployment-actions/test-action-factory"
 
 describe("Docker image plan loader", function() {
   let testEnv = {

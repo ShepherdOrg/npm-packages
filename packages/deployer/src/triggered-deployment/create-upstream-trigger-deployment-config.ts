@@ -1,5 +1,5 @@
 import { newProgrammerOops } from "oops-error"
-import { ILog, TDockerImageHerdSpecs, THerdFileStructure } from "../deployment-types"
+import { ILog, TDockerImageHerdDeclarations, THerdFileStructure } from "../deployment-types"
 import { TFileSystemPath } from "../helpers/basic-types"
 import { parseImageUrl } from "../helpers/parse-image-url"
 
@@ -34,7 +34,7 @@ export function CreateUpstreamTriggerDeploymentConfig(logger: ILog): TFeatureDep
       return Boolean(featureDeploymentConfig.branchName)
     },
     asHerd():THerdFileStructure {
-      let images: TDockerImageHerdSpecs = {}
+      let images: TDockerImageHerdDeclarations = {}
 
       if (!featureDeploymentConfig.isUpstreamFeatureDeployment()) {
         throw new Error(

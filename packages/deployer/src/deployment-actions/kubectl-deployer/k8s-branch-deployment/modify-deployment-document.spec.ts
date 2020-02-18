@@ -1,7 +1,7 @@
 import * as JsDiff from "diff"
+import { Change } from "diff"
 import * as fs from "fs"
 import { modifyDeploymentDocument } from "./modify-deployment-document"
-import { Change } from "diff"
 
 const expect = require("expect.js")
 const CreateUpstreamTriggerDeploymentConfig = require('../../../triggered-deployment/create-upstream-trigger-deployment-config').CreateUpstreamTriggerDeploymentConfig

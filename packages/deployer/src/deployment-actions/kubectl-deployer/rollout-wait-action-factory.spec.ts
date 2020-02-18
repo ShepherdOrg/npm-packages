@@ -1,11 +1,10 @@
 import { expect } from "chai"
 import { RolloutWaitActionFactory } from "./rollout-wait-action-factory"
 
-import { createFakeExec } from "../../test-tools/fake-exec"
+import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { CreateFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
 import { IExecutableAction, TActionExecutionOptions } from "../../deployment-types"
-import { TFakeExec } from "../../test-tools/fake-exec"
 
 
 describe("K8S deployment rollout status wait action factory", function() {

@@ -16,6 +16,7 @@ import {
   IDeploymentPlanFactory,
   TDeploymentPlanDependencies,
 } from "./deployment-plan/deployment-plan-factory"
+import { IDeploymentOrchestration } from "./deployment-types"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -133,6 +134,7 @@ if ((exportDocuments || dryRun) && !outputDirectory) {
 let stateStoreBackend: IStorageBackend
 
 export type IPushToShepherdUI = { pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined> }
+
 let uiDataPusher: IPushToShepherdUI // TODO: Need proper type export form uiDataPusher
 
 if (process.env.SHEPHERD_PG_HOST) {
@@ -213,10 +215,10 @@ stateStoreBackend
       process.exit(0)
     }
 
-    logger.info("Shepherding herd from file " + herdFilePath + " for environment " + environment)
+    logger.info("Calculating deployment of herd from file " + herdFilePath + " for environment " + environment)
     loader
       .loadHerd(herdFilePath, environment)
-      .then(function(plan: any) {
+      .then(function(plan: IDeploymentOrchestration) {
         plan.printPlan(logger)
         if (exportDocuments) {
           logger.info("Testrun mode set - exporting all deployment documents to " + outputDirectory)
@@ -231,15 +233,16 @@ stateStoreBackend
               terminateProcess(255)
             })
         } else {
+          logger.info("Executing deployment plan...")
           plan
-            .executePlan({
+            .executePlans({
               dryRun: dryRun,
               dryRunOutputDir: outputDirectory,
               pushToUi: pushToUi,
               waitForRollout: waitForRollout,
             })
             .then(function() {
-              logger.info("Plan execution complete. Exiting shepherd.")
+              logger.info("...plan execution complete. Exiting shepherd.")
               setTimeout(() => {
                 terminateProcess(0)
               }, 1000)
