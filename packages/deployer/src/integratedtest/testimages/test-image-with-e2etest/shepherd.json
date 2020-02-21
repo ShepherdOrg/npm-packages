@@ -1,6 +1,0 @@
-{
-  "displayName": "Test image for end to end test support",
-  "deployCommand": "ls",
-  "rollbackCommand": "cat",
-  "end2endTestCommand": "e2etest"
-}

@@ -1,0 +1,30 @@
+{
+  "displayName": "Migration testimage newformat using environment value",
+  "environment": [
+    {
+      "name": "MIGRATION_ENV_VARIABLE_TWO",
+      "value": "fixedValue",
+      "secret": true
+    }
+  ],
+  "deployCommand": "ls",
+  "rollbackCommand": "cat",
+  "preDeployTest": {
+    "command": "pretest",
+    "environment": [
+      {
+        "name": "YOU_ARE_IN_PRETEST_MODE",
+        "value": "true"
+      }
+    ]
+  },
+  "postDeployTest": {
+    "command": "posttest"
+  },
+  "hyperlinks": [
+    {
+      "title": "Sources for this",
+      "url": "https://github.com/shepherdorg/npm-packages/packages/deployer/src/integratedtest/testimages/test-image-with-e2etest"
+    }
+  ]
+}

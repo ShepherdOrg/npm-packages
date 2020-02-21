@@ -1,6 +1,7 @@
 import { ILog, THerdSectionType, TImageInformation } from "../deployment-types"
 import { extractShepherdMetadata } from "../herd-loading/add-shepherd-metadata"
 import { createImageDeploymentPlanner } from "../herd-loading/image-loader/image-deployment-planner"
+import { createDeploymentTestActionFactory } from "../herd-loading/image-loader/deployment-test-action"
 
 function createTestDeploymentActions() {
   let fakeLogger = {
@@ -20,6 +21,7 @@ function createTestDeploymentActions() {
         "herdSectionIndex": 1,
         "herdSectionType": THerdSectionType.images,
       },
+      deploymentTestActionFactory: createDeploymentTestActionFactory()
     },
   ).createDeploymentActions
 }
@@ -58,7 +60,7 @@ export async function clearEnv(envObj: typeof process.env) {
 
 
 export const k8sImageInformation : TImageInformation = {
-  imageDefinition: {
+  imageDeclaration: {
     key: "k8simage",
     image: "k8sTestImage",
     imagetag: "0.1.0",
@@ -79,7 +81,7 @@ export const k8sImageInformation : TImageInformation = {
   env: 'testenv'
 }
 export const testEnvImageMigrations: TImageInformation = {
-  imageDefinition: {
+  imageDeclaration: {
     key: "testimage",
     image: "testenvimage-migrations",
     imagetag: "0.0.0",

@@ -27,7 +27,7 @@
     "contract-test": "mocha -R dot --exit --require ts-node/register --recursive './src/**/*.contract-spec.ts'",
     "contract-tdd": "mocha --exit --require ts-node/register --recursive  --watch-extensions ts,js --watch  './src/**/*.contract-spec.ts'",
     "test-disabled": "mocha --exit --require ts-node/register --recursive ./**/*.spec.ts",
-    "tdd": "mocha -R dot --require ts-node/register --recursive --watch-extensions ts,js --watch ./**/*.spec.ts",
+    "tdd": "mocha -R spec --require ts-node/register --recursive --watch-extensions ts,js --watch './**/*.spec.ts'",
     "test": "mocha --require ts-node/register --recursive ./**/*.spec.ts",
     "prepush": "yarn ci",
     "format": "prettier --ignore-path ../../.prettierignore --write 'lib/**/*.{ts,js}'",

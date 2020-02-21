@@ -3,7 +3,7 @@ import { ILog } from ".";
 
 export interface TDockerInspectMetadata {
   dockerLabels: TDockerImageLabels
-  imageDefinition: TDockerImageReference
+  imageDeclaration: TDockerImageReference
 }
 
 export type TDockerImageReference = {
@@ -21,7 +21,7 @@ function extractImageLabels(
   let Labels = ContainerConfig.Labels
 
   let imageMetadata = {
-    imageDefinition: imageDef,
+    imageDeclaration: imageDef,
     dockerLabels: Labels,
   }
   if (Labels) {

@@ -6,17 +6,33 @@ function emptyVariable<T>() {
   return undefined as unknown as T
 }
 
-export type TFakeExec = { nextResponse: { err: string | undefined; success: string | undefined }; extendedExec: (command: string, params: string[], options: Object, err: FExecutionCallback, success: FExecutionCallback) => void; onExec: undefined; executedCommands: any[] }
+export type TFakeExec = {
+  nextResponse: {
+    err: string | undefined;
+    success: string | undefined
+  };
+  setErr: (errResponse:string)=>TFakeExec
+  extendedExec: (command: string, params: string[], options: Object, err: FExecutionCallback, success: FExecutionCallback) => void;
+  onExec: undefined;
+  executedCommands: any[]
+}
 
-export  function createFakeExec() : TFakeExec {
+export function createFakeExec(): TFakeExec {
+  let nextResponse = {
+    err: emptyVariable<string | undefined>(),
+    success: "All went fine",
+  }
+  let executedCommands = emptyArray<any>()
+
   let fakeExec = {
-    executedCommands: emptyArray<any>(),
-    nextResponse: {
-      err: emptyVariable<string | undefined>(),
-      success: emptyVariable<string | undefined>(),
+    executedCommands: executedCommands,
+    nextResponse: nextResponse,
+    onExec: undefined,
+    setErr(errResponse: string) {
+      nextResponse.err = errResponse
+      return fakeExec
     },
-    onExec:undefined,
-    extendedExec: function(command:string, params:string[], options:Object, err:FExecutionCallback, success:FExecutionCallback) {
+    extendedExec(command: string, params: string[], options: Object, err: FExecutionCallback, success: FExecutionCallback) {
       fakeExec.executedCommands.push({
         command: command,
         params: params,
@@ -28,14 +44,14 @@ export  function createFakeExec() : TFakeExec {
         // @ts-ignore
         fakeExec.onExec(command, params, options, err, success)
       } else if (fakeExec.nextResponse) {
-        if (fakeExec.nextResponse.success) {
-          success(fakeExec.nextResponse.success as string)
-        } else {
+        if (fakeExec.nextResponse.err) {
           err(
             fakeExec.nextResponse.err ||
-              "No execution response defined for " +
-                JSON.stringify({ command, params, options })
+            "No execution response defined for " +
+            JSON.stringify({ command, params, options }),
           )
+        } else if (fakeExec.nextResponse.success) {
+          success(fakeExec.nextResponse.success as string)
         }
       } else {
         expect.fail("No response defined!!!!")

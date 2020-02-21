@@ -5,6 +5,7 @@ import { PgConfig, PostgresStore as PgBackend } from "@shepherdorg/postgres-back
 import script from "../test-tools/script-test"
 import { TFileSystemPath } from "../helpers/basic-types"
 import { base64Encode } from "../template/base64-env-subst"
+import { expect } from "chai"
 
 const fs = require("fs")
 const path = require("path")
@@ -155,7 +156,36 @@ describe("running shepherd", function() {
     })
   })
 
-  xit("should rollback deployment that fails end2endTest", () => {
+  describe("postDeployTest support", function() {
+
+    beforeEach(() => {
+      delete process.env.SHEPHERD_UI_API_ENDPOINT
+      let shepherdStoreDir = "./.build/.shepherdstore"
+      cleanDir(shepherdStoreDir)
+    })
+
+    it.only("should fail on post test and attempt to rollback to previous version", function(done) {
+      script
+        .execute(shepherdTestHarness, ["--fakerun", "src/herd-loading/testdata/deploytestherd/herd.yaml"], {
+          env: _.extend({}, process.env, {
+            NO_REBUILD_IMAGES: true,
+            SHEPHERD_PG_HOST: "",
+          }),
+          debug: true, // debug:false suppresses stdout of process
+        })
+        .stdout()
+        .shouldContain("Post deploy test failed, rolling back to previous version.")
+        .done(function() {
+          done()
+        })
+    })
+
+
+    it("should rollback deployment that fails postDeployTest", () => {
+
+      expect.fail('Implement!')
+    })
+
   })
 
   xit("should execute infrastructure deployers first to completion", () => {

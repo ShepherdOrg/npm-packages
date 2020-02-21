@@ -79,7 +79,7 @@ export type TK8sDeploymentPlan2 = {
 
 
 export type TShepherdMetadata = {
-  imageDefinition: TDockerImageHerdDeclaration
+  imageDeclaration: TDockerImageHerdDeclaration
   shepherdMetadata?: TImageMetadata
 }
 
@@ -124,6 +124,15 @@ export interface IExecutableAction {
     logger: ILog,
     saveDeploymentState: FnDeploymentStateSave
   ): Promise<IExecutableAction>
+
+}
+
+export type TRollbackResult ={
+
+}
+
+export interface IRollbackActionExecution extends IExecutableAction{
+  rollback(): TRollbackResult
 }
 
 export interface IBaseDeploymentAction {
@@ -136,21 +145,22 @@ export interface IBaseDeploymentAction {
   version?: string
 }
 
-export interface IDockerDeploymentAction extends IBaseDeploymentAction, IExecutableAction {
-  herdDeclaration: TDockerImageHerdDeclaration;
-  metadata: TDeployerMetadata;
-
+export interface IDockerExecutableAction extends IExecutableAction{
   command: string;
   descriptor: string;
-  displayName: string;
   dockerParameters: string[];
-  forTestParameters?: string[];
-  identifier: string;
-  imageWithoutTag?: string;
   operation: string;
   origin: string;
+  imageWithoutTag?: string;
+  forTestParameters?: string[];
+  identifier: string;
+  execute(deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState: FnDeploymentStateSave): Promise<IDockerExecutableAction>
+}
 
-  execute(deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState: FnDeploymentStateSave): Promise<IDockerDeploymentAction>
+export interface IDockerDeploymentAction extends IDockerExecutableAction, IBaseDeploymentAction {
+  displayName: string;
+  herdDeclaration: TDockerImageHerdDeclaration;
+  metadata: TDeployerMetadata;
 }
 
 export interface IKubectlAction extends  IExecutableAction{

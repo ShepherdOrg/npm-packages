@@ -1,0 +1,4 @@
+images:
+    test-image:
+        image: test-deployer-image-with-deployment-tests
+        imagetag: 0.7.77

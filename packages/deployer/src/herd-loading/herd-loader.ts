@@ -34,7 +34,11 @@ export type THerdLoaderDependencies = {
   labelsLoader: TDockerMetadataLoader
 }
 
-export type FHerdDeclarationLoader = (herdSectionDeclaration: THerdSectionDeclaration, arg: any, imagesPath: string) => Promise<Array<IDeploymentPlan>>
+export type FHerdDeclarationLoader = (
+  herdSectionDeclaration: THerdSectionDeclaration,
+  arg: any,
+  imagesPath: string
+) => Promise<Array<IDeploymentPlan>>
 
 export type TLoaderMap = { [herdType: string]: FHerdDeclarationLoader }
 
@@ -42,9 +46,7 @@ export interface THerdLoader {
   loadHerd(herdFilePath: TFileSystemPath, environment?: string): Promise<IDeploymentOrchestration>
 }
 
-
 export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
-
   const featureDeploymentConfig = injected.featureDeploymentConfig
   const logger = injected.logger
   let folderLoader = FolderLoader({ logger, planFactory: injected.planFactory })
@@ -68,7 +70,6 @@ export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
         herd = YAML.load(fs.readFileSync(fileName, "utf8"))
       }
 
-
       let loaders: TLoaderMap = {
         infrastructure: imagesLoaderObj.imagesLoader,
         folders: folderLoader.foldersLoader,
@@ -77,28 +78,25 @@ export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
 
       const herdFilePath = path.dirname(fileName)
 
-      await Promise.all(Object.entries(herd).map(async ([herdDeclarationType, herdDeclaration], idx) => {
+      await Promise.all(
+        Object.entries(herd).map(async ([herdDeclarationType, herdDeclaration], idx) => {
           const herdSectionDeclaration: THerdSectionDeclaration = {
-            herdSectionIndex: idx, herdSectionType: herdDeclarationType as THerdSectionType,
-
+            herdSectionIndex: idx,
+            herdSectionType: herdDeclarationType as THerdSectionType,
           }
           if (loaders[herdDeclarationType]) {
             let loadHerdDeclarations: FHerdDeclarationLoader = loaders[herdDeclarationType] // folders, infrastructure, or images
-            await loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath )
-              .then((plans)=>{
-                return Promise.all(plans.map(deploymentOrchestration.addDeploymentPlan))
-              })
-
+            await loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath).then(plans => {
+              return Promise.all(plans.map(deploymentOrchestration.addDeploymentPlan))
+            })
           } else {
             throw new Error("No loader registered for type " + herdDeclarationType + JSON.stringify(herdDeclaration))
           }
         })
       )
       return deploymentOrchestration
-
     } else {
       throw new Error(fileName + " does not exist!")
-
     }
   }
 

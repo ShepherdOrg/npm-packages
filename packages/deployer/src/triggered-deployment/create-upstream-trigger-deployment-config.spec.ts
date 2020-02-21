@@ -2,7 +2,7 @@ import {
   CreateUpstreamTriggerDeploymentConfig,
   TFeatureDeploymentConfig,
 } from "./create-upstream-trigger-deployment-config"
-import { CreateFakeLogger } from "../test-tools/fake-logger"
+import { createFakeLogger } from "../test-tools/fake-logger"
 
 const expect = require("chai").expect
 
@@ -28,7 +28,7 @@ describe("Upstream triggered deployment config ", function() {
     let config : TFeatureDeploymentConfig
 
     before(() => {
-      config = CreateUpstreamTriggerDeploymentConfig(CreateFakeLogger())
+      config = CreateUpstreamTriggerDeploymentConfig(createFakeLogger())
       config.loadFromEnvironment("herdFilePath", configObject)
     })
 
@@ -66,7 +66,7 @@ describe("Upstream triggered deployment config ", function() {
     let config : TFeatureDeploymentConfig
 
     before(() => {
-      config = CreateUpstreamTriggerDeploymentConfig(CreateFakeLogger())
+      config = CreateUpstreamTriggerDeploymentConfig(createFakeLogger())
       config.loadFromEnvironment("herdFilePath", configObject)
     })
 
@@ -92,7 +92,7 @@ describe("Upstream triggered deployment config ", function() {
     let config : TFeatureDeploymentConfig
 
     before(() => {
-      config = CreateUpstreamTriggerDeploymentConfig(CreateFakeLogger())
+      config = CreateUpstreamTriggerDeploymentConfig(createFakeLogger())
       config.loadFromEnvironment("herdFilePath", configObject)
     })
 

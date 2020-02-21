@@ -14,7 +14,7 @@
     "md5-file": "^4.0.0"
   },
   "peerDependencies": {
-    "@shepherdorg/metadata": "^2.0.0"
+    "@shepherdorg/metadata": "^3.0.0"
   },
   "devDependencies": {
     "@shepherdorg/metadata": "^3.0.0",

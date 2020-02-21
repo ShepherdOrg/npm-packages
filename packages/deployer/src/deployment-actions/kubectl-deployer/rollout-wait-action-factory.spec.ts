@@ -3,8 +3,9 @@ import { RolloutWaitActionFactory } from "./rollout-wait-action-factory"
 
 import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { CreateFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
 import { IExecutableAction, TActionExecutionOptions } from "../../deployment-types"
+import { defaultTestExecutionOptions } from "../../herd-loading/image-loader/deployment-test-action.spec"
 
 
 describe("K8S deployment rollout status wait action factory", function() {
@@ -16,7 +17,7 @@ describe("K8S deployment rollout status wait action factory", function() {
 
   before(()=>{
     fakeStateStore = createFakeStateStore()
-    fakeLogger = CreateFakeLogger()
+    fakeLogger = createFakeLogger()
 
     fakeExec = createFakeExec()
 
@@ -39,13 +40,7 @@ describe("K8S deployment rollout status wait action factory", function() {
     before(async ()=>{
       fakeLogger.logStatements = []
       fakeExec.executedCommands = []
-      let deploymentOptions: TActionExecutionOptions = {
-        pushToUi: false,
-        waitForRollout: true,
-        dryRun: false,
-        dryRunOutputDir: undefined
-      }
-      return execResult = await rolloutAction.execute(deploymentOptions, fakeExec, fakeLogger, fakeStateStore.saveDeploymentState )
+      return execResult = await rolloutAction.execute(defaultTestExecutionOptions, fakeExec, fakeLogger, fakeStateStore.saveDeploymentState )
     })
 
     it("should execute if action execution options state that we want to wait for rollout", () => {

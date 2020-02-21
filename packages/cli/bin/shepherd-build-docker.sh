@@ -64,7 +64,8 @@ if has_param '--help' "$@"; then
 fi
 
 if has_param '--version' "$@"; then
-	outputUsage
+	PACKAGE_VERSION=$(node -p -e "require(\"${THISDIR}\" + '/../package.json').version")
+    echo "cli v${PACKAGE_VERSION}"
 	exit 0
 fi
 

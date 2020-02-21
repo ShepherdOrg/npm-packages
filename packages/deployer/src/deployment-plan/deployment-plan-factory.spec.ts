@@ -2,7 +2,7 @@ import { DeploymentPlanFactory, IDeploymentPlan, IDeploymentPlanFactory } from "
 import { clearEnv, setEnv } from "../deployment-actions/test-action-factory"
 import { expect } from "chai"
 import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
-import { CreateFakeLogger } from "../test-tools/fake-logger"
+import { createFakeLogger } from "../test-tools/fake-logger"
 import { IExecutableAction, IKubectlDeployAction, ILog, TDeploymentOptions } from "../deployment-types"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { emptyArray } from "../helpers/ts-functions"
@@ -106,7 +106,7 @@ describe("Deployment plan", function() {
     fakeStateStore = createFakeStateStore()
     fakeStateStore.nextState = { new: false, modified: true }
 
-    const fakeLogger = CreateFakeLogger()
+    const fakeLogger = createFakeLogger()
     depPlanner = DeploymentPlanFactory({ logger: fakeLogger, cmd: fakeExecCmd, stateStore: fakeStateStore, uiDataPusher: createFakeUIPusher()})
 
     depPlan = depPlanner.createDeploymentPlan({key:"testKeyOne"})

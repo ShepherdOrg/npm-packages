@@ -12,13 +12,13 @@ import {
 } from "../deployment-types"
 import { executeKubectlDeploymentAction } from "../deployment-actions/kubectl-deployer/create-kubectl-deployment-action"
 import { emptyArray } from "../helpers/ts-functions"
-import { CreateFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
 import {
   TDockerDeploymentActionStruct,
   TestActions,
   TK8sDockerImageDeploymentActionStruct,
 } from "../herd-loading/testdata/testActions"
-import { executeDeployerAction } from "../deployment-actions/docker-deployer/docker-deployment-action"
+import { executeDockerAction } from "../deployment-actions/docker-deployer/docker-deployment-action"
 import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { DeploymentPlanFactory, TDeploymentPlanDependencies } from "../deployment-plan/deployment-plan-factory"
@@ -48,7 +48,7 @@ export function createDockerTestDeployerAction(
       return `test action docker run ${serialisedAction.identifier} ${serialisedAction.command}`
     },
     execute(deploymentOptions: TActionExecutionOptions, cmd: string, logger: ILog, saveDeploymentState: FnDeploymentStateSave) {
-      return executeDeployerAction(testAction, deploymentOptions, cmd, logger, saveDeploymentState)
+      return executeDockerAction(testAction, deploymentOptions, cmd, logger, saveDeploymentState)
     },
     testInstance: true,
     ...serialisedAction,
@@ -101,7 +101,7 @@ describe("Deployment orchestration", function() {
     fakeExec = createFakeExec()
     fakeUiDataPusher = createFakeUIPusher()
     fakeStateStore = createFakeStateStore()
-    fakeLogger = CreateFakeLogger()
+    fakeLogger = createFakeLogger()
     deploymentOrchestration = DeploymentOrchestration({
       stateStore: fakeStateStore,
       cmd: fakeExec,
@@ -175,7 +175,7 @@ describe("Deployment orchestration", function() {
       })
 
       it("should print plan stating no changes", function() {
-        let outputLogger = CreateFakeLogger()
+        let outputLogger = createFakeLogger()
         deploymentOrchestration.printPlan(outputLogger)
         // outputLogger.printAllStatements()
         expect(outputLogger.logStatements.length).to.equal(1)
@@ -372,7 +372,7 @@ done`,
       let saveError: Error, executedAction: IK8sDirDeploymentAction
 
       beforeEach(async function() {
-        fakeExec.nextResponse.err = "not found"
+        fakeExec.setErr( "not found")
         return deploymentOrchestration
           .addDeploymentPlan(await createK8sTestPlan("Namespace_monitors"))
           .then(function() {
@@ -435,7 +435,7 @@ done`,
       })
 
       it("should print plan for modified deployments", function() {
-        let outputLogger = CreateFakeLogger()
+        let outputLogger = createFakeLogger()
         deploymentOrchestration.printPlan(outputLogger)
         expect(outputLogger.logStatements.length).to.equal(4)
         expect(outputLogger.logStatements[0].data[0]).to.equal("Deploying testenvimage-migrations:0.0.0")
@@ -447,7 +447,7 @@ done`,
 
     describe("printing with no planned actions", function() {
       it("should print meaningful message", () => {
-        let outputLogger = CreateFakeLogger()
+        let outputLogger = createFakeLogger()
         deploymentOrchestration.printPlan(outputLogger)
         expect(outputLogger.log).to.contain('No plans to do anything this time')
       })

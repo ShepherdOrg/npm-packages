@@ -19,7 +19,7 @@ async function createImageBasedFileDeploymentAction(
   env: string
 ): Promise<IK8sDockerImageDeploymentAction> {
   let origin =
-    imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag + ":tar:" + fileName
+    imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag + ":tar:" + fileName
 
   // Support mustache template expansion as well as envsubst template expansion
 
@@ -27,10 +27,10 @@ async function createImageBasedFileDeploymentAction(
     process.env.TPL_DOCKER_IMAGE = "fixed-for-testing-purposes"
   } else {
     process.env.TPL_DOCKER_IMAGE =
-      imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
+      imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag
   }
 
-  let operation = imageInformation.imageDefinition.delete ? "delete" : "apply"
+  let operation = imageInformation.imageDeclaration.delete ? "delete" : "apply"
 
   const documentDeploymentAction = createKubectlDeployAction(
     origin,
@@ -49,11 +49,11 @@ async function createImageBasedFileDeploymentAction(
 
   const newK8sAction: IK8sDockerImageDeploymentAction = Object.assign(documentDeploymentAction, {
     env: env,
-    herdDeclaration: imageInformation.imageDefinition,
+    herdDeclaration: imageInformation.imageDeclaration,
     metadata: imageInformation.shepherdMetadata as TK8sMetadata,
-    version: imageInformation.imageDefinition.imagetag,
+    version: imageInformation.imageDeclaration.imagetag,
     type: "k8s",
-    herdKey: imageInformation.imageDefinition.key,
+    herdKey: imageInformation.imageDeclaration.key,
   })
   return newK8sAction
 }
@@ -64,7 +64,7 @@ export function createKubectlDeploymentActions(
   logger:ILog
 ): Promise<Array<IK8sDockerImageDeploymentAction>> {
   const shepherdMetadata: any = imageInformation.shepherdMetadata
-  const herdKey: string = imageInformation.imageDefinition.key
+  const herdKey: string = imageInformation.imageDeclaration.key
 
   const displayName: string = imageInformation?.shepherdMetadata?.displayName || ''
 
@@ -79,7 +79,7 @@ export function createKubectlDeploymentActions(
 
   let deploymentActions = emptyArray<any>()
 
-  let branchDeploymentEnabled = imageInformation.imageDefinition.featureDeployment
+  let branchDeploymentEnabled = imageInformation.imageDeclaration.featureDeployment
 
   const branchModificationParams: TBranchModificationParams = {
     shouldModify: false,
@@ -87,19 +87,19 @@ export function createKubectlDeploymentActions(
 
   if (branchDeploymentEnabled) {
     branchModificationParams.ttlHours =
-      imageInformation.imageDefinition.timeToLiveHours || branchModificationParams.ttlHours
+      imageInformation.imageDeclaration.timeToLiveHours || branchModificationParams.ttlHours
 
     // Feature deployment specified in herdfile
     branchModificationParams.branchName =
-      imageInformation.imageDefinition.branchName || imageInformation.imageDefinition.key
+      imageInformation.imageDeclaration.branchName || imageInformation.imageDeclaration.key
     branchModificationParams.origin =
-      imageInformation.imageDefinition.key + "::" + branchModificationParams.branchName
+      imageInformation.imageDeclaration.key + "::" + branchModificationParams.branchName
     branchModificationParams.shouldModify = true
 
     if (branchDeploymentEnabled) {
       if (!Boolean(branchModificationParams.ttlHours)) {
         throw new Error(
-          `${imageInformation.imageDefinition.key}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`
+          `${imageInformation.imageDeclaration.key}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`
         )
       }
       addResourceNameChangeIndex(plan, kubeSupportedExtensions, branchModificationParams)

@@ -254,6 +254,7 @@ stateStoreBackend
         }
       })
       .catch(function(loadError) {
+        logger.debug(`Plan load error, with stack`, loadError)
         logger.error(`Plan load error. ${loadError.message}`)
         if(loadError.context){
           logger.error(` ${JSON.stringify(loadError.context)}`)

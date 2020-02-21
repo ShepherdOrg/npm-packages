@@ -52,7 +52,7 @@ export function imageLabelsLoader(injected:TImageLabelsLoaderDependencies) : ILo
           )
           return {
             dockerLabels: dockerImageLabels,
-            imageDefinition: imageDef,
+            imageDeclaration: imageDef,
           }
         })
     } else {
@@ -64,7 +64,7 @@ export function imageLabelsLoader(injected:TImageLabelsLoaderDependencies) : ILo
           )
           return {
             dockerLabels: dockerImageLabels,
-            imageDefinition: imageDef,
+            imageDeclaration: imageDef,
           }
         })
     }

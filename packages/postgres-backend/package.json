@@ -13,8 +13,8 @@
     "pg": "^7.12.1"
   },
   "peerDependencies": {
-    "@shepherdorg/metadata": "^2.0.0",
-    "@shepherdorg/state-store": "^2.0.0"
+    "@shepherdorg/metadata": "^3.0.0",
+    "@shepherdorg/state-store": "^3.0.0"
   },
   "devDependencies": {
     "@shepherdorg/metadata": "^3.0.0",

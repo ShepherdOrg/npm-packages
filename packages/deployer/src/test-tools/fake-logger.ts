@@ -14,7 +14,7 @@ export type IFakeLogEntry = {
   data: IArguments
 }
 
-export function CreateFakeLogger() : IFakeLogging {
+export function createFakeLogger() : IFakeLogging {
   let fakeLogger = {
     log: "",
     logStatements: emptyArray<IFakeLogEntry>(),

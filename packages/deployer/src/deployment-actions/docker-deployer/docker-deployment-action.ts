@@ -1,5 +1,6 @@
 import {
   IDockerDeploymentAction,
+  IDockerExecutableAction,
   ILog,
   TActionExecutionOptions,
   TDeploymentOptions,
@@ -7,17 +8,22 @@ import {
 } from "../../deployment-types"
 import { expandEnv } from "../../template/expandenv"
 import { expandTemplate } from "../../template/expandtemplate"
-import { TNamedValue } from "../../helpers/basic-types"
-import { TDeployerMetadata, TDeploymentState } from "@shepherdorg/metadata"
+import { TDeployerMetadata, TDeploymentState, TEnvironmentVariables, TImageMetadata } from "@shepherdorg/metadata"
 import * as path from "path"
 import { extendedExec, writeFile } from "../../helpers/promisified"
+import { environmentToEnvSetters } from "./environment-to-env-setters"
 
-export async function executeDeployerAction(deployerAction: IDockerDeploymentAction, deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>): Promise<IDockerDeploymentAction> {
-
+export async function executeDockerAction(
+  deployerAction: IDockerExecutableAction,
+  deploymentOptions: TActionExecutionOptions,
+  cmd: any,
+  logger: ILog,
+  saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>
+): Promise<IDockerExecutableAction> {
   if (deploymentOptions.dryRun && deploymentOptions.dryRunOutputDir) {
     let writePath = path.join(
       deploymentOptions.dryRunOutputDir,
-      deployerAction.imageWithoutTag?.replace(/\//g, "_") + "-deployer.txt",
+      deployerAction.imageWithoutTag?.replace(/\//g, "_") + "-deployer.txt"
     )
 
     let cmdLine = `docker run ${deployerAction.forTestParameters?.join(" ")}`
@@ -29,95 +35,88 @@ export async function executeDeployerAction(deployerAction: IDockerDeploymentAct
       const stdout = await extendedExec(cmd)("docker", ["run"].concat(deployerAction.dockerParameters), {
         env: process.env,
       })
-      try {
-        // logger.enterDeployment(plan.origin + '/' + plan.identifier);
-        logger.info(deployerAction.planString())
-        logger.info(stdout)
-        // logger.exitDeployment(plan.origin + '/' + plan.identifier);
+      // logger.enterDeployment(plan.origin + '/' + plan.identifier);
+      logger.info(deployerAction.planString())
+      logger.info(stdout)
+      // logger.exitDeployment(plan.origin + '/' + plan.identifier);
 
-        try {
-          const state = await saveDeploymentState(deployerAction)
-          deployerAction.state = state
-          return deployerAction
-        } catch (err) {
-          // noinspection ExceptionCaughtLocallyJS
-          throw new Error("Failed to save state after successful deployment! " +
+      try {
+        deployerAction.state = await saveDeploymentState(deployerAction)
+        return deployerAction
+      } catch (err) {
+        // noinspection ExceptionCaughtLocallyJS
+        throw new Error(
+          "Failed to save state after successful deployment! " +
             deployerAction.origin +
             "/" +
             deployerAction.identifier +
             "\n" +
-            err)
-        }
-      } catch (e) {
-        console.error("Error running docker run" + JSON.stringify(deployerAction))
-        throw e
+            err
+        )
       }
     } catch (err) {
-      let message = "Failed to run docker deployer " +  deployerAction.descriptor + ": \n"
+      let message = "Failed to run docker action " + deployerAction.descriptor + ": \n"
       message += err.message || err
-      throw message
+      throw new Error(message)
     }
   }
 }
 
-export async function createDockerDeploymentActions(imageInformation: TImageInformation): Promise<Array<IDockerDeploymentAction>> {
-
-  const shepherdMetadata = imageInformation.shepherdMetadata  as TDeployerMetadata
-  const herdKey: string = imageInformation.imageDefinition.key
-  const displayName: string = imageInformation.shepherdMetadata?.displayName || ''
-
-  let dockerImageWithVersion =
-    imageInformation.imageDefinition.dockerImage ||
-    imageInformation.imageDefinition.image + ":" + imageInformation.imageDefinition.imagetag
-
+export function createDockerExecutionAction(
+  shepherdMetadata: TImageMetadata,
+  dockerImageUrl: string,
+  displayName: string,
+  herdKey: string,
+  command: string,
+  environment: TEnvironmentVariables,
+  environmentVariablesExpansionString?: string
+): IDockerExecutableAction {
   let operation = "run"
-  let command = shepherdMetadata.deployCommand || "deploy"
-  const deploymentAction: IDockerDeploymentAction = {
+  const deploymentAction: IDockerExecutableAction = {
     descriptor: "",
-    env: imageInformation.env,
-    displayName: displayName,
-    metadata: shepherdMetadata as TDeployerMetadata,
-    herdDeclaration: imageInformation.imageDefinition,
     dockerParameters: ["-i", "--rm"],
     forTestParameters: undefined,
-    imageWithoutTag: dockerImageWithVersion.replace(/:.*/g, ""), // For regression testing
+    imageWithoutTag: dockerImageUrl.replace(/:.*/g, ""), // For regression testing
     origin: herdKey,
-    type: "deployer",
     operation: operation,
     pushToUI: true,
     command: command,
     identifier: herdKey,
-    herdKey: herdKey,
     planString(): string {
-      return `docker ${operation} ${dockerImageWithVersion} ${command}`
+      return `docker ${operation} ${dockerImageUrl} ${command}`
     },
-    async execute(deploymentOptions: TDeploymentOptions & { waitForRollout: boolean; pushToUi: boolean }, cmd: any, logger: ILog, saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>): Promise<IDockerDeploymentAction> {
-      return await executeDeployerAction(deploymentAction, deploymentOptions, cmd, logger, saveDeploymentState)
-    }
+    async execute(
+      deploymentOptions: TDeploymentOptions & { waitForRollout: boolean; pushToUi: boolean },
+      cmd: any,
+      logger: ILog,
+      saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>
+    ): Promise<IDockerExecutableAction> {
+      return await executeDockerAction(deploymentAction, deploymentOptions, cmd, logger, saveDeploymentState)
+    },
   }
 
   function allButImageParameter(params: string[]) {
     return params.slice(0, params.length - 1)
   }
 
-  let envList = ["ENV={{ ENV }}"]
+  let envList = [expandTemplate("ENV={{ ENV }}")]
 
-  if (shepherdMetadata.environmentVariablesExpansionString) {
-    const envLabel = expandEnv(shepherdMetadata.environmentVariablesExpansionString)
+  if (environmentVariablesExpansionString) {
+    const envLabel = expandEnv(environmentVariablesExpansionString)
     envList = envList.concat(envLabel.split(","))
   }
-  if (shepherdMetadata.environment) {
-    envList = envList.concat(shepherdMetadata.environment.map((value:TNamedValue<string>) => `${value.name}=${value.value}`))
+  if (environment) {
+    envList = environmentToEnvSetters(envList, environment)
   }
 
   envList.forEach(function(env_item) {
     deploymentAction.dockerParameters.push("-e")
-    deploymentAction.dockerParameters.push(expandTemplate(env_item))
+    deploymentAction.dockerParameters.push(env_item)
   })
 
   deploymentAction.forTestParameters = deploymentAction.dockerParameters.slice(0) // Clone array
 
-  deploymentAction.dockerParameters.push(dockerImageWithVersion)
+  deploymentAction.dockerParameters.push(dockerImageUrl)
   deploymentAction.forTestParameters.push(deploymentAction.imageWithoutTag + ":[image_version]")
 
   if (deploymentAction.command) {
@@ -126,6 +125,35 @@ export async function createDockerDeploymentActions(imageInformation: TImageInfo
   }
 
   deploymentAction.descriptor = allButImageParameter(deploymentAction.dockerParameters).join(" ")
+  return deploymentAction
+}
+
+export async function createDockerDeploymentActions(
+  imageInformation: TImageInformation
+): Promise<Array<IDockerDeploymentAction>> {
+  let deployerMetadata = imageInformation.shepherdMetadata as TDeployerMetadata
+  const executionAction = createDockerExecutionAction(
+    deployerMetadata,
+    imageInformation.imageDeclaration.dockerImage ||
+      imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag,
+    imageInformation.shepherdMetadata?.displayName || "",
+    imageInformation.imageDeclaration.key,
+    deployerMetadata.deployCommand || "deploy",
+    deployerMetadata.environment,
+    deployerMetadata.environmentVariablesExpansionString
+  )
+
+  const deploymentAction = {
+    ...{
+      herdKey: imageInformation.imageDeclaration.key,
+      type: "deployer",
+      herdDeclaration: imageInformation.imageDeclaration,
+      metadata: deployerMetadata,
+      displayName: imageInformation.shepherdMetadata?.displayName || "",
+      env: imageInformation.env,
+    },
+    ...executionAction,
+  }
 
   return [deploymentAction]
 }

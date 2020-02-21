@@ -15,7 +15,8 @@ import { TFileSystemPath } from "../../helpers/basic-types"
 import { ILoadDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { parseImageUrl, TDockerImageUrl, TDockerImageUrlStruct } from "../../helpers/parse-image-url"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan-factory"
-import { newProgrammerOops } from "oops-error"
+import { newOperationalOops, newProgrammerOops } from "oops-error"
+import { createDeploymentTestActionFactory } from "./deployment-test-action"
 
 
 export function parseDockerImageUrl(dockerImageUrl: TDockerImageUrl): TDockerImageUrlStruct {
@@ -38,6 +39,7 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
       kubeSupportedExtensions,
       logger: injected.logger,
       herdSectionDeclaration: sectionDeclaration,
+      deploymentTestActionFactory: createDeploymentTestActionFactory()
     }).createDeploymentActions
 
 
@@ -75,7 +77,7 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
           } else {
             errorMessage = "When processing image " + imgName + "\n" + e.message
           }
-          throw new Error(errorMessage)
+          throw newProgrammerOops(errorMessage,{}, e)
         })
       return promise
     })
@@ -96,6 +98,9 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
         throw newProgrammerOops("Zero actions loaded from herd section spec", herdSectionSpec)
       }
 
+      if(!deploymentActions[0].herdDeclaration){
+        throw newProgrammerOops("Whuut, no herd declaration attached to action!",deploymentActions[0])
+      }
       const resultingPlan = injected.planFactory.createDeploymentPlan(deploymentActions[0].herdDeclaration)
       await Promise.all(deploymentActions.map(resultingPlan.addAction))
       return resultingPlan

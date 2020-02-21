@@ -4,6 +4,7 @@ export type TCompressedMetadata = string
 
 export type TNamedEnvironmentValue<TValueType> = { name: string, value: TValueType, secret?: boolean }
 
+export type TEnvironmentVariables = Array<TNamedEnvironmentValue<string>>
 
 export type TarFile ={
   path: string
@@ -51,6 +52,14 @@ export type TDeploymentState = {
   version: string
 }
 
+export type TDockerImageUrl = string
+
+export type TTestSpecification ={
+  command:string
+  dockerImageUrl?:TDockerImageUrl
+  environment?:TEnvironmentVariables
+}
+
 export type TImageMetadata = {
   dockerRegistry?: string
   dockerRepository?: string
@@ -58,6 +67,7 @@ export type TImageMetadata = {
   buildHostName?: string
   deploymentType: TDeploymentType
   displayName: string
+  dockerImageUrl?: TDockerImageUrl
   dockerImageTag?: string
   dockerImageGithash?: string
   end2endTestCommand?: string
@@ -69,6 +79,8 @@ export type TImageMetadata = {
   lastCommits: string
   migrationImage?: string
   semanticVersion: string
+  preDeployTest?: TTestSpecification
+  postDeployTest?: TTestSpecification
 }
 
 export type TDeployerMetadata = TImageMetadata & {
@@ -79,7 +91,7 @@ export type TDeployerMetadata = TImageMetadata & {
   // TODO: Make obsolete
   environmentVariablesExpansionString: string
   // TODO: Add tests for environment array
-  environment: Array<TNamedEnvironmentValue<string>>
+  environment: TEnvironmentVariables
   deployerRole: TDeployerRole
 }
 

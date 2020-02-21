@@ -15,7 +15,7 @@ import {
   THerdSectionType,
 } from "../deployment-types"
 import { detectRecursion } from "../helpers/obj-functions"
-import { CreateFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
 import { TFileSystemPath } from "../helpers/basic-types"
 import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import {
@@ -152,7 +152,7 @@ describe("herd.yaml loading", function() {
       return releasePlan
     }
 
-    loaderLogger = CreateFakeLogger()
+    loaderLogger = createFakeLogger()
 
     labelsLoader = {
       getDockerRegistryClientsFromConfig() {
@@ -172,7 +172,7 @@ describe("herd.yaml loading", function() {
 
               return Promise.resolve({
                 dockerLabels: dockerInspection[0].ContainerConfig.Labels,
-                imageDefinition: imageDef,
+                imageDeclaration: imageDef,
               })
             } else {
               return Promise.reject(

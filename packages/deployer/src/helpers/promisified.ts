@@ -7,7 +7,7 @@ import Bluebird = require("bluebird")
 export const writeFile = Bluebird.promisify(fs.writeFile)
 
 export const extendedExec = (cmdExec:any) => (...args: any) =>
-  new Promise((res:any, rej:any) =>
+  new Promise((resolve:any, reject:any) =>
     cmdExec.extendedExec(
       ...args,
       (error:string, errCode:number, stdOut:string) => {
@@ -19,8 +19,8 @@ export const extendedExec = (cmdExec:any) => (...args: any) =>
             stdOut
           }
         })
-        rej(err)
+        reject(err)
       },
-      res
+      resolve
     )
   )

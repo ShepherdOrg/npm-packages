@@ -1,6 +1,0 @@
-apiVersion: v1
-data:
-  {{SECRET_KEY}}: {{Base64Encode:SECRET_TEXT}}
-kind: Secret
-metadata:
-  imagename: DOCKER_IMAGE

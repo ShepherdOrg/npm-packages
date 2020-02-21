@@ -2,7 +2,7 @@
 THISDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
 set -eao pipefail
-
+unset DOCKER_REGISTRY_HOST
 export PATH=$PATH:${THISDIR}/node_modules/.bin
 
 echo "Rebuilding test images"
@@ -16,3 +16,5 @@ echo "Rebuilding test images"
 (SEMANTIC_VERSION=0.0.99 shepherd-build-docker ${THISDIR}/test-image-json-metadata/Dockerfile)
 
 (SEMANTIC_VERSION=0.0.66 shepherd-build-docker ${THISDIR}/test-migration-image-newformat/Dockerfile)
+
+(SEMANTIC_VERSION=0.7.77 shepherd-build-docker ${THISDIR}/test-deployer-image-with-deployment-tests/Dockerfile)

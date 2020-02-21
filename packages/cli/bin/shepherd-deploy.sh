@@ -28,7 +28,7 @@ if [[ "$*" == *--help*  || "$*" == *--version*  ]]
 then
   PACKAGE_VERSION=$(node -p -e "require(\"${THISDIR}\" + '/../package.json').version")
   echo "cli v${PACKAGE_VERSION}"
-  shepherd.js "$@"
+  shepherdjs "$@"
   exit 0
 fi
 
@@ -69,7 +69,7 @@ then
 fi
 
 set +e
-shepherd.js "$@"
+shepherdjs "$@"
 SHEPHERD_EXIT_CODE=$?
 
 if [ "${SHEPHERD_ENABLE_TTL_CLEANUP}" = "true" ]; then

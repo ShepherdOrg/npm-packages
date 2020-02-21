@@ -1,5 +1,5 @@
 {
-  "$id": "https://shepherdorg.org/shepherd-docker-metadata.schema.json",
+  "$id": "https://shepherdorg.org/shepherd.schema.json",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "description": "Shepherd metadata to describe a deployer or container deployed with shepherd.",
   "type": "object",
@@ -9,7 +9,11 @@
     },
     "deployerRole": {
       "type": "string",
-      "enum": ["infrastructure","install", "migration"]
+      "enum": [
+        "infrastructure",
+        "install",
+        "migration"
+      ]
     },
     "deployCommand": {
       "type": "string",
@@ -33,6 +37,93 @@
     "dockerRegistry": {
       "type": "string",
       "description": "Docker registry portion of docker image tag. Not used if using dockerhub."
+    },
+    "preDeployTest": {
+      "type": "object",
+      "properties": {
+        "imageUrl": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "secret": {
+                "type": "boolean"
+              }
+            }
+          },
+          "patternProperties": {
+            "^.*$": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "required": [
+        "command"
+      ],
+      "additionalProperties": false
+    },
+    "postDeployTest": {
+      "type": "object",
+      "properties": {
+        "imageUrl": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "environment": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "secret": {
+                "type": "boolean"
+              }
+            }
+          },
+          "patternProperties": {
+            "^.*$": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "required": [
+        "command"
+      ]
     },
     "environment": {
       "type": "array",
@@ -64,7 +155,9 @@
       }
     },
     "hyperlinks": {
-      "type": ["array"],
+      "type": [
+        "array"
+      ],
       "items": {
         "type": "object",
         "properties": {

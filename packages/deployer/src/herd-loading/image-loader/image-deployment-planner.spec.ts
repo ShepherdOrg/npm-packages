@@ -1,6 +1,23 @@
 import { expect } from "chai"
-import { IDockerDeploymentAction, IK8sDockerImageDeploymentAction, TImageInformation } from "../../deployment-types"
+import {
+  IDockerDeploymentAction,
+  IExecutableAction,
+  IK8sDockerImageDeploymentAction,
+  THerdSectionDeclaration,
+  THerdSectionType,
+  TImageInformation,
+} from "../../deployment-types"
 import { clearEnv, createTestActions, loadFirstTestPlan, setEnv } from "../../deployment-actions/test-action-factory"
+import {
+  createImageDeploymentPlanner,
+  IPlanImageDeploymentActions,
+  TImageDeploymentPlannerDependencies,
+} from "./image-deployment-planner"
+import { createFakeLogger } from "../../test-tools/fake-logger"
+import { TDeployerMetadata } from "@shepherdorg/metadata/dist"
+import { createDeploymentTestActionFactory } from "./deployment-test-action"
+import { metadataDsl } from "../../test-tools/metadata-dsl"
+import { imageInfoDSL } from "../../test-tools/image-info-dsl"
 
 describe("Docker image plan loader", function() {
   let testEnv = {
@@ -13,7 +30,7 @@ describe("Docker image plan loader", function() {
   describe("image deployer, old style docker labels", function() {
     let dockerDeployerMetadata: TImageInformation = {
 
-      imageDefinition: {
+      imageDeclaration: {
         key: "testimage",
         image: "testenvimage-migrations",
         imagetag: "0.0.0"
@@ -82,7 +99,7 @@ describe("Docker image plan loader", function() {
       let firstAction: IDockerDeploymentAction
 
       let dockerDeployerMetadata = {
-        imageDefinition: {
+        imageDeclaration: {
           key: "testimage",
           image: "testenvimage-migrations",
           imagetag: "0.0.0",
@@ -134,7 +151,7 @@ describe("Docker image plan loader", function() {
 
   describe("docker deployer, shepherd.json labels", async () => {
     const dockerDeployerMetadata = {
-      imageDefinition: {
+      imageDeclaration: {
         key: "testimage-shepherd-json",
         image: "testenvimage-shepherd-json",
         imagetag: "0.0.5",
@@ -168,7 +185,7 @@ describe("Docker image plan loader", function() {
 
   describe("is.icelandairlabs backwards compatibility", function() {
     const dockerImageMetadata = {
-      imageDefinition: {
+      imageDeclaration: {
         key: "testimage",
         image: "testenvimage-migrations",
         imagetag: "1.2.3",
@@ -203,7 +220,7 @@ describe("Docker image plan loader", function() {
 
   describe("k8s deployment using base64 tar", function() {
     const dockerImageMetadata : TImageInformation = {
-      imageDefinition: {
+      imageDeclaration: {
         key: "testimage",
         image: "testenvimage-migrations",
         imagetag: "0.0.0",
@@ -318,7 +335,7 @@ describe("Docker image plan loader", function() {
 
   describe("herd.yaml- feature - deployment to k8s using base64 tar", function() {
     const dockerImageMetadata = {
-      imageDefinition: {
+      imageDeclaration: {
         key: "thisIsFeatureDeploymentOne",
         image: "testenvimage-migrations",
         imagetag: "0.0.0",
@@ -424,12 +441,37 @@ describe("Docker image plan loader", function() {
     })
   })
 
+  describe("planning actions for deployer with postDeployTest", function() {
 
-  describe("with invalid base64 tar archive", function() {
-    xit("should give meaningful message if base64tar archive is not legal", function() {
+    let actions: Array<IExecutableAction>
+
+    beforeEach(async ()=>{
+      let planner: IPlanImageDeploymentActions
+      const shepherdMetadata: TDeployerMetadata = metadataDsl().instance()
+      let fakeImageInfo : TImageInformation = imageInfoDSL( shepherdMetadata ).instance()
+      let herdSectionDeclaration:THerdSectionDeclaration = { herdSectionIndex: 0, herdSectionType: THerdSectionType.images }
+      let deps: TImageDeploymentPlannerDependencies = {
+        herdSectionDeclaration: herdSectionDeclaration,
+        kubeSupportedExtensions: {},
+        logger: createFakeLogger(),
+        deploymentTestActionFactory: createDeploymentTestActionFactory()
+      }
+      planner = createImageDeploymentPlanner(deps)
+      actions = await planner.createDeploymentActions(fakeImageInfo)
     })
 
-    xit("should give meaningful message if file in archive is binary", function() {
+    it("should create actions for postDeployTest and preDeployTest", () => {
+      expect(actions.length).to.equal(3)
     })
+
+    it("should create actions for postDeployTest and preDeployTest", () => {
+      expect(actions[0].planString()).to.equal("docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT pretest")
+    })
+
+    it("should create actions for postDeployTest and preDeployTest", () => {
+      expect(actions[2].planString()).to.equal("docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT posttest")
+    })
+
   })
+
 })

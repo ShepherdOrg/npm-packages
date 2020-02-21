@@ -69,9 +69,7 @@ export function compileFullDockerMetadataSchema() {
   const ajv = new Ajv({ schemaId: "auto", allErrors: true })
   ajv.addMetaSchema(require("ajv/lib/refs/json-schema-draft-04.json"))
 
-  let baseSchema = readJsonFileRelative(
-    "./shepherd-docker-metadata.schema.json"
-  )
+  let baseSchema = readBaseSchemaFile()
   let extendingSchema = readJsonFileRelative(
     "./shepherd-generated-docker-metadata.schema.json"
   )
@@ -80,13 +78,17 @@ export function compileFullDockerMetadataSchema() {
   return ajv.compile(extendedSchema)
 }
 
+function readBaseSchemaFile() {
+  return readJsonFileRelative(
+    "./shepherd.schema.json",
+  )
+}
+
 export function compileUserPropertiesSchema() {
   const ajv = new Ajv({ schemaId: "auto", allErrors: true })
   ajv.addMetaSchema(require("ajv/lib/refs/json-schema-draft-04.json"))
-  let minimalSchema = readJsonFileRelative(
-    "./shepherd-docker-metadata.schema.json"
-  )
-  return ajv.compile(minimalSchema)
+  let baseSchema = readBaseSchemaFile()
+  return ajv.compile(baseSchema)
 }
 
 function compileGeneratedPropertiesSchema() {

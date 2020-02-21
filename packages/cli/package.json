@@ -18,12 +18,12 @@
     "shepherd-build-docker": "bin/shepherd-build-docker.sh",
     "shepherd-deploy": "bin/shepherd-deploy.sh",
     "shepherd-delete-expired-resources": "bin/delete-expired-resources.sh",
-    "kube-filter-expired-resources.js": "dist/kube-filter-expired-resources.js",
+    "kube-filter-expired-resources": "dist/kube-filter-expired-resources.js",
     "shepherd-inspect": "dist/shepherd-inspect-cmd.js",
     "add-to-deployment-queue": "dist/add-to-deployment-queue.js",
     "join-metadata-files": "dist/join-metadata-files.js",
     "base64encode": "dist/base64/base64encode.js",
-    "shepherd.js": "dist/shepherd.js"
+    "shepherdjs": "dist/shepherd.js"
   },
   "scripts": {
     "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",

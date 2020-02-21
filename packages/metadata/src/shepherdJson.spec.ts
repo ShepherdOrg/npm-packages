@@ -14,7 +14,7 @@ describe("shepherd json load and validation", function() {
     it("should validate userprops json", () => {
       const validate = compileUserPropertiesSchema()
       const valid = validate(
-        readJsonFileRelative("./testdata/shepherd-json/user-props.json")
+        readJsonFileRelative("./testdata/shepherd-json/shepherd.json")
       )
 
       if (validate.errors) {
@@ -30,7 +30,7 @@ describe("shepherd json load and validation", function() {
       const validate = compileUserPropertiesSchema()
 
       validate(
-        readJsonFileRelative("./testdata/shepherd-json/user-props-invalid.json")
+        readJsonFileRelative("./testdata/shepherd-json/invalid/shepherd.json")
       )
 
       if (validate.errors) {
@@ -64,7 +64,7 @@ describe("shepherd json load and validation", function() {
   describe("joining of user and generated properties", function() {
     it("should join user and generated props into a single, validated document", () => {
       let generatedPropsFile = "./testdata/shepherd-json/generated-props.json"
-      let userPropsFile = "./testdata/shepherd-json/user-props.json"
+      let userPropsFile = "./testdata/shepherd-json/shepherd.json"
 
       const generatedProps = readJsonFileRelative(generatedPropsFile)
       const userProps = readJsonFileRelative(userPropsFile)
@@ -80,7 +80,7 @@ describe("shepherd json load and validation", function() {
 
     it("should throw an error if one document is invalid", () => {
       let generatedPropsFile = "./testdata/shepherd-json/generated-props.json"
-      let userPropsFile = "./testdata/shepherd-json/user-props-invalid.json"
+      let userPropsFile = "./testdata/shepherd-json/invalid/shepherd.json"
 
       const generatedProps = readJsonFileRelative(generatedPropsFile)
       const userProps = readJsonFileRelative(userPropsFile)
@@ -95,7 +95,7 @@ describe("shepherd json load and validation", function() {
 
     it("should derive deployment type from presence of k8s deployment data", () => {
       let generatedPropsFile = "./testdata/shepherd-json/generated-props.json"
-      let userPropsFile = "./testdata/shepherd-json/user-props.json"
+      let userPropsFile = "./testdata/shepherd-json/shepherd.json"
 
       const generatedProps = readJsonFileRelative(generatedPropsFile)
       const userProps = readJsonFileRelative(userPropsFile)
@@ -117,7 +117,7 @@ describe("shepherd json load and validation", function() {
 
     before(()=>{
       let generatedPropsFile = "./testdata/shepherd-json/generated-props.json"
-      let userPropsFile = "./testdata/shepherd-json/user-props.json"
+      let userPropsFile = "./testdata/shepherd-json/shepherd.json"
 
       const generatedProps = readJsonFileRelative(generatedPropsFile)
       const userProps = readJsonFileRelative(userPropsFile)
@@ -173,7 +173,7 @@ describe("shepherd json load and validation", function() {
       expect(combinedProps.semanticVersion).to.be.a('string')
     })
 
-    it('should parse dockeRegistry from json', ()=>{
+    it('should parse dockerRegistry from json', ()=>{
       expect(combinedProps.dockerRegistry).to.be.a('string')
     })
 
@@ -181,6 +181,10 @@ describe("shepherd json load and validation", function() {
       expect(combinedProps.dockerRepository).to.be.a('string')
     })
 
+    it("should parse preDeployTest", () => {
+      expect(combinedProps.preDeployTest).to.be.an('object')
+
+    })
 
   })
 })

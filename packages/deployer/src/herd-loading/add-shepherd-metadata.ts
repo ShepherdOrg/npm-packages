@@ -33,7 +33,8 @@ export async function extractShepherdMetadata (dockerImageMetadata:TImageInforma
   const shepherdMetadata: TDeployerMetadata | TK8sMetadata = await extractImageMetadata(imageLabels)
 
   return {
-    imageDefinition: dockerImageMetadata.imageDefinition,
+    // @ts-ignore
+    imageDeclaration: dockerImageMetadata.imageDeclaration || dockerImageMetadata.imageDefinition,
     shepherdMetadata: shepherdMetadata,
   }
 }
