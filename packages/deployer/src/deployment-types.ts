@@ -7,10 +7,10 @@ import {
   TK8sMetadata,
   TTarFolderStructure,
 } from "@shepherdorg/metadata"
-import { TDescriptorsByKind } from "./deployment-actions/kubectl-deployer/k8s-deployment-document-identifier"
+import { TDescriptorsByKind } from "./deployment-actions/kubectl-action/k8s-deployment-document-identifier"
 import { TFileSystemPath, TISODateString } from "./helpers/basic-types"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
-import { TDeploymentRollout } from "./deployment-actions/kubectl-deployer/create-kubectl-deployment-action"
+import { TDeploymentRollout } from "./deployment-actions/kubectl-action/create-kubectl-deployment-action"
 import { IDeploymentPlan, IDeploymentPlanExecutionResult } from "./deployment-plan/deployment-plan-factory"
 
 export type ILog = {
@@ -119,10 +119,7 @@ export interface IExecutableAction {
   planString():string
 
   execute(
-    deploymentOptions: TActionExecutionOptions,
-    cmd: any,
-    logger: ILog,
-    saveDeploymentState: FnDeploymentStateSave
+    deploymentOptions: TActionExecutionOptions
   ): Promise<IExecutableAction>
 
 }
@@ -154,7 +151,7 @@ export interface IDockerExecutableAction extends IExecutableAction{
   imageWithoutTag?: string;
   forTestParameters?: string[];
   identifier: string;
-  execute(deploymentOptions: TActionExecutionOptions, cmd: any, logger: ILog, saveDeploymentState: FnDeploymentStateSave): Promise<IDockerExecutableAction>
+  execute(deploymentOptions: TActionExecutionOptions): Promise<IDockerExecutableAction>
 }
 
 export interface IDockerDeploymentAction extends IDockerExecutableAction, IBaseDeploymentAction {

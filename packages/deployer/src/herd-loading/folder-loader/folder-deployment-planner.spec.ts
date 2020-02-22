@@ -8,6 +8,10 @@ import { TDeploymentType } from "@shepherdorg/metadata"
 const Path = require("path")
 
 import Bluebird = require("bluebird")
+import { createKubectlDeploymentActionFactory } from "../../deployment-actions/kubectl-action/create-kubectl-deployment-action"
+import { createFakeExec } from "../../test-tools/fake-exec"
+import { createFakeLogger } from "../../test-tools/fake-logger"
+import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 
 type TTestPlan = {
   addedK8sDeploymentActions: { [key:string]: IK8sDirDeploymentAction}
@@ -26,21 +30,28 @@ describe("k8s deployment file directory structure release plan loader", function
   }
 
   beforeEach(function() {
-    scanDir = planFolderDeployment(
-      {
-        kubeSupportedExtensions: {
-          ".yml": true,
-          ".yaml": true,
-          ".json": true,
+    scanDir = planFolderDeployment({
+      kubeSupportedExtensions: {
+        ".yml": true,
+        ".yaml": true,
+        ".json": true,
+      },
+      logger: {
+        info: () => {
         },
-        logger: {
-          info: () => {},
-          warn: () => {},
-          debug: () => {},
-          error: () => {},
+        warn: () => {
         },
-      }
-    ).scanDir
+        debug: () => {
+        },
+        error: () => {
+        },
+      },
+      kubectlDeploymentActionFactory: createKubectlDeploymentActionFactory({
+        exec: createFakeExec(),
+        logger: createFakeLogger(),
+        stateStore: createFakeStateStore()
+      })
+    } ).scanDir
   })
 
   describe("successful load", function() {

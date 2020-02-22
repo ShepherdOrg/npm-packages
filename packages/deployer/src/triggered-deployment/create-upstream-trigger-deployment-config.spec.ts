@@ -1,5 +1,5 @@
 import {
-  CreateUpstreamTriggerDeploymentConfig,
+  createUpstreamTriggerDeploymentConfig,
   TFeatureDeploymentConfig,
 } from "./create-upstream-trigger-deployment-config"
 import { createFakeLogger } from "../test-tools/fake-logger"
@@ -28,7 +28,7 @@ describe("Upstream triggered deployment config ", function() {
     let config : TFeatureDeploymentConfig
 
     before(() => {
-      config = CreateUpstreamTriggerDeploymentConfig(createFakeLogger())
+      config = createUpstreamTriggerDeploymentConfig(createFakeLogger())
       config.loadFromEnvironment("herdFilePath", configObject)
     })
 
@@ -66,7 +66,7 @@ describe("Upstream triggered deployment config ", function() {
     let config : TFeatureDeploymentConfig
 
     before(() => {
-      config = CreateUpstreamTriggerDeploymentConfig(createFakeLogger())
+      config = createUpstreamTriggerDeploymentConfig(createFakeLogger())
       config.loadFromEnvironment("herdFilePath", configObject)
     })
 
@@ -92,7 +92,7 @@ describe("Upstream triggered deployment config ", function() {
     let config : TFeatureDeploymentConfig
 
     before(() => {
-      config = CreateUpstreamTriggerDeploymentConfig(createFakeLogger())
+      config = createUpstreamTriggerDeploymentConfig(createFakeLogger())
       config.loadFromEnvironment("herdFilePath", configObject)
     })
 
@@ -106,7 +106,7 @@ describe("Upstream triggered deployment config ", function() {
   })
 
   describe("branch deployment", function() {
-    const config = CreateUpstreamTriggerDeploymentConfig(console)
+    const config = createUpstreamTriggerDeploymentConfig(console)
 
     before(() => {
       config.imageFileName = "herdFilePath"
@@ -136,7 +136,7 @@ describe("Upstream triggered deployment config ", function() {
   })
 
   describe("default config with no upstream information", function() {
-    const config = CreateUpstreamTriggerDeploymentConfig(console)
+    const config = createUpstreamTriggerDeploymentConfig(console)
 
     before(()=>{
       config.loadFromEnvironment('myHerdFile.yaml', {

@@ -1,7 +1,16 @@
-import { ILog, THerdSectionType, TImageInformation } from "../deployment-types"
+import { ILog, TImageInformation } from "../deployment-types"
 import { extractShepherdMetadata } from "../herd-loading/add-shepherd-metadata"
-import { createImageDeploymentPlanner } from "../herd-loading/image-loader/image-deployment-planner"
+import { createImageDeploymentPlanner } from "../deployment-plan/image-deployment-planner"
 import { createDeploymentTestActionFactory } from "../herd-loading/image-loader/deployment-test-action"
+import { DeploymentPlanFactory } from "../deployment-plan/deployment-plan-factory"
+import { fakeDeploymentPlanDependencies } from "../deployment-plan/deployment-plan-factory.spec"
+import { TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
+import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
+import { createFakeExec } from "../test-tools/fake-exec"
+import { createDockerActionFactory } from "./docker-action/docker-action"
+import { createFakeLogger } from "../test-tools/fake-logger"
+import { createKubectlDeploymentActionFactory } from "./kubectl-action/create-kubectl-deployment-action"
+import { createRolloutWaitActionFactory } from "./kubectl-action/rollout-wait-action-factory"
 
 function createTestDeploymentActions() {
   let fakeLogger = {
@@ -9,19 +18,31 @@ function createTestDeploymentActions() {
       console.error("INFO", arguments)
     },
   }
+  let fakeStateStore: TFakeStateStore = createFakeStateStore()
+
+  let fakeExec = createFakeExec()
+  let actionExecDeps = { stateStore:fakeStateStore, exec: fakeExec, logger: fakeLogger as ILog}
+  let dockerActionFactory = createDockerActionFactory(actionExecDeps)
   return createImageDeploymentPlanner(
     {
+      planFactory: DeploymentPlanFactory(fakeDeploymentPlanDependencies(), createRolloutWaitActionFactory(actionExecDeps)),
       kubeSupportedExtensions: {
         ".yml": true,
         ".yaml": true,
         ".json": true,
       },
       logger: fakeLogger as ILog,
-      herdSectionDeclaration: {
-        "herdSectionIndex": 1,
-        "herdSectionType": THerdSectionType.images,
-      },
-      deploymentTestActionFactory: createDeploymentTestActionFactory()
+      deploymentTestActionFactory: createDeploymentTestActionFactory({dockerActionFactory: dockerActionFactory, logger: fakeLogger as ILog}),
+      dockerActionFactory: createDockerActionFactory({
+        stateStore: createFakeStateStore(),
+        exec: createFakeExec(),
+        logger: createFakeLogger()
+      }),
+      kubectlActionFactory: createKubectlDeploymentActionFactory({
+        logger: createFakeLogger(),
+        stateStore: createFakeStateStore(),
+        exec: createFakeExec()
+      })
     },
   ).createDeploymentActions
 }

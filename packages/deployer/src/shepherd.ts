@@ -3,20 +3,12 @@
 import * as path from "path"
 
 import * as fs from "fs"
-import { DeploymentOrchestration } from "./deployment-orchestration/deployment-orchestration"
-
-import { HerdLoader } from "./herd-loading/herd-loader"
-import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { IStorageBackend } from "@shepherdorg/state-store"
 import { TFileSystemPath } from "./helpers/basic-types"
 import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
 import { CreateLogger } from "./logging/logger"
-import {
-  DeploymentPlanFactory,
-  IDeploymentPlanFactory,
-  TDeploymentPlanDependencies,
-} from "./deployment-plan/deployment-plan-factory"
 import { IDeploymentOrchestration } from "./deployment-types"
+import { createLoaderContext } from "./herd-loading/createLoaderContext"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -158,7 +150,7 @@ if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
 const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
 const exec = require("@shepherdorg/exec")
 const {
-  CreateUpstreamTriggerDeploymentConfig,
+  createUpstreamTriggerDeploymentConfig,
 } = require("./triggered-deployment/create-upstream-trigger-deployment-config")
 
 const upgradeOrAddDeploymentInFile = require("./herd-file/herd-edit").upgradeOrAddDeploymentInFile
@@ -177,37 +169,20 @@ stateStoreBackend
     let releaseStateStore = ReleaseStateStore({
       storageBackend: stateStoreBackend,
     })
-
-    const featureDeploymentConfig = CreateUpstreamTriggerDeploymentConfig(logger)
+    let featureDeploymentConfig = createUpstreamTriggerDeploymentConfig(logger)
     featureDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
-
-    const deploymentOrchestration = DeploymentOrchestration({
-      cmd: exec,
-      logger: CreateLogger(console),
-      stateStore: releaseStateStore
-    })
 
     if (featureDeploymentConfig.herdFileEditNeeded()) {
       upgradeOrAddDeploymentInFile(featureDeploymentConfig, logger)
     }
 
-    let planDependencies: TDeploymentPlanDependencies = {
-      uiDataPusher: uiDataPusher,
-      cmd: exec, logger: logger, stateStore: releaseStateStore
-    }
 
-    let planFactory: IDeploymentPlanFactory = DeploymentPlanFactory(planDependencies)
-
-    let loader = HerdLoader({
-      logger: CreateLogger(console),
-      deploymentOrchestration: deploymentOrchestration,
+    let loader = createLoaderContext({
+      stateStore: releaseStateStore,
+      logger: logger,
+      featureDeploymentConfig: featureDeploymentConfig,
       exec: exec,
-      featureDeploymentConfig,
-      planFactory: planFactory,
-      labelsLoader: {
-        imageLabelsLoader: imageLabelsLoader,
-        getDockerRegistryClientsFromConfig: getDockerRegistryClientsFromConfig,
-      },
+      ui: uiDataPusher
     })
 
     if (!environment) {

@@ -6,18 +6,27 @@ import {
   THerdSectionDeclaration,
   THerdSectionType,
   TImageInformation,
-} from "../../deployment-types"
-import { clearEnv, createTestActions, loadFirstTestPlan, setEnv } from "../../deployment-actions/test-action-factory"
+} from "../deployment-types"
+import { clearEnv, createTestActions, loadFirstTestPlan, setEnv } from "../deployment-actions/test-action-factory"
 import {
   createImageDeploymentPlanner,
-  IPlanImageDeploymentActions,
+  ICreateImageDeploymentPlan,
   TImageDeploymentPlannerDependencies,
 } from "./image-deployment-planner"
-import { createFakeLogger } from "../../test-tools/fake-logger"
+import { createFakeLogger } from "../test-tools/fake-logger"
 import { TDeployerMetadata } from "@shepherdorg/metadata/dist"
-import { createDeploymentTestActionFactory } from "./deployment-test-action"
-import { metadataDsl } from "../../test-tools/metadata-dsl"
-import { imageInfoDSL } from "../../test-tools/image-info-dsl"
+import { createDeploymentTestActionFactory } from "../herd-loading/image-loader/deployment-test-action"
+import { metadataDsl } from "../test-tools/metadata-dsl"
+import { imageInfoDSL } from "../test-tools/image-info-dsl"
+import { DeploymentPlanFactory } from "./deployment-plan-factory"
+import { fakeDeploymentPlanDependencies } from "./deployment-plan-factory.spec"
+import { TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
+import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
+import { IExec } from "../helpers/basic-types"
+import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
+import { createFakeExec } from "../test-tools/fake-exec"
+import { createKubectlDeploymentActionFactory } from "../deployment-actions/kubectl-action/create-kubectl-deployment-action"
+import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 
 describe("Docker image plan loader", function() {
   let testEnv = {
@@ -446,18 +455,30 @@ describe("Docker image plan loader", function() {
     let actions: Array<IExecutableAction>
 
     beforeEach(async ()=>{
-      let planner: IPlanImageDeploymentActions
+      let fakeStateStore: TFakeStateStore = createFakeStateStore()
+      let planner: ICreateImageDeploymentPlan
       const shepherdMetadata: TDeployerMetadata = metadataDsl().instance()
       let fakeImageInfo : TImageInformation = imageInfoDSL( shepherdMetadata ).instance()
       let herdSectionDeclaration:THerdSectionDeclaration = { herdSectionIndex: 0, herdSectionType: THerdSectionType.images }
+      let fakeExec: IExec = createFakeExec();
+      let fakeLogger = createFakeLogger()
+
+      let factoryParams = {stateStore: fakeStateStore, exec: fakeExec, logger: fakeLogger}
+      let dockerActionFactory = createDockerActionFactory(factoryParams)
       let deps: TImageDeploymentPlannerDependencies = {
-        herdSectionDeclaration: herdSectionDeclaration,
+        dockerActionFactory,
+        planFactory: DeploymentPlanFactory(fakeDeploymentPlanDependencies(), createRolloutWaitActionFactory(factoryParams)),
         kubeSupportedExtensions: {},
-        logger: createFakeLogger(),
-        deploymentTestActionFactory: createDeploymentTestActionFactory()
+        logger: fakeLogger,
+        deploymentTestActionFactory: createDeploymentTestActionFactory({dockerActionFactory, logger: fakeLogger}),
+        kubectlActionFactory: createKubectlDeploymentActionFactory({
+          logger: fakeLogger,
+          stateStore: fakeStateStore,
+          exec: fakeExec
+        })
       }
       planner = createImageDeploymentPlanner(deps)
-      actions = await planner.createDeploymentActions(fakeImageInfo)
+      actions = await planner.createDeploymentActions(fakeImageInfo, herdSectionDeclaration)
     })
 
     it("should create actions for postDeployTest and preDeployTest", () => {

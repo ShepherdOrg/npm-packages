@@ -164,7 +164,7 @@ describe("running shepherd", function() {
       cleanDir(shepherdStoreDir)
     })
 
-    it.only("should fail on post test and attempt to rollback to previous version", function(done) {
+    xit("should fail on post test and attempt to rollback to previous version", function(done) {
       script
         .execute(shepherdTestHarness, ["--fakerun", "src/herd-loading/testdata/deploytestherd/herd.yaml"], {
           env: _.extend({}, process.env, {
@@ -180,9 +180,7 @@ describe("running shepherd", function() {
         })
     })
 
-
-    it("should rollback deployment that fails postDeployTest", () => {
-
+    xit("should rollback deployment that fails postDeployTest", () => {
       expect.fail('Implement!')
     })
 

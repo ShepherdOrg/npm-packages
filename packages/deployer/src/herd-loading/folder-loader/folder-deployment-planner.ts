@@ -1,7 +1,10 @@
 import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
-import { createKubectlDeployAction } from "../../deployment-actions/kubectl-deployer/create-kubectl-deployment-action"
+import {
+  createKubectlDeploymentActionFactory,
+  ICreateKubectlDeploymentAction,
+} from "../../deployment-actions/kubectl-action/create-kubectl-deployment-action"
 import {
   IK8sDirDeploymentAction,
   IKubectlDeployAction,
@@ -14,7 +17,8 @@ import { TDeploymentType } from "@shepherdorg/metadata"
 
 export interface TFolderDeploymentPlannerDependencies {
   logger: ILog
-  kubeSupportedExtensions: any
+  kubeSupportedExtensions: any,
+  kubectlDeploymentActionFactory: ICreateKubectlDeploymentAction
 }
 
 type TFilePlanStruct = {}
@@ -35,7 +39,7 @@ function isScanDirStruct(dir: TFileSystemPath | TScanDirStruct): dir is TScanDir
   return Boolean((dir as TScanDirStruct).path)
 }
 
-export function planFolderDeployment(injected: TFolderDeploymentPlannerDependencies)  {
+export function planFolderDeployment(injected: TFolderDeploymentPlannerDependencies )  {
   const kubeSupportedExtensions = injected.kubeSupportedExtensions
   const logger = injected.logger
 
@@ -117,7 +121,7 @@ export function planFolderDeployment(injected: TFolderDeploymentPlannerDependenc
                   }
 
                   const kubeDeploymentRelativePath = path.relative(initialDir, resolvedPath)
-                  const deploymentAction: IKubectlDeployAction = createKubectlDeployAction(
+                  const deploymentAction: IKubectlDeployAction = injected.kubectlDeploymentActionFactory.createKubectlDeployAction(
                     kubeDeploymentRelativePath,
                     data,
                     dirStruct.forDelete ? "delete" : "apply",

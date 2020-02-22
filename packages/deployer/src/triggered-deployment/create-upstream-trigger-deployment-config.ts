@@ -25,7 +25,7 @@ export interface TFeatureDeploymentConfig {
 }
 
 
-export function CreateUpstreamTriggerDeploymentConfig(logger: ILog): TFeatureDeploymentConfig {
+export function createUpstreamTriggerDeploymentConfig(logger: ILog): TFeatureDeploymentConfig {
   const featureDeploymentConfig: TFeatureDeploymentConfig = {
     upstreamImageTag: "",
     upstreamImageName: "",

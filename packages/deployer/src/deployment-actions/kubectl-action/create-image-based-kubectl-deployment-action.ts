@@ -3,7 +3,7 @@ import { addResourceNameChangeIndex, TBranchModificationParams } from "./k8s-bra
 import * as path from "path"
 
 import { shepherdOptions } from "../../shepherd-options"
-import { createKubectlDeployAction } from "./create-kubectl-deployment-action"
+import { ICreateKubectlDeploymentAction } from "./create-kubectl-deployment-action"
 import { IK8sDockerImageDeploymentAction, ILog, TImageInformation, TK8sDeploymentPlan2 } from "../../deployment-types"
 import { TExtensionsMap } from "./kube-supported-extensions"
 import { TarFile, TK8sMetadata } from "@shepherdorg/metadata"
@@ -14,9 +14,10 @@ async function createImageBasedFileDeploymentAction(
   deploymentFileContent: TarFile,
   imageInformation: TImageInformation,
   fileName: TFileSystemPath,
-  branchModificationParams:TBranchModificationParams,
-  logger:ILog,
-  env: string
+  branchModificationParams: TBranchModificationParams,
+  logger: ILog,
+  env: string,
+  deploymentActionFactory: ICreateKubectlDeploymentAction,
 ): Promise<IK8sDockerImageDeploymentAction> {
   let origin =
     imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag + ":tar:" + fileName
@@ -32,13 +33,13 @@ async function createImageBasedFileDeploymentAction(
 
   let operation = imageInformation.imageDeclaration.delete ? "delete" : "apply"
 
-  const documentDeploymentAction = createKubectlDeployAction(
+  const documentDeploymentAction = deploymentActionFactory.createKubectlDeployAction(
     origin,
     deploymentFileContent.content,
     operation,
     fileName,
     logger,
-    branchModificationParams
+    branchModificationParams,
   )
 
   delete process.env.TPL_DOCKER_IMAGE
@@ -59,14 +60,15 @@ async function createImageBasedFileDeploymentAction(
 }
 
 export function createKubectlDeploymentActions(
-  imageInformation:TImageInformation ,
+  imageInformation: TImageInformation,
   kubeSupportedExtensions: TExtensionsMap,
-  logger:ILog
+  logger: ILog,
+  kubectlDeploymentActionFactory: ICreateKubectlDeploymentAction,
 ): Promise<Array<IK8sDockerImageDeploymentAction>> {
   const shepherdMetadata: any = imageInformation.shepherdMetadata
   const herdKey: string = imageInformation.imageDeclaration.key
 
-  const displayName: string = imageInformation?.shepherdMetadata?.displayName || ''
+  const displayName: string = imageInformation?.shepherdMetadata?.displayName || ""
 
   const plan: TK8sDeploymentPlan2 = {
     herdKey: herdKey,
@@ -99,14 +101,14 @@ export function createKubectlDeploymentActions(
     if (branchDeploymentEnabled) {
       if (!Boolean(branchModificationParams.ttlHours)) {
         throw new Error(
-          `${imageInformation.imageDeclaration.key}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`
+          `${imageInformation.imageDeclaration.key}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`,
         )
       }
       addResourceNameChangeIndex(plan, kubeSupportedExtensions, branchModificationParams)
     }
   }
 
-  if(plan.files){
+  if (plan.files) {
     Object.entries(plan.files).forEach(([fileName, archivedFile]) => {
       if (!kubeSupportedExtensions[path.extname(fileName)]) {
         // console.debug('Unsupported extension ', path.extname(fileName));
@@ -119,14 +121,7 @@ export function createKubectlDeploymentActions(
           //
           // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
           deploymentActions.push(
-            createImageBasedFileDeploymentAction(
-              archivedFile,
-              imageInformation,
-              fileName,
-              branchModificationParams,
-              logger,
-              ""
-            )
+            createImageBasedFileDeploymentAction(archivedFile, imageInformation, fileName, branchModificationParams, logger, "", kubectlDeploymentActionFactory),
           )
         }
       } catch (e) {

@@ -6,7 +6,7 @@ import {
 } from "../../deployment-types"
 import { TDeployerRole, TDeploymentType } from "@shepherdorg/metadata"
 import { emptyArray } from "../../helpers/ts-functions"
-import { TDeploymentRollout } from "../../deployment-actions/kubectl-deployer/create-kubectl-deployment-action"
+import { TDeploymentRollout } from "../../deployment-actions/kubectl-action/create-kubectl-deployment-action"
 
 type OmitActionFunctions<T> = Omit<Omit<T, "execute">,"planString">
 

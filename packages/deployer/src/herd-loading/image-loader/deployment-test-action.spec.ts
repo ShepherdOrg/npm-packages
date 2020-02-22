@@ -1,5 +1,5 @@
 import { TDeployerMetadata, TDeploymentState, TTestSpecification } from "@shepherdorg/metadata"
-import { createDeploymentTestActionFactory } from "./deployment-test-action"
+import { createDeploymentTestActionFactory, TDeploymentTestActionFactoryDependencies } from "./deployment-test-action"
 import {
   IExecutableAction,
   ILog,
@@ -12,7 +12,7 @@ import { expect } from "chai"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
 import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
-
+import { createDockerActionFactory } from "../../deployment-actions/docker-action/docker-action"
 
 export const defaultTestExecutionOptions: TActionExecutionOptions = {
   pushToUi: false,
@@ -21,6 +21,14 @@ export const defaultTestExecutionOptions: TActionExecutionOptions = {
   dryRunOutputDir: undefined,
 }
 
+
+export function createFakeDeploymentTestActionFactoryDependencies(): TDeploymentTestActionFactoryDependencies & {logger: IFakeLogging, exec: TFakeExec, stateStore: TFakeStateStore} {
+  let logger = createFakeLogger()
+  let exec = createFakeExec()
+  let stateStore = createFakeStateStore()
+  const dockerActionFactory = createDockerActionFactory({ stateStore, exec, logger })
+  return { dockerActionFactory, logger, exec, stateStore }
+}
 
 describe("Deployment test action", function() {
   describe("Plain test action creation", function() {
@@ -34,7 +42,7 @@ describe("Deployment test action", function() {
       const shepherdMetadata: TDeployerMetadata = metadataDsl()
         .dockerImageUrl("unittest-image:9.9.99")
         .instance()
-      testAction = createDeploymentTestActionFactory().createDeploymentTestAction(testDeclaration, shepherdMetadata)
+      testAction = createDeploymentTestActionFactory(createFakeDeploymentTestActionFactoryDependencies()).createDeploymentTestAction(testDeclaration, shepherdMetadata)
     })
 
     it("should plan docker run on image with specified test command", () => {
@@ -56,7 +64,7 @@ describe("Deployment test action", function() {
 
     before(() => {
       const shepherdMetadata: TDeployerMetadata = metadataDsl().instance()
-      testAction = createDeploymentTestActionFactory().createDeploymentTestAction(testDeclaration, shepherdMetadata)
+      testAction = createDeploymentTestActionFactory(createFakeDeploymentTestActionFactoryDependencies()).createDeploymentTestAction(testDeclaration, shepherdMetadata)
     })
 
     it("should ", () => {
@@ -79,18 +87,19 @@ describe("Deployment test action", function() {
     let deploymentOptions = defaultTestExecutionOptions
 
     before(async () => {
-      fakeStateStore = createFakeStateStore()
-      fakeLogger = createFakeLogger()
+      let fakeDeploymentTestActionFactoryDependencies = createFakeDeploymentTestActionFactoryDependencies()
+      fakeStateStore = fakeDeploymentTestActionFactoryDependencies.stateStore as TFakeStateStore
+      fakeLogger = fakeDeploymentTestActionFactoryDependencies.logger as IFakeLogging
+      fakeExec = fakeDeploymentTestActionFactoryDependencies.exec as TFakeExec
 
-      fakeExec = createFakeExec()
       fakeExec.nextResponse.success = "Yeah"
 
       const shepherdMetadata: TDeployerMetadata = metadataDsl()
         .dockerImageUrl("unittest-image:9.9.99")
         .instance()
-      testAction = createDeploymentTestActionFactory().createDeploymentTestAction(testDeclaration, shepherdMetadata)
+      testAction = createDeploymentTestActionFactory(fakeDeploymentTestActionFactoryDependencies).createDeploymentTestAction(testDeclaration, shepherdMetadata)
 
-      return execResult = await testAction.execute(deploymentOptions, fakeExec, fakeLogger, fakeStateStore.saveDeploymentState)
+      return execResult = await testAction.execute(deploymentOptions)
     })
 
     it("should execute docker run once", () => {
@@ -116,7 +125,7 @@ describe("Deployment test action", function() {
       before(async () => {
 
         fakeExec.setErr("This did not go well")
-        return await testAction.execute(deploymentOptions, fakeExec, fakeLogger, fakeStateStore.saveDeploymentState).catch((testErr: Error) => {
+        return await testAction.execute(deploymentOptions).catch((testErr: Error) => {
           testFailError = testErr
         })
       })
@@ -146,9 +155,10 @@ describe("Deployment test action", function() {
     let fakeRollbackAction: IRollbackActionExecution & { rollbackCalls: Array<any> }
 
     before(async () => {
-      fakeStateStore = createFakeStateStore()
-      fakeLogger = createFakeLogger()
-      fakeExec = createFakeExec().setErr('This is a failing test result')
+      let fakeDeploymentTestActionFactoryDependencies = createFakeDeploymentTestActionFactoryDependencies()
+      fakeStateStore = fakeDeploymentTestActionFactoryDependencies.stateStore as TFakeStateStore
+      fakeLogger = fakeDeploymentTestActionFactoryDependencies.logger as IFakeLogging
+      fakeExec = (fakeDeploymentTestActionFactoryDependencies.exec as TFakeExec).setErr("This is a failing test result")
 
       const shepherdMetadata: TDeployerMetadata = metadataDsl()
         .dockerImageUrl("unittest-image:10.11.12")
@@ -158,7 +168,7 @@ describe("Deployment test action", function() {
         rollbackCalls: [],
         descriptor: "",
         pushToUI: false,
-        async execute(_deploymentOptions: TActionExecutionOptions, _cmd: any,_logger: ILog, _saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>): Promise<IExecutableAction> {
+        async execute(_deploymentOptions: TActionExecutionOptions): Promise<IExecutableAction> {
           return fakeRollbackAction
         },
         async rollback(): Promise<TRollbackResult> {
@@ -170,9 +180,9 @@ describe("Deployment test action", function() {
           return ""
         },
       }
-      postDeployTestAction = createDeploymentTestActionFactory().createDeploymentTestAction(testDeclaration, shepherdMetadata, fakeRollbackAction)
+      postDeployTestAction = createDeploymentTestActionFactory(fakeDeploymentTestActionFactoryDependencies).createDeploymentTestAction(testDeclaration, shepherdMetadata, fakeRollbackAction)
 
-      return execResult = await postDeployTestAction.execute(deploymentOptions, fakeExec, fakeLogger, fakeStateStore.saveDeploymentState)
+      return execResult = await postDeployTestAction.execute(deploymentOptions)
         .catch((testErr)=>{
           testError = testErr
           return postDeployTestAction

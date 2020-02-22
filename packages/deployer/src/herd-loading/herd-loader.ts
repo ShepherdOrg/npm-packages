@@ -10,11 +10,17 @@ import {
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import { TFileSystemPath } from "../helpers/basic-types"
-import { FolderLoader } from "./folder-loader/folder-loader"
+import { createFolderLoader } from "./folder-loader/folder-loader"
 import * as path from "path"
-import { ImagesLoader } from "./image-loader/images-loader"
+import { createImagesLoader } from "./image-loader/images-loader"
 import { flatMapPolyfill } from "./folder-loader/flatmap-polyfill"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../deployment-plan/deployment-plan-factory"
+import { IReleaseStateStore } from "@shepherdorg/state-store"
+import { createKubectlDeploymentActionFactory } from "../deployment-actions/kubectl-action/create-kubectl-deployment-action"
+import { createImageDeploymentPlanner } from "../deployment-plan/image-deployment-planner"
+import { kubeSupportedExtensions } from "../deployment-actions/kubectl-action/kube-supported-extensions"
+import { createDeploymentTestActionFactory } from "./image-loader/deployment-test-action"
+import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
 
 const YAML = require("js-yaml")
 
@@ -32,6 +38,7 @@ export type THerdLoaderDependencies = {
   featureDeploymentConfig: TFeatureDeploymentConfig
   exec: any
   labelsLoader: TDockerMetadataLoader
+  stateStore: IReleaseStateStore
 }
 
 export type FHerdDeclarationLoader = (
@@ -46,10 +53,16 @@ export interface THerdLoader {
   loadHerd(herdFilePath: TFileSystemPath, environment?: string): Promise<IDeploymentOrchestration>
 }
 
-export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
+export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader {
   const featureDeploymentConfig = injected.featureDeploymentConfig
   const logger = injected.logger
-  let folderLoader = FolderLoader({ logger, planFactory: injected.planFactory })
+
+  const kubectlDeploymentActionFactory = createKubectlDeploymentActionFactory({
+    exec: injected.exec,
+    logger: injected.logger,
+    stateStore: injected.stateStore
+  })
+  const folderLoader = createFolderLoader({ logger, planFactory: injected.planFactory }, kubectlDeploymentActionFactory)
 
   const dockerRegistries = injected.labelsLoader.getDockerRegistryClientsFromConfig()
 
@@ -57,7 +70,26 @@ export function HerdLoader(injected: THerdLoaderDependencies): THerdLoader {
     dockerRegistries: dockerRegistries,
     logger: logger,
   })
-  let imagesLoaderObj = ImagesLoader({ logger, imageLabelsLoader, planFactory: injected.planFactory })
+  const dockerActionFactory = createDockerActionFactory({
+    exec: injected.exec,
+    logger: injected.logger,
+    stateStore: injected.stateStore
+  })
+  const imagesLoaderObj = createImagesLoader({
+    logger,
+    imageLabelsLoader,
+    planFactory: injected.planFactory,
+    stateStore: injected.stateStore,
+    exec: injected.exec,
+    imageDeploymentPlanner: createImageDeploymentPlanner({
+      dockerActionFactory,
+      kubeSupportedExtensions,
+      logger: injected.logger,
+      deploymentTestActionFactory: createDeploymentTestActionFactory({ dockerActionFactory, logger: injected.logger }),
+      planFactory: injected.planFactory,
+      kubectlActionFactory: kubectlDeploymentActionFactory
+    })
+  } )
 
   async function loadHerd(fileName: TFileSystemPath): Promise<IDeploymentOrchestration> {
     if (fs.existsSync(fileName)) {

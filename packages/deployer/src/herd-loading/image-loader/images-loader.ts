@@ -1,47 +1,39 @@
 import {
-  IDockerDeploymentAction,
-  IK8sDockerImageDeploymentAction,
   ILog,
   TDockerImageHerdDeclaration,
   TDockerImageHerdDeclarations,
   THerdSectionDeclaration,
   TImageInformation,
 } from "../../deployment-types"
-import { createImageDeploymentPlanner } from "./image-deployment-planner"
-import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-deployer/kube-supported-extensions"
 import { TDockerImageReference } from "@shepherdorg/docker-image-metadata-loader/dist/local-image-metadata"
 import { extractShepherdMetadata } from "../add-shepherd-metadata"
-import { TFileSystemPath } from "../../helpers/basic-types"
+import { IExec, TFileSystemPath } from "../../helpers/basic-types"
 import { ILoadDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { parseImageUrl, TDockerImageUrl, TDockerImageUrlStruct } from "../../helpers/parse-image-url"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan-factory"
-import { newOperationalOops, newProgrammerOops } from "oops-error"
-import { createDeploymentTestActionFactory } from "./deployment-test-action"
-
+import { newProgrammerOops } from "oops-error"
+import {
+  ICreateImageDeploymentPlan,
+} from "../../deployment-plan/image-deployment-planner"
+import { IReleaseStateStore } from "@shepherdorg/state-store"
 
 export function parseDockerImageUrl(dockerImageUrl: TDockerImageUrl): TDockerImageUrlStruct {
   return parseImageUrl(dockerImageUrl)
 }
 
-
 interface TImageDeclarationsLoaderDependencies {
+  exec: IExec
+  stateStore: IReleaseStateStore
   logger: ILog
   imageLabelsLoader: ILoadDockerImageLabels
   planFactory : IDeploymentPlanFactory
+  imageDeploymentPlanner: ICreateImageDeploymentPlan
 }
 
-export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
+export function createImagesLoader(injected: TImageDeclarationsLoaderDependencies ) {
   let derivedDeployments: TDockerImageHerdDeclarations = {}
 
-  function loadDockerImageHerdSpecs(images: TDockerImageHerdDeclarations, sectionDeclaration: THerdSectionDeclaration) {
-
-    const createImageDeploymentActions = createImageDeploymentPlanner({
-      kubeSupportedExtensions,
-      logger: injected.logger,
-      herdSectionDeclaration: sectionDeclaration,
-      deploymentTestActionFactory: createDeploymentTestActionFactory()
-    }).createDeploymentActions
-
+  function loadImageDeploymentPlans(images: TDockerImageHerdDeclarations, sectionDeclaration: THerdSectionDeclaration) {
 
     function addMigrationImageToDependenciesPlan(imageMetaData: TImageInformation) {
       if (imageMetaData.shepherdMetadata && imageMetaData.shepherdMetadata.migrationImage) {
@@ -64,10 +56,10 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
       if (!herdSpec.image && herdSpec.dockerImage) {
         Object.assign(herdSpec, parseDockerImageUrl(herdSpec.dockerImage))
       }
-      let promise: Promise<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> = loadImageMetadata(herdSpec)
+      let promise: Promise<IDeploymentPlan> = loadImageMetadata(herdSpec)
         .then(extractShepherdMetadata)
         .then(addMigrationImageToDependenciesPlan)
-        .then(createImageDeploymentActions)
+        .then(injected.imageDeploymentPlanner.createImageDeploymentPlan)
         .catch(function(e: Error | string) {
           let errorMessage: string
           if (typeof e === "string") {
@@ -84,28 +76,19 @@ export function ImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
   }
 
 
-  // Must unwrap and simplify this stuff
   async function imagesLoader(herdSectionSpec: THerdSectionDeclaration,
                               images: TDockerImageHerdDeclarations,
                               _herdPath: TFileSystemPath): Promise<Array<IDeploymentPlan>> {
-    let value: Array<Promise<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>>> = loadDockerImageHerdSpecs(images, herdSectionSpec)
-    let imageDeploymentActions: Array<Array<IDockerDeploymentAction | IK8sDockerImageDeploymentAction>> = await Promise.all(value)
-    let derivedDeploymentActionPromises = loadDockerImageHerdSpecs(derivedDeployments, herdSectionSpec)
-    imageDeploymentActions = imageDeploymentActions.concat(await Promise.all(derivedDeploymentActionPromises))
+    let planLoadingPromises: Array<Promise<IDeploymentPlan>> = loadImageDeploymentPlans(images, herdSectionSpec)
+    let imageDeploymentPlans: Array<IDeploymentPlan> = await Promise.all(planLoadingPromises)
 
-    let resultingPlans = await Promise.all(imageDeploymentActions.flatMap(async (deploymentActions) => {
-      if(deploymentActions.length===0){
-        throw newProgrammerOops("Zero actions loaded from herd section spec", herdSectionSpec)
-      }
+    // TODO There should be no derived image deployment plans, migration actions should be a part of the image deployment plan
+    let derivedPlanLoadingPromises = loadImageDeploymentPlans(derivedDeployments, herdSectionSpec)
+    imageDeploymentPlans = imageDeploymentPlans.concat(await Promise.all(derivedPlanLoadingPromises))
 
-      if(!deploymentActions[0].herdDeclaration){
-        throw newProgrammerOops("Whuut, no herd declaration attached to action!",deploymentActions[0])
-      }
-      const resultingPlan = injected.planFactory.createDeploymentPlan(deploymentActions[0].herdDeclaration)
-      await Promise.all(deploymentActions.map(resultingPlan.addAction))
-      return resultingPlan
+    return await Promise.all(imageDeploymentPlans.flatMap(async (deploymentPlan) => {
+      return deploymentPlan
     }))
-    return resultingPlans
   }
 
   return { imagesLoader }

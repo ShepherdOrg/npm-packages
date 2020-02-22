@@ -1,6 +1,6 @@
 import { expect } from "chai"
 
-import { HerdLoader, TDockerMetadataLoader, THerdLoader } from "./herd-loader"
+import { createHerdLoader, TDockerMetadataLoader, THerdLoader } from "./herd-loader"
 import * as path from "path"
 import * as fs from "fs"
 import {
@@ -25,13 +25,14 @@ import {
 } from "../deployment-plan/deployment-plan-factory"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
+import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 
 const exec = require("@shepherdorg/exec")
 
 /// Inject a mock image metadata loader with fake image information
 
 const CreateFeatureDeploymentConfig = require("../triggered-deployment/create-upstream-trigger-deployment-config")
-  .CreateUpstreamTriggerDeploymentConfig
+  .createUpstreamTriggerDeploymentConfig
 
 export interface TTestDeploymentOrchestration extends IDeploymentOrchestration {
   addedDeploymentPlans: Array<IDeploymentPlan>
@@ -54,19 +55,22 @@ describe("herd.yaml loading", function() {
     labelsLoader: TDockerMetadataLoader,
     featureDeploymentConfig: TFeatureDeploymentConfig
   ) {
+    let stateStore = createFakeStateStore()
     let dependencies: TDeploymentPlanDependencies = {
-      cmd: undefined,
+      exec: undefined,
       logger: loaderLogger,
-      stateStore: createFakeStateStore(),
-      uiDataPusher: createFakeUIPusher()
+      stateStore: stateStore,
+      uiDataPusher: createFakeUIPusher(),
     }
-    loader = HerdLoader({
+    let waitActionFactory = createRolloutWaitActionFactory(dependencies)
+    loader = createHerdLoader({
       logger: loaderLogger,
       deploymentOrchestration: CreateTestReleasePlan(),
       exec: exec,
+      stateStore: stateStore,
       labelsLoader: labelsLoader,
       featureDeploymentConfig,
-      planFactory: DeploymentPlanFactory(dependencies),
+      planFactory: DeploymentPlanFactory(dependencies, waitActionFactory),
     })
   }
 
@@ -81,6 +85,7 @@ describe("herd.yaml loading", function() {
     delete process.env.EXPORT2
     delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
     delete process.env.INFRASTRUCTURE_IMPORTED_ENV
+    delete process.env.ENV
   })
 
   beforeEach(() => {
@@ -92,6 +97,7 @@ describe("herd.yaml loading", function() {
     process.env.WWW_ICELANDAIR_IP_WHITELIST = "YnVsbHNoaXRsaXN0Cg=="
     process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "anotherValue"
     process.env.INFRASTRUCTURE_IMPORTED_ENV = "thatsme"
+    process.env.ENV = "SPECENV"
 
     delete process.env.TPL_DOCKER_IMAGE
 
@@ -377,7 +383,7 @@ describe("herd.yaml loading", function() {
 
     it("should use expanded docker parameter list as deployment descriptor for state checking", function() {
       expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].descriptor).to.equal(
-        "-i --rm -e ENV=testenv -e EXPORT1=NotFromInfrastructureAnyMore -e DB_HOST=testing123 -e DB_PASS=testing123 -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0"
+        "-i --rm -e ENV=SPECENV -e EXPORT1=NotFromInfrastructureAnyMore -e DB_HOST=testing123 -e DB_PASS=testing123 -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0"
       )
     })
   })

@@ -1,13 +1,25 @@
-import { DeploymentPlanFactory, IDeploymentPlan, IDeploymentPlanFactory } from "./deployment-plan-factory"
+import {
+  DeploymentPlanFactory,
+  IDeploymentPlan,
+  IDeploymentPlanFactory,
+  TDeploymentPlanDependencies,
+} from "./deployment-plan-factory"
 import { clearEnv, setEnv } from "../deployment-actions/test-action-factory"
 import { expect } from "chai"
 import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
-import { createFakeLogger } from "../test-tools/fake-logger"
-import { IExecutableAction, IKubectlDeployAction, ILog, TDeploymentOptions } from "../deployment-types"
+import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
+import {
+  IExecutableAction,
+  IKubectlDeployAction,
+  ILog,
+  TActionExecutionOptions,
+  TDeploymentOptions,
+} from "../deployment-types"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { emptyArray } from "../helpers/ts-functions"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
+import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 
 
 type FFakeLambda = () => Promise<void>
@@ -42,7 +54,7 @@ function createFakeAction(fakeLambda: FFakeLambda ):IExecutableAction{
   let me : IExecutableAction = {
     descriptor: "",
     pushToUI: false,
-    execute(_deploymentOptions: TDeploymentOptions & { waitForRollout: boolean; pushToUi: boolean }, _cmd: any, _logger: ILog, _saveDeploymentState: (stateSignatureObject: any) => Promise<TDeploymentState>): Promise<IExecutableAction> {
+    execute(_deploymentOptions: TActionExecutionOptions ): Promise<IExecutableAction> {
       return fakeLambda().then(()=>{
         return me
       })
@@ -77,6 +89,15 @@ function createFakeKubeCtlAction(fakeLambda:FFakeLambda, deploymentRollouts: any
 
 }
 
+export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
+  const fakeLogger = createFakeLogger()
+  const fakeExecCmd = createFakeExec()
+  fakeExecCmd.nextResponse.success = "exec success"
+  const fakeStateStore = createFakeStateStore()
+  fakeStateStore.nextState = { new: false, modified: true }
+
+  return { logger: fakeLogger, exec: fakeExecCmd, stateStore: fakeStateStore, uiDataPusher: createFakeUIPusher() }
+}
 
 describe("Deployment plan", function() {
   let depPlan: IDeploymentPlan
@@ -101,13 +122,9 @@ describe("Deployment plan", function() {
 
 
   beforeEach(async ()=>{
-    fakeExecCmd = createFakeExec()
-    fakeExecCmd.nextResponse.success = "exec success"
-    fakeStateStore = createFakeStateStore()
-    fakeStateStore.nextState = { new: false, modified: true }
 
-    const fakeLogger = createFakeLogger()
-    depPlanner = DeploymentPlanFactory({ logger: fakeLogger, cmd: fakeExecCmd, stateStore: fakeStateStore, uiDataPusher: createFakeUIPusher()})
+    let planDependencies = fakeDeploymentPlanDependencies()
+    depPlanner = DeploymentPlanFactory(planDependencies, createRolloutWaitActionFactory(planDependencies))
 
     depPlan = depPlanner.createDeploymentPlan({key:"testKeyOne"})
     faf = fakeLambdaFactory()

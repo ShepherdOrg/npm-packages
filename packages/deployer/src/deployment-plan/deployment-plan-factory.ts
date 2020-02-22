@@ -10,8 +10,10 @@ import {
 } from "../deployment-types"
 import { IReleaseStateStore, TDeploymentStateParams } from "@shepherdorg/state-store"
 import { emptyArray } from "../helpers/ts-functions"
-import { RolloutWaitActionFactory } from "../deployment-actions/kubectl-deployer/rollout-wait-action-factory"
-import { Oops } from "oops-error"
+import {
+  createRolloutWaitActionFactory,
+  ICreateRolloutWaitActions,
+} from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { mapUntypedDeploymentData } from "../ui-mapping/map-untyped-deployment-data"
 import { TFileSystemPath } from "../helpers/basic-types"
 import * as path from "path"
@@ -59,7 +61,7 @@ export type TK8sDeploymentPlansByKey = { [herdKey: string]: string }
 
 export interface TDeploymentPlanDependencies {
   stateStore: IReleaseStateStore
-  cmd: any
+  exec: any
   logger: ILog
   uiDataPusher: IPushToShepherdUI
 }
@@ -69,7 +71,7 @@ export interface IDeploymentPlanFactory {
 }
 
 
-export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies): IDeploymentPlanFactory {
+export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies, rolloutWaitActionFactory: ICreateRolloutWaitActions): IDeploymentPlanFactory {
 
   function createDeploymentPlan(herdDeclaration: THerdDeclaration): IDeploymentPlan {
     const deploymentActions: Array<IExecutableAction> = []
@@ -92,25 +94,16 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies): ID
 
       if (kubectlDeployAction.deploymentRollouts && kubectlDeployAction.operation === "apply" && kubectlDeployAction.state?.modified) {
         await Promise.all(kubectlDeployAction.deploymentRollouts.map(async (deploymentRollout) => {
-          await planInstance.addAction(RolloutWaitActionFactory(deploymentRollout))
+          await planInstance.addAction(rolloutWaitActionFactory.RolloutWaitActionFactory(deploymentRollout))
         }, {}))
       }
-    }
-
-    function saveDeploymentActionState(
-      deployment: IExecutableAction,
-    ) {
-      if (!deployment.state) {
-        throw new Oops({ message: "State is mandatory here", category: "ProgrammerError" })
-      }
-      return injected.stateStore.saveDeploymentState(deployment.state)
     }
 
     let planInstance : IDeploymentPlan = {
       async execute(executionOptions: TActionExecutionOptions): Promise<IDeploymentPlanExecutionResult> {
         let executionPromise = deploymentActions.reduce((p, nextAction) => {
           return p.then((remainingActions) => {
-            return nextAction.execute(executionOptions, injected.cmd, injected.logger, saveDeploymentActionState).then(async (actionResult) => {
+            return nextAction.execute(executionOptions).then(async (actionResult) => {
               remainingActions.push(actionResult)
               if(!executionOptions.dryRun && executionOptions.pushToUi){
                 await mapDeploymentDataAndPush(nextAction)

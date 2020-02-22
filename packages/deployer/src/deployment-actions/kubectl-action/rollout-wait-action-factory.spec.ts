@@ -1,5 +1,5 @@
 import { expect } from "chai"
-import { RolloutWaitActionFactory } from "./rollout-wait-action-factory"
+import { createRolloutWaitActionFactory } from "./rollout-wait-action-factory"
 
 import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
@@ -21,7 +21,7 @@ describe("K8S deployment rollout status wait action factory", function() {
 
     fakeExec = createFakeExec()
 
-    rolloutAction = RolloutWaitActionFactory({namespace:'default', deploymentName:"my-awesome-deployment", deploymentKind:"Deployment"})
+    rolloutAction = createRolloutWaitActionFactory({ exec: fakeExec, logger:fakeLogger, stateStore: fakeStateStore}).RolloutWaitActionFactory({namespace:'default', deploymentName:"my-awesome-deployment", deploymentKind:"Deployment"})
   })
 
   it("should remember descriptor", function() {
@@ -40,7 +40,7 @@ describe("K8S deployment rollout status wait action factory", function() {
     before(async ()=>{
       fakeLogger.logStatements = []
       fakeExec.executedCommands = []
-      return execResult = await rolloutAction.execute(defaultTestExecutionOptions, fakeExec, fakeLogger, fakeStateStore.saveDeploymentState )
+      return execResult = await rolloutAction.execute(defaultTestExecutionOptions )
     })
 
     it("should execute if action execution options state that we want to wait for rollout", () => {
@@ -63,7 +63,7 @@ describe("K8S deployment rollout status wait action factory", function() {
         dryRun: false,
         dryRunOutputDir: undefined
       }
-      await rolloutAction.execute(deploymentOptions, fakeExec, fakeLogger, fakeStateStore.saveDeploymentState )
+      await rolloutAction.execute(deploymentOptions  )
     })
 
     it("should not execute kubectl rollout wait", () => {

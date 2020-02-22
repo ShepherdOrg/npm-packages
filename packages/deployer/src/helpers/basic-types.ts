@@ -3,6 +3,4 @@ export type TFileSystemPath = string
 export type TISODateString = string
 export type TNamedValue<TValueType> = { name: string, value: TValueType }
 
-export function identityMap<T>(item: T): T {
-  return item
-}
+export type IExec = any

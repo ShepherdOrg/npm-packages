@@ -4,7 +4,7 @@ import * as fs from "fs"
 import { modifyDeploymentDocument } from "./modify-deployment-document"
 
 const expect = require("expect.js")
-const CreateUpstreamTriggerDeploymentConfig = require('../../../triggered-deployment/create-upstream-trigger-deployment-config').CreateUpstreamTriggerDeploymentConfig
+const CreateUpstreamTriggerDeploymentConfig = require('../../../triggered-deployment/create-upstream-trigger-deployment-config').createUpstreamTriggerDeploymentConfig
 
 function containsDifference(differences:Change[]) {
   for (let diffObj of differences) {
