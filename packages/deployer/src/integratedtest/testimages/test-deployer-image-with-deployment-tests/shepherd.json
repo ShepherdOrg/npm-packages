@@ -7,8 +7,8 @@
       "secret": true
     }
   ],
-  "deployCommand": "ls",
-  "rollbackCommand": "cat",
+  "deployCommand": "deploy",
+  "rollbackCommand": "rollback",
   "preDeployTest": {
     "command": "pretest",
     "environment": [

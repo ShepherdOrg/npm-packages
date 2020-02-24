@@ -112,7 +112,7 @@ export type TFolderMetadata = {
 }
 
 export interface IExecutableAction {
-  pushToUI: boolean
+  isStateful: boolean
   state?: TDeploymentState
   descriptor: string
 
@@ -128,7 +128,7 @@ export type TRollbackResult ={
 
 }
 
-export interface IRollbackActionExecution extends IExecutableAction{
+export interface IRollbackActionExecution{
   rollback(): TRollbackResult
 }
 

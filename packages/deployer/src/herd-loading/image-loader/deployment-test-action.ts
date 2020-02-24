@@ -6,12 +6,13 @@ import {
   TActionExecutionOptions,
 } from "../../deployment-types"
 import { ICreateDockerActions } from "../../deployment-actions/docker-action/docker-action"
+import { isOops } from "../../helpers/isOops"
 
 export interface ICreateDeploymentTestAction {
   createDeploymentTestAction(
     deployTestDeclaration: TTestSpecification,
     shepherdMetadata: TImageMetadata,
-    rollbackAction?: IRollbackActionExecution
+    rollbackActions?: Array<IRollbackActionExecution>
   ): IExecutableAction
 }
 
@@ -21,7 +22,7 @@ export function createDeploymentTestActionFactory({dockerActionFactory, logger}:
   function createDeploymentTestAction(
     deployTestDeclaration: TTestSpecification,
     shepherdMetadata: TImageMetadata,
-    rollbackAction?: IRollbackActionExecution
+    rollbackActions?: Array<IRollbackActionExecution>
   ): IExecutableAction {
     let dockerExecutionAction = dockerActionFactory.createDockerExecutionAction(
       shepherdMetadata,
@@ -36,10 +37,16 @@ export function createDeploymentTestActionFactory({dockerActionFactory, logger}:
       execute: async function(
         deploymentOptions: TActionExecutionOptions
       ): Promise<IExecutableAction> {
-        return dockerExecutionAction.execute(deploymentOptions).catch(testError => {
-          if (rollbackAction) {
+        return dockerExecutionAction.execute(deploymentOptions).catch(async testError => {
+          if (rollbackActions && rollbackActions.length) {
             logger.warn("Test failed, rolling back to last good version!")
-            rollbackAction.rollback()
+            await Promise.all(rollbackActions.map(rollback=>rollback.rollback()))
+          }
+          if(isOops(testError)){
+            logger.error('Test output: vvvvvvvvvvvvvvvv')
+            // @ts-ignore
+            logger.error(testError.context.stdOut)
+            logger.error('^^^^^^^^^^^^^^^^^^^^^^^')
           }
           throw testError
         })

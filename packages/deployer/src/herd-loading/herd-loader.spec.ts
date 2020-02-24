@@ -128,12 +128,14 @@ describe("herd.yaml loading", function() {
             } else if (deploymentAction.type === "deployer") {
               releasePlan.addedDockerDeployerActions[deploymentAction.identifier] = deploymentAction as IDockerDeploymentAction
             }
+            if(deploymentAction.isStateful && !deploymentAction.version){
+              expect.fail(`No version in ${deploymentAction.identifier} from ${JSON.stringify(deploymentAction)}`)
+            }
             resolve(deploymentAction)
           }, 1)
         })
         return addPromise
       }
-
 
       let releasePlan: TTestDeploymentOrchestration = {
         executePlans: function(_p1: TActionExecutionOptions) {

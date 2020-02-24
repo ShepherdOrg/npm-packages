@@ -83,7 +83,7 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies, rol
         return deploymentData
       } else {
         const mappedData = mapUntypedDeploymentData(deploymentData as IAnyDeploymentAction)
-        if (injected.uiDataPusher && deploymentData.pushToUI) {
+        if (injected.uiDataPusher && deploymentData.isStateful) {
           await injected.uiDataPusher.pushDeploymentStateToUI(mappedData)
         }
         return deploymentData
@@ -118,7 +118,13 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies, rol
       },
       async addAction(action: IExecutableAction): Promise<void> {
         injected.logger.debug(`Adding action to plan ${herdDeclaration.key} `, action.planString())
-        action.state = await injected.stateStore.getDeploymentState(action as unknown as TDeploymentStateParams)
+        // @ts-ignore
+        // if(!action.version){
+        //   console.log(`NO action version`, action.planString(), ' decriptor: ', action.descriptor)
+        // }
+        if(action.isStateful){
+          action.state = await injected.stateStore.getDeploymentState(action as unknown as TDeploymentStateParams)
+        }
 
         deploymentActions.push(action)
 
@@ -158,19 +164,22 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies, rol
         let modified = false
 
         deploymentActions.forEach(function(deploymentAction: IExecutableAction) {
-          if (!deploymentAction.state) {
-            throw new Error("No state!")
-          }
-          if (deploymentAction.state.modified) {
-            if (!modified) {
-              if (herdDeclaration) {
-                logger.info(`Deploying ${herdDeclaration.key}`)
-              } else {
-                logger.info("Missing herdKey for ", planInstance)
+          // Ok, so conflicting ideas. Get and store state only on stateful actions. Always creating rollout wait actions and test actions. Print all actions that are going to be performed.
+          // ?? Add a reduction step reducing a) actions in plan to those executed and b) plans with executable actions?
+          if (deploymentAction.isStateful && deploymentAction.state) {
+            if (deploymentAction.state.modified) {
+              if (!modified) {
+                if (herdDeclaration) {
+                  logger.info(`Deploying ${herdDeclaration.key}`)
+                } else {
+                  logger.info("Missing herdKey for ", planInstance)
+                }
               }
+              modified = true
+              logger.info(`  - ${deploymentAction.planString()}`)
+            } else if(modified) {
+              logger.info(`  - ${deploymentAction.planString()}`)
             }
-            modified = true
-            logger.info(`  - ${deploymentAction.planString()}`)
           }
         })
         return modified

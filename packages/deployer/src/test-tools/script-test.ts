@@ -1,9 +1,9 @@
 import { FExecutionCallback, TFileSystemPath } from "../helpers/basic-types"
 import * as fs from "fs"
+import { expect } from "chai"
 
 const JsDiff = require("diff")
 
-const expect = require("expect.js")
 const { extend, sortedUniq } = require("lodash")
 
 const exec = require("@shepherdorg/exec")
@@ -48,7 +48,7 @@ function compareActualVsExpected(expectedFileName:TFileSystemPath, actualFileNam
   let difference = JsDiff.diffTrimmedLines(expectedFileContents.trim(), actualFileContents.trim())
   let relevantDiff = relevantDifferences(difference, ignoreList)
   if (relevantDiff.length) {
-    expect().fail(
+    expect.fail(
       "Expected file xxxxxx " +
         expectedFileName +
         " differs from actual file " +
@@ -70,6 +70,7 @@ type TStdOutDSL = {
 }
 
 type TStdErrDSL = {
+  shouldContain(partialString: string): TScriptTestExecution
   shouldBeEmptyDir(): TScriptTestExecution
   shouldEqual(expectedOutputFileOrDir: TFileSystemPath): TScriptTestExecution
 }
@@ -77,9 +78,9 @@ type TStdErrDSL = {
 export interface TScriptTestExecution {
   expectedExitCode: number | undefined
   callback?: FExecutionCallback
-  actualFromStderr: boolean
   processStderr?: string
-  expectedPartialStrings: string[]
+  expectedStdoutPartials: string[]
+  expectedStderrPartials: string[]
   actualFromStdout: boolean
   expectedStdOutput: string | TFileSystemPath | undefined
   processOutput: string
@@ -131,7 +132,7 @@ export default {
           execution.callback && execution.callback(stdout)
         } else {
           console.error("Process error in test, error code:", errCode, " stderr:", err)
-          expect().fail(
+          expect.fail(
             "Error invoking : " +
               command +
               " with arguments " +
@@ -160,9 +161,9 @@ export default {
       expectedStdOutput: undefined,
       processOutput: "",
       ignoreList: emptyArray<string>(),
-      expectedPartialStrings: emptyArray<string>(),
+      expectedStdoutPartials: emptyArray<string>(),
+      expectedStderrPartials: emptyArray<string>(),
       expectedExitCode: undefined,
-      actualFromStderr: false,
       actualFromStdout: false,
       output: function(actualOutputFileOrDir) {
         execution.actualOutputFileOrDir = actualOutputFileOrDir
@@ -189,14 +190,17 @@ export default {
             return execution
           },
           shouldContain(partialString: string) {
-            execution.expectedPartialStrings.push(partialString)
+            execution.expectedStdoutPartials.push(partialString)
             return execution
           },
         }
       },
       stderr: function() {
-        execution.actualFromStderr = true
         return {
+          shouldContain(partialString: string) {
+            execution.expectedStderrPartials.push(partialString)
+            return execution
+          },
           shouldEqual(expectedOutputFileOrDir: TFileSystemPath) {
             execution.expectedOutputFileOrDir = expectedOutputFileOrDir
             return execution
@@ -216,21 +220,16 @@ export default {
         return execution
       },
       checkExpectations() {
-        if (execution.actualFromStderr) {
-          if (!(execution.processStderr === execution.expectedOutputFileOrDir)) {
-            expect().fail(
-              "Standard err " +
-                execution.processStderr +
-                " does not match expected " +
-                execution.expectedOutputFileOrDir +
-                " error output"
-            )
-          }
-          return
-        }
+        execution.expectedStdoutPartials.forEach((partialString: string) => {
+          expect(execution.processOutput.indexOf(partialString)).to.gte(0, partialString)
+        })
 
-        execution.expectedPartialStrings.forEach((partialString: string) => {
-          expect(execution.processOutput).to.contain(partialString)
+        execution.expectedStderrPartials.forEach((partialString: string) => {
+          if(execution.processStderr){
+            expect(execution.processStderr.indexOf(partialString)).to.gte(0, partialString)
+          } else {
+            expect.fail(`Expecting stderr output, and for it to contain ${partialString}`)
+          }
         })
 
         if (execution.actualFromStdout) {
@@ -246,7 +245,7 @@ export default {
             let relevant = relevantDifferences(difference, execution.ignoreList)
             if (relevant.length) {
               fs.writeFileSync("./integratedtest/expected/actualoutput.log", execution.processOutput)
-              expect().fail(
+              expect.fail(
                 "Expected stdout \n" +
                   expectedOutput +
                   "\n differs from actual stdout \n" +
@@ -265,14 +264,14 @@ export default {
             if (actualIsDir) {
               let actualFiles = sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir as TFileSystemPath))
               if (actualFiles.length > 0) {
-                expect().fail(
+                expect.fail(
                   `Directory ${
                     execution.actualOutputFileOrDir
                   } is not empty, contains following files: ${actualFiles.join(", ")}`
                 )
               }
             } else {
-              expect().fail("Actual is not a directory!")
+              expect.fail("Actual is not a directory!")
             }
             return
           }
@@ -290,7 +289,7 @@ export default {
             let difference = JsDiff.diffTrimmedLines(expectedFilesString, actualFilesString)
             let relevantDiff = relevantDifferences(difference, execution.ignoreList)
             if (relevantDiff.length) {
-              expect().fail(
+              expect.fail(
                 "Expected directory contents " +
                   execution.expectedOutputFileOrDir +
                   " differs from actual dir contents " +

@@ -32,7 +32,7 @@ export function createRolloutWaitActionFactory(actionDependencies: TRolloutWaitA
       type: "k8s",
       operation: "rollout",
       identifier: identifier,
-      pushToUI: false,
+      isStateful: false,
       descriptor: planString(),
       planString: planString,
       execute(deploymentOptions: TActionExecutionOptions): Promise<IExecutableAction> {

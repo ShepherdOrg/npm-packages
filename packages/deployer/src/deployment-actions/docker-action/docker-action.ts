@@ -6,6 +6,8 @@ import * as path from "path"
 import { extendedExec, writeFile } from "../../helpers/promisified"
 import { environmentToEnvSetters } from "./environment-to-env-setters"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
+import { newOperationalOops, newProgrammerOops } from "oops-error"
+import { isOops } from "../../helpers/isOops"
 
 type TDockerActionFactoryDependencies = {
   exec: any;
@@ -57,7 +59,7 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
         // logger.exitDeployment(plan.origin + '/' + plan.identifier);
 
         try {
-          if (executableAction.state) {
+          if (executableAction.isStateful && executableAction.state) {
             executableAction.state = await stateStore.saveDeploymentState(executableAction.state)
           }
           return executableAction
@@ -74,8 +76,12 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
         }
       } catch (err) {
         let message = "Failed to run docker " + dockerArguments().join(" ") + ": \n"
-        message += err.message || err
-        throw new Error(message)
+        message += "Error message: " + err.message || err
+        if(isOops(err)){
+          throw newProgrammerOops(message, err.context, err)
+        } else{
+          throw newProgrammerOops(message, )
+        }
       }
     }
   }
@@ -98,7 +104,7 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
       imageWithoutTag: dockerImageUrl.replace(/:.*/g, ""), // For regression testing
       origin: herdKey,
       operation: operation,
-      pushToUI: true,
+      isStateful: true,
       command: command,
       identifier: herdKey,
       planString(): string {

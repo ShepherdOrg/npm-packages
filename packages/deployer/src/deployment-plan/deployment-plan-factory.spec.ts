@@ -53,7 +53,7 @@ function fakeLambdaFactory() : IFakeLambdaFactory {
 function createFakeAction(fakeLambda: FFakeLambda ):IExecutableAction{
   let me : IExecutableAction = {
     descriptor: "",
-    pushToUI: false,
+    isStateful: true,
     execute(_deploymentOptions: TActionExecutionOptions ): Promise<IExecutableAction> {
       return fakeLambda().then(()=>{
         return me
@@ -83,7 +83,7 @@ function createFakeKubeCtlAction(fakeLambda:FFakeLambda, deploymentRollouts: any
     identifier: "",
     operation: "apply",
     origin: "", 
-    pushToUI: false,
+    isStateful: true,
     state: actionState
   }
 
@@ -140,7 +140,6 @@ describe("Deployment plan", function() {
       expect(depPlan.deploymentActions.length).to.equal(2)
       expect(depPlan.deploymentActions[1].descriptor).to.contain("rollout status")
     })
-
   })
 
   // describe("plan for image with migration reference", function() {

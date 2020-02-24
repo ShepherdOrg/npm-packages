@@ -152,7 +152,7 @@ describe("Deployment test action", function() {
     let testError: Error
 
     let deploymentOptions = defaultTestExecutionOptions
-    let fakeRollbackAction: IRollbackActionExecution & { rollbackCalls: Array<any> }
+    let fakeRollbackAction: IExecutableAction & IRollbackActionExecution & { rollbackCalls: Array<any> }
 
     before(async () => {
       let fakeDeploymentTestActionFactoryDependencies = createFakeDeploymentTestActionFactoryDependencies()
@@ -167,7 +167,7 @@ describe("Deployment test action", function() {
       fakeRollbackAction = {
         rollbackCalls: [],
         descriptor: "",
-        pushToUI: false,
+        isStateful: false,
         async execute(_deploymentOptions: TActionExecutionOptions): Promise<IExecutableAction> {
           return fakeRollbackAction
         },
@@ -180,7 +180,7 @@ describe("Deployment test action", function() {
           return ""
         },
       }
-      postDeployTestAction = createDeploymentTestActionFactory(fakeDeploymentTestActionFactoryDependencies).createDeploymentTestAction(testDeclaration, shepherdMetadata, fakeRollbackAction)
+      postDeployTestAction = createDeploymentTestActionFactory(fakeDeploymentTestActionFactoryDependencies).createDeploymentTestAction(testDeclaration, shepherdMetadata, [fakeRollbackAction])
 
       return execResult = await postDeployTestAction.execute(deploymentOptions)
         .catch((testErr)=>{

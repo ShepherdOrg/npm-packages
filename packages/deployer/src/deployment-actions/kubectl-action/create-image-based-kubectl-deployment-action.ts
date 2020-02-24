@@ -47,7 +47,6 @@ async function createImageBasedFileDeploymentAction(
   // TODO: Consider creating a deployment action for each part of multipart deployment document
   // Investigate whether kubernetes does clean up removed deployment sections from document.
   // Only do this if kubernetes in latest incarnations does not clean up.
-
   const newK8sAction: IK8sDockerImageDeploymentAction = Object.assign(documentDeploymentAction, {
     env: env,
     herdDeclaration: imageInformation.imageDeclaration,

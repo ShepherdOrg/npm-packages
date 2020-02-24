@@ -18,7 +18,7 @@ type TTestActionsMap = { [idx: string]: { [idx2: string]: TDockerDeploymentActio
 
 let namespaceMonitors: TK8sDirDeploymentActionStruct = {
   "operation": "delete",
-  "pushToUI": true,
+  "isStateful": true,
   "identifier": "Namespace_monitors",
   "version": "immutable",
   "descriptor": "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: monitors\n",
@@ -49,7 +49,7 @@ let namespaceMonitors: TK8sDirDeploymentActionStruct = {
 }
 let serviceWwwFromDir: TK8sDirDeploymentActionStruct = {
   "operation": "apply",
-  "pushToUI": true,
+  "isStateful": true,
 
   "identifier": "Service_www-fromdir",
   "version": "immutable",
@@ -142,7 +142,7 @@ export const TestActions: TTestActionsMap = {
       "origin": "testenvimage-migrations:0.0.0",
       "type": "deployer",
       "operation": "run",
-      "pushToUI": true,
+      "isStateful": true,
 
       "command": "ls",
       "identifier": "testenvimage-migrations:0.0.0",
@@ -210,7 +210,7 @@ export const TestActions: TTestActionsMap = {
       "origin": "test-infrastructure:1.0.0",
       "type": "deployer",
       "operation": "run",
-      "pushToUI": true,
+      "isStateful": true,
 
       "command": "ls",
       "identifier": "test-infrastructure:1.0.0",
@@ -270,7 +270,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "Service_www-icelandair-com-internal",
       "version": "0.0.0",
@@ -325,7 +325,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "delete",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "Service_image2",
       "version": "999.999.99999",
@@ -390,7 +390,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "Service_www-icelandair-com-internal-test1",
       "version": "0.0.0",
@@ -453,7 +453,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "ConfigMap_www-icelandair-com-nginx-acls",
       "version": "0.0.0",
@@ -508,7 +508,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "delete",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "Deployment_image2",
       "version": "999.999.99999",
@@ -573,7 +573,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "ConfigMap_www-icelandair-com-nginx-acls-test1",
       "version": "0.0.0",
@@ -635,7 +635,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "Deployment_www-icelandair-com",
       "version": "0.0.0",
@@ -691,7 +691,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "delete",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "ConfigMap_image2-config",
       "version": "999.999.99999",
@@ -756,7 +756,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "Deployment_www-icelandair-com-test1",
       "version": "0.0.0",
@@ -819,7 +819,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "Service_www-icelandair-com",
       "version": "0.0.0",
@@ -884,7 +884,7 @@ export const TestActions: TTestActionsMap = {
         "deployerRole": "install" as TDeployerRole,
       },
       "operation": "apply",
-      "pushToUI": true,
+      "isStateful": true,
 
       "identifier": "Service_www-icelandair-com-test1",
       "version": "0.0.0",

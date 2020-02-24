@@ -9,6 +9,7 @@ import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
 import { CreateLogger } from "./logging/logger"
 import { IDeploymentOrchestration } from "./deployment-types"
 import { createLoaderContext } from "./herd-loading/createLoaderContext"
+import { isOops } from "./helpers/isOops"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -208,6 +209,10 @@ stateStoreBackend
               terminateProcess(255)
             })
         } else {
+
+          // TODO NEXT State storage
+          // TODO NEXT Rollback on kube config
+
           logger.info("Executing deployment plan...")
           plan
             .executePlans({
@@ -223,7 +228,11 @@ stateStoreBackend
               }, 1000)
             })
             .catch(function(err: Error) {
-              logger.error("Plan execution error", err)
+              logger.error("Plan execution error")
+              logger.error(err.message)
+              if(isOops( err )){
+                logger.error(`Error context: ${JSON.stringify(err.context, null, 2)}`, )
+              }
               terminateProcess(255)
             })
         }

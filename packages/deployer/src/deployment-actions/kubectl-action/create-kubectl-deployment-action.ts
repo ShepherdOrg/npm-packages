@@ -92,7 +92,12 @@ export function createKubectlDeploymentActionFactory({ exec, logger, stateStore 
           logger.info(stdOut || "[empty output]")
 
           try {
-            thisIsMe.state = await stateStore.saveDeploymentState(thisIsMe.state)
+            if(thisIsMe.isStateful){
+              if(!thisIsMe.state){
+                throw newProgrammerOops('Attempting to execute a stateful action without a state! ', thisIsMe)
+              }
+              thisIsMe.state = await stateStore.saveDeploymentState(thisIsMe.state)
+            }
 
             return thisIsMe
           } catch (err) {
@@ -193,7 +198,7 @@ export function createKubectlDeploymentActionFactory({ exec, logger, stateStore 
           return await executeKubectlDeploymentAction(documentDeploymentAction, deploymentOptions)
         },
         operation: operation,
-        pushToUI: true,
+        isStateful: true,
         origin: actionOrigin,
         deploymentRollouts: deploymentRollouts,
         descriptor: deploymentDescriptor,
