@@ -1,6 +1,12 @@
 import { identifyDocument, TDescriptorsByKind } from "./k8s-deployment-document-identifier"
 import { TBranchModificationParams } from "./k8s-branch-deployment/create-name-change-index"
-import { IKubectlDeployAction, ILog, IRollbackActionExecution, TActionExecutionOptions } from "../../deployment-types"
+import {
+  IKubectlDeployAction,
+  ILog,
+  IRollbackActionExecution,
+  TActionExecutionOptions,
+  TRollbackResult,
+} from "../../deployment-types"
 import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
 import { newProgrammerOops, Oops } from "oops-error"
 import { expandEnv } from "../../template/expandenv"
@@ -195,22 +201,45 @@ export function createKubectlDeploymentActionFactory({ exec, logger, stateStore 
         deploymentRollouts = listDeploymentRollouts(descriptorsByKind)
       }
 
-      let documentDeploymentAction: IKubectlDeployAction = {
+      let documentDeploymentAction: IKubectlDeployAction & IRollbackActionExecution = {
         canRollbackExecution(): boolean {
-          // Can rollback if we have deployment rollout list,
-          // Can rollback if we have previous version
-
-          console.log(`canRollbackExecution, based on deployment rollouts`, deploymentRollouts.length > 0)
-          console.log(`canRollbackExecution, based on version`, documentDeploymentAction.state?.version)
-          console.log(`canRollbackExecution, based on version`, documentDeploymentAction.state?.lastVersion)
-
-          return false;
+          console.log(`canRollbackExecution, based on lastVersion`, documentDeploymentAction.state?.lastVersion)
+          return Boolean(deploymentRollouts.length);
         },
         planString() {
           return `kubectl ${operation} ${loadedDescriptor.identifyingString}`
         },
         async execute(deploymentOptions: TActionExecutionOptions) {
           return await executeKubectlDeploymentAction(documentDeploymentAction, deploymentOptions)
+        },
+        async rollback() : Promise<TRollbackResult>{
+          return await Promise.all(deploymentRollouts.map((deploymentRollout)=>{
+            return extendedExec(exec)("kubectl", ["--namespace", deploymentRollout.namespace, "rollout", "undo", `deployment/${deploymentRollout.deploymentName}`], {
+              env: process.env,
+              debug: true,
+            }).then((stdOut) => {
+              logger.info(stdOut)
+              logger.info("Rollback complete. Original error follows.")
+              return {
+                stdOut: stdOut
+              }
+            }).catch((execError) => {
+              const { errCode, stdOut, message: err } = execError
+              logger.warn(`Error executing kubectl rollout undo ${deploymentRollout}, code ${errCode}`)
+              logger.warn(err)
+              logger.warn(stdOut)
+              return {
+                code: errCode,
+                stdOut: stdOut,
+                stdErr: err
+              }
+            })
+          })).then((allResults)=>{
+            return {
+
+            }
+
+          })
         },
         operation: operation,
         isStateful: true,

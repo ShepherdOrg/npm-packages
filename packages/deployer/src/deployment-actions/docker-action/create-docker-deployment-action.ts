@@ -46,7 +46,7 @@ export function createDockerDeployerActionFactory({ executionActionFactory,logge
     if (deployerMetadata.rollbackCommand) {
 
       const rollbackExecution: IRollbackActionExecution = {
-        rollback(): TRollbackResult {
+        async rollback(): Promise<TRollbackResult> {
           // TODO Push old state to UI
 
           const rollbackAction = executionActionFactory.createDockerExecutionAction(
@@ -62,7 +62,7 @@ export function createDockerDeployerActionFactory({ executionActionFactory,logge
 
 
           logger.info(`Executing docker action rollback`, rollbackAction.planString())
-          return rollbackAction.execute({ pushToUi: false, dryRun: false, waitForRollout: false, dryRunOutputDir:"" }).then(() => {
+          return await rollbackAction.execute({ pushToUi: false, dryRun: false, waitForRollout: false, dryRunOutputDir:"" }).then(() => {
             logger.info(`Rollback complete. Original error follows.`)
             return {}
           })

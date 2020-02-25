@@ -126,11 +126,13 @@ export interface IExecutableAction {
 }
 
 export type TRollbackResult ={
-
+  code?: number
+  stdOut?: string
+  stdErr?: string
 }
 
 export interface IRollbackActionExecution{
-  rollback(): TRollbackResult
+  rollback(): Promise<TRollbackResult>
 }
 
 export function canRollbackExecution(action: object): action is IRollbackActionExecution{

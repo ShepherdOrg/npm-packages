@@ -38,9 +38,10 @@ export function createDeploymentTestActionFactory({dockerActionFactory, logger}:
         deploymentOptions: TActionExecutionOptions
       ): Promise<IExecutableAction> {
         return dockerExecutionAction.execute(deploymentOptions).catch(async testError => {
+          let NO_ROLLBACK_RESULT = {code:0}
           if (rollbackActions && rollbackActions.length) {
             logger.warn("Test failed, rolling back to last good version!", rollbackActions.length)
-            await Promise.all(rollbackActions.map(rollback=>rollback.canRollbackExecution() && rollback.rollback()))
+            await Promise.all(rollbackActions.map(rollback=>rollback.canRollbackExecution() && rollback.rollback() || NO_ROLLBACK_RESULT))
           }
           if(isOops(testError)){
             logger.error('Test output: vvvvvvvvvvvvvvvv')

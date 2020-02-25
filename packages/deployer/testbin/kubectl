@@ -19,7 +19,7 @@ fi
 
 
 if [ "${KUBEOP}" = "rollout" ]; then
-	echo "rollout status fake ok"
+	echo "rollout ${KUBEPARAM1} ${KUBEPARAM1} FAKED ok"
 	exit 0
 fi
 
