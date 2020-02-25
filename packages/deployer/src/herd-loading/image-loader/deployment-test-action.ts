@@ -1,8 +1,8 @@
 import { TImageMetadata, TTestSpecification } from "@shepherdorg/metadata"
 import {
+  canRollbackExecution,
   IExecutableAction,
   ILog,
-  IRollbackActionExecution,
   TActionExecutionOptions,
 } from "../../deployment-types"
 import { ICreateDockerActions } from "../../deployment-actions/docker-action/docker-action"
@@ -12,7 +12,7 @@ export interface ICreateDeploymentTestAction {
   createDeploymentTestAction(
     deployTestDeclaration: TTestSpecification,
     shepherdMetadata: TImageMetadata,
-    rollbackActions?: Array<IRollbackActionExecution>
+    rollbackActions?: Array<IExecutableAction>
   ): IExecutableAction
 }
 
@@ -22,7 +22,7 @@ export function createDeploymentTestActionFactory({dockerActionFactory, logger}:
   function createDeploymentTestAction(
     deployTestDeclaration: TTestSpecification,
     shepherdMetadata: TImageMetadata,
-    rollbackActions?: Array<IRollbackActionExecution>
+    rollbackActions?: Array<IExecutableAction>
   ): IExecutableAction {
     let dockerExecutionAction = dockerActionFactory.createDockerExecutionAction(
       shepherdMetadata,
@@ -39,8 +39,8 @@ export function createDeploymentTestActionFactory({dockerActionFactory, logger}:
       ): Promise<IExecutableAction> {
         return dockerExecutionAction.execute(deploymentOptions).catch(async testError => {
           if (rollbackActions && rollbackActions.length) {
-            logger.warn("Test failed, rolling back to last good version!")
-            await Promise.all(rollbackActions.map(rollback=>rollback.rollback()))
+            logger.warn("Test failed, rolling back to last good version!", rollbackActions.length)
+            await Promise.all(rollbackActions.map(rollback=>rollback.canRollbackExecution() && rollback.rollback()))
           }
           if(isOops(testError)){
             logger.error('Test output: vvvvvvvvvvvvvvvv')

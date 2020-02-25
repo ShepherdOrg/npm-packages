@@ -8,7 +8,7 @@ import { TDeploymentType } from "@shepherdorg/metadata"
 const Path = require("path")
 
 import Bluebird = require("bluebird")
-import { createKubectlDeploymentActionFactory } from "../../deployment-actions/kubectl-action/create-kubectl-deployment-action"
+import { createKubectlDeploymentActionFactory } from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { createFakeExec } from "../../test-tools/fake-exec"
 import { createFakeLogger } from "../../test-tools/fake-logger"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"

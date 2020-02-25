@@ -5,7 +5,7 @@ import {
   TActionExecutionOptions,
 } from "../../deployment-types"
 import { extendedExec } from "../../helpers/promisified"
-import { TDeploymentRollout } from "./create-kubectl-deployment-action"
+import { TDeploymentRollout } from "./kubectl-deployment-action-factory"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
 import { IExec } from "../../helpers/basic-types"
 
@@ -28,6 +28,9 @@ export function createRolloutWaitActionFactory(actionDependencies: TRolloutWaitA
     const logger = actionDependencies.logger
     let identifier = `${deploymentRollout.deploymentKind}/${deploymentRollout.deploymentName}`
     const waitAction: IKubectlAction = {
+      canRollbackExecution(): boolean {
+        return false;
+      },
 
       type: "k8s",
       operation: "rollout",

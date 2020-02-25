@@ -1,6 +1,6 @@
 import { identifyDocument, TDescriptorsByKind } from "./k8s-deployment-document-identifier"
 import { TBranchModificationParams } from "./k8s-branch-deployment/create-name-change-index"
-import { IKubectlDeployAction, ILog, TActionExecutionOptions } from "../../deployment-types"
+import { IKubectlDeployAction, ILog, IRollbackActionExecution, TActionExecutionOptions } from "../../deployment-types"
 import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
 import { newProgrammerOops, Oops } from "oops-error"
 import { expandEnv } from "../../template/expandenv"
@@ -12,6 +12,7 @@ import { TK8sPartialDescriptor } from "./k8s-document-types"
 import { emptyArray } from "../../helpers/ts-functions"
 import { IExec, TFileSystemPath } from "../../helpers/basic-types"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
+import { isOops } from "../../helpers/isOops"
 
 const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 
@@ -146,8 +147,12 @@ export function createKubectlDeploymentActionFactory({ exec, logger, stateStore 
                 err)
             }
           } else {
-            let message = `Failed to perform ${thisIsMe.operation} from label for image ${JSON.stringify(thisIsMe)}`
-            message += "\n" + err
+            if(isOops(error)){
+              console.log(`We have an oops error!`, error.toString())
+              console.log(error)
+            }
+            let message = `Failed to perform ${thisIsMe.operation} from label for image ${JSON.stringify(thisIsMe, null, 2)}`
+            message += "\n" + error.message
             message += "\nCode:" + errCode
             message += "\nStdOut:" + stdOut
             throw new Error(message)
@@ -191,6 +196,16 @@ export function createKubectlDeploymentActionFactory({ exec, logger, stateStore 
       }
 
       let documentDeploymentAction: IKubectlDeployAction = {
+        canRollbackExecution(): boolean {
+          // Can rollback if we have deployment rollout list,
+          // Can rollback if we have previous version
+
+          console.log(`canRollbackExecution, based on deployment rollouts`, deploymentRollouts.length > 0)
+          console.log(`canRollbackExecution, based on version`, documentDeploymentAction.state?.version)
+          console.log(`canRollbackExecution, based on version`, documentDeploymentAction.state?.lastVersion)
+
+          return false;
+        },
         planString() {
           return `kubectl ${operation} ${loadedDescriptor.identifyingString}`
         },
@@ -205,8 +220,9 @@ export function createKubectlDeploymentActionFactory({ exec, logger, stateStore 
         fileName,
         identifier: loadedDescriptor.identifyingString,
         descriptorsByKind: loadedDescriptor.descriptorsByKind,
-        type: "kubectl",
+        type: "kubectl"
       }
+
 
       return documentDeploymentAction
 

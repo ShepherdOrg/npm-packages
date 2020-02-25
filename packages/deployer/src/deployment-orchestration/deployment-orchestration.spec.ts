@@ -5,13 +5,13 @@ import {
   IAnyDeploymentAction,
   IDeploymentOrchestration,
   IDockerDeploymentAction,
-  IDockerExecutableAction,
+  IDockerExecutableAction, IExecutableAction,
   IK8sDirDeploymentAction,
-  IK8sDockerImageDeploymentAction,
+  IK8sDockerImageDeploymentAction, IKubectlDeployAction,
   ILog,
   TActionExecutionOptions,
 } from "../deployment-types"
-import { createKubectlDeploymentActionFactory } from "../deployment-actions/kubectl-action/create-kubectl-deployment-action"
+import { createKubectlDeploymentActionFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { emptyArray } from "../helpers/ts-functions"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
 import {
@@ -37,12 +37,15 @@ export function createKubectlTestDeployAction(
     stateStore: stateStore
   })
 
-  let testAction = {
+  let testAction: IK8sDockerImageDeploymentAction &{testInstance: boolean} = {
     planString() {
       return `kubectl ${serialisedAction.operation} ${serialisedAction.identifier}`
     },
     execute(deploymentOptions: TActionExecutionOptions ) {
-      return actionFactory.executeKubectlDeploymentAction(testAction, deploymentOptions)
+      return actionFactory.executeKubectlDeploymentAction(testAction as unknown as IKubectlDeployAction, deploymentOptions)
+    },
+    canRollbackExecution(): boolean {
+      return false
     },
     testInstance: true,
     ...serialisedAction,
@@ -72,6 +75,9 @@ export function createFakeDockerDeploymentAction(
           actionExecutionOptions
         )
       })(testAction, deploymentOptions)
+    },
+    canRollbackExecution(): boolean {
+      return false
     },
     testInstance: true,
     ...serialisedAction,

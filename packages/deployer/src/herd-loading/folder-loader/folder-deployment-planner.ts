@@ -4,7 +4,7 @@ import { emptyArray } from "../../helpers/ts-functions"
 import {
   createKubectlDeploymentActionFactory,
   ICreateKubectlDeploymentAction,
-} from "../../deployment-actions/kubectl-action/create-kubectl-deployment-action"
+} from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import {
   IK8sDirDeploymentAction,
   IKubectlDeployAction,

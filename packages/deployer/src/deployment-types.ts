@@ -10,7 +10,7 @@ import {
 import { TDescriptorsByKind } from "./deployment-actions/kubectl-action/k8s-deployment-document-identifier"
 import { TFileSystemPath, TISODateString } from "./helpers/basic-types"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
-import { TDeploymentRollout } from "./deployment-actions/kubectl-action/create-kubectl-deployment-action"
+import { TDeploymentRollout } from "./deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { IDeploymentPlan, IDeploymentPlanExecutionResult } from "./deployment-plan/deployment-plan-factory"
 
 export type ILog = {
@@ -122,6 +122,7 @@ export interface IExecutableAction {
     deploymentOptions: TActionExecutionOptions
   ): Promise<IExecutableAction>
 
+  canRollbackExecution(): this is IRollbackActionExecution
 }
 
 export type TRollbackResult ={
@@ -130,6 +131,10 @@ export type TRollbackResult ={
 
 export interface IRollbackActionExecution{
   rollback(): TRollbackResult
+}
+
+export function canRollbackExecution(action: object): action is IRollbackActionExecution{
+  return Boolean((action as IRollbackActionExecution).rollback)
 }
 
 export interface IBaseDeploymentAction {

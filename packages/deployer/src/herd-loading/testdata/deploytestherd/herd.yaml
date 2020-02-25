@@ -2,3 +2,6 @@ images:
     test-image:
         image: test-deployer-image-with-deployment-tests
         imagetag: 0.7.77
+    test-k8s-image:
+        image: test-k8s-image-with-deployment-tests
+        imagetag: 0.8.88

@@ -1,4 +1,9 @@
-import { IDockerExecutableAction, ILog, TActionExecutionOptions } from "../../deployment-types"
+import {
+  IDockerExecutableAction,
+  ILog,
+  IRollbackActionExecution,
+  TActionExecutionOptions,
+} from "../../deployment-types"
 import { expandEnv } from "../../template/expandenv"
 import { expandTemplate } from "../../template/expandtemplate"
 import { TEnvironmentVariables, TImageMetadata } from "@shepherdorg/metadata"
@@ -115,6 +120,9 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
       ): Promise<IDockerExecutableAction> {
         return await executeDockerAction(deploymentAction, actionExecutionOptions)
       },
+      canRollbackExecution(): boolean {
+        return false
+      }
     }
 
     function allButImageParameter(params: string[]) {

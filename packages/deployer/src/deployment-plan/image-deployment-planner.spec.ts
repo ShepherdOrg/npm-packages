@@ -25,7 +25,7 @@ import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-s
 import { IExec } from "../helpers/basic-types"
 import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
 import { createFakeExec } from "../test-tools/fake-exec"
-import { createKubectlDeploymentActionFactory } from "../deployment-actions/kubectl-action/create-kubectl-deployment-action"
+import { createKubectlDeploymentActionFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 
 describe("Docker image plan loader", function() {

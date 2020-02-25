@@ -5,17 +5,17 @@ import {
   THerdSectionDeclaration,
   TImageInformation,
 } from "../deployment-types"
-import { createKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-image-based-kubectl-deployment-action"
+import { createKubectlDeploymentActionFactory } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-action"
 import { TExtensionsMap } from "../deployment-actions/kubectl-action/kube-supported-extensions"
 import { emptyArray } from "../helpers/ts-functions"
 import { ICreateDeploymentTestAction } from "../herd-loading/image-loader/deployment-test-action"
 import { newProgrammerOops } from "oops-error"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "./deployment-plan-factory"
-import { createDockerDeploymentActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
+import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { ICreateDockerActions } from "../deployment-actions/docker-action/docker-action"
 import {
   ICreateKubectlDeploymentAction,
-} from "../deployment-actions/kubectl-action/create-kubectl-deployment-action"
+} from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 
 export type TImageDeploymentPlannerDependencies = {
   kubectlActionFactory: ICreateKubectlDeploymentAction
@@ -37,7 +37,8 @@ export function createImageDeploymentPlanner(injected: TImageDeploymentPlannerDe
   const deploymentTestActionFactory = injected.deploymentTestActionFactory
 
   let kubectlDeploymentActionFactory = injected.kubectlActionFactory
-  let deploymentActionFactory = createDockerDeploymentActionFactory({ executionActionFactory: injected.dockerActionFactory, logger: injected.logger })
+  let deployerActionFactory = createDockerDeployerActionFactory({ executionActionFactory: injected.dockerActionFactory, logger: injected.logger })
+  let tKubectlDeploymentActionFactory = createKubectlDeploymentActionFactory({ deploymentActionFactory: kubectlDeploymentActionFactory, logger: injected.logger })
 
   async function createDeploymentActions(imageInformation: TImageInformation): Promise<Array<IExecutableAction>> {
     if (imageInformation.shepherdMetadata) {
@@ -51,9 +52,9 @@ export function createImageDeploymentPlanner(injected: TImageDeploymentPlannerDe
       }
       let deploymentActions: Array<IExecutableAction>
       if (imageInformation.shepherdMetadata.deploymentType === "deployer") {
-        deploymentActions = await deploymentActionFactory.createDockerDeploymentAction(imageInformation)
+        deploymentActions = await deployerActionFactory.createDockerDeploymentAction(imageInformation)
       } else if (imageInformation.shepherdMetadata.deploymentType === "k8s") {
-        deploymentActions = await createKubectlDeploymentActions(imageInformation, kubeSupportedExtensions, logger, kubectlDeploymentActionFactory)
+        deploymentActions = await tKubectlDeploymentActionFactory.createKubectlDeploymentActions(imageInformation, kubeSupportedExtensions)
       } else {
         throw new Error(`Unexpected: No planner in place for deploymentType ${imageInformation.shepherdMetadata.deploymentType} in ${imageInformation.shepherdMetadata.displayName} `)
       }
@@ -62,7 +63,7 @@ export function createImageDeploymentPlanner(injected: TImageDeploymentPlannerDe
       // TODO Move rollout wait action creation here
 
       if (imageInformation.shepherdMetadata.postDeployTest) {
-        resultingActions.push(deploymentTestActionFactory.createDeploymentTestAction(imageInformation.shepherdMetadata.postDeployTest, imageInformation.shepherdMetadata, deploymentActions as unknown as Array<IRollbackActionExecution>))
+        resultingActions.push(deploymentTestActionFactory.createDeploymentTestAction(imageInformation.shepherdMetadata.postDeployTest, imageInformation.shepherdMetadata, deploymentActions))
       }
 
       return resultingActions

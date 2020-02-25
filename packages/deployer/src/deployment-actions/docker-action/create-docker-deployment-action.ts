@@ -7,12 +7,12 @@ import {
 import { TDeployerMetadata } from "@shepherdorg/metadata"
 import { ICreateDockerActions } from "./docker-action"
 
-type TDockerDeploymentActionFactoryParams = {
+export type TDockerDeploymentActionFactoryDependencies = {
   executionActionFactory: ICreateDockerActions,
   logger: ILog
 }
 
-export function createDockerDeploymentActionFactory({ executionActionFactory,logger }: TDockerDeploymentActionFactoryParams) {
+export function createDockerDeployerActionFactory({ executionActionFactory,logger }: TDockerDeploymentActionFactoryDependencies) {
 
   async function createDockerDeploymentAction(
     imageInformation: TImageInformation,
@@ -45,21 +45,22 @@ export function createDockerDeploymentActionFactory({ executionActionFactory,log
 
     if (deployerMetadata.rollbackCommand) {
 
-      const rollbackAction = executionActionFactory.createDockerExecutionAction(
-        deployerMetadata,
-        imageInformation.imageDeclaration.dockerImage ||
-        imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag,
-        `${imageInformation.shepherdMetadata?.displayName || ""} rollback`,
-        imageInformation.imageDeclaration.key,
-        deployerMetadata.rollbackCommand,
-        deployerMetadata.environment,
-        deployerMetadata.environmentVariablesExpansionString,
-      )
-
-
       const rollbackExecution: IRollbackActionExecution = {
         rollback(): TRollbackResult {
           // TODO Push old state to UI
+
+          const rollbackAction = executionActionFactory.createDockerExecutionAction(
+            deployerMetadata,
+            imageInformation.imageDeclaration.dockerImage ||
+            imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag,
+            `${imageInformation.shepherdMetadata?.displayName || ""} rollback`,
+            imageInformation.imageDeclaration.key,
+            deployerMetadata.rollbackCommand as string, // Null check performed outside of checker scope
+            deployerMetadata.environment,
+            deployerMetadata.environmentVariablesExpansionString,
+          )
+
+
           logger.info(`Executing docker action rollback`, rollbackAction.planString())
           return rollbackAction.execute({ pushToUi: false, dryRun: false, waitForRollout: false, dryRunOutputDir:"" }).then(() => {
             logger.info(`Rollback complete. Original error follows.`)

@@ -52,6 +52,9 @@ function fakeLambdaFactory() : IFakeLambdaFactory {
 
 function createFakeAction(fakeLambda: FFakeLambda ):IExecutableAction{
   let me : IExecutableAction = {
+    canRollbackExecution(): boolean {
+      return false;
+    },
     descriptor: "",
     isStateful: true,
     execute(_deploymentOptions: TActionExecutionOptions ): Promise<IExecutableAction> {

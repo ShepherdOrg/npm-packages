@@ -176,6 +176,9 @@ describe("Deployment test action", function() {
           return {
           }
         },
+        canRollbackExecution(): boolean {
+          return true
+        },
         planString(): string {
           return ""
         },

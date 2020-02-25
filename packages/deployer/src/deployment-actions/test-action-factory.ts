@@ -9,7 +9,7 @@ import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-s
 import { createFakeExec } from "../test-tools/fake-exec"
 import { createDockerActionFactory } from "./docker-action/docker-action"
 import { createFakeLogger } from "../test-tools/fake-logger"
-import { createKubectlDeploymentActionFactory } from "./kubectl-action/create-kubectl-deployment-action"
+import { createKubectlDeploymentActionFactory } from "./kubectl-action/kubectl-deployment-action-factory"
 import { createRolloutWaitActionFactory } from "./kubectl-action/rollout-wait-action-factory"
 
 function createTestDeploymentActions() {
