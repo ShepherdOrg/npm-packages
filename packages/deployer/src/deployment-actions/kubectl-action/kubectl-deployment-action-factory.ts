@@ -63,10 +63,10 @@ function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: st
 
 export interface ICreateKubectlDeploymentAction {
   executeKubectlDeploymentAction: (thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions) => Promise<IKubectlDeployAction>;
-  createKubectlDeployAction: (origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, logger: ILog, branchModificationParams?: TBranchModificationParams) => IKubectlDeployAction
+  createKubectlDeployAction: (origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, branchModificationParams?: TBranchModificationParams) => IKubectlDeployAction
 }
 
-export function createKubectlDeploymentActionFactory({ exec, logger, stateStore }: IKubectlActionFactoryDependencies): ICreateKubectlDeploymentAction {
+export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore }: IKubectlActionFactoryDependencies): ICreateKubectlDeploymentAction {
 
   async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions) {
 
@@ -171,7 +171,7 @@ export function createKubectlDeploymentActionFactory({ exec, logger, stateStore 
     }
   }
 
-  function createKubectlDeployAction(origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, logger: ILog, branchModificationParams?: TBranchModificationParams): IKubectlDeployAction {
+  function createKubectlDeployAction(origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, branchModificationParams?: TBranchModificationParams): IKubectlDeployAction {
     let actionOrigin: string = origin
     try {
       if (branchModificationParams && branchModificationParams.shouldModify) {
@@ -203,7 +203,6 @@ export function createKubectlDeploymentActionFactory({ exec, logger, stateStore 
 
       let documentDeploymentAction: IKubectlDeployAction & IRollbackActionExecution = {
         canRollbackExecution(): boolean {
-          console.log(`canRollbackExecution, based on lastVersion`, documentDeploymentAction.state?.lastVersion)
           return Boolean(deploymentRollouts.length);
         },
         planString() {

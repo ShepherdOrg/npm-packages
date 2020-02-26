@@ -9,7 +9,7 @@ import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-s
 import { createFakeExec } from "../test-tools/fake-exec"
 import { createDockerActionFactory } from "./docker-action/docker-action"
 import { createFakeLogger } from "../test-tools/fake-logger"
-import { createKubectlDeploymentActionFactory } from "./kubectl-action/kubectl-deployment-action-factory"
+import { createKubectlDeploymentActionsFactory } from "./kubectl-action/kubectl-deployment-action-factory"
 import { createRolloutWaitActionFactory } from "./kubectl-action/rollout-wait-action-factory"
 
 function createTestDeploymentActions() {
@@ -25,7 +25,7 @@ function createTestDeploymentActions() {
   let dockerActionFactory = createDockerActionFactory(actionExecDeps)
   return createImageDeploymentPlanner(
     {
-      planFactory: DeploymentPlanFactory(fakeDeploymentPlanDependencies(), createRolloutWaitActionFactory(actionExecDeps)),
+      planFactory: DeploymentPlanFactory(fakeDeploymentPlanDependencies() ),
       kubeSupportedExtensions: {
         ".yml": true,
         ".yaml": true,
@@ -38,7 +38,7 @@ function createTestDeploymentActions() {
         exec: createFakeExec(),
         logger: createFakeLogger()
       }),
-      kubectlActionFactory: createKubectlDeploymentActionFactory({
+      kubectlActionFactory: createKubectlDeploymentActionsFactory({
         logger: createFakeLogger(),
         stateStore: createFakeStateStore(),
         exec: createFakeExec()

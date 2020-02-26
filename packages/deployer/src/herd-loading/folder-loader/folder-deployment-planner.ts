@@ -2,7 +2,7 @@ import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
 import {
-  createKubectlDeploymentActionFactory,
+  createKubectlDeploymentActionsFactory,
   ICreateKubectlDeploymentAction,
 } from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import {
@@ -125,8 +125,7 @@ export function planFolderDeployment(injected: TFolderDeploymentPlannerDependenc
                     kubeDeploymentRelativePath,
                     data,
                     dirStruct.forDelete ? "delete" : "apply",
-                    fileName,
-                    logger
+                    fileName
                   )
 
                   if (process.env.hasOwnProperty(imageVariableName)) {

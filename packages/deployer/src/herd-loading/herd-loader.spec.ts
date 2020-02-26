@@ -53,16 +53,21 @@ describe("herd.yaml loading", function() {
 
   function createTestHerdLoader(
     labelsLoader: TDockerMetadataLoader,
-    featureDeploymentConfig: TFeatureDeploymentConfig
+    featureDeploymentConfig: TFeatureDeploymentConfig,
   ) {
     let stateStore = createFakeStateStore()
+    let waitActionFactory = createRolloutWaitActionFactory({
+      exec: undefined,
+      logger: loaderLogger,
+      stateStore: stateStore,
+    })
     let dependencies: TDeploymentPlanDependencies = {
       exec: undefined,
       logger: loaderLogger,
       stateStore: stateStore,
       uiDataPusher: createFakeUIPusher(),
+      rolloutWaitActionFactory: waitActionFactory,
     }
-    let waitActionFactory = createRolloutWaitActionFactory(dependencies)
     loader = createHerdLoader({
       logger: loaderLogger,
       deploymentOrchestration: CreateTestReleasePlan(),
@@ -70,7 +75,7 @@ describe("herd.yaml loading", function() {
       stateStore: stateStore,
       labelsLoader: labelsLoader,
       featureDeploymentConfig,
-      planFactory: DeploymentPlanFactory(dependencies, waitActionFactory),
+      planFactory: DeploymentPlanFactory(dependencies),
     })
   }
 
@@ -109,9 +114,10 @@ describe("herd.yaml loading", function() {
       let addedK8sDeployerActions: { [key: string]: IK8sDockerImageDeploymentAction } = {}
       let addedDockerDeployerActions: { [key: string]: IDockerDeploymentAction } = {}
 
-      let deploymentPlans:Array<IDeploymentPlan>=[]
+      let deploymentPlans: Array<IDeploymentPlan> = []
+
       function addDeploymentAction(deploymentAction: IAnyDeploymentAction) {
-        let addPromise : Promise<IAnyDeploymentAction> = new Promise(function(resolve, reject) {
+        let addPromise: Promise<IAnyDeploymentAction> = new Promise(function(resolve, reject) {
           setTimeout(() => {
             if (!deploymentAction.type) {
               let message = "Illegal deployment, no deployment type attribute in " + JSON.stringify(deploymentAction)
@@ -128,7 +134,7 @@ describe("herd.yaml loading", function() {
             } else if (deploymentAction.type === "deployer") {
               releasePlan.addedDockerDeployerActions[deploymentAction.identifier] = deploymentAction as IDockerDeploymentAction
             }
-            if(deploymentAction.isStateful && !deploymentAction.version){
+            if (deploymentAction.isStateful && !deploymentAction.version) {
               expect.fail(`No version in ${deploymentAction.identifier} from ${JSON.stringify(deploymentAction)}`)
             }
             resolve(deploymentAction)
@@ -144,18 +150,20 @@ describe("herd.yaml loading", function() {
         exportDeploymentActions: function(_p1: TFileSystemPath) {
           return Promise.resolve()
         },
-        printPlan: function(_p1: ILog) { return false},
+        printPlan: function(_p1: ILog) {
+          return false
+        },
         addedDockerDeployerActions: addedDockerDeployerActions,
         addedK8sDeploymentActions: addedK8sDeployerActions,
         addedDeploymentPlans: deploymentPlans,
         // TODO addDeployentPlan(deploymentPlan: IDeploymentPlan)
         async addDeploymentPlan(deploymentPlan: IDeploymentPlan): Promise<IDeploymentPlan> {
-          await Promise.all(deploymentPlan.deploymentActions.map(async (da)=>{
+          await Promise.all(deploymentPlan.deploymentActions.map(async (da) => {
             await addDeploymentAction(da as IAnyDeploymentAction)
           }))
           deploymentPlans.push(deploymentPlan)
           return deploymentPlan
-        }
+        },
       }
       return releasePlan
     }
@@ -173,7 +181,7 @@ describe("herd.yaml loading", function() {
               __dirname,
               "testdata",
               "inspected-dockers",
-              imageDef.image + ".json"
+              imageDef.image + ".json",
             )
             if (fs.existsSync(dockerImageMetadataFile)) {
               const dockerInspection = require(dockerImageMetadataFile)
@@ -185,8 +193,8 @@ describe("herd.yaml loading", function() {
             } else {
               return Promise.reject(
                 new Error(
-                  `dockerImageMetadataFile ${dockerImageMetadataFile} for ${imageDef.image}:${imageDef.imagetag} not found in testdata`
-                )
+                  `dockerImageMetadataFile ${dockerImageMetadataFile} for ${imageDef.image}:${imageDef.imagetag} not found in testdata`,
+                ),
               )
             }
           },
@@ -234,7 +242,7 @@ describe("herd.yaml loading", function() {
 
     it("should add k8s deployment found in scanned directory", function() {
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].origin).to.equal(
-        "namespaces/monitors-namespace.yml"
+        "namespaces/monitors-namespace.yml",
       )
     })
 
@@ -245,14 +253,14 @@ describe("herd.yaml loading", function() {
     it("should have herdDeclaration", () => {
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.key).to.equal("kube-config")
       expect(
-        (loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration).path
+        (loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration).path,
       ).to.equal("./")
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.description).to.equal(
-        "Kubernetes pull secrets, namespaces, common config"
+        "Kubernetes pull secrets, namespaces, common config",
       )
 
       expect(
-        loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.sectionDeclaration
+        loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.sectionDeclaration,
       ).to.deep.equal({
         herdSectionIndex: 1,
         herdSectionType: "folders" as THerdSectionType,
@@ -335,7 +343,7 @@ describe("herd.yaml loading", function() {
 
     it("should base64decode and untar deployment files under file path", function() {
       expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].origin).to.equal(
-        "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml"
+        "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml",
       )
     })
 
@@ -378,14 +386,14 @@ describe("herd.yaml loading", function() {
 
     it("should load deployer plan by migration image reference", function() {
       expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].dockerParameters).to.contain(
-        "testenvimage-migrations:0.0.0"
+        "testenvimage-migrations:0.0.0",
       )
       expect(Object.keys(loadedPlan.addedDockerDeployerActions)).to.contain("testenvimage-migrations:0.0.0")
     })
 
     it("should use expanded docker parameter list as deployment descriptor for state checking", function() {
       expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].descriptor).to.equal(
-        "-i --rm -e ENV=SPECENV -e EXPORT1=NotFromInfrastructureAnyMore -e DB_HOST=testing123 -e DB_PASS=testing123 -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0"
+        "-i --rm -e ENV=SPECENV -e EXPORT1=NotFromInfrastructureAnyMore -e DB_HOST=testing123 -e DB_PASS=testing123 -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0",
       )
     })
   })

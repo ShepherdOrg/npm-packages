@@ -1,17 +1,14 @@
 import { expect } from "chai"
 import { DeploymentOrchestration } from "./deployment-orchestration"
 import {
-  FnDeploymentStateSave,
   IAnyDeploymentAction,
   IDeploymentOrchestration,
   IDockerDeploymentAction,
-  IDockerExecutableAction, IExecutableAction,
-  IK8sDirDeploymentAction,
+  IDockerExecutableAction, IK8sDirDeploymentAction,
   IK8sDockerImageDeploymentAction, IKubectlDeployAction,
-  ILog,
   TActionExecutionOptions,
 } from "../deployment-types"
-import { createKubectlDeploymentActionFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
+import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { emptyArray } from "../helpers/ts-functions"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
 import {
@@ -31,7 +28,7 @@ export function createKubectlTestDeployAction(
   iFakeLogging: IFakeLogging, fakeExec: TFakeExec, stateStore: TFakeStateStore
 ): IK8sDockerImageDeploymentAction {
 
-  const actionFactory = createKubectlDeploymentActionFactory({
+  const actionFactory = createKubectlDeploymentActionsFactory({
     exec: fakeExec,
     logger: iFakeLogging,
     stateStore: stateStore
@@ -109,10 +106,9 @@ describe("Deployment orchestration", function() {
 
     let fakeDeps: TDeploymentPlanDependencies = {
       exec: fakeExec, logger: fakeLogger, stateStore: fakeStateStore, uiDataPusher: fakeUiDataPusher,
-
+      rolloutWaitActionFactory: createRolloutWaitActionFactory({exec: fakeExec, logger: fakeLogger, stateStore: fakeStateStore})
     }
-    let rolloutWaitActionFactory = createRolloutWaitActionFactory(fakeDeps)
-    let deploymentPlan = DeploymentPlanFactory(fakeDeps, rolloutWaitActionFactory).createDeploymentPlan({key:depAction.herdKey})
+    let deploymentPlan = DeploymentPlanFactory(fakeDeps ).createDeploymentPlan({key:depAction.herdKey})
     await deploymentPlan.addAction(depAction)
 
     return deploymentPlan

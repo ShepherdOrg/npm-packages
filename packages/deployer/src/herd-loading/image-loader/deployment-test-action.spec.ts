@@ -1,5 +1,9 @@
 import { TDeployerMetadata, TDeploymentState, TTestSpecification } from "@shepherdorg/metadata"
-import { createDeploymentTestActionFactory, TDeploymentTestActionFactoryDependencies } from "./deployment-test-action"
+import {
+  createDeploymentTestActionFactory,
+  IRollbackDeployment,
+  TDeploymentTestActionFactoryDependencies,
+} from "./deployment-test-action"
 import {
   IExecutableAction,
   ILog,
@@ -152,7 +156,7 @@ describe("Deployment test action", function() {
     let testError: Error
 
     let deploymentOptions = defaultTestExecutionOptions
-    let fakeRollbackAction: IExecutableAction & IRollbackActionExecution & { rollbackCalls: Array<any> }
+    let fakeRollbackAction: IRollbackDeployment & { rollbackCalls: Array<any> }
 
     before(async () => {
       let fakeDeploymentTestActionFactoryDependencies = createFakeDeploymentTestActionFactoryDependencies()
@@ -166,24 +170,13 @@ describe("Deployment test action", function() {
 
       fakeRollbackAction = {
         rollbackCalls: [],
-        descriptor: "",
-        isStateful: false,
-        async execute(_deploymentOptions: TActionExecutionOptions): Promise<IExecutableAction> {
-          return fakeRollbackAction
-        },
-        async rollback(): Promise<TRollbackResult> {
+        async rollbackDeploymentPlan(): Promise<TRollbackResult> {
           fakeRollbackAction.rollbackCalls.push(arguments)
           return {
           }
         },
-        canRollbackExecution(): boolean {
-          return true
-        },
-        planString(): string {
-          return ""
-        },
       }
-      postDeployTestAction = createDeploymentTestActionFactory(fakeDeploymentTestActionFactoryDependencies).createDeploymentTestAction(testDeclaration, shepherdMetadata, [fakeRollbackAction])
+      postDeployTestAction = createDeploymentTestActionFactory(fakeDeploymentTestActionFactoryDependencies).createDeploymentTestAction(testDeclaration, shepherdMetadata, fakeRollbackAction)
 
       return execResult = await postDeployTestAction.execute(deploymentOptions)
         .catch((testErr)=>{

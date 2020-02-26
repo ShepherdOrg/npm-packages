@@ -1,14 +1,13 @@
 import {
-  IDockerDeploymentAction,
   IExecutableAction,
-  ILog, IRollbackActionExecution,
+  ILog,
   THerdSectionDeclaration,
-  TImageInformation,
+  TImageInformation, TRollbackResult,
 } from "../deployment-types"
-import { createKubectlDeploymentActionFactory } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-action"
+import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import { TExtensionsMap } from "../deployment-actions/kubectl-action/kube-supported-extensions"
 import { emptyArray } from "../helpers/ts-functions"
-import { ICreateDeploymentTestAction } from "../herd-loading/image-loader/deployment-test-action"
+import { ICreateDeploymentTestAction, IRollbackDeployment } from "../herd-loading/image-loader/deployment-test-action"
 import { newProgrammerOops } from "oops-error"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "./deployment-plan-factory"
 import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
@@ -18,11 +17,11 @@ import {
 } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 
 export type TImageDeploymentPlannerDependencies = {
+  planFactory: IDeploymentPlanFactory
+  logger: ILog
   kubectlActionFactory: ICreateKubectlDeploymentAction
   dockerActionFactory: ICreateDockerActions
   deploymentTestActionFactory: ICreateDeploymentTestAction
-  logger: ILog
-  planFactory: IDeploymentPlanFactory
   kubeSupportedExtensions: TExtensionsMap
 }
 
@@ -33,12 +32,11 @@ export interface ICreateImageDeploymentPlan {
 
 export function createImageDeploymentPlanner(injected: TImageDeploymentPlannerDependencies): ICreateImageDeploymentPlan {
   const kubeSupportedExtensions = injected.kubeSupportedExtensions
-  const logger = injected.logger
   const deploymentTestActionFactory = injected.deploymentTestActionFactory
 
   let kubectlDeploymentActionFactory = injected.kubectlActionFactory
   let deployerActionFactory = createDockerDeployerActionFactory({ executionActionFactory: injected.dockerActionFactory, logger: injected.logger })
-  let tKubectlDeploymentActionFactory = createKubectlDeploymentActionFactory({ deploymentActionFactory: kubectlDeploymentActionFactory, logger: injected.logger })
+  let tKubectlDeploymentActionFactory = createKubectlDeploymentActionsFactory({ deploymentActionFactory: kubectlDeploymentActionFactory, logger: injected.logger })
 
   async function createDeploymentActions(imageInformation: TImageInformation): Promise<Array<IExecutableAction>> {
     if (imageInformation.shepherdMetadata) {
@@ -55,15 +53,21 @@ export function createImageDeploymentPlanner(injected: TImageDeploymentPlannerDe
         deploymentActions = await deployerActionFactory.createDockerDeploymentAction(imageInformation)
       } else if (imageInformation.shepherdMetadata.deploymentType === "k8s") {
         deploymentActions = await tKubectlDeploymentActionFactory.createKubectlDeploymentActions(imageInformation, kubeSupportedExtensions)
+        // TODO MUST TODO Move rollout wait action creation here to have in the correct execution order for the plan
       } else {
         throw new Error(`Unexpected: No planner in place for deploymentType ${imageInformation.shepherdMetadata.deploymentType} in ${imageInformation.shepherdMetadata.displayName} `)
       }
       resultingActions = resultingActions.concat(deploymentActions)
 
-      // TODO Move rollout wait action creation here
 
       if (imageInformation.shepherdMetadata.postDeployTest) {
-        resultingActions.push(deploymentTestActionFactory.createDeploymentTestAction(imageInformation.shepherdMetadata.postDeployTest, imageInformation.shepherdMetadata, deploymentActions))
+        let deploymentActionsRollback : IRollbackDeployment = {
+          async rollbackDeploymentPlan(): Promise<TRollbackResult> {
+            let NO_ROLLBACK_RESULT = {code:0}
+            return  await Promise.all(deploymentActions.map(rollback => rollback.canRollbackExecution() && rollback.rollback() || NO_ROLLBACK_RESULT)).then(()=>{return {}})
+          }
+        }
+        resultingActions.push(deploymentTestActionFactory.createDeploymentTestAction(imageInformation.shepherdMetadata.postDeployTest, imageInformation.shepherdMetadata, deploymentActionsRollback))
       }
 
       return resultingActions

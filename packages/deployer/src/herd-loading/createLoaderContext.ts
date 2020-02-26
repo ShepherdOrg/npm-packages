@@ -34,9 +34,14 @@ export function createLoaderContext({ stateStore, logger, featureDeploymentConfi
     exec: exec,
     logger: logger,
     stateStore: stateStore,
+    rolloutWaitActionFactory: createRolloutWaitActionFactory({
+      exec: exec,
+      logger: logger,
+      stateStore: stateStore,
+    }),
   }
 
-  let planFactory: IDeploymentPlanFactory = DeploymentPlanFactory(planDependencies, createRolloutWaitActionFactory(planDependencies))
+  let planFactory: IDeploymentPlanFactory = DeploymentPlanFactory(planDependencies)
 
   return createHerdLoader({
     logger: CreateLogger(console),

@@ -16,7 +16,7 @@ import { createImagesLoader } from "./image-loader/images-loader"
 import { flatMapPolyfill } from "./folder-loader/flatmap-polyfill"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../deployment-plan/deployment-plan-factory"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
-import { createKubectlDeploymentActionFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
+import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { createImageDeploymentPlanner } from "../deployment-plan/image-deployment-planner"
 import { kubeSupportedExtensions } from "../deployment-actions/kubectl-action/kube-supported-extensions"
 import { createDeploymentTestActionFactory } from "./image-loader/deployment-test-action"
@@ -57,7 +57,7 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
   const featureDeploymentConfig = injected.featureDeploymentConfig
   const logger = injected.logger
 
-  const kubectlDeploymentActionFactory = createKubectlDeploymentActionFactory({
+  const kubectlDeploymentActionFactory = createKubectlDeploymentActionsFactory({
     exec: injected.exec,
     logger: injected.logger,
     stateStore: injected.stateStore

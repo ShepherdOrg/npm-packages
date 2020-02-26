@@ -4,14 +4,14 @@ import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { expect } from "chai"
 import { IKubectlDeployAction, TRollbackResult } from "../../deployment-types"
-import { createKubectlDeploymentActionFactory } from "./kubectl-deployment-action-factory"
+import { createKubectlDeploymentActionsFactory } from "./kubectl-deployment-action-factory"
 
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
   iFakeLogging: IFakeLogging, fakeExec: TFakeExec, stateStore: TFakeStateStore,
 ): IKubectlDeployAction {
 
-  const actionFactory = createKubectlDeploymentActionFactory({
+  const actionFactory = createKubectlDeploymentActionsFactory({
     exec: fakeExec,
     logger: iFakeLogging,
     stateStore: stateStore,
@@ -21,7 +21,7 @@ export function createKubectlTestDeployAction(
   return actionFactory.createKubectlDeployAction("testOrigin", serialisedAction.metadata.kubeDeploymentFiles["./deployment/www-icelandair-com.deployment.yml"].content, "apply", "testDeployment/test", iFakeLogging)
 }
 
-describe.only("Kubectl deployment action factory", function() {
+describe("Kubectl deployment action factory", function() {
 
   describe("Deployment document without a kube deployment section", function() {
 

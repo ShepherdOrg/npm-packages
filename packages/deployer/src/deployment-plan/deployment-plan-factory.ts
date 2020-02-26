@@ -6,7 +6,7 @@ import {
   isDockerDeploymentAction,
   isKubectlDeployAction,
   TActionExecutionOptions,
-  THerdDeclaration,
+  THerdDeclaration, TRollbackResult,
 } from "../deployment-types"
 import { IReleaseStateStore, TDeploymentStateParams } from "@shepherdorg/state-store"
 import { emptyArray } from "../helpers/ts-functions"
@@ -44,26 +44,15 @@ export interface IDeploymentPlan {
 
 export type TK8sDeploymentPlansByKey = { [herdKey: string]: string }
 
-/* At present, CreateDeploymentPlan is only supporting the orchestration part, not the actual planning part.
-*  How does rollback on failure? We need to mark the deployment as failed. Or do we? Keep the UI simple and only display successful builds
-* there for now.
-* Deployment state updated with deployment action. Create on-failure action which deploys last good version.
-
-* Execution order generally does not matter.
-
-* * Refactoring order:
-
-* *      Rollout wait action creation should be in image loader. Refactor and rethink derivedDeployments in this context ( derived deploymentActions ?).
-*         Derived deployments should go into deployment plan.
-*      Probably: Change loader concept into IImageDeploymentPlanFactory, IFolderDeploymentPlanFactory
-*      See what can be done about simplifying image data information passing around. Information hiding!
-*  */
+/* TODO : Need to consider whether to make deployment plans fail/succeed independently. Currently the first one that
+*   fails will stop all deployment. */
 
 export interface TDeploymentPlanDependencies {
   stateStore: IReleaseStateStore
   exec: any
   logger: ILog
   uiDataPusher: IPushToShepherdUI
+  rolloutWaitActionFactory: ICreateRolloutWaitActions
 }
 
 export interface IDeploymentPlanFactory {
@@ -71,7 +60,7 @@ export interface IDeploymentPlanFactory {
 }
 
 
-export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies, rolloutWaitActionFactory: ICreateRolloutWaitActions): IDeploymentPlanFactory {
+export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies ): IDeploymentPlanFactory {
 
   function createDeploymentPlan(herdDeclaration: THerdDeclaration): IDeploymentPlan {
     const deploymentActions: Array<IExecutableAction> = []
@@ -94,7 +83,7 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies, rol
 
       if (kubectlDeployAction.deploymentRollouts && kubectlDeployAction.operation === "apply" && kubectlDeployAction.state?.modified) {
         await Promise.all(kubectlDeployAction.deploymentRollouts.map(async (deploymentRollout) => {
-          await planInstance.addAction(rolloutWaitActionFactory.RolloutWaitActionFactory(deploymentRollout))
+          await planInstance.addAction(injected.rolloutWaitActionFactory.RolloutWaitActionFactory(deploymentRollout))
         }, {}))
       }
     }

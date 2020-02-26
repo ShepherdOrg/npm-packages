@@ -6,18 +6,16 @@ import {
 } from "./deployment-plan-factory"
 import { clearEnv, setEnv } from "../deployment-actions/test-action-factory"
 import { expect } from "chai"
-import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
-import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
+import { createFakeExec } from "../test-tools/fake-exec"
+import { createFakeLogger  } from "../test-tools/fake-logger"
 import {
   IExecutableAction,
   IKubectlDeployAction,
-  ILog,
   TActionExecutionOptions,
-  TDeploymentOptions,
 } from "../deployment-types"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { emptyArray } from "../helpers/ts-functions"
-import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
+import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 
@@ -99,14 +97,12 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   const fakeStateStore = createFakeStateStore()
   fakeStateStore.nextState = { new: false, modified: true }
 
-  return { logger: fakeLogger, exec: fakeExecCmd, stateStore: fakeStateStore, uiDataPusher: createFakeUIPusher() }
+  return { logger: fakeLogger, exec: fakeExecCmd, stateStore: fakeStateStore, uiDataPusher: createFakeUIPusher(), rolloutWaitActionFactory: createRolloutWaitActionFactory({exec: fakeExecCmd, stateStore: fakeStateStore, logger: fakeLogger}) }
 }
 
 describe("Deployment plan", function() {
   let depPlan: IDeploymentPlan
   let depPlanner: IDeploymentPlanFactory
-  let fakeExecCmd: TFakeExec
-  let fakeStateStore: TFakeStateStore
 
   let testEnv = {
     EXPORT1: "export1",
@@ -127,7 +123,7 @@ describe("Deployment plan", function() {
   beforeEach(async ()=>{
 
     let planDependencies = fakeDeploymentPlanDependencies()
-    depPlanner = DeploymentPlanFactory(planDependencies, createRolloutWaitActionFactory(planDependencies))
+    depPlanner = DeploymentPlanFactory(planDependencies )
 
     depPlan = depPlanner.createDeploymentPlan({key:"testKeyOne"})
     faf = fakeLambdaFactory()

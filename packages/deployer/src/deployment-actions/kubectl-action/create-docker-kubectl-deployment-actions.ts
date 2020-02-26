@@ -18,7 +18,7 @@ type TActionFactoryDependencies = {
   logger: ILog
 }
 
-export function createKubectlDeploymentActionFactory({ deploymentActionFactory, logger } : TActionFactoryDependencies): TKubectlDeploymentActionFactory {
+export function createKubectlDeploymentActionsFactory({ deploymentActionFactory, logger } : TActionFactoryDependencies): TKubectlDeploymentActionFactory {
 
   async function createImageBasedFileDeploymentAction(
     deploymentFileContent: TarFile,
@@ -47,7 +47,6 @@ export function createKubectlDeploymentActionFactory({ deploymentActionFactory, 
       deploymentFileContent.content,
       operation,
       fileName,
-      logger,
       branchModificationParams,
     )
 
