@@ -2,31 +2,15 @@ import { expect } from "chai"
 import {
   IDockerDeploymentAction,
   IExecutableAction,
-  IK8sDockerImageDeploymentAction,
-  THerdSectionDeclaration,
-  THerdSectionType,
+  IDockerImageKubectlDeploymentAction,
   TImageInformation,
 } from "../deployment-types"
 import { clearEnv, createTestActions, loadFirstTestPlan, setEnv } from "../deployment-actions/test-action-factory"
-import {
-  createImageDeploymentPlanner,
-  ICreateImageDeploymentPlan,
-  TImageDeploymentPlannerDependencies,
-} from "./image-deployment-planner"
-import { createFakeLogger } from "../test-tools/fake-logger"
 import { TDeployerMetadata } from "@shepherdorg/metadata/dist"
-import { createDeploymentTestActionFactory } from "../herd-loading/image-loader/deployment-test-action"
 import { metadataDsl } from "../test-tools/metadata-dsl"
 import { imageInfoDSL } from "../test-tools/image-info-dsl"
 import { DeploymentPlanFactory } from "./deployment-plan-factory"
 import { fakeDeploymentPlanDependencies } from "./deployment-plan-factory.spec"
-import { TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { IExec } from "../helpers/basic-types"
-import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
-import { createFakeExec } from "../test-tools/fake-exec"
-import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
-import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 
 describe("Docker image plan loader", function() {
   let testEnv = {
@@ -251,8 +235,8 @@ describe("Docker image plan loader", function() {
     }
 
     describe("successful load", function() {
-      let loadedPlans: Array<IK8sDockerImageDeploymentAction>
-      let planNumberOne: IK8sDockerImageDeploymentAction
+      let loadedPlans: Array<IDockerImageKubectlDeploymentAction>
+      let planNumberOne: IDockerImageKubectlDeploymentAction
       let testEnv = {
         EXPORT1: "na",
         SUB_DOMAIN_PREFIX: "na",
@@ -263,9 +247,9 @@ describe("Docker image plan loader", function() {
       before(async function() {
         return (planNumberOne = await setEnv(testEnv).then(() =>
           createTestActions(dockerImageMetadata).then(plans => {
-            loadedPlans = plans as Array<IK8sDockerImageDeploymentAction>
+            loadedPlans = plans as Array<IDockerImageKubectlDeploymentAction>
             // @ts-ignore
-            return plans[0] as IK8sDockerImageDeploymentAction
+            return plans[0] as IDockerImageKubectlDeploymentAction
           }) ,
         ))
       })
@@ -368,7 +352,7 @@ describe("Docker image plan loader", function() {
     }
 
     describe("successful load", function() {
-      let planNumberOne: IK8sDockerImageDeploymentAction
+      let planNumberOne: IDockerImageKubectlDeploymentAction
       let testEnv = {
         EXPORT1: "na",
         SUB_DOMAIN_PREFIX: "na",
@@ -376,7 +360,7 @@ describe("Docker image plan loader", function() {
         WWW_ICELANDAIR_IP_WHITELIST: "YnVsbHNoaXRsaXN0Cg==",
       }
       before(async function() {
-        return (planNumberOne = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerImageMetadata) as Promise<IK8sDockerImageDeploymentAction>))
+        return (planNumberOne = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerImageMetadata) as Promise<IDockerImageKubectlDeploymentAction>))
       })
 
       after(() => clearEnv(testEnv))
@@ -455,30 +439,10 @@ describe("Docker image plan loader", function() {
     let actions: Array<IExecutableAction>
 
     beforeEach(async ()=>{
-      let fakeStateStore: TFakeStateStore = createFakeStateStore()
-      let planner: ICreateImageDeploymentPlan
       const shepherdMetadata: TDeployerMetadata = metadataDsl().instance()
       let fakeImageInfo : TImageInformation = imageInfoDSL( shepherdMetadata ).instance()
-      let herdSectionDeclaration:THerdSectionDeclaration = { herdSectionIndex: 0, herdSectionType: THerdSectionType.images }
-      let fakeExec: IExec = createFakeExec();
-      let fakeLogger = createFakeLogger()
-
-      let factoryParams = {stateStore: fakeStateStore, exec: fakeExec, logger: fakeLogger}
-      let dockerActionFactory = createDockerActionFactory(factoryParams)
-      let deps: TImageDeploymentPlannerDependencies = {
-        dockerActionFactory,
-        planFactory: DeploymentPlanFactory(fakeDeploymentPlanDependencies() ),
-        kubeSupportedExtensions: {},
-        logger: fakeLogger,
-        deploymentTestActionFactory: createDeploymentTestActionFactory({dockerActionFactory, logger: fakeLogger}),
-        kubectlActionFactory: createKubectlDeploymentActionsFactory({
-          logger: fakeLogger,
-          stateStore: fakeStateStore,
-          exec: fakeExec
-        })
-      }
-      planner = createImageDeploymentPlanner(deps)
-      actions = await planner.createDeploymentActions(fakeImageInfo, herdSectionDeclaration)
+      let planFactory = DeploymentPlanFactory(fakeDeploymentPlanDependencies() )
+      actions = await planFactory.extractedCreateDepActions(fakeImageInfo)
     })
 
     it("should create actions for postDeployTest and preDeployTest", () => {

@@ -10,6 +10,7 @@ import { CreateLogger } from "./logging/logger"
 import { IDeploymentOrchestration } from "./deployment-types"
 import { createLoaderContext } from "./herd-loading/createLoaderContext"
 import { isOops } from "./helpers/isOops"
+import { imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -183,7 +184,7 @@ stateStoreBackend
       logger: logger,
       featureDeploymentConfig: featureDeploymentConfig,
       exec: exec,
-      ui: uiDataPusher
+      uiPusher: uiDataPusher,
     })
 
     if (!environment) {

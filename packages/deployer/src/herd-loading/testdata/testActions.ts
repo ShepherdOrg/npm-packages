@@ -1,7 +1,7 @@
 import {
   IDockerDeploymentAction,
   IK8sDirDeploymentAction,
-  IK8sDockerImageDeploymentAction,
+  IDockerImageKubectlDeploymentAction,
   THerdSectionType,
 } from "../../deployment-types"
 import { TDeployerRole, TDeploymentType } from "@shepherdorg/metadata"
@@ -12,7 +12,7 @@ type OmitActionFunctions<T> = Omit<Omit<Omit<T, "canRollbackExecution">, "execut
 
 export type TK8sDirDeploymentActionStruct = OmitActionFunctions<IK8sDirDeploymentAction>
 export type TDockerDeploymentActionStruct = OmitActionFunctions<IDockerDeploymentAction>
-export type TK8sDockerImageDeploymentActionStruct = OmitActionFunctions<IK8sDockerImageDeploymentAction>
+export type TK8sDockerImageDeploymentActionStruct = OmitActionFunctions<IDockerImageKubectlDeploymentAction>
 
 type TTestActionsMap = { [idx: string]: { [idx2: string]: TDockerDeploymentActionStruct | TK8sDirDeploymentActionStruct | TK8sDockerImageDeploymentActionStruct } }
 

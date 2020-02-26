@@ -12,9 +12,6 @@ import { ILoadDockerImageLabels } from "@shepherdorg/docker-image-metadata-loade
 import { parseImageUrl, TDockerImageUrl, TDockerImageUrlStruct } from "../../helpers/parse-image-url"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan-factory"
 import { newProgrammerOops } from "oops-error"
-import {
-  ICreateImageDeploymentPlan,
-} from "../../deployment-plan/image-deployment-planner"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
 
 export function parseDockerImageUrl(dockerImageUrl: TDockerImageUrl): TDockerImageUrlStruct {
@@ -27,7 +24,6 @@ interface TImageDeclarationsLoaderDependencies {
   logger: ILog
   imageLabelsLoader: ILoadDockerImageLabels
   planFactory : IDeploymentPlanFactory
-  imageDeploymentPlanner: ICreateImageDeploymentPlan
 }
 
 export function createImagesLoader(injected: TImageDeclarationsLoaderDependencies ) {
@@ -59,7 +55,7 @@ export function createImagesLoader(injected: TImageDeclarationsLoaderDependencie
       let promise: Promise<IDeploymentPlan> = loadImageMetadata(herdSpec)
         .then(extractShepherdMetadata)
         .then(addMigrationImageToDependenciesPlan)
-        .then(injected.imageDeploymentPlanner.createImageDeploymentPlan)
+        .then(injected.planFactory.extractedCreateImageDeploymentPlan)
         .catch(function(e: Error | string) {
           let errorMessage: string
           if (typeof e === "string") {

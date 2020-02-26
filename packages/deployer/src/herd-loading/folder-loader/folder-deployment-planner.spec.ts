@@ -31,11 +31,6 @@ describe("k8s deployment file directory structure release plan loader", function
 
   beforeEach(function() {
     scanDir = planFolderDeployment({
-      kubeSupportedExtensions: {
-        ".yml": true,
-        ".yaml": true,
-        ".json": true,
-      },
       logger: {
         info: () => {
         },

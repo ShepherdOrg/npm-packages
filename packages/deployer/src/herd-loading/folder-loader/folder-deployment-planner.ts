@@ -2,7 +2,6 @@ import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
 import {
-  createKubectlDeploymentActionsFactory,
   ICreateKubectlDeploymentAction,
 } from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import {
@@ -14,10 +13,10 @@ import {
 } from "../../deployment-types"
 import { TFileSystemPath } from "../../helpers/basic-types"
 import { TDeploymentType } from "@shepherdorg/metadata"
+import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-action/kube-supported-extensions"
 
 export interface TFolderDeploymentPlannerDependencies {
   logger: ILog
-  kubeSupportedExtensions: any,
   kubectlDeploymentActionFactory: ICreateKubectlDeploymentAction
 }
 
@@ -40,8 +39,6 @@ function isScanDirStruct(dir: TFileSystemPath | TScanDirStruct): dir is TScanDir
 }
 
 export function planFolderDeployment(injected: TFolderDeploymentPlannerDependencies )  {
-  const kubeSupportedExtensions = injected.kubeSupportedExtensions
-  const logger = injected.logger
 
   function initDir(dirPath: TFileSystemPath): TScanDirStruct {
     return {

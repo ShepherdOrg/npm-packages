@@ -17,8 +17,6 @@ import { flatMapPolyfill } from "./folder-loader/flatmap-polyfill"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../deployment-plan/deployment-plan-factory"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
 import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
-import { createImageDeploymentPlanner } from "../deployment-plan/image-deployment-planner"
-import { kubeSupportedExtensions } from "../deployment-actions/kubectl-action/kube-supported-extensions"
 import { createDeploymentTestActionFactory } from "./image-loader/deployment-test-action"
 import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
 
@@ -80,15 +78,7 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
     imageLabelsLoader,
     planFactory: injected.planFactory,
     stateStore: injected.stateStore,
-    exec: injected.exec,
-    imageDeploymentPlanner: createImageDeploymentPlanner({
-      dockerActionFactory,
-      kubeSupportedExtensions,
-      logger: injected.logger,
-      deploymentTestActionFactory: createDeploymentTestActionFactory({ dockerActionFactory, logger: injected.logger }),
-      planFactory: injected.planFactory,
-      kubectlActionFactory: kubectlDeploymentActionFactory
-    })
+    exec: injected.exec
   } )
 
   async function loadHerd(fileName: TFileSystemPath): Promise<IDeploymentOrchestration> {

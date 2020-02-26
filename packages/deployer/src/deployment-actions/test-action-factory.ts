@@ -1,54 +1,15 @@
-import { ILog, TImageInformation } from "../deployment-types"
+import {  TImageInformation } from "../deployment-types"
 import { extractShepherdMetadata } from "../herd-loading/add-shepherd-metadata"
-import { createImageDeploymentPlanner } from "../deployment-plan/image-deployment-planner"
-import { createDeploymentTestActionFactory } from "../herd-loading/image-loader/deployment-test-action"
 import { DeploymentPlanFactory } from "../deployment-plan/deployment-plan-factory"
 import { fakeDeploymentPlanDependencies } from "../deployment-plan/deployment-plan-factory.spec"
-import { TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeExec } from "../test-tools/fake-exec"
-import { createDockerActionFactory } from "./docker-action/docker-action"
-import { createFakeLogger } from "../test-tools/fake-logger"
-import { createKubectlDeploymentActionsFactory } from "./kubectl-action/kubectl-deployment-action-factory"
-import { createRolloutWaitActionFactory } from "./kubectl-action/rollout-wait-action-factory"
 
 function createTestDeploymentActions() {
-  let fakeLogger = {
-    info: () => {
-      console.error("INFO", arguments)
-    },
-  }
-  let fakeStateStore: TFakeStateStore = createFakeStateStore()
-
-  let fakeExec = createFakeExec()
-  let actionExecDeps = { stateStore:fakeStateStore, exec: fakeExec, logger: fakeLogger as ILog}
-  let dockerActionFactory = createDockerActionFactory(actionExecDeps)
-  return createImageDeploymentPlanner(
-    {
-      planFactory: DeploymentPlanFactory(fakeDeploymentPlanDependencies() ),
-      kubeSupportedExtensions: {
-        ".yml": true,
-        ".yaml": true,
-        ".json": true,
-      },
-      logger: fakeLogger as ILog,
-      deploymentTestActionFactory: createDeploymentTestActionFactory({dockerActionFactory: dockerActionFactory, logger: fakeLogger as ILog}),
-      dockerActionFactory: createDockerActionFactory({
-        stateStore: createFakeStateStore(),
-        exec: createFakeExec(),
-        logger: createFakeLogger()
-      }),
-      kubectlActionFactory: createKubectlDeploymentActionsFactory({
-        logger: createFakeLogger(),
-        stateStore: createFakeStateStore(),
-        exec: createFakeExec()
-      })
-    },
-  ).createDeploymentActions
+  let planFactory = DeploymentPlanFactory(fakeDeploymentPlanDependencies() )
+  return planFactory.extractedCreateDepActions
 }
 
 export function createTestActions(dockerDeployerMetadata: TImageInformation) {
-  return extractShepherdMetadata(dockerDeployerMetadata).then((shepherdMeta) => {
+  return extractShepherdMetadata(dockerDeployerMetadata).then(shepherdMeta => {
     // @ts-ignore
     return createTestDeploymentActions()(shepherdMeta)
   })
@@ -62,7 +23,7 @@ export function loadFirstTestPlan(dockerDeployerMetadata: TImageInformation) {
 }
 
 type TEnvObject = {
-  [property: string]: string | undefined;
+  [property: string]: string | undefined
 }
 
 export async function setEnv(envObj: TEnvObject) {
@@ -79,8 +40,7 @@ export async function clearEnv(envObj: typeof process.env) {
   return envObj
 }
 
-
-export const k8sImageInformation : TImageInformation = {
+export const k8sImageInformation: TImageInformation = {
   imageDeclaration: {
     key: "k8simage",
     image: "k8sTestImage",
@@ -99,7 +59,7 @@ export const k8sImageInformation : TImageInformation = {
     "shepherd.name": "Testimage",
     "shepherd.version": "0.1.0",
   },
-  env: 'testenv'
+  env: "testenv",
 }
 export const testEnvImageMigrations: TImageInformation = {
   imageDeclaration: {

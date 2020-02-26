@@ -1,6 +1,6 @@
 import * as path from "path"
 import { newProgrammerOops } from "oops-error"
-import { TExtensionsMap } from "../kube-supported-extensions"
+import { kubeSupportedExtensions, TExtensionsMap } from "../kube-supported-extensions"
 import { TK8sPartialDescriptor } from "../k8s-document-types"
 import { TK8sDeploymentPlan2 } from "../../../deployment-types"
 import yaml = require("js-yaml")
@@ -35,8 +35,7 @@ export function indexNameReferenceChange(
 
 export function addResourceNameChangeIndex(
   plan: TK8sDeploymentPlan2,
-  kubeSupportedExtensions: TExtensionsMap,
-  branchModificationParams: TBranchModificationParams
+  branchModificationParams: TBranchModificationParams,
 ) {
   branchModificationParams.nameChangeIndex = branchModificationParams.nameChangeIndex || {}
   if (plan.files) {

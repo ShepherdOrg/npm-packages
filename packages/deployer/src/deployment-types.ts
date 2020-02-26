@@ -194,13 +194,13 @@ export interface IK8sDirDeploymentAction extends IKubectlDeployAction, IBaseDepl
 }
 
 
-export interface IK8sDockerImageDeploymentAction extends IKubectlDeployAction, IBaseDeploymentAction {
+export interface IDockerImageKubectlDeploymentAction extends IKubectlDeployAction, IBaseDeploymentAction {
   herdDeclaration: TDockerImageHerdDeclaration
   metadata: TK8sMetadata
 }
 
 
-export type IAnyDeploymentAction = IDockerDeploymentAction | IK8sDockerImageDeploymentAction | IK8sDirDeploymentAction
+export type IAnyDeploymentAction = IDockerDeploymentAction | IDockerImageKubectlDeploymentAction | IK8sDirDeploymentAction
 
 
 export type TDeploymentOptions = {

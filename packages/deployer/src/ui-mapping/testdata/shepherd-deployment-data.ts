@@ -1,8 +1,8 @@
 import { TDeploymentType } from "@shepherdorg/metadata/dist"
-import { IK8sDockerImageDeploymentAction, THerdSectionType } from "../../deployment-types"
+import { IDockerImageKubectlDeploymentAction, THerdSectionType } from "../../deployment-types"
 
 
-type TK8sDockerImageDeploymentActionTestDataType = Omit<Omit<Omit<Omit<IK8sDockerImageDeploymentAction, "canRollbackExecution">, "deploymentRollouts">, "execute">, "planString">
+type TK8sDockerImageDeploymentActionTestDataType = Omit<Omit<Omit<Omit<IDockerImageKubectlDeploymentAction, "canRollbackExecution">, "deploymentRollouts">, "execute">, "planString">
 
 export function deploymentData0(): TK8sDockerImageDeploymentActionTestDataType {
   return {

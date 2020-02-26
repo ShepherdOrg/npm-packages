@@ -32,7 +32,6 @@ export function createFolderLoader(injected: TFolderLoaderDependencies, kubectlD
       herdSpec.key = herdFolderName
 
     const folderPlanner = planFolderDeployment({
-        kubeSupportedExtensions: kubeSupportedExtensions,
         logger,
         kubectlDeploymentActionFactory: kubectlDeploymentActionFactory
       } )

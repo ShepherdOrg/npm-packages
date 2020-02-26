@@ -1,5 +1,6 @@
 import {
-  IDockerDeploymentAction, ILog,
+  IDockerDeploymentAction,
+  ILog,
   IRollbackActionExecution,
   TImageInformation,
   TRollbackResult,
@@ -8,26 +9,32 @@ import { TDeployerMetadata } from "@shepherdorg/metadata"
 import { ICreateDockerActions } from "./docker-action"
 
 export type TDockerDeploymentActionFactoryDependencies = {
-  executionActionFactory: ICreateDockerActions,
+  executionActionFactory: ICreateDockerActions
   logger: ILog
 }
 
-export function createDockerDeployerActionFactory({ executionActionFactory,logger }: TDockerDeploymentActionFactoryDependencies) {
+export type ICreateDockerDeploymentActions = {
+  createDockerDeploymentAction: (imageInformation: TImageInformation) => Promise<Array<IDockerDeploymentAction>>
+}
 
+export function createDockerDeployerActionFactory({
+  executionActionFactory,
+  logger,
+}: TDockerDeploymentActionFactoryDependencies): ICreateDockerDeploymentActions {
   async function createDockerDeploymentAction(
-    imageInformation: TImageInformation,
+    imageInformation: TImageInformation
   ): Promise<Array<IDockerDeploymentAction>> {
     let deployerMetadata = imageInformation.shepherdMetadata as TDeployerMetadata
 
     const executionAction = executionActionFactory.createDockerExecutionAction(
       deployerMetadata,
       imageInformation.imageDeclaration.dockerImage ||
-      imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag,
+        imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag,
       imageInformation.shepherdMetadata?.displayName || "",
       imageInformation.imageDeclaration.key,
       deployerMetadata.deployCommand || "deploy",
       deployerMetadata.environment,
-      deployerMetadata.environmentVariablesExpansionString,
+      deployerMetadata.environmentVariablesExpansionString
     )
 
     let deploymentAction = {
@@ -44,7 +51,6 @@ export function createDockerDeployerActionFactory({ executionActionFactory,logge
     }
 
     if (deployerMetadata.rollbackCommand) {
-
       const rollbackExecution: IRollbackActionExecution = {
         async rollback(): Promise<TRollbackResult> {
           // TODO Push old state to UI
@@ -52,20 +58,26 @@ export function createDockerDeployerActionFactory({ executionActionFactory,logge
           const rollbackAction = executionActionFactory.createDockerExecutionAction(
             deployerMetadata,
             imageInformation.imageDeclaration.dockerImage ||
-            imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag,
+              imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag,
             `${imageInformation.shepherdMetadata?.displayName || ""} rollback`,
             imageInformation.imageDeclaration.key,
             deployerMetadata.rollbackCommand as string, // Null check performed outside of checker scope
             deployerMetadata.environment,
-            deployerMetadata.environmentVariablesExpansionString,
+            deployerMetadata.environmentVariablesExpansionString
           )
 
-
           logger.info(`Executing docker action rollback`, rollbackAction.planString())
-          return await rollbackAction.execute({ pushToUi: false, dryRun: false, waitForRollout: false, dryRunOutputDir:"" }).then(() => {
-            logger.info(`Rollback complete. Original error follows.`)
-            return {}
-          })
+          return await rollbackAction
+            .execute({
+              pushToUi: false,
+              dryRun: false,
+              waitForRollout: false,
+              dryRunOutputDir: "",
+            })
+            .then(() => {
+              logger.info(`Rollback complete. Original error follows.`)
+              return {}
+            })
         },
       }
       deploymentAction = {
@@ -74,10 +86,8 @@ export function createDockerDeployerActionFactory({ executionActionFactory,logge
       }
     }
 
-
     return [deploymentAction]
   }
-
 
   return {
     createDockerDeploymentAction,

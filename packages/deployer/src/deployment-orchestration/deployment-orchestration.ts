@@ -1,7 +1,7 @@
 import {
   IAnyDeploymentAction,
   IDeploymentOrchestration,
-  IK8sDockerImageDeploymentAction,
+  IDockerImageKubectlDeploymentAction,
   ILog,
   TActionExecutionOptions,
   TDeploymentOrchestrationDependencies,
@@ -18,9 +18,9 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
 
   const k8sDeploymentPlans: TK8sDeploymentPlansByKey = {}
 
-  const k8sDeploymentsByIdentifier: { [key: string]: IK8sDockerImageDeploymentAction } = {}
+  const k8sDeploymentsByIdentifier: { [key: string]: IDockerImageKubectlDeploymentAction } = {}
 
-  function addActionToCatalog(deploymentAction: IK8sDockerImageDeploymentAction) {
+  function addActionToCatalog(deploymentAction: IDockerImageKubectlDeploymentAction) {
     k8sDeploymentPlans[deploymentAction.origin] =
       k8sDeploymentPlans[deploymentAction.origin] || deploymentAction.herdKey
     // await k8sDeploymentPlans[deploymentAction.origin].addAction(deploymentAction)
@@ -43,7 +43,7 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
     deploymentAction: IAnyDeploymentAction,
   ): IAnyDeploymentAction {
     if (deploymentAction.type === "k8s") {
-      addActionToCatalog(deploymentAction as IK8sDockerImageDeploymentAction)
+      addActionToCatalog(deploymentAction as IDockerImageKubectlDeploymentAction)
     }
     return deploymentAction
   }

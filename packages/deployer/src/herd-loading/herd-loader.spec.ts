@@ -8,7 +8,7 @@ import {
   IDeploymentOrchestration,
   IDockerDeploymentAction,
   IK8sDirDeploymentAction,
-  IK8sDockerImageDeploymentAction,
+  IDockerImageKubectlDeploymentAction,
   ILog,
   TActionExecutionOptions,
   TFolderHerdDeclaration,
@@ -16,7 +16,7 @@ import {
 } from "../deployment-types"
 import { detectRecursion } from "../helpers/obj-functions"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
-import { TFileSystemPath } from "../helpers/basic-types"
+import { IExec, TFileSystemPath } from "../helpers/basic-types"
 import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import {
   DeploymentPlanFactory,
@@ -24,8 +24,17 @@ import {
   TDeploymentPlanDependencies,
 } from "../deployment-plan/deployment-plan-factory"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
+import {
+  createFakeDockerImageKubectlDeploymentFactory,
+  createFakeUIPusher,
+} from "../deployment-orchestration/deployment-orchestration.spec"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
+import { createDockerImageKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
+import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
+import { createLoaderContext } from "./createLoaderContext"
+import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
+import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
+import { createDeploymentTestActionFactory } from "./image-loader/deployment-test-action"
 
 const exec = require("@shepherdorg/exec")
 
@@ -37,7 +46,7 @@ const CreateFeatureDeploymentConfig = require("../triggered-deployment/create-up
 export interface TTestDeploymentOrchestration extends IDeploymentOrchestration {
   addedDeploymentPlans: Array<IDeploymentPlan>
   // TODO Remove tests on deploymentActions
-  addedK8sDeploymentActions: { [key: string]: IK8sDockerImageDeploymentAction | IK8sDirDeploymentAction }
+  addedK8sDeploymentActions: { [key: string]: IDockerImageKubectlDeploymentAction | IK8sDirDeploymentAction }
   addedDockerDeployerActions: { [key: string]: IDockerDeploymentAction }
 }
 
@@ -47,7 +56,8 @@ describe("herd.yaml loading", function() {
   let labelsLoader: TDockerMetadataLoader
   let loader: THerdLoader
   let CreateTestReleasePlan: FCreateTestReleasePlan
-  let loaderLogger: IFakeLogging
+  let logger: IFakeLogging
+  let exec: IExec = undefined
 
   let featureDeploymentConfig = CreateFeatureDeploymentConfig()
 
@@ -56,26 +66,46 @@ describe("herd.yaml loading", function() {
     featureDeploymentConfig: TFeatureDeploymentConfig,
   ) {
     let stateStore = createFakeStateStore()
+
+    // let newHerdLoader = createLoaderContext({exec: undefined, logger: loaderLogger, stateStore: stateStore, featureDeploymentConfig, uiPusher: createFakeUIPusher()})
+    // loader = newHerdLoader;
     let waitActionFactory = createRolloutWaitActionFactory({
       exec: undefined,
-      logger: loaderLogger,
+      logger: logger,
       stateStore: stateStore,
     })
+
+    let dockerActionFactory = createDockerActionFactory({logger, exec, stateStore})
+    let deployerActionFactory = createDockerDeployerActionFactory({executionActionFactory: dockerActionFactory, logger})
+
+    let uiDataPusher = createFakeUIPusher()
+    let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
+      deploymentActionFactory: createKubectlDeploymentActionsFactory({ exec, logger:logger, stateStore: stateStore}),
+      logger: logger
+    })
+    let deploymentTestActionFactory = createDeploymentTestActionFactory({logger, dockerActionFactory})
+
     let dependencies: TDeploymentPlanDependencies = {
-      exec: undefined,
-      logger: loaderLogger,
+      exec: exec,
+      logger: logger,
       stateStore: stateStore,
-      uiDataPusher: createFakeUIPusher(),
+      uiDataPusher: uiDataPusher,
       rolloutWaitActionFactory: waitActionFactory,
+      dockerImageKubectlDeploymentActionFactory: dockerImageKubectlDeploymentActionFactory,
+      deployerActionFactory,
+      deploymentTestActionFactory: deploymentTestActionFactory
     }
+
+    let planFactory = DeploymentPlanFactory(dependencies)
+
     loader = createHerdLoader({
-      logger: loaderLogger,
+      logger: logger,
       deploymentOrchestration: CreateTestReleasePlan(),
       exec: exec,
       stateStore: stateStore,
       labelsLoader: labelsLoader,
       featureDeploymentConfig,
-      planFactory: DeploymentPlanFactory(dependencies),
+      planFactory: planFactory,
     })
   }
 
@@ -111,7 +141,7 @@ describe("herd.yaml loading", function() {
 
 
     CreateTestReleasePlan = function() {
-      let addedK8sDeployerActions: { [key: string]: IK8sDockerImageDeploymentAction } = {}
+      let addedK8sDeployerActions: { [key: string]: IDockerImageKubectlDeploymentAction } = {}
       let addedDockerDeployerActions: { [key: string]: IDockerDeploymentAction } = {}
 
       let deploymentPlans: Array<IDeploymentPlan> = []
@@ -130,7 +160,7 @@ describe("herd.yaml loading", function() {
             if (deploymentAction.type === "k8s") {
               releasePlan.addedK8sDeploymentActions[
                 deploymentAction.identifier
-                ] = deploymentAction as IK8sDockerImageDeploymentAction
+                ] = deploymentAction as IDockerImageKubectlDeploymentAction
             } else if (deploymentAction.type === "deployer") {
               releasePlan.addedDockerDeployerActions[deploymentAction.identifier] = deploymentAction as IDockerDeploymentAction
             }
@@ -168,7 +198,7 @@ describe("herd.yaml loading", function() {
       return releasePlan
     }
 
-    loaderLogger = createFakeLogger()
+    logger = createFakeLogger()
 
     labelsLoader = {
       getDockerRegistryClientsFromConfig() {

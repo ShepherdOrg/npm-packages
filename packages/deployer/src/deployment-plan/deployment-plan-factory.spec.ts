@@ -7,27 +7,31 @@ import {
 import { clearEnv, setEnv } from "../deployment-actions/test-action-factory"
 import { expect } from "chai"
 import { createFakeExec } from "../test-tools/fake-exec"
-import { createFakeLogger  } from "../test-tools/fake-logger"
-import {
-  IExecutableAction,
-  IKubectlDeployAction,
-  TActionExecutionOptions,
-} from "../deployment-types"
+import { createFakeLogger } from "../test-tools/fake-logger"
+import { IExecutableAction, IKubectlDeployAction, TActionExecutionOptions } from "../deployment-types"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { emptyArray } from "../helpers/ts-functions"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
+import {
+  createFakeDockerImageKubectlDeploymentFactory,
+  createFakeUIPusher,
+} from "../deployment-orchestration/deployment-orchestration.spec"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
+import { createDockerImageKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
+import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
+import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
+import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
+import { createDeploymentTestActionFactory } from "../herd-loading/image-loader/deployment-test-action"
 
 
 type FFakeLambda = () => Promise<void>
 
 interface IFakeLambdaFactory {
-  createFakeLambda : (atext:string)=>FFakeLambda,
+  createFakeLambda: (atext: string) => FFakeLambda,
   executedActions: String[]
 }
 
-function fakeLambdaFactory() : IFakeLambdaFactory {
+function fakeLambdaFactory(): IFakeLambdaFactory {
   let executedActions = emptyArray<String>()
 
   function createFakeLambda(actionText: string) {
@@ -44,60 +48,86 @@ function fakeLambdaFactory() : IFakeLambdaFactory {
 
   return {
     createFakeLambda,
-    executedActions: executedActions
+    executedActions: executedActions,
   }
 }
 
-function createFakeAction(fakeLambda: FFakeLambda ):IExecutableAction{
-  let me : IExecutableAction = {
+function createFakeAction(fakeLambda: FFakeLambda): IExecutableAction {
+  let me: IExecutableAction = {
     canRollbackExecution(): boolean {
-      return false;
+      return false
     },
     descriptor: "",
     isStateful: true,
-    execute(_deploymentOptions: TActionExecutionOptions ): Promise<IExecutableAction> {
-      return fakeLambda().then(()=>{
+    execute(_deploymentOptions: TActionExecutionOptions): Promise<IExecutableAction> {
+      return fakeLambda().then(() => {
         return me
       })
     },
-    planString(){
+    planString() {
       return "fake action"
 
-    }
+    },
   }
   return me
 }
 
-function createFakeKubeCtlAction(fakeLambda:FFakeLambda, deploymentRollouts: any[], modified: boolean): IKubectlDeployAction{
+function createFakeKubeCtlAction(fakeLambda: FFakeLambda, deploymentRollouts: any[], modified: boolean): IKubectlDeployAction {
 
   const fakeAction = createFakeAction(fakeLambda)
 
   let actionState: TDeploymentState = {
-    env: "", key: "", modified: modified, new: false, operation: "apply", signature: "", version: ""
+    env: "", key: "", modified: modified, new: false, operation: "apply", signature: "", version: "",
   }
   return {
     ...fakeAction,
-    type:"kubectl",
+    type: "kubectl",
     deploymentRollouts: deploymentRollouts,
     descriptor: "so fake",
     fileName: "/path/to/nowhere",
     identifier: "",
     operation: "apply",
-    origin: "", 
+    origin: "",
     isStateful: true,
-    state: actionState
+    state: actionState,
   }
 
 }
 
 export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   const fakeLogger = createFakeLogger()
-  const fakeExecCmd = createFakeExec()
-  fakeExecCmd.nextResponse.success = "exec success"
+  const fakeExec = createFakeExec()
+  fakeExec.nextResponse.success = "exec success"
   const fakeStateStore = createFakeStateStore()
   fakeStateStore.nextState = { new: false, modified: true }
 
-  return { logger: fakeLogger, exec: fakeExecCmd, stateStore: fakeStateStore, uiDataPusher: createFakeUIPusher(), rolloutWaitActionFactory: createRolloutWaitActionFactory({exec: fakeExecCmd, stateStore: fakeStateStore, logger: fakeLogger}) }
+
+  let dockerActionFactory = createDockerActionFactory({ logger:fakeLogger, exec: fakeExec, stateStore: fakeStateStore})
+  let deployerActionFactory = createDockerDeployerActionFactory({executionActionFactory: dockerActionFactory, logger: fakeLogger})
+  let deploymentActionFactory = createKubectlDeploymentActionsFactory({ logger:fakeLogger, exec: fakeExec, stateStore: fakeStateStore})
+  let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
+    logger: fakeLogger,
+    deploymentActionFactory: deploymentActionFactory
+  })
+  let rolloutWaitActionFactory = createRolloutWaitActionFactory({
+    exec: fakeExec,
+    stateStore: fakeStateStore,
+    logger: fakeLogger,
+  })
+  let uiDataPusher = createFakeUIPusher()
+
+  let deploymentTestActionFactory = createDeploymentTestActionFactory({logger: fakeLogger, dockerActionFactory: dockerActionFactory})
+
+  return {
+    logger: fakeLogger,
+    exec: fakeExec,
+    stateStore: fakeStateStore,
+    uiDataPusher: uiDataPusher,
+    rolloutWaitActionFactory: rolloutWaitActionFactory,
+    dockerImageKubectlDeploymentActionFactory: dockerImageKubectlDeploymentActionFactory,
+    deployerActionFactory: deployerActionFactory,
+    deploymentTestActionFactory: deploymentTestActionFactory
+  }
 }
 
 describe("Deployment plan", function() {
@@ -120,19 +150,19 @@ describe("Deployment plan", function() {
   after(() => clearEnv(testEnv))
 
 
-  beforeEach(async ()=>{
+  beforeEach(async () => {
 
     let planDependencies = fakeDeploymentPlanDependencies()
-    depPlanner = DeploymentPlanFactory(planDependencies )
+    depPlanner = DeploymentPlanFactory(planDependencies)
 
-    depPlan = depPlanner.createDeploymentPlan({key:"testKeyOne"})
+    depPlan = depPlanner.createDeploymentPlan({ key: "testKeyOne" })
     faf = fakeLambdaFactory()
   })
 
   describe("kubectl action with rollout status", function() {
 
-    beforeEach(async ()=>{
-      await depPlan.addAction(createFakeKubeCtlAction(faf.createFakeLambda('FakeKubeAction1'), ['DepRollout1'], false))
+    beforeEach(async () => {
+      await depPlan.addAction(createFakeKubeCtlAction(faf.createFakeLambda("FakeKubeAction1"), ["DepRollout1"], false))
     })
 
     it("should add deployment actions along with rollout", async () => {
@@ -161,13 +191,12 @@ describe("Deployment plan", function() {
   // })
 
 
+  describe("Regular actions", () => {
 
-  describe('Regular actions', ()=>{
-
-    beforeEach(async ()=>{
-      await depPlan.addAction(createFakeAction(faf.createFakeLambda('FakeAction1')))
-      await depPlan.addAction(createFakeAction(faf.createFakeLambda('FakeAction2')))
-      await depPlan.addAction(createFakeAction(faf.createFakeLambda('FakeAction3')))
+    beforeEach(async () => {
+      await depPlan.addAction(createFakeAction(faf.createFakeLambda("FakeAction1")))
+      await depPlan.addAction(createFakeAction(faf.createFakeLambda("FakeAction2")))
+      await depPlan.addAction(createFakeAction(faf.createFakeLambda("FakeAction3")))
     })
 
     it("should retrieve action state from state store", async () => {
@@ -176,8 +205,8 @@ describe("Deployment plan", function() {
   })
 
   describe("execute", function() {
-    before(()=>{
-      return depPlan.execute({dryRun: false, waitForRollout:false, pushToUi:false, dryRunOutputDir: ""})
+    before(() => {
+      return depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "" })
     })
 
     it("should execute all deployment actions in serial", () => {
@@ -185,7 +214,6 @@ describe("Deployment plan", function() {
     })
 
   })
-
 
 
 })

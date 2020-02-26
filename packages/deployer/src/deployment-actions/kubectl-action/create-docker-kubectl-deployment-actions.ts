@@ -4,30 +4,35 @@ import * as path from "path"
 
 import { shepherdOptions } from "../../shepherd-options"
 import { ICreateKubectlDeploymentAction } from "./kubectl-deployment-action-factory"
-import { IK8sDockerImageDeploymentAction, ILog, TImageInformation, TK8sDeploymentPlan2 } from "../../deployment-types"
-import { TExtensionsMap } from "./kube-supported-extensions"
+import { IDockerImageKubectlDeploymentAction, ILog, TImageInformation, TK8sDeploymentPlan2 } from "../../deployment-types"
+import { kubeSupportedExtensions } from "./kube-supported-extensions"
 import { TarFile, TK8sMetadata } from "@shepherdorg/metadata"
 import { TFileSystemPath } from "../../helpers/basic-types"
 import Bluebird = require("bluebird")
 
+export type ICreateDockerImageKubectlDeploymentActions = {
+  createKubectlDeploymentActions: (
+    imageInformation: TImageInformation,
+  ) => Promise<Array<IDockerImageKubectlDeploymentAction>>
+}
 
-type TKubectlDeploymentActionFactory = { createKubectlDeploymentActions: (imageInformation: TImageInformation, kubeSupportedExtensions: TExtensionsMap) => Promise<Array<IK8sDockerImageDeploymentAction>> }
-
-type TActionFactoryDependencies = {
-  deploymentActionFactory: ICreateKubectlDeploymentAction,
+export type TActionFactoryDependencies = {
+  deploymentActionFactory: ICreateKubectlDeploymentAction
   logger: ILog
 }
 
-export function createKubectlDeploymentActionsFactory({ deploymentActionFactory, logger } : TActionFactoryDependencies): TKubectlDeploymentActionFactory {
-
+export function createDockerImageKubectlDeploymentActionsFactory({
+  deploymentActionFactory,
+  logger,
+}: TActionFactoryDependencies): ICreateDockerImageKubectlDeploymentActions {
   async function createImageBasedFileDeploymentAction(
     deploymentFileContent: TarFile,
     imageInformation: TImageInformation,
     fileName: TFileSystemPath,
     branchModificationParams: TBranchModificationParams,
     env: string,
-    deploymentActionFactory: ICreateKubectlDeploymentAction,
-  ): Promise<IK8sDockerImageDeploymentAction> {
+    deploymentActionFactory: ICreateKubectlDeploymentAction
+  ): Promise<IDockerImageKubectlDeploymentAction> {
     let origin =
       imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag + ":tar:" + fileName
 
@@ -47,7 +52,7 @@ export function createKubectlDeploymentActionsFactory({ deploymentActionFactory,
       deploymentFileContent.content,
       operation,
       fileName,
-      branchModificationParams,
+      branchModificationParams
     )
 
     delete process.env.TPL_DOCKER_IMAGE
@@ -66,9 +71,8 @@ export function createKubectlDeploymentActionsFactory({ deploymentActionFactory,
   }
 
   function createKubectlDeploymentActions(
-    imageInformation: TImageInformation,
-    kubeSupportedExtensions: TExtensionsMap,
-  ): Promise<Array<IK8sDockerImageDeploymentAction>> {
+    imageInformation: TImageInformation
+  ): Promise<Array<IDockerImageKubectlDeploymentAction>> {
     const shepherdMetadata: any = imageInformation.shepherdMetadata
     const herdKey: string = imageInformation.imageDeclaration.key
 
@@ -105,10 +109,10 @@ export function createKubectlDeploymentActionsFactory({ deploymentActionFactory,
       if (branchDeploymentEnabled) {
         if (!Boolean(branchModificationParams.ttlHours)) {
           throw new Error(
-            `${imageInformation.imageDeclaration.key}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`,
+            `${imageInformation.imageDeclaration.key}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`
           )
         }
-        addResourceNameChangeIndex(plan, kubeSupportedExtensions, branchModificationParams)
+        addResourceNameChangeIndex(plan, branchModificationParams)
       }
     }
 
@@ -125,7 +129,14 @@ export function createKubectlDeploymentActionsFactory({ deploymentActionFactory,
             //
             // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
             deploymentActions.push(
-              createImageBasedFileDeploymentAction(archivedFile, imageInformation, fileName, branchModificationParams, "", deploymentActionFactory),
+              createImageBasedFileDeploymentAction(
+                archivedFile,
+                imageInformation,
+                fileName,
+                branchModificationParams,
+                "",
+                deploymentActionFactory
+              )
             )
           }
         } catch (e) {
@@ -138,8 +149,6 @@ export function createKubectlDeploymentActionsFactory({ deploymentActionFactory,
   }
 
   return {
-    createKubectlDeploymentActions
+    createKubectlDeploymentActions,
   }
-
 }
-
