@@ -1,12 +1,22 @@
-import {  TImageInformation } from "../deployment-types"
+import { TImageInformation } from "../deployment-types"
 import { extractShepherdMetadata } from "../herd-loading/add-shepherd-metadata"
-import { DeploymentPlanFactory } from "../deployment-plan/deployment-plan-factory"
+import {
+  createDeploymentPlanFactory,
+  IDeploymentPlan,
+  TDeploymentPlanDependencies,
+} from "../deployment-plan/deployment-plan-factory"
 import { fakeDeploymentPlanDependencies } from "../deployment-plan/deployment-plan-factory.spec"
 
 function createTestDeploymentActions() {
-  let planFactory = DeploymentPlanFactory(fakeDeploymentPlanDependencies() )
-  return planFactory.extractedCreateDepActions
+  let planFactory = createDeploymentPlanFactory(fakeDeploymentPlanDependencies() )
+  return planFactory.createDockerImageDeploymentActions
 }
+
+export async function createTestPlan(dockerDeployerMetadata: TImageInformation, deploymentPlanDependencies: TDeploymentPlanDependencies = fakeDeploymentPlanDependencies()): Promise<IDeploymentPlan> {
+  const fullDeployerMeta = await extractShepherdMetadata(dockerDeployerMetadata)
+  return createDeploymentPlanFactory(deploymentPlanDependencies).createDockerImageDeploymentPlan(fullDeployerMeta)
+}
+
 
 export function createTestActions(dockerDeployerMetadata: TImageInformation) {
   return extractShepherdMetadata(dockerDeployerMetadata).then(shepherdMeta => {
@@ -15,10 +25,10 @@ export function createTestActions(dockerDeployerMetadata: TImageInformation) {
   })
 }
 
-export function loadFirstTestPlan(dockerDeployerMetadata: TImageInformation) {
-  return createTestActions(dockerDeployerMetadata).then(plans => {
+export function loadFirstTestAction(dockerDeployerMetadata: TImageInformation) {
+  return createTestActions(dockerDeployerMetadata).then(testActions => {
     // @ts-ignore
-    return plans[0]
+    return testActions[0]
   })
 }
 

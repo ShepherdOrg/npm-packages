@@ -5,12 +5,20 @@ import {
   IDockerImageKubectlDeploymentAction,
   TImageInformation,
 } from "../deployment-types"
-import { clearEnv, createTestActions, loadFirstTestPlan, setEnv } from "../deployment-actions/test-action-factory"
+import {
+  clearEnv,
+  createTestActions,
+  createTestPlan,
+  loadFirstTestAction,
+  setEnv,
+} from "../deployment-actions/test-action-factory"
 import { TDeployerMetadata } from "@shepherdorg/metadata/dist"
 import { metadataDsl } from "../test-tools/metadata-dsl"
 import { imageInfoDSL } from "../test-tools/image-info-dsl"
-import { DeploymentPlanFactory } from "./deployment-plan-factory"
+import { createDeploymentPlanFactory, IDeploymentPlan } from "./deployment-plan-factory"
 import { fakeDeploymentPlanDependencies } from "./deployment-plan-factory.spec"
+import { TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
+import { createFakeLogger } from "../test-tools/fake-logger"
 
 describe("Docker image plan loader", function() {
   let testEnv = {
@@ -53,7 +61,7 @@ describe("Docker image plan loader", function() {
       }
 
       before(async function() {
-        firstAction = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerDeployerMetadata)) as IDockerDeploymentAction
+        firstAction = await setEnv(testEnv).then(() => loadFirstTestAction(dockerDeployerMetadata)) as IDockerDeploymentAction
       })
 
       after(() => clearEnv(testEnv))
@@ -119,7 +127,7 @@ describe("Docker image plan loader", function() {
       }
 
       before(async function() {
-        firstAction = await setEnv(testEnv).then(async () => {return await loadFirstTestPlan(dockerDeployerMetadata) as IDockerDeploymentAction} )
+        firstAction = await setEnv(testEnv).then(async () => {return await loadFirstTestAction(dockerDeployerMetadata) as IDockerDeploymentAction} )
       })
 
       after(() => clearEnv(testEnv))
@@ -163,7 +171,7 @@ describe("Docker image plan loader", function() {
     let loadedPlan: IDockerDeploymentAction
 
     before(async () =>
-      setEnv(testEnv).then(async () => (loadedPlan = await loadFirstTestPlan(dockerDeployerMetadata) as IDockerDeploymentAction )),
+      setEnv(testEnv).then(async () => (loadedPlan = await loadFirstTestAction(dockerDeployerMetadata) as IDockerDeploymentAction )),
     )
     after(() => clearEnv(testEnv))
 
@@ -202,7 +210,7 @@ describe("Docker image plan loader", function() {
     let firstPlan: IDockerDeploymentAction
 
     before(async function() {
-      return (firstPlan = await loadFirstTestPlan(dockerImageMetadata) as IDockerDeploymentAction)
+      return (firstPlan = await loadFirstTestAction(dockerImageMetadata) as IDockerDeploymentAction)
     })
 
     it("should rewrite docker labels starting with is.icelandairlabs to labels starting with shepherd", () => {
@@ -235,7 +243,7 @@ describe("Docker image plan loader", function() {
     }
 
     describe("successful load", function() {
-      let loadedPlans: Array<IDockerImageKubectlDeploymentAction>
+      let loadedActions: Array<IDockerImageKubectlDeploymentAction>
       let planNumberOne: IDockerImageKubectlDeploymentAction
       let testEnv = {
         EXPORT1: "na",
@@ -247,7 +255,7 @@ describe("Docker image plan loader", function() {
       before(async function() {
         return (planNumberOne = await setEnv(testEnv).then(() =>
           createTestActions(dockerImageMetadata).then(plans => {
-            loadedPlans = plans as Array<IDockerImageKubectlDeploymentAction>
+            loadedActions = plans as Array<IDockerImageKubectlDeploymentAction>
             // @ts-ignore
             return plans[0] as IDockerImageKubectlDeploymentAction
           }) ,
@@ -257,11 +265,11 @@ describe("Docker image plan loader", function() {
       after(() => clearEnv(testEnv))
 
       it("should list all deployments to wait for completion", () => {
-        expect(loadedPlans[2].deploymentRollouts.map((dr)=>`${dr.deploymentKind}/${dr.deploymentName}`).join("")).to.equal("Deployment/www-icelandair-com")
+        expect(loadedActions[2].deploymentRollouts.map((dr)=>`${dr.deploymentKind}/${dr.deploymentName}`).join("")).to.equal("Deployment/www-icelandair-com")
       })
 
       it("should expand handlebars template", () => {
-        const configMapPlan = loadedPlans.find(plan => {
+        const configMapPlan = loadedActions.find(plan => {
           return plan.identifier === "ConfigMap_www-icelandair-com-nginx-acls"
         })
 
@@ -285,8 +293,8 @@ describe("Docker image plan loader", function() {
         expect(planNumberOne.operation).to.equal("apply")
       })
 
-      it("should return one plan per deployment file", function() {
-        expect(loadedPlans.length).to.equal(4)
+      it("should return one action per deployment file, plus rollout wait", function() {
+        expect(loadedActions.length).to.equal(5)
       })
 
       it("should be of type k8s", function() {
@@ -352,7 +360,8 @@ describe("Docker image plan loader", function() {
     }
 
     describe("successful load", function() {
-      let planNumberOne: IDockerImageKubectlDeploymentAction
+      let actionNumberOne: IDockerImageKubectlDeploymentAction
+      let testPlan: IDeploymentPlan
       let testEnv = {
         EXPORT1: "na",
         SUB_DOMAIN_PREFIX: "na",
@@ -360,22 +369,38 @@ describe("Docker image plan loader", function() {
         WWW_ICELANDAIR_IP_WHITELIST: "YnVsbHNoaXRsaXN0Cg==",
       }
       before(async function() {
-        return (planNumberOne = await setEnv(testEnv).then(() => loadFirstTestPlan(dockerImageMetadata) as Promise<IDockerImageKubectlDeploymentAction>))
+        await setEnv(testEnv)
+        let deploymentPlanDependencies = fakeDeploymentPlanDependencies();
+        (deploymentPlanDependencies.stateStore as TFakeStateStore).nextState = { new: false, modified: true}
+        testPlan = await createTestPlan(dockerImageMetadata, deploymentPlanDependencies)
+        actionNumberOne = testPlan.deploymentActions[0] as IDockerImageKubectlDeploymentAction
+        // return (actionNumberOne = await setEnv(testEnv).then(() => loadFirstTestAction(dockerImageMetadata) as Promise<IDockerImageKubectlDeploymentAction>))
       })
 
       after(() => clearEnv(testEnv))
 
       it("should have feature deployment in origin", function() {
-        expect(planNumberOne.origin).to.contain("thisIsFeatureDeploymentOne")
+        expect(actionNumberOne.origin).to.contain("thisIsFeatureDeploymentOne")
       })
 
       it("should modify deployment descriptor", function() {
-        expect(planNumberOne.descriptor).to.contain("thisisfeaturedeploymentone")
+        expect(actionNumberOne.descriptor).to.contain("thisisfeaturedeploymentone")
       })
 
       it("should modify deployment identifier ", function() {
-        expect(planNumberOne.identifier).to.equal("Deployment_www-icelandair-com-thisisfeaturedeploymentone")
+        expect(actionNumberOne.identifier).to.equal("Deployment_www-icelandair-com-thisisfeaturedeploymentone")
       })
+
+      it("should have rollout wait action for deployment", () => {
+        expect(actionNumberOne.deploymentRollouts.length).to.equal(1)
+      })
+
+      it("should plan rollout wait action", () => {
+        const planLogger = createFakeLogger()
+        testPlan.printPlan(planLogger)
+        expect(planLogger.log).to.contain('rollout status Deployment')
+      })
+
     })
 
     describe("missing env variable", function() {
@@ -441,8 +466,8 @@ describe("Docker image plan loader", function() {
     beforeEach(async ()=>{
       const shepherdMetadata: TDeployerMetadata = metadataDsl().instance()
       let fakeImageInfo : TImageInformation = imageInfoDSL( shepherdMetadata ).instance()
-      let planFactory = DeploymentPlanFactory(fakeDeploymentPlanDependencies() )
-      actions = await planFactory.extractedCreateDepActions(fakeImageInfo)
+      let planFactory = createDeploymentPlanFactory(fakeDeploymentPlanDependencies() )
+      actions = await planFactory.createDockerImageDeploymentActions(fakeImageInfo)
     })
 
     it("should create actions for postDeployTest and preDeployTest", () => {

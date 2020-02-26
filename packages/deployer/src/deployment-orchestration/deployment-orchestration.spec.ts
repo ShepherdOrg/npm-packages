@@ -21,7 +21,7 @@ import {
 import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
 import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { DeploymentPlanFactory, TDeploymentPlanDependencies } from "../deployment-plan/deployment-plan-factory"
+import { createDeploymentPlanFactory, TDeploymentPlanDependencies } from "../deployment-plan/deployment-plan-factory"
 import { IPushToShepherdUI } from "../shepherd"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
@@ -148,7 +148,7 @@ describe("Deployment orchestration", function() {
       deployerActionFactory: deployerActionFactory,
       deploymentTestActionFactory: deploymentTestActionFactory
     }
-    let deploymentPlan = DeploymentPlanFactory(fakeDeps).createDeploymentPlan({ key: depAction.herdKey })
+    let deploymentPlan = createDeploymentPlanFactory(fakeDeps).createDeploymentPlan({ key: depAction.herdKey })
     await deploymentPlan.addAction(depAction)
 
     return deploymentPlan
@@ -329,95 +329,6 @@ describe("Deployment orchestration", function() {
         // Uncomment for clearer insight
         // console.log(`fakeExec.executedCommands`, fakeExec.executedCommands.map((ec:any)=> identifyDocument(ec.options.stdin).identifyingString + ' ... ' +  ec.params.join(' ')))
         expect(fakeExec.executedCommands.length).to.equal(0)
-      })
-    })
-
-    describe("modified deployment docs with rollout wait", function() {
-      beforeEach(async function() {
-        fakeStateStore.fixedTimestamp = "2019-10-31T11:03:52.381Z"
-        fakeStateStore.nextState = {
-          saveFailure: false,
-          message: "",
-        }
-        fakeExec.nextResponse.success = "done"
-
-        return deploymentOrchestration
-          .addDeploymentPlan(await createK8sTestPlan("ConfigMap_www-icelandair-com-nginx-acls"))
-          .then(async () =>
-            deploymentOrchestration.addDeploymentPlan(await createK8sTestPlan("Deployment_www-icelandair-com"))
-          )
-          .then(async () => deploymentOrchestration.addDeploymentPlan(await createK8sTestPlan("Namespace_monitors")))
-          .then(() =>
-            deploymentOrchestration.executePlans({
-              dryRun: false,
-              dryRunOutputDir: undefined,
-              pushToUi: true,
-              waitForRollout: true,
-            })
-          )
-      })
-
-      it("should execute two apply, one delete and a rollout status command", () => {
-        let idx = 0
-        // Uncomment next line for clearer insight when debugging failure of this test
-        // console.log(`fakeExec.executedCommands`, fakeExec.executedCommands.map((ec:any)=> identifyDocument(ec.options.stdin).identifyingString + ' ... ' +  ec.params.join(' ')))
-        expect(fakeExec.executedCommands.length).to.equal(4)
-        expect(fakeExec.executedCommands[idx++].params[0]).to.equal("apply", "configmap")
-        expect(fakeExec.executedCommands[idx++].params[0]).to.equal("apply", "deployment")
-        expect(fakeExec.executedCommands[idx++].params[0]).to.equal("delete", "delete namespace monitors")
-        expect(fakeExec.executedCommands[idx++].params[2]).to.equal("rollout", "wait for deployment")
-      })
-
-      it("should execute kubectl apply for all deployments with same origin", function() {
-        expect(fakeExec.executedCommands[0].command).to.equal("kubectl")
-        expect(fakeExec.executedCommands[0].params[0]).to.equal("apply")
-        expect(fakeExec.executedCommands[0].params[1]).to.equal("-f")
-        expect(fakeExec.executedCommands[0].params[2]).to.equal("-")
-        expect(fakeExec.executedCommands[0].options.stdin).to.contain("name: www-icelandair-com-nginx-acls")
-      })
-
-      it("should execute kubectl rollout status to wait for deployment to complete", () => {
-        expect(fakeExec.executedCommands[3].command).to.equal("kubectl")
-        expect(fakeExec.executedCommands[3].params[0]).to.equal("--namespace")
-        expect(fakeExec.executedCommands[3].params[1]).to.equal("default")
-        expect(fakeExec.executedCommands[3].params[2]).to.equal("rollout")
-        expect(fakeExec.executedCommands[3].params[3]).to.equal("status")
-        expect(fakeExec.executedCommands[3].params[4]).to.equal("Deployment/www-icelandair-com-test1")
-      })
-
-      it("should push data to UI", () => {
-        expect(fakeUiDataPusher.pushedData.length).to.equal(3)
-        let i = 0
-
-        expect(fakeUiDataPusher.pushedData[i].displayName).to.equal("Testimage", "one")
-        expect(fakeUiDataPusher.pushedData[i++].deploymentState.timestamp).to.eql(new Date("2019-10-31T11:03:52.381Z"))
-
-        expect(fakeUiDataPusher.pushedData[i++].displayName).to.equal("Testimage", "two")
-        expect(fakeUiDataPusher.pushedData[i++].displayName).to.equal("monitors-namespace.yml", "three")
-      })
-
-      it("should store state kubectl", function() {
-        expect(fakeStateStore.savedStates.length).to.equal(3)
-
-        // expect(fakeStateStore.savedStates[0].origin).to.equal(k8sDeployments.Namespace_monitors.origin);
-        expect(fakeStateStore.savedStates[0].origin).to.equal(
-          TestActions.addedK8sDeployments["ConfigMap_www-icelandair-com-nginx-acls"].origin
-        )
-        // expect(fakeStateStore.savedStates[1].origin).to.equal(k8sDeployments["Deployment_www-icelandair-com"].origin);
-      })
-
-      it("should info log deployments", function() {
-        let infoLog = fakeLogger.infoLogEntries.map(logs => logs.data[0]).join("\n")
-        expect(infoLog).to.equal(
-          `kubectl apply deployments in testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls
-done
-kubectl apply deployments in testenvimage:0.0.0:kube.config.tar.base64/Deployment_www-icelandair-com
-done
-kubectl delete deployments in /Users/gulli/src/github.com/shepherd/npm-packages/packages/deployer/src/deployment-manager/testdata/happypath/namespaces/Namespace_monitors
-done
-kubectl --namespace default rollout status Deployment/www-icelandair-com-test1
-done`
-        )
       })
     })
 

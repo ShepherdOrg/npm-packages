@@ -21,7 +21,7 @@ describe("K8S deployment rollout status wait action factory", function() {
 
     fakeExec = createFakeExec()
 
-    rolloutAction = createRolloutWaitActionFactory({ exec: fakeExec, logger:fakeLogger, stateStore: fakeStateStore}).RolloutWaitActionFactory({namespace:'default', deploymentName:"my-awesome-deployment", deploymentKind:"Deployment"})
+    rolloutAction = createRolloutWaitActionFactory({ exec: fakeExec, logger:fakeLogger, stateStore: fakeStateStore}).createRolloutWaitAction({namespace:'default', deploymentName:"my-awesome-deployment", deploymentKind:"Deployment"})
   })
 
   it("should remember descriptor", function() {

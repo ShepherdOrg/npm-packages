@@ -164,7 +164,7 @@ describe("running shepherd", function() {
       cleanDir(shepherdStoreDir)
     })
 
-    it.only("should fail on post test and attempt to rollback to previous version", function(done) {
+    it("should fail on post test and attempt to rollback to previous version", function(done) {
       script
         .execute(shepherdTestHarness, ["--fakerun", "src/herd-loading/testdata/deploytestherd/herd.yaml"], {
           env: _.extend({}, process.env, {
@@ -172,13 +172,13 @@ describe("running shepherd", function() {
             SHEPHERD_PG_HOST: "",
             FAIL_POSTDEPLOY_TEST: true,
           }),
-          debug: true, // debug:false suppresses stdout of process
+          debug: false, // debug:false suppresses stdout of process
         })
         .expectExitCode(255)
         .stdout().shouldContain("Executing docker command pretest")
         .stdout().shouldContain("Executing docker command deploy")
         .stdout().shouldContain("Executing docker command posttest")
-        .stdout().shouldContain("Test failed, rolling back to last good version!")
+        .stdout().shouldContain("Test run failed, rolling back to last good version.")
         .stdout().shouldContain("Rollback complete. Original error follows.")
         .stdout().shouldContain('Post test failed')
         .done(function() {

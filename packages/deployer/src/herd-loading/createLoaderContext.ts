@@ -4,7 +4,7 @@ import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstrea
 import { IExec } from "../helpers/basic-types"
 import { DeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
 import {
-  DeploymentPlanFactory,
+  createDeploymentPlanFactory,
   IDeploymentPlanFactory,
   TDeploymentPlanDependencies,
 } from "../deployment-plan/deployment-plan-factory"
@@ -82,7 +82,7 @@ export function createLoaderContext({
     deploymentTestActionFactory,
   }
 
-  let planFactory: IDeploymentPlanFactory = DeploymentPlanFactory(planDependencies)
+  let planFactory: IDeploymentPlanFactory = createDeploymentPlanFactory(planDependencies)
 
   return createHerdLoader({
     logger: logger,

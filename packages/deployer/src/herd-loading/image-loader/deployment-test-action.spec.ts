@@ -1,7 +1,7 @@
 import { TDeployerMetadata, TDeploymentState, TTestSpecification } from "@shepherdorg/metadata"
 import {
   createDeploymentTestActionFactory,
-  IRollbackDeployment,
+  IRollbackAction,
   TDeploymentTestActionFactoryDependencies,
 } from "./deployment-test-action"
 import {
@@ -156,7 +156,7 @@ describe("Deployment test action", function() {
     let testError: Error
 
     let deploymentOptions = defaultTestExecutionOptions
-    let fakeRollbackAction: IRollbackDeployment & { rollbackCalls: Array<any> }
+    let fakeRollbackAction: IRollbackAction & { rollbackCalls: Array<any> }
 
     before(async () => {
       let fakeDeploymentTestActionFactoryDependencies = createFakeDeploymentTestActionFactoryDependencies()
@@ -170,7 +170,7 @@ describe("Deployment test action", function() {
 
       fakeRollbackAction = {
         rollbackCalls: [],
-        async rollbackDeploymentPlan(): Promise<TRollbackResult> {
+        async rollback(): Promise<TRollbackResult> {
           fakeRollbackAction.rollbackCalls.push(arguments)
           return {
           }
@@ -189,8 +189,8 @@ describe("Deployment test action", function() {
       expect(fakeRollbackAction.rollbackCalls.length).to.equal(1)
     })
 
-    it("shout log fact that test failure resulted in rollback being called", () => {
-      expect(fakeLogger.log).to.contain('Test failed, rolling back to last good version')
+    it("should log fact that test failure resulted in rollback being called", () => {
+      expect(fakeLogger.log).to.contain('Test run failed, rolling back to last good version.')
     })
 
     it("should throw error stating testExecution failure", () => {

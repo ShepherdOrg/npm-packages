@@ -15,10 +15,10 @@ export type TRolloutWaitActionDependencies= {
   logger: ILog
 }
 
-export type ICreateRolloutWaitActions = { RolloutWaitActionFactory: (deploymentRollout: TDeploymentRollout) => IKubectlAction }
+export type ICreateRolloutWaitAction = { createRolloutWaitAction: (deploymentRollout: TDeploymentRollout) => IKubectlAction }
 
-export function createRolloutWaitActionFactory(actionDependencies: TRolloutWaitActionDependencies): ICreateRolloutWaitActions {
-  function RolloutWaitActionFactory(deploymentRollout: TDeploymentRollout): IKubectlAction {
+export function createRolloutWaitActionFactory(actionDependencies: TRolloutWaitActionDependencies): ICreateRolloutWaitAction {
+  function createRolloutWaitAction(deploymentRollout: TDeploymentRollout): IKubectlAction {
 
     function planString() {
       return `kubectl --namespace ${deploymentRollout.namespace} rollout status ${deploymentRollout.deploymentKind}/${deploymentRollout.deploymentName}`
@@ -62,5 +62,5 @@ export function createRolloutWaitActionFactory(actionDependencies: TRolloutWaitA
     return waitAction
   }
 
-  return {RolloutWaitActionFactory}
+  return {createRolloutWaitAction}
 }

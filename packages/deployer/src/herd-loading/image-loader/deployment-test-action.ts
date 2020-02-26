@@ -12,21 +12,21 @@ export interface ICreateDeploymentTestAction {
   createDeploymentTestAction(
     deployTestDeclaration: TTestSpecification,
     shepherdMetadata: TImageMetadata,
-    onFailureCallMe?: IRollbackDeployment
+    onFailureCallMe?: IRollbackAction
   ): IExecutableAction
 }
 
 export type TDeploymentTestActionFactoryDependencies = { dockerActionFactory:ICreateDockerActions, logger: ILog }
 
-export interface IRollbackDeployment {
-  rollbackDeploymentPlan(): Promise<TRollbackResult>
+export interface IRollbackAction {
+  rollback(): Promise<TRollbackResult>
 }
 
 export function createDeploymentTestActionFactory({dockerActionFactory, logger}:TDeploymentTestActionFactoryDependencies) {
   function createDeploymentTestAction(
     deployTestDeclaration: TTestSpecification,
     shepherdMetadata: TImageMetadata,
-    onTestFailureCallMe?: IRollbackDeployment
+    onTestFailureCallMe?: IRollbackAction
   ): IExecutableAction {
     let dockerExecutionAction = dockerActionFactory.createDockerExecutionAction(
       shepherdMetadata,
@@ -41,17 +41,19 @@ export function createDeploymentTestActionFactory({dockerActionFactory, logger}:
       execute: async function(
         deploymentOptions: TActionExecutionOptions
       ): Promise<IExecutableAction> {
-        return dockerExecutionAction.execute(deploymentOptions).catch(async testError => {
+        return dockerExecutionAction.execute(deploymentOptions).catch(async testRunException => {
           if(onTestFailureCallMe){
-            await onTestFailureCallMe.rollbackDeploymentPlan()
+            logger.info('Test run failed, rolling back to last good version.')
+            await onTestFailureCallMe.rollback()
           }
-          if(isOops(testError)){
-            logger.error('Test output: vvvvvvvvvvvvvvvv')
+          if(isOops(testRunException)){
+            logger.error('vvvvvvvvvvvvvvvv test output vvvvvvvvvvvvvvvv')
+            logger.error(testRunException.message)
             // @ts-ignore
-            logger.error(testError.context.stdOut)
-            logger.error('^^^^^^^^^^^^^^^^^^^^^^^')
+            logger.error(testRunException.context.stdOut)
+            logger.error('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
           }
-          throw testError
+          throw testRunException
         })
       },
     }

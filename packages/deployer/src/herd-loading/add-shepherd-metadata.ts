@@ -24,7 +24,7 @@ function rewriteDockerLabels(
   return result
 }
 
-export async function extractShepherdMetadata (dockerImageMetadata:TImageInformation): Promise<TShepherdMetadata> {
+export async function extractShepherdMetadata (dockerImageMetadata:TImageInformation): Promise<TImageInformation> {
   let imageLabels = rewriteDockerLabels(
     dockerImageMetadata.dockerLabels,
     "is.icelandairlabs",
@@ -32,9 +32,15 @@ export async function extractShepherdMetadata (dockerImageMetadata:TImageInforma
   )
   const shepherdMetadata: TDeployerMetadata | TK8sMetadata = await extractImageMetadata(imageLabels)
 
+  // @ts-ignore
+  if(dockerImageMetadata.imageDefinition){
+    console.error('Something fishy going on here, imageDefinition set on dockerImageMetadata')
+  }
   return {
+    dockerLabels: dockerImageMetadata.dockerLabels,
+    env: dockerImageMetadata.env,
     // @ts-ignore
     imageDeclaration: dockerImageMetadata.imageDeclaration || dockerImageMetadata.imageDefinition,
-    shepherdMetadata: shepherdMetadata,
+    shepherdMetadata: shepherdMetadata
   }
 }

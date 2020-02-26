@@ -12,13 +12,13 @@ import {
 } from "../deployment-types"
 import { IReleaseStateStore, TDeploymentStateParams } from "@shepherdorg/state-store"
 import { emptyArray } from "../helpers/ts-functions"
-import { ICreateRolloutWaitActions } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
+import { ICreateRolloutWaitAction } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { mapUntypedDeploymentData } from "../ui-mapping/map-untyped-deployment-data"
 import { TFileSystemPath } from "../helpers/basic-types"
 import * as path from "path"
 import { writeFile } from "../helpers/promisified"
 import { IPushToShepherdUI } from "../shepherd"
-import { ICreateDeploymentTestAction, IRollbackDeployment } from "../herd-loading/image-loader/deployment-test-action"
+import { ICreateDeploymentTestAction, IRollbackAction } from "../herd-loading/image-loader/deployment-test-action"
 import { ICreateDockerDeploymentActions } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import { newProgrammerOops } from "oops-error"
@@ -54,7 +54,7 @@ export interface TDeploymentPlanDependencies {
   exec: any
   logger: ILog
   uiDataPusher: IPushToShepherdUI
-  rolloutWaitActionFactory: ICreateRolloutWaitActions,
+  rolloutWaitActionFactory: ICreateRolloutWaitAction,
   dockerImageKubectlDeploymentActionFactory: ICreateDockerImageKubectlDeploymentActions
   deployerActionFactory: ICreateDockerDeploymentActions
   deploymentTestActionFactory: ICreateDeploymentTestAction
@@ -63,11 +63,22 @@ export interface TDeploymentPlanDependencies {
 export interface IDeploymentPlanFactory {
   createDeploymentPlan: (herdSpec: THerdDeclaration) => IDeploymentPlan
 
-  extractedCreateDepActions(imageInformation: TImageInformation): Promise<Array<IExecutableAction>>
-  extractedCreateImageDeploymentPlan(imageInformation: TImageInformation): Promise<IDeploymentPlan>
+  createDockerImageDeploymentActions(imageInformation: TImageInformation): Promise<Array<IExecutableAction>>
+  createDockerImageDeploymentPlan(imageInformation: TImageInformation): Promise<IDeploymentPlan>
 }
 
-export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies): IDeploymentPlanFactory {
+export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencies): IDeploymentPlanFactory {
+
+  async function createRolloutWaitActions(kubectlDeployAction: IKubectlDeployAction): Promise<Array<IExecutableAction>> {
+    const resultingActions: Array<IExecutableAction> = []
+    if (kubectlDeployAction.deploymentRollouts && kubectlDeployAction.operation === "apply" && kubectlDeployAction.state?.modified) {
+      await Promise.all(kubectlDeployAction.deploymentRollouts.map(async (deploymentRollout) => {
+        resultingActions.push(await injected.rolloutWaitActionFactory.createRolloutWaitAction(deploymentRollout))
+      }, {}))
+    }
+    return resultingActions
+  }
+
 
   function createDeploymentPlan(herdDeclaration: THerdDeclaration): IDeploymentPlan {
     const deploymentActions: Array<IExecutableAction> = []
@@ -86,14 +97,6 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies): ID
       }
     }
 
-    async function addRolloutWaitActions(kubectlDeployAction: IKubectlDeployAction) {
-
-      if (kubectlDeployAction.deploymentRollouts && kubectlDeployAction.operation === "apply" && kubectlDeployAction.state?.modified) {
-        await Promise.all(kubectlDeployAction.deploymentRollouts.map(async (deploymentRollout) => {
-          await planInstance.addAction(injected.rolloutWaitActionFactory.RolloutWaitActionFactory(deploymentRollout))
-        }, {}))
-      }
-    }
 
     let planInstance: IDeploymentPlan = {
       async execute(executionOptions: TActionExecutionOptions): Promise<IDeploymentPlanExecutionResult> {
@@ -118,15 +121,11 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies): ID
         // if(!action.version){
         //   console.log(`NO action version`, action.planString(), ' decriptor: ', action.descriptor)
         // }
-        if (action.isStateful) {
+        if (action.isStateful && !action.state) {
           action.state = await injected.stateStore.getDeploymentState(action as unknown as TDeploymentStateParams)
         }
 
         deploymentActions.push(action)
-
-        if (isKubectlDeployAction(action)) {
-          await addRolloutWaitActions(action)
-        }
       },
       async exportActions(exportDirectory: TFileSystemPath) {
         await Promise.all(deploymentActions.map(function(action: IAnyDeploymentAction) {
@@ -176,6 +175,8 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies): ID
             } else if (modified) {
               logger.info(`  - ${deploymentAction.planString()}`)
             }
+          } else if(modified) { // Supporting action such as rollout wait or deployment test
+            logger.info(`  -  > ${deploymentAction.planString()}`)
           }
         })
         return modified
@@ -187,7 +188,7 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies): ID
     return planInstance
   }
 
-  async function extractedCreateDepActions(imageInformation: TImageInformation) {
+  async function createDockerImageDeploymentActions(imageInformation: TImageInformation) {
     if (imageInformation.shepherdMetadata) {
       let resultingActions: Array<IExecutableAction> = emptyArray<IExecutableAction>()
 
@@ -202,15 +203,28 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies): ID
         deploymentActions = await injected.deployerActionFactory.createDockerDeploymentAction(imageInformation)
       } else if (imageInformation.shepherdMetadata.deploymentType === "k8s") {
         deploymentActions = await injected.dockerImageKubectlDeploymentActionFactory.createKubectlDeploymentActions(imageInformation)
-        // TODO MUST TODO Move rollout wait action creation here to have in the correct execution order for the plan
+
+        await Promise.all(deploymentActions.map(async (depAction)=>{
+
+          if (depAction.isStateful) {
+            depAction.state = await injected.stateStore.getDeploymentState(depAction as unknown as TDeploymentStateParams)
+          }
+
+          if (isKubectlDeployAction(depAction)) {
+            let waitActions = await createRolloutWaitActions(depAction)
+            waitActions.map((waitAction)=>{
+              deploymentActions.push(waitAction)
+            })
+          }
+        }))
       } else {
         throw new Error(`Unexpected: No planner in place for deploymentType ${imageInformation.shepherdMetadata.deploymentType} in ${imageInformation.shepherdMetadata.displayName} `)
       }
       resultingActions = resultingActions.concat(deploymentActions)
 
       if (imageInformation.shepherdMetadata.postDeployTest) {
-        let deploymentActionsRollback: IRollbackDeployment = {
-          async rollbackDeploymentPlan(): Promise<TRollbackResult> {
+        let deploymentActionsRollback: IRollbackAction = {
+          async rollback(): Promise<TRollbackResult> {
             let NO_ROLLBACK_RESULT = { code: 0 }
             return await Promise.all(deploymentActions.map(rollback => rollback.canRollbackExecution() && rollback.rollback() || NO_ROLLBACK_RESULT)).then(() => {
               return {}
@@ -226,10 +240,10 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies): ID
     }
   }
 
-  async function extractedCreateImageDeploymentPlan(imageInformation: TImageInformation) {
+  async function createDockerImageDeploymentPlan(imageInformation: TImageInformation) {
     if (imageInformation.shepherdMetadata) {
 
-      const resultingActions = await extractedCreateDepActions(imageInformation)
+      const resultingActions = await createDockerImageDeploymentActions(imageInformation)
       const resultingPlan = createDeploymentPlan(imageInformation.imageDeclaration)
       await Promise.all(resultingActions.map(resultingPlan.addAction))
 
@@ -242,8 +256,8 @@ export function DeploymentPlanFactory(injected: TDeploymentPlanDependencies): ID
 
   return {
     createDeploymentPlan,
-    extractedCreateDepActions,
-    extractedCreateImageDeploymentPlan,
+    createDockerImageDeploymentActions: createDockerImageDeploymentActions,
+    createDockerImageDeploymentPlan: createDockerImageDeploymentPlan,
   }
 }
 

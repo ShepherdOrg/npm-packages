@@ -55,7 +55,7 @@ export function createImagesLoader(injected: TImageDeclarationsLoaderDependencie
       let promise: Promise<IDeploymentPlan> = loadImageMetadata(herdSpec)
         .then(extractShepherdMetadata)
         .then(addMigrationImageToDependenciesPlan)
-        .then(injected.planFactory.extractedCreateImageDeploymentPlan)
+        .then(injected.planFactory.createDockerImageDeploymentPlan)
         .catch(function(e: Error | string) {
           let errorMessage: string
           if (typeof e === "string") {

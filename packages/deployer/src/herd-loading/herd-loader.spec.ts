@@ -19,7 +19,7 @@ import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
 import { IExec, TFileSystemPath } from "../helpers/basic-types"
 import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import {
-  DeploymentPlanFactory,
+  createDeploymentPlanFactory,
   IDeploymentPlan,
   TDeploymentPlanDependencies,
 } from "../deployment-plan/deployment-plan-factory"
@@ -96,7 +96,7 @@ describe("herd.yaml loading", function() {
       deploymentTestActionFactory: deploymentTestActionFactory
     }
 
-    let planFactory = DeploymentPlanFactory(dependencies)
+    let planFactory = createDeploymentPlanFactory(dependencies)
 
     loader = createHerdLoader({
       logger: logger,

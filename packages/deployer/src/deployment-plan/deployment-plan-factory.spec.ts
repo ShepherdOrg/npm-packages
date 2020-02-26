@@ -1,5 +1,5 @@
 import {
-  DeploymentPlanFactory,
+  createDeploymentPlanFactory,
   IDeploymentPlan,
   IDeploymentPlanFactory,
   TDeploymentPlanDependencies,
@@ -101,13 +101,12 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   const fakeStateStore = createFakeStateStore()
   fakeStateStore.nextState = { new: false, modified: true }
 
-
   let dockerActionFactory = createDockerActionFactory({ logger:fakeLogger, exec: fakeExec, stateStore: fakeStateStore})
   let deployerActionFactory = createDockerDeployerActionFactory({executionActionFactory: dockerActionFactory, logger: fakeLogger})
-  let deploymentActionFactory = createKubectlDeploymentActionsFactory({ logger:fakeLogger, exec: fakeExec, stateStore: fakeStateStore})
+  let kubectlDeploymentActionsFactory = createKubectlDeploymentActionsFactory({ logger:fakeLogger, exec: fakeExec, stateStore: fakeStateStore})
   let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
     logger: fakeLogger,
-    deploymentActionFactory: deploymentActionFactory
+    deploymentActionFactory: kubectlDeploymentActionsFactory
   })
   let rolloutWaitActionFactory = createRolloutWaitActionFactory({
     exec: fakeExec,
@@ -153,22 +152,10 @@ describe("Deployment plan", function() {
   beforeEach(async () => {
 
     let planDependencies = fakeDeploymentPlanDependencies()
-    depPlanner = DeploymentPlanFactory(planDependencies)
+    depPlanner = createDeploymentPlanFactory(planDependencies)
 
     depPlan = depPlanner.createDeploymentPlan({ key: "testKeyOne" })
     faf = fakeLambdaFactory()
-  })
-
-  describe("kubectl action with rollout status", function() {
-
-    beforeEach(async () => {
-      await depPlan.addAction(createFakeKubeCtlAction(faf.createFakeLambda("FakeKubeAction1"), ["DepRollout1"], false))
-    })
-
-    it("should add deployment actions along with rollout", async () => {
-      expect(depPlan.deploymentActions.length).to.equal(2)
-      expect(depPlan.deploymentActions[1].descriptor).to.contain("rollout status")
-    })
   })
 
   // describe("plan for image with migration reference", function() {

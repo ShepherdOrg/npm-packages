@@ -5,7 +5,7 @@ export interface TFakeStateStore extends IReleaseStateStore {
   checkedStates: any[];
   fixedTimestamp: string;
   saveDeploymentState: (deploymentState: TDeploymentState) => Promise<TDeploymentState>;
-  nextState: any;
+  nextState: {new: boolean, modified: boolean};
   savedStates: TDeploymentState[];
   getDeploymentState: (deploymentAction: TDeploymentStateParams) => Promise<TDeploymentState>
 }
