@@ -7,7 +7,7 @@ import {
   createDeploymentPlanFactory,
   IDeploymentPlanFactory,
   TDeploymentPlanDependencies,
-} from "../deployment-plan/deployment-plan-factory"
+} from "../deployment-plan/deployment-plan"
 import { createHerdLoader } from "./herd-loader"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { IPushToShepherdUI } from "../shepherd"

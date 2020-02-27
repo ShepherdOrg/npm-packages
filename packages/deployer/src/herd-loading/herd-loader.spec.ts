@@ -22,7 +22,7 @@ import {
   createDeploymentPlanFactory,
   IDeploymentPlan,
   TDeploymentPlanDependencies,
-} from "../deployment-plan/deployment-plan-factory"
+} from "../deployment-plan/deployment-plan"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import {
   createFakeDockerImageKubectlDeploymentFactory,

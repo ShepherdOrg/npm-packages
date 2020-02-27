@@ -22,6 +22,7 @@ import { ICreateDeploymentTestAction, IRollbackAction } from "../herd-loading/im
 import { ICreateDockerDeploymentActions } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import { newProgrammerOops } from "oops-error"
+import { renderPlanExecutionError } from "./renderPlanExecutionError"
 
 export interface IDeploymentPlanExecutionResult {
   actionResults: IExecutableAction[]
@@ -108,6 +109,9 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
                 await mapDeploymentDataAndPush(nextAction)
               }
               return remainingActions
+            }).catch((actionExecutionError)=>{
+              renderPlanExecutionError(injected.logger, actionExecutionError)
+              return []
             })
           })
         }, Promise.resolve(emptyArray<IExecutableAction>()))

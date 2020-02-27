@@ -7,7 +7,7 @@ import {
   TDeploymentOrchestrationDependencies,
 } from "../deployment-types"
 import { TFileSystemPath } from "../helpers/basic-types"
-import { IDeploymentPlan, TK8sDeploymentPlansByKey } from "../deployment-plan/deployment-plan-factory"
+import { IDeploymentPlan, TK8sDeploymentPlansByKey } from "../deployment-plan/deployment-plan"
 import { flatMapPolyfill } from "../herd-loading/folder-loader/flatmap-polyfill"
 
 flatMapPolyfill()

@@ -9,8 +9,7 @@ import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
 import { CreateLogger } from "./logging/logger"
 import { IDeploymentOrchestration } from "./deployment-types"
 import { createLoaderContext } from "./herd-loading/createLoaderContext"
-import { isOops } from "./helpers/isOops"
-import { imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
+import { renderPlanExecutionError } from "./deployment-plan/renderPlanExecutionError"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -229,11 +228,7 @@ stateStoreBackend
               }, 1000)
             })
             .catch(function(err: Error) {
-              logger.error("Plan execution error")
-              logger.error(err.message)
-              if(isOops( err )){
-                logger.error(`Error context: ${JSON.stringify(err.context, null, 2)}`, )
-              }
+              renderPlanExecutionError(logger, err)
               terminateProcess(255)
             })
         }

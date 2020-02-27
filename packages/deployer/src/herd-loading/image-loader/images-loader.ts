@@ -10,7 +10,7 @@ import { extractShepherdMetadata } from "../add-shepherd-metadata"
 import { IExec, TFileSystemPath } from "../../helpers/basic-types"
 import { ILoadDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { parseImageUrl, TDockerImageUrl, TDockerImageUrlStruct } from "../../helpers/parse-image-url"
-import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan-factory"
+import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan"
 import { newProgrammerOops } from "oops-error"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
 

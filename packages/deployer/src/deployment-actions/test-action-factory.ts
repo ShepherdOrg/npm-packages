@@ -4,8 +4,8 @@ import {
   createDeploymentPlanFactory,
   IDeploymentPlan,
   TDeploymentPlanDependencies,
-} from "../deployment-plan/deployment-plan-factory"
-import { fakeDeploymentPlanDependencies } from "../deployment-plan/deployment-plan-factory.spec"
+} from "../deployment-plan/deployment-plan"
+import { fakeDeploymentPlanDependencies } from "../deployment-plan/deployment-plan.spec"
 
 function createTestDeploymentActions() {
   let planFactory = createDeploymentPlanFactory(fakeDeploymentPlanDependencies() )

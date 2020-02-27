@@ -21,7 +21,7 @@ import {
 import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
 import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createDeploymentPlanFactory, TDeploymentPlanDependencies } from "../deployment-plan/deployment-plan-factory"
+import { createDeploymentPlanFactory, TDeploymentPlanDependencies } from "../deployment-plan/deployment-plan"
 import { IPushToShepherdUI } from "../shepherd"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
@@ -354,8 +354,8 @@ describe("Deployment orchestration", function() {
           )
       })
 
-      it("should propagate error to caller", function() {
-        expect(saveError.message).to.equal(
+      it("should render errors", function() {
+        expect(fakeLogger.log).to.contain(
           "Failed to save state after successful kubectl deployment! testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls\nError: State store failure!"
         )
       })

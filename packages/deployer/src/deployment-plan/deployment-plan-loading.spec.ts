@@ -15,8 +15,8 @@ import {
 import { TDeployerMetadata } from "@shepherdorg/metadata/dist"
 import { metadataDsl } from "../test-tools/metadata-dsl"
 import { imageInfoDSL } from "../test-tools/image-info-dsl"
-import { createDeploymentPlanFactory, IDeploymentPlan } from "./deployment-plan-factory"
-import { fakeDeploymentPlanDependencies } from "./deployment-plan-factory.spec"
+import { createDeploymentPlanFactory, IDeploymentPlan } from "./deployment-plan"
+import { fakeDeploymentPlanDependencies } from "./deployment-plan.spec"
 import { TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeLogger } from "../test-tools/fake-logger"
 

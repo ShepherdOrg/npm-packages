@@ -10,7 +10,7 @@ import { TFileSystemPath } from "../../helpers/basic-types"
 import * as path from "path"
 import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-action/kube-supported-extensions"
 import { flatMapPolyfill } from "./flatmap-polyfill"
-import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan-factory"
+import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan"
 import { newProgrammerOops } from "oops-error"
 import Bluebird = require("bluebird")
 

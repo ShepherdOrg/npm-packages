@@ -159,12 +159,16 @@ describe("running shepherd", function() {
   describe("postDeployTest support", function() {
 
     beforeEach(() => {
+      const firstRoundFolder = path.join(process.cwd(), "./.build/kubeapply")
+      ensureCleanOutputFolder(firstRoundFolder)
+
+      process.env.KUBECTL_OUTPUT_FOLDER = firstRoundFolder
       delete process.env.SHEPHERD_UI_API_ENDPOINT
       let shepherdStoreDir = "./.build/.shepherdstore"
       cleanDir(shepherdStoreDir)
     })
 
-    it("should fail on post test and attempt to rollback to previous version", function(done) {
+    it("should fail on post test and attempt to rollback to previous version, independently on deployment plans", function(done) {
       script
         .execute(shepherdTestHarness, ["--fakerun", "src/herd-loading/testdata/deploytestherd/herd.yaml"], {
           env: _.extend({}, process.env, {
@@ -179,17 +183,13 @@ describe("running shepherd", function() {
         .stdout().shouldContain("Executing docker command deploy")
         .stdout().shouldContain("Executing docker command posttest")
         .stdout().shouldContain("Test run failed, rolling back to last good version.")
+        .stdout().shouldContain("rollout undo deployment/deployment-one-to-roll-back FAKED ok")
         .stdout().shouldContain("Rollback complete. Original error follows.")
         .stdout().shouldContain('Post test failed')
         .done(function() {
           done()
         })
     })
-
-    xit("should rollback deployment that fails postDeployTest", () => {
-      expect.fail('Implement!')
-    })
-
   })
 
   xit("should execute infrastructure deployers first to completion", () => {
@@ -212,6 +212,7 @@ describe("running shepherd", function() {
           throw new Error("Error connecting to postgres! Cause: " + err.message)
         })
     })
+
 
     it("should modify branch deployment", function(done) {
       script

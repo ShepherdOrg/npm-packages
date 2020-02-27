@@ -3,7 +3,7 @@ import {
   IDeploymentPlan,
   IDeploymentPlanFactory,
   TDeploymentPlanDependencies,
-} from "./deployment-plan-factory"
+} from "./deployment-plan"
 import { clearEnv, setEnv } from "../deployment-actions/test-action-factory"
 import { expect } from "chai"
 import { createFakeExec } from "../test-tools/fake-exec"

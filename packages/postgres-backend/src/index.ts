@@ -43,7 +43,7 @@ export function PostgresStore(config: PGConnectionConfig): IPostgresStorageBacke
         "CREATE TABLE IF NOT EXISTS deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL)"
       )
     },
-    disconnect() {
+    async disconnect() {
       client.end()
     },
     async resetAllDeploymentStates() {

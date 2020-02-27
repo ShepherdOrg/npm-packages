@@ -11,7 +11,7 @@ import { TDescriptorsByKind } from "./deployment-actions/kubectl-action/k8s-depl
 import { TFileSystemPath, TISODateString } from "./helpers/basic-types"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { TDeploymentRollout } from "./deployment-actions/kubectl-action/kubectl-deployment-action-factory"
-import { IDeploymentPlan, IDeploymentPlanExecutionResult } from "./deployment-plan/deployment-plan-factory"
+import { IDeploymentPlan, IDeploymentPlanExecutionResult } from "./deployment-plan/deployment-plan"
 
 export type ILog = {
   info: typeof console.info,
