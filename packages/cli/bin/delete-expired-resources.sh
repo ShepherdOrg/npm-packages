@@ -21,19 +21,19 @@ fi
 
 echo "Finding kubernetes resources with expired time-to-live"
 echo "Deployments:"
-kubectl get deployment -l 'ttl-hours' -o json | kube-filter-expired-resources.js "$@" | bash
+kubectl get deployment -l 'ttl-hours' -o json | kube-filter-expired-resources "$@" | bash
 
 echo "Services:"
-kubectl get service -l 'ttl-hours' -o json | kube-filter-expired-resources.js  "$@" | bash
+kubectl get service -l 'ttl-hours' -o json | kube-filter-expired-resources  "$@" | bash
 
 echo "Secrets:"
-kubectl get secret -l 'ttl-hours' -o json | kube-filter-expired-resources.js "$@"| bash
+kubectl get secret -l 'ttl-hours' -o json | kube-filter-expired-resources "$@"| bash
 
 echo "Configmaps:"
-kubectl get configmap -l 'ttl-hours' -o json | kube-filter-expired-resources.js "$@"| bash
+kubectl get configmap -l 'ttl-hours' -o json | kube-filter-expired-resources "$@"| bash
 
 echo "HorizontalPodAutoscalers:"
-kubectl get hpa -l 'ttl-hours' -o json | kube-filter-expired-resources.js "$@"| bash
+kubectl get hpa -l 'ttl-hours' -o json | kube-filter-expired-resources "$@"| bash
 
 echo "Ingress controllers:"
-kubectl get ingress -l 'ttl-hours' -o json | kube-filter-expired-resources.js "$@"| bash
+kubectl get ingress -l 'ttl-hours' -o json | kube-filter-expired-resources "$@"| bash
