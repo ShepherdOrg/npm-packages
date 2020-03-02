@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/cli",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Command line interfaces for Shepherd",
   "keywords": [],
   "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
@@ -36,8 +36,8 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@shepherdorg/deployer": "^4.0.0",
-    "@shepherdorg/docker-image-metadata-loader": "^4.0.0",
+    "@shepherdorg/deployer": "^4.0.2",
+    "@shepherdorg/docker-image-metadata-loader": "^4.0.2",
     "@shepherdorg/metadata": "^4.0.0",
     "@shepherdorg/nano-inject": "^4.0.0",
     "js-yaml": "^3.13.1",
