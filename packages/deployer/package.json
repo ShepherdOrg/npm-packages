@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "Deployer application",
   "main": "dist/shepherd.js",
   "engines": {
@@ -9,11 +9,11 @@
   "dependencies": {
     "@shepherdorg/docker-image-metadata-loader": "^4.0.2",
     "@shepherdorg/exec": "^4.0.0",
-    "@shepherdorg/filestore-backend": "^4.0.0",
+    "@shepherdorg/filestore-backend": "^4.0.3",
     "@shepherdorg/metadata": "^4.0.0",
     "@shepherdorg/nano-inject": "^4.0.0",
-    "@shepherdorg/postgres-backend": "^4.0.0",
-    "@shepherdorg/state-store": "^4.0.0",
+    "@shepherdorg/postgres-backend": "^4.0.3",
+    "@shepherdorg/state-store": "^4.0.3",
     "@shepherdorg/ui-push": "^4.0.0",
     "@types/diff": "^4.0.2",
     "@types/js-yaml": "^3.12.1",
