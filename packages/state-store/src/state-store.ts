@@ -55,6 +55,14 @@ export function ReleaseStateStore(injected: TStateStoreDependencies): IReleaseSt
     deploymentVersion: string,
     newSignature: string
   ) : Promise<TDeploymentState> {
+
+    if(!env){
+      throw new Error("Env must be set and be longer than zero")
+    }
+    if(!deploymentIdentifier){
+      throw new Error("Deployment identifier must be set and be longer than zero")
+    }
+
     const envIdentifier = `${env}-${deploymentIdentifier}`
     const keyValue = await storageBackend.get(envIdentifier)
 

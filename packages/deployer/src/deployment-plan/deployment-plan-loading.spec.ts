@@ -11,7 +11,7 @@ import {
   createTestPlan,
   loadFirstTestAction,
   setEnv,
-} from "../deployment-actions/test-action-factory"
+} from "../deployment-actions/kubectl-action/testdata/test-action-factory"
 import { TDeployerMetadata } from "@shepherdorg/metadata/dist"
 import { metadataDsl } from "../test-tools/metadata-dsl"
 import { imageInfoDSL } from "../test-tools/image-info-dsl"
@@ -49,8 +49,7 @@ describe("Docker image plan loader", function() {
           "VGh1LCAyMSBEZWMgMjAxNyAxMDo0NTo0NSArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29u\nLiAtLS0gQmV0dGVyIHVzZSByaWdodCBtYWtlIHRhcmdldCBXZWQsIDIwIERlYyAyMDE3IDE4OjE1\nOjUwICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBBIGxpdHRsZSB0cmlja2Vy\neSB0byBtYWtlIGphc21pbmUgcnVubmFibGUgd2l0aCBzcmMgZGlyIG1hcHBlZCBpbiBkb2NrZXIt\nY29tcG9zZS4gV2VkLCAyMCBEZWMgMjAxNyAxNzoxMDozOCArMDAwMCBieSBHdcOwbGF1Z3VyIFMu\nIEVnaWxzc29uLiAtLS0gSmVua2lucyBqb2IgY2Fubm90IHVzZSAtaXQgV2VkLCAyMCBEZWMgMjAx\nNyAxNjo1OToxMyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gQWxsIHRlc3Rz\nIG5vdyBydW5uaW5nIGluIGRvY2tlciBpbWFnZXMuIEFkZGVkIEplbmtpbnNmaWxlLiBQbHVzIGxv\ndHMgb2Ygc21hbGxlciBpbXByb3ZlbWVudHMvY2hhbmdlcy4gV2VkLCAyMCBEZWMgMjAxNyAwOToz\nMToxMCArMDAwMCBieSBHdcOwbGF1Z3VyIEVnaWxzc29uIEBndWxsaS4gLS0tIFJlc29sdmUgdG9k\nbywgZXhpdCB3aXRoIGVycm9yIGlmIGltYWdlIHNwZWNpZmllZCBpcyBub3QgYWN0aW9uYWJsZS4K",
         "shepherd.name": "Testimage",
         "shepherd.version": "0.0.0",
-      },
-      env: 'testenv'
+      }
     }
 
     describe("with command specified", function() {
@@ -239,7 +238,6 @@ describe("Docker image plan loader", function() {
         "shepherd.name": "Testimage",
         "shepherd.version": "0.0.0",
       },
-      env: 'testenv'
     }
 
     describe("successful load", function() {

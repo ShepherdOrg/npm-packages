@@ -6,8 +6,6 @@ import {
 } from "./deployment-test-action"
 import {
   IExecutableAction,
-  ILog,
-  IRollbackActionExecution,
   TActionExecutionOptions,
   TRollbackResult,
 } from "../../deployment-types"
@@ -16,7 +14,7 @@ import { expect } from "chai"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
 import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
-import { createDockerActionFactory } from "../../deployment-actions/docker-action/docker-action"
+import { createDockerActionFactory } from "../docker-action/docker-action"
 
 export const defaultTestExecutionOptions: TActionExecutionOptions = {
   pushToUi: false,
@@ -59,6 +57,10 @@ describe("Deployment test action", function() {
 
     it("should default to dockerImageUrl from shepherdMetadata", () => {
       expect(testAction.planString()).to.contain("unittest-image:9.9.99")
+    })
+
+    it("should be stateless", () => {
+      expect(testAction.isStateful).to.equal(false)
     })
   })
 

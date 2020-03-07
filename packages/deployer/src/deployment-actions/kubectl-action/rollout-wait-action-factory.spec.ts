@@ -5,7 +5,7 @@ import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
 import { IExecutableAction, TActionExecutionOptions } from "../../deployment-types"
-import { defaultTestExecutionOptions } from "../../herd-loading/image-loader/deployment-test-action.spec"
+import { defaultTestExecutionOptions } from "../deployment-test-action/deployment-test-action.spec"
 
 
 describe("K8S deployment rollout status wait action factory", function() {

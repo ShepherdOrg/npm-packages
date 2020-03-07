@@ -29,7 +29,7 @@ import {
   createDockerDeployerActionFactory,
   ICreateDockerDeploymentActions,
 } from "../deployment-actions/docker-action/create-docker-deployment-action"
-import { createDeploymentTestActionFactory } from "../herd-loading/image-loader/deployment-test-action"
+import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
 
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
@@ -130,7 +130,7 @@ describe("Deployment orchestration", function() {
       stateStore: fakeStateStore,
     })
 
-    let deployerActionFactory = createDockerDeployerActionFactory({logger: fakeLogger, executionActionFactory: executionActionFactory})
+    let deployerActionFactory = createDockerDeployerActionFactory({logger: fakeLogger, executionActionFactory: executionActionFactory, environment: 'orchestratin-specs'})
     let deploymentTestActionFactory = createDeploymentTestActionFactory({dockerActionFactory: executionActionFactory, logger: fakeLogger})
     let dockerImageKubectlDeploymentActionFactory = createFakeDockerImageKubectlDeploymentFactory()
     let rolloutWaitActionFactory = createRolloutWaitActionFactory({

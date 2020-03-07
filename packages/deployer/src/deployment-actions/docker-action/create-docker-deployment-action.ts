@@ -9,6 +9,7 @@ import { TDeployerMetadata } from "@shepherdorg/metadata"
 import { ICreateDockerActions } from "./docker-action"
 
 export type TDockerDeploymentActionFactoryDependencies = {
+  environment: string
   executionActionFactory: ICreateDockerActions
   logger: ILog
 }
@@ -17,16 +18,13 @@ export type ICreateDockerDeploymentActions = {
   createDockerDeploymentAction: (imageInformation: TImageInformation) => Promise<Array<IDockerDeploymentAction>>
 }
 
-export function createDockerDeployerActionFactory({
-  executionActionFactory,
-  logger,
-}: TDockerDeploymentActionFactoryDependencies): ICreateDockerDeploymentActions {
+export function createDockerDeployerActionFactory(injected: TDockerDeploymentActionFactoryDependencies): ICreateDockerDeploymentActions {
   async function createDockerDeploymentAction(
     imageInformation: TImageInformation
   ): Promise<Array<IDockerDeploymentAction>> {
     let deployerMetadata = imageInformation.shepherdMetadata as TDeployerMetadata
 
-    const executionAction = executionActionFactory.createDockerExecutionAction(
+    const executionAction = injected.executionActionFactory.createDockerExecutionAction(
       deployerMetadata,
       imageInformation.imageDeclaration.dockerImage ||
         imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag,
@@ -44,7 +42,7 @@ export function createDockerDeployerActionFactory({
         herdDeclaration: imageInformation.imageDeclaration,
         metadata: deployerMetadata,
         displayName: imageInformation.shepherdMetadata?.displayName || "",
-        env: imageInformation.env,
+        env: injected.environment,
         version: imageInformation.imageDeclaration.imagetag,
       },
       ...executionAction,
@@ -55,7 +53,7 @@ export function createDockerDeployerActionFactory({
         async rollback(): Promise<TRollbackResult> {
           // TODO Push old state to UI
 
-          const rollbackAction = executionActionFactory.createDockerExecutionAction(
+          const rollbackAction = injected.executionActionFactory.createDockerExecutionAction(
             deployerMetadata,
             imageInformation.imageDeclaration.dockerImage ||
               imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag,
@@ -66,7 +64,7 @@ export function createDockerDeployerActionFactory({
             deployerMetadata.environmentVariablesExpansionString
           )
 
-          logger.info(`Executing docker action rollback`, rollbackAction.planString())
+          injected.logger.info(`Executing docker action rollback`, rollbackAction.planString())
           return await rollbackAction
             .execute({
               pushToUi: false,
@@ -75,7 +73,7 @@ export function createDockerDeployerActionFactory({
               dryRunOutputDir: "",
             })
             .then(() => {
-              logger.info(`Rollback complete. Original error follows.`)
+              injected.logger.info(`Rollback complete. Original error follows.`)
               return {}
             })
         },

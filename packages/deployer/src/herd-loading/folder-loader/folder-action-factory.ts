@@ -1,9 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
-import {
-  ICreateKubectlDeploymentAction,
-} from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
+import { ICreateKubectlDeploymentAction } from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import {
   IK8sDirDeploymentAction,
   IKubectlDeployAction,
@@ -15,9 +13,18 @@ import { TFileSystemPath } from "../../helpers/basic-types"
 import { TDeploymentType } from "@shepherdorg/metadata"
 import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-action/kube-supported-extensions"
 
-export interface TFolderDeploymentPlannerDependencies {
+export interface ICreateKubectlActionsForFolderStructure {
+  scanDir: (
+    dir: TScanDirStruct | TFileSystemPath,
+    herdSpec: TFolderHerdDeclaration
+  ) => Promise<Array<IK8sDirDeploymentAction>>
+}
+
+export interface TFolderActionFactoryDependencies {
+  environment: string
   logger: ILog
   kubectlDeploymentActionFactory: ICreateKubectlDeploymentAction
+  // TODO change here
 }
 
 type TFilePlanStruct = {}
@@ -38,8 +45,10 @@ function isScanDirStruct(dir: TFileSystemPath | TScanDirStruct): dir is TScanDir
   return Boolean((dir as TScanDirStruct).path)
 }
 
-export function planFolderDeployment(injected: TFolderDeploymentPlannerDependencies )  {
 
+export function createFolderActionFactory(
+  injected: TFolderActionFactoryDependencies
+): ICreateKubectlActionsForFolderStructure {
   function initDir(dirPath: TFileSystemPath): TScanDirStruct {
     return {
       deploymentRoot: false,
@@ -51,7 +60,7 @@ export function planFolderDeployment(injected: TFolderDeploymentPlannerDependenc
     }
   }
 
-  function isDeploymentFile(filePath:TFileSystemPath) {
+  function isDeploymentFile(filePath: TFileSystemPath) {
     if (filePath.endsWith("images.yaml") || filePath.endsWith("herd.yaml")) {
       return false
     }
@@ -59,7 +68,10 @@ export function planFolderDeployment(injected: TFolderDeploymentPlannerDependenc
   }
 
   let initialDir: TFileSystemPath
-  let scanDir = function(dir: TScanDirStruct | TFileSystemPath, herdSpec: TFolderHerdDeclaration): Promise<Array<IK8sDirDeploymentAction>> {
+  let scanDir = function(
+    dir: TScanDirStruct | TFileSystemPath,
+    herdSpec: TFolderHerdDeclaration
+  ): Promise<Array<IK8sDirDeploymentAction>> {
     return new Promise(function(resolve, reject) {
       let planPromises = emptyArray<any>()
 
@@ -129,13 +141,13 @@ export function planFolderDeployment(injected: TFolderDeploymentPlannerDependenc
                     delete process.env.TPL_DOCKER_IMAGE
                   }
 
-                  let folderMetadata:TFolderMetadata = {
+                  let folderMetadata: TFolderMetadata = {
                     buildDate: stat.mtime.toISOString(),
                     deploymentType: TDeploymentType.Kubernetes,
                     displayName: fileName,
                     hyperlinks: [],
                     path: kubeDeploymentRelativePath,
-                    semanticVersion: "none"
+                    semanticVersion: "none",
                   }
                   let deployment: IK8sDirDeploymentAction = Object.assign(deploymentAction, {
                     version: "immutable",
@@ -143,8 +155,7 @@ export function planFolderDeployment(injected: TFolderDeploymentPlannerDependenc
                     herdDeclaration: herdSpec,
                     metadata: folderMetadata,
                     herdKey: herdSpec.key,
-                    env: 'hardcoded' // TODO Get rid of env from this level of detail. This is a very potential bug!
-
+                    env: injected.environment
                   })
                   resolve(deployment)
                 })
@@ -202,6 +213,6 @@ export function planFolderDeployment(injected: TFolderDeploymentPlannerDependenc
   }
 
   return {
-    scanDir
+    scanDir,
   }
 }

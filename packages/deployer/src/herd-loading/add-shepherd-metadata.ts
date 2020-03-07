@@ -38,7 +38,6 @@ export async function extractShepherdMetadata (dockerImageMetadata:TImageInforma
   }
   return {
     dockerLabels: dockerImageMetadata.dockerLabels,
-    env: dockerImageMetadata.env,
     // @ts-ignore
     imageDeclaration: dockerImageMetadata.imageDeclaration || dockerImageMetadata.imageDefinition,
     shepherdMetadata: shepherdMetadata

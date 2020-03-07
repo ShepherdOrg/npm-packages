@@ -4,7 +4,7 @@ import {
   IDeploymentPlanFactory,
   TDeploymentPlanDependencies,
 } from "./deployment-plan"
-import { clearEnv, setEnv } from "../deployment-actions/test-action-factory"
+import { clearEnv, setEnv } from "../deployment-actions/kubectl-action/testdata/test-action-factory"
 import { expect } from "chai"
 import { createFakeExec } from "../test-tools/fake-exec"
 import { createFakeLogger } from "../test-tools/fake-logger"
@@ -21,7 +21,7 @@ import { createDockerImageKubectlDeploymentActionsFactory } from "../deployment-
 import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
-import { createDeploymentTestActionFactory } from "../herd-loading/image-loader/deployment-test-action"
+import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
 
 
 type FFakeLambda = () => Promise<void>
@@ -102,11 +102,12 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   fakeStateStore.nextState = { new: false, modified: true }
 
   let dockerActionFactory = createDockerActionFactory({ logger:fakeLogger, exec: fakeExec, stateStore: fakeStateStore})
-  let deployerActionFactory = createDockerDeployerActionFactory({executionActionFactory: dockerActionFactory, logger: fakeLogger})
+  let deployerActionFactory = createDockerDeployerActionFactory({executionActionFactory: dockerActionFactory, logger: fakeLogger, environment:"deployment-plan-specs"})
   let kubectlDeploymentActionsFactory = createKubectlDeploymentActionsFactory({ logger:fakeLogger, exec: fakeExec, stateStore: fakeStateStore})
   let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
     logger: fakeLogger,
-    deploymentActionFactory: kubectlDeploymentActionsFactory
+    deploymentActionFactory: kubectlDeploymentActionsFactory,
+    environment:"fake"
   })
   let rolloutWaitActionFactory = createRolloutWaitActionFactory({
     exec: fakeExec,

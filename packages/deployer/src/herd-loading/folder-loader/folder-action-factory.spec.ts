@@ -1,6 +1,6 @@
 import { expect } from "chai"
 
-import { planFolderDeployment } from "./folder-deployment-planner"
+import { createFolderActionFactory } from "./folder-action-factory"
 import { IK8sDirDeploymentAction, TFolderHerdDeclaration, TFolderMetadata } from "../../deployment-types"
 import { TFileSystemPath } from "../../helpers/basic-types"
 import { TDeploymentType } from "@shepherdorg/metadata"
@@ -30,7 +30,8 @@ describe("k8s deployment file directory structure release plan loader", function
   }
 
   beforeEach(function() {
-    scanDir = planFolderDeployment({
+    scanDir = createFolderActionFactory({
+      environment:'factory-spec',
       logger: {
         info: () => {
         },

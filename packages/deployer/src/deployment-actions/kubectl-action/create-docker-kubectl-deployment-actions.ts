@@ -17,14 +17,12 @@ export type ICreateDockerImageKubectlDeploymentActions = {
 }
 
 export type TActionFactoryDependencies = {
+  environment: string
   deploymentActionFactory: ICreateKubectlDeploymentAction
   logger: ILog
 }
 
-export function createDockerImageKubectlDeploymentActionsFactory({
-  deploymentActionFactory,
-  logger,
-}: TActionFactoryDependencies): ICreateDockerImageKubectlDeploymentActions {
+export function createDockerImageKubectlDeploymentActionsFactory(injected: TActionFactoryDependencies): ICreateDockerImageKubectlDeploymentActions {
   async function createImageBasedFileDeploymentAction(
     deploymentFileContent: TarFile,
     imageInformation: TImageInformation,
@@ -125,17 +123,15 @@ export function createDockerImageKubectlDeploymentActionsFactory({
 
         try {
           if (archivedFile.content) {
-            // let deployment = calculateFileDeploymentPlan();
-            //
-            // let addDeploymentPromise = releasePlan.addK8sDeployment(deployment);
+
             deploymentActions.push(
               createImageBasedFileDeploymentAction(
                 archivedFile,
                 imageInformation,
                 fileName,
                 branchModificationParams,
-                "",
-                deploymentActionFactory
+                injected.environment,
+                injected.deploymentActionFactory
               )
             )
           }

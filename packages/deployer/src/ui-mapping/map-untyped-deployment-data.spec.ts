@@ -11,6 +11,7 @@ function expectMappedToMatchExpectedData(deploymentInfo: IDockerImageKubectlDepl
 
   expect(deploymentType).to.equal(mappedData?.deploymentType)
   expect(expectedData).to.deep.equal(mappedData)
+
 }
 
 describe("raw deployment data mapping", function() {

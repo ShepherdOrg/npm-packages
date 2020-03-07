@@ -25,18 +25,16 @@ import {
 } from "../deployment-plan/deployment-plan"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import {
-  createFakeDockerImageKubectlDeploymentFactory,
   createFakeUIPusher,
 } from "../deployment-orchestration/deployment-orchestration.spec"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { createDockerImageKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
-import { createLoaderContext } from "./createLoaderContext"
 import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
-import { createDeploymentTestActionFactory } from "./image-loader/deployment-test-action"
-
-const exec = require("@shepherdorg/exec")
+import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
+import { createFolderActionFactory } from "./folder-loader/folder-action-factory"
+import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-deployment-planner"
 
 /// Inject a mock image metadata loader with fake image information
 
@@ -74,14 +72,17 @@ describe("herd.yaml loading", function() {
       logger: logger,
       stateStore: stateStore,
     })
+    let specEnv = "loader-spec-env"
 
     let dockerActionFactory = createDockerActionFactory({logger, exec, stateStore})
-    let deployerActionFactory = createDockerDeployerActionFactory({executionActionFactory: dockerActionFactory, logger})
+    let deployerActionFactory = createDockerDeployerActionFactory({executionActionFactory: dockerActionFactory, logger, environment:specEnv})
 
     let uiDataPusher = createFakeUIPusher()
+    let kubectlDeploymentActionFactory = createKubectlDeploymentActionsFactory({ exec, logger:logger, stateStore: stateStore})
     let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
-      deploymentActionFactory: createKubectlDeploymentActionsFactory({ exec, logger:logger, stateStore: stateStore}),
-      logger: logger
+      deploymentActionFactory: kubectlDeploymentActionFactory,
+      logger: logger,
+      environment: specEnv
     })
     let deploymentTestActionFactory = createDeploymentTestActionFactory({logger, dockerActionFactory})
 
@@ -98,6 +99,18 @@ describe("herd.yaml loading", function() {
 
     let planFactory = createDeploymentPlanFactory(dependencies)
 
+    const folderActionFactory = createFolderActionFactory({
+      environment: specEnv,
+      logger,
+      kubectlDeploymentActionFactory: kubectlDeploymentActionFactory,
+    })
+
+    const folderLoader = createFolderDeploymentPlanner({
+      logger,
+      planFactory: planFactory,
+      folderActionFactory: folderActionFactory
+    })
+
     loader = createHerdLoader({
       logger: logger,
       deploymentOrchestration: CreateTestReleasePlan(),
@@ -106,6 +119,7 @@ describe("herd.yaml loading", function() {
       labelsLoader: labelsLoader,
       featureDeploymentConfig,
       planFactory: planFactory,
+      folderLoader: folderLoader
     })
   }
 
@@ -276,8 +290,12 @@ describe("herd.yaml loading", function() {
       )
     })
 
-    it("loaded plan should have herd name", function() {
+    it("loaded action should have herd name", function() {
       expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdKey).to.contain("kube-config - namespaces")
+    })
+
+    it("loaded action should have specified environment set", function() {
+      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].env).to.equal("loader-spec-env")
     })
 
     it("should have herdDeclaration", () => {
@@ -379,6 +397,10 @@ describe("herd.yaml loading", function() {
 
     it("should extract herdKey from herd.yaml", function() {
       expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].herdKey).to.equal("test-image")
+    })
+
+    it("should set specified environment in action", function() {
+      expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].env).to.equal("loader-spec-env")
     })
 
     it("should include metadata for k8s plan", function() {

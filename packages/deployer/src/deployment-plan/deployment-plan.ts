@@ -1,5 +1,5 @@
 import {
-  IAnyDeploymentAction,
+  IAnyDeploymentAction, IBaseDeploymentAction,
   IExecutableAction,
   IKubectlDeployAction,
   ILog,
@@ -18,7 +18,7 @@ import { TFileSystemPath } from "../helpers/basic-types"
 import * as path from "path"
 import { writeFile } from "../helpers/promisified"
 import { IPushToShepherdUI } from "../shepherd"
-import { ICreateDeploymentTestAction, IRollbackAction } from "../herd-loading/image-loader/deployment-test-action"
+import { ICreateDeploymentTestAction, IRollbackAction } from "../deployment-actions/deployment-test-action/deployment-test-action"
 import { ICreateDockerDeploymentActions } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import { newProgrammerOops } from "oops-error"
@@ -121,10 +121,6 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
       },
       async addAction(action: IExecutableAction): Promise<void> {
         injected.logger.debug(`Adding action to plan ${herdDeclaration.key} `, action.planString())
-        // @ts-ignore
-        // if(!action.version){
-        //   console.log(`NO action version`, action.planString(), ' decriptor: ', action.descriptor)
-        // }
         if (action.isStateful && !action.state) {
           action.state = await injected.stateStore.getDeploymentState(action as unknown as TDeploymentStateParams)
         }

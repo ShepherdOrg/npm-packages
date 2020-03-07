@@ -1,11 +1,10 @@
 import { TImageMetadata, TTestSpecification } from "@shepherdorg/metadata"
 import {
-  canRollbackExecution,
   IExecutableAction,
   ILog,
   TActionExecutionOptions, TRollbackResult,
 } from "../../deployment-types"
-import { ICreateDockerActions } from "../../deployment-actions/docker-action/docker-action"
+import { ICreateDockerActions } from "../docker-action/docker-action"
 import { isOops } from "../../helpers/isOops"
 
 export interface ICreateDeploymentTestAction {
@@ -38,6 +37,7 @@ export function createDeploymentTestActionFactory({dockerActionFactory, logger}:
     )
 
     const rollbackEnablingExecution = {
+      isStateful:false,
       execute: async function(
         deploymentOptions: TActionExecutionOptions
       ): Promise<IExecutableAction> {

@@ -51,7 +51,7 @@ export function deploymentData0(): TK8sDockerImageDeploymentActionTestDataType {
     "origin": "shepherdorg/shepherd-ui-api:3.0.3-c481249:kube.config.tar.base64",
     "type": "k8s",
     "fileName": "./deployment/kube.yaml",
-    "env": "dev",
+    "env": "ThisEnvValueIsIrrelevantHere",
     "state": {
       "timestamp": new Date("2019-10-31T14:05:52.716Z"),
       "key": "dev-Service_shepherd-ui-api-service",

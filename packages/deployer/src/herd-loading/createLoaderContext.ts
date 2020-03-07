@@ -19,7 +19,9 @@ import {
 } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
-import { createDeploymentTestActionFactory, ICreateDeploymentTestAction } from "./image-loader/deployment-test-action"
+import { createDeploymentTestActionFactory, ICreateDeploymentTestAction } from "../deployment-actions/deployment-test-action/deployment-test-action"
+import { createFolderActionFactory } from "./folder-loader/folder-action-factory"
+import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-deployment-planner"
 
 interface TLoaderContextParams {
   stateStore: IReleaseStateStore
@@ -27,6 +29,7 @@ interface TLoaderContextParams {
   featureDeploymentConfig: TFeatureDeploymentConfig
   exec: IExec
   uiPusher: IPushToShepherdUI
+  environment: string
 }
 
 export function createLoaderContext({
@@ -35,6 +38,7 @@ export function createLoaderContext({
   featureDeploymentConfig,
   exec,
   uiPusher,
+  environment
 }: TLoaderContextParams) {
   const deploymentOrchestration = DeploymentOrchestration({
     cmd: exec,
@@ -55,6 +59,7 @@ export function createLoaderContext({
   let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
     deploymentActionFactory,
     logger,
+    environment: environment
   })
   let dockerActionFactory = createDockerActionFactory({
     exec,
@@ -64,6 +69,7 @@ export function createLoaderContext({
   let deployerActionFactory = createDockerDeployerActionFactory({
     executionActionFactory: dockerActionFactory,
     logger: logger,
+    environment:environment
   })
 
   let deploymentTestActionFactory: ICreateDeploymentTestAction = createDeploymentTestActionFactory({
@@ -84,16 +90,33 @@ export function createLoaderContext({
 
   let planFactory: IDeploymentPlanFactory = createDeploymentPlanFactory(planDependencies)
 
-  return createHerdLoader({
-    logger: logger,
-    deploymentOrchestration: deploymentOrchestration,
-    exec: exec,
-    featureDeploymentConfig,
-    planFactory: planFactory,
-    stateStore: stateStore,
-    labelsLoader: {
-      imageLabelsLoader: imageLabelsLoader,
-      getDockerRegistryClientsFromConfig: getDockerRegistryClientsFromConfig,
-    },
+  const folderActionFactory = createFolderActionFactory({
+    environment: environment,
+    logger,
+    kubectlDeploymentActionFactory: deploymentActionFactory,
   })
+
+
+  const folderLoader = createFolderDeploymentPlanner({
+    logger,
+    planFactory: planFactory,
+    folderActionFactory: folderActionFactory
+  })
+
+
+  return {
+    loader: createHerdLoader({
+      logger: logger,
+      deploymentOrchestration: deploymentOrchestration,
+      exec: exec,
+      featureDeploymentConfig,
+      planFactory: planFactory,
+      stateStore: stateStore,
+      folderLoader: folderLoader,
+      labelsLoader: {
+        imageLabelsLoader: imageLabelsLoader,
+        getDockerRegistryClientsFromConfig: getDockerRegistryClientsFromConfig,
+      },
+    })
+  }
 }

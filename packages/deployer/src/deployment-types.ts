@@ -84,7 +84,6 @@ export type TShepherdMetadata = {
 }
 
 export type TImageInformation = TShepherdMetadata & {
-  env: string
   dockerLabels: { [key: string]: any }
 }
 

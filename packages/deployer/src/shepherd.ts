@@ -164,6 +164,15 @@ function terminateProcess(exitCode: number) {
 let herdFilePath = process.argv[2]
 let environment = process.argv[3]
 
+
+console.log(`SHEPHERDING environment`, environment)
+
+if(!environment){
+  logger.error("Environment is a mandatory parameter")
+  printUsage()
+  process.exit(255)
+}
+
 stateStoreBackend
   .connect()
   .then(function() {
@@ -178,22 +187,19 @@ stateStoreBackend
     }
 
 
-    let loader = createLoaderContext({
+    console.log(`LOADER CONTEXT environment`, environment)
+    let loaderContext = createLoaderContext({
       stateStore: releaseStateStore,
       logger: logger,
       featureDeploymentConfig: featureDeploymentConfig,
       exec: exec,
       uiPusher: uiDataPusher,
+      environment: environment
     })
 
-    if (!environment) {
-      printUsage()
-      process.exit(0)
-    }
-
     logger.info("Calculating deployment of herd from file " + herdFilePath + " for environment " + environment)
-    loader
-      .loadHerd(herdFilePath, environment)
+    loaderContext.loader
+      .loadHerd(herdFilePath)
       .then(function(plan: IDeploymentOrchestration) {
         plan.printPlan(logger)
         if (exportDocuments) {

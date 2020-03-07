@@ -7,40 +7,30 @@ import { TDeploymentState } from "@shepherdorg/metadata"
 describe("deployment dir", function() {
   it("should give an error if not a directory", function() {
     try {
-      DeploymentDir(
-        "apply",
-        __dirname + "/testdata/deployment1/monitors-namespace.yml"
-      )
+      DeploymentDir("apply", __dirname + "/testdata/deployment1/monitors-namespace.yml")
       expect.fail("Error expected")
     } catch (e) {
-      expect(e.message).to.equal(
-        __dirname +
-          "/testdata/deployment1/monitors-namespace.yml is not a directory"
-      )
+      expect(e.message).to.equal(__dirname + "/testdata/deployment1/monitors-namespace.yml is not a directory")
     }
   })
 
   it("should calculate signature for directory contents", function() {
-    expect(
-      DeploymentDir("apply", __dirname + "/testdata/deployment1").signature()
-    ).to.equal("676f174330907be1b69b114992a0e3df")
+    expect(DeploymentDir("apply", __dirname + "/testdata/deployment1").signature()).to.equal(
+      "676f174330907be1b69b114992a0e3df"
+    )
   })
 
   it("two dirs with identical contents should yield same signature", function() {
-    expect(
-      DeploymentDir("apply", __dirname + "/testdata/deployment1").signature()
-    ).to.equal(
+    expect(DeploymentDir("apply", __dirname + "/testdata/deployment1").signature()).to.equal(
       DeploymentDir("apply", __dirname + "/testdata/deployment2").signature()
     )
   })
 })
 
 describe("deployment state store", function() {
-
-
   describe("deployment descriptor storing", function() {
-    let releaseStateStore : IReleaseStateStore
-    let secondState : TDeploymentState
+    let releaseStateStore: IReleaseStateStore
+    let secondState: TDeploymentState
     let storageBackend
 
     describe("unmodified", function() {
@@ -55,7 +45,7 @@ describe("deployment state store", function() {
             version: "deployment.version",
             descriptor: "k8s yaml or env + parameters go here",
             env: "testrun",
-            origin: 'deployment-descriptor-storing-test'
+            origin: "deployment-descriptor-storing-test",
           })
           .then(releaseStateStore.saveDeploymentState)
           .then(function(_st1) {
@@ -68,7 +58,7 @@ describe("deployment state store", function() {
                 version: "deployment.version",
                 descriptor: "k8s yaml or env + parameters go here",
                 env: "testrun",
-                origin: 'deployment-descriptor-storing-test'
+                origin: "deployment-descriptor-storing-test",
               })
               .then(function(st2) {
                 secondState = st2
@@ -90,6 +80,53 @@ describe("deployment state store", function() {
       })
     })
 
+    describe("handling defective deployment descriptor", function() {
+      let caughtError: any
+      function getOnDefectiveDeploymentDescriptor(descriptor: any) {
+        caughtError = undefined
+        storageBackend = InMemoryStore()
+        releaseStateStore = ReleaseStateStore({ storageBackend })
+
+        return releaseStateStore.getDeploymentState(descriptor).catch(err => {
+          caughtError = err
+        })
+      }
+
+      describe("missing env", function() {
+        before(async () => {
+          return getOnDefectiveDeploymentDescriptor({
+            operation: "apply",
+            identifier: "deployment/identifier",
+            version: "deployment.version",
+            descriptor: "k8s yaml or env + parameters go here",
+            env: "",
+            origin: "changed-descriptor-test",
+          })
+        })
+
+        it("should warn me that env must be set", () => {
+          expect(caughtError.message).to.equal("Env must be set and be longer than zero")
+        })
+      })
+
+      describe("missing identifier", function() {
+        before(async () => {
+          return getOnDefectiveDeploymentDescriptor({
+            operation: "apply",
+            identifier: "",
+            version: "deployment.version",
+            descriptor: "k8s yaml or env + parameters go here",
+            env: "testenv",
+            origin: "changed-descriptor-test",
+          })
+        })
+
+        it("should warn me that identifier must be set", () => {
+          expect(caughtError.message).to.equal("Deployment identifier must be set and be longer than zero")
+        })
+      })
+    })
+
     describe("changed deployment descriptor", function() {
       beforeEach(function(done) {
         storageBackend = InMemoryStore()
@@ -102,7 +139,7 @@ describe("deployment state store", function() {
             version: "deployment.version",
             descriptor: "k8s yaml or env + parameters go here",
             env: "testrun",
-            origin: 'changed-descriptor-test'
+            origin: "changed-descriptor-test",
           })
           .then(releaseStateStore.saveDeploymentState)
           .then(function(_st1) {
@@ -114,7 +151,7 @@ describe("deployment state store", function() {
                 version: "deployment.version",
                 descriptor: "changed k8s yaml or env + parameters go here",
                 env: "testrun",
-                origin: 'changed-descriptor-test'
+                origin: "changed-descriptor-test",
               })
               .then(function(st2) {
                 secondState = st2
@@ -148,7 +185,7 @@ describe("deployment state store", function() {
             version: "deployment.version",
             descriptor: "k8s yaml or env + parameters go here",
             env: "testrun",
-            origin: 'changed-descriptor-test'
+            origin: "changed-descriptor-test",
           })
           .then(releaseStateStore.saveDeploymentState)
           .then(function(_st1) {
@@ -160,7 +197,7 @@ describe("deployment state store", function() {
                 version: "deployment.new.version",
                 descriptor: "k8s yaml or env + parameters go here",
                 env: "testrun",
-                origin: 'changed-descriptor-test'
+                origin: "changed-descriptor-test",
               })
               .then(function(st2) {
                 secondState = st2
