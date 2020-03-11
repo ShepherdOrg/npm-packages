@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/cli",
-  "version": "4.0.3",
+  "version": "4.1.0",
   "description": "Command line interfaces for Shepherd",
   "keywords": [],
   "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
