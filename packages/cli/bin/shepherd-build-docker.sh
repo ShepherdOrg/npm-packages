@@ -147,12 +147,10 @@ if [ -z "${SEMANTIC_VERSION}" ]; then
 	fi
 fi
 
-
 DIRHASH=$(git log -n 1 --format="%h" -- ${DOCKERDIR})
 if [ "${DIRHASH}" = "" ]; then
 	DIRHASH=NOT_IN_GIT
 fi
-
 
 export DOCKER_IMAGE=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}:${SEMANTIC_VERSION}
 export DOCKER_IMAGE_LATEST=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}:latest
@@ -298,7 +296,7 @@ fi
 if test ${DRYRUN} -eq 1; then
 	if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
 		echo "DRYRUN - Queueing deployment of ${DOCKER_IMAGE_GITHASH}"
-		add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json ./.build/metadata/shepherd.json
+		add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json ./.build/metadata/shepherd.json  ${BRANCH_NAME}
 	fi
 elif [ "${PUSH_ARG}" = "push" ]; then
 	docker push ${DOCKER_IMAGE}
@@ -310,15 +308,13 @@ elif [ "${PUSH_ARG}" = "push" ]; then
 
 	if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
 		echo "Queueing deployment of ${DOCKER_IMAGE_GITHASH}"
-		add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json ./.build/metadata/shepherd.json
+		add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json ./.build/metadata/shepherd.json ${BRANCH_NAME}
 	fi
-
 else
 	echo "Not pushing ${DOCKER_IMAGE}"
 fi
 
 
-# TODO Port completely to typescript
 # TODO Return error if docker image produced is not configured with enough information to deploy
 # Create command shepherd-validate-image
 # TODO Add SHEPHERD_METADATA arg and label to Dockerfile if missing, rather than throwing error

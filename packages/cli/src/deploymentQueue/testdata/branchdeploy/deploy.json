@@ -1,0 +1,11 @@
+{
+  "deploymentKey": "spec-deployment",
+  "waitForRollout": false,
+  "environments": [
+    "dev",
+    "prod"
+  ],
+  "branchDeployToEnvironments":[
+    "dev"
+  ]
+}
