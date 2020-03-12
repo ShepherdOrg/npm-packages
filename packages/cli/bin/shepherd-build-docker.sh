@@ -204,8 +204,10 @@ pushd .
 
 cd ${DOCKERDIR}
 
+set +eao pipefail
 DIFFCHECK=$(git diff --no-ext-diff )
 DIRTY_INDEX=$?
+set -eao pipefail
 
 if [ -e "./build.sh" ]; then
 	echo "Custom pre build script detected, sourcing"
@@ -287,11 +289,14 @@ join-metadata-files ./.build/metadata/userdata.json ./.build/metadata/builddata.
 
 SHEPHERD_METADATA=$(cd ./.build/metadata && tar  -b 1 -zcv shepherd.json 2>/dev/null | base64encode )
 
-
-INSPECTRESULT=$(docker inspect ${DOCKER_IMAGE_GITHASH} 2>&1)
-if [[ "$?" = "0" && -z "${FORCE_REBUILD}"  ]]; then
+set +eao pipefail
+INSPECTOUT=$(docker inspect ${DOCKER_IMAGE_GITHASH} 2>&1)
+INSPECTRESULT=$?
+set -eao pipefail
+if [[ "${INSPECTRESULT}" = "0" && -z "${FORCE_REBUILD}"  ]]; then
 	echo "${DOCKER_IMAGE_GITHASH} is already built, not building again."
 else
+	echo "Building ${DOCKER_IMAGE_GITHASH}."
 	docker build -t ${DOCKER_IMAGE} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_GITHASH} \
 		--build-arg SHEPHERD_METADATA=${SHEPHERD_METADATA} \
 		${DOCKER_BUILD_ARGS} \

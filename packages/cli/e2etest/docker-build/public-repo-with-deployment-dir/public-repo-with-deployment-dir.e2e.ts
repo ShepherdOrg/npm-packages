@@ -2,7 +2,7 @@ import { expect } from "chai"
 
 const shellExec = require('shell-exec')
 
-describe.only("Build docker with deployment dir", function() {
+describe("Build docker with deployment dir", function() {
   this.timeout(10000)
   let shepherdMeta, buildOutput
   let dockerMeta: any

@@ -61,7 +61,7 @@ describe("Build docker with kube.yaml deployment", function() {
     })
 
     it("should have correct dockerImageTag", () => {
-      expect(queuedDeployment.dockerImageUrl).to.equal('mylocalregistry:5000/plain-deployer-repo:c79acf657d0f6ddfb169d6fdfaf050da4eb988fb')
+      expect(queuedDeployment.dockerImageUrl).to.equal('mylocalregistry:5000/plain-deployer-repo:bffb1ea83a5e05013fdc81918e9e40d6465bf481')
     })
 
     it("should log adding to deployment queue", () => {
