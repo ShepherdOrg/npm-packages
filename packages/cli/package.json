@@ -28,8 +28,8 @@
   "scripts": {
     "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
     "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/**/*.spec.ts'",
-    "e2etest": "yarn build && mocha --exit --require ts-node/register --recursive 'e2etest/**/*.e2e.ts'",
-    "e2etdd": "yarn build-in-background && mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'e2etest/**/*.e2e.ts'",
+    "e2etest": "yarn build && DOCKER_REGISTRY_HOST= mocha --exit --require ts-node/register --recursive 'e2etest/**/*.e2e.ts'",
+    "e2etdd": "yarn build-in-background && DOCKER_REGISTRY_HOST= mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'e2etest/**/*.e2e.ts'",
     "test": "yarn specs && yarn e2etest",
     "build-in-background": "tsc -w > /dev/null &",
     "build": "tsc && chmod +x ./dist/shepherd-inspect-cmd.js ./dist/add-to-deployment-queue.js",
@@ -41,6 +41,7 @@
     "@shepherdorg/metadata": "^4.0.0",
     "@shepherdorg/nano-inject": "^4.0.0",
     "js-yaml": "^3.13.1",
+    "shell-exec": "^1.0.2",
     "simple-git": "^1.126.0"
   },
   "devDependencies": {

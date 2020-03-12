@@ -1,21 +1,22 @@
 import { expect } from "chai"
-import { exec } from "child-process-promise"
 
-describe("Build docker with deployment dir", function() {
+const shellExec = require('shell-exec')
+
+describe.only("Build docker with deployment dir", function() {
   this.timeout(10000)
   let shepherdMeta, buildOutput
   let dockerMeta: any
 
   before(() => {
     let dockerDir = __dirname
-    return exec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile`).then(
+    return shellExec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile`).then(
       ({ stdout, stderr }) => {
         if (stderr) expect.fail("GOT ERROR> " + stderr)
 
         buildOutput = stdout
         shepherdMeta = require(__dirname + '/.build/metadata/shepherd.json')
 
-        return exec(
+        return shellExec(
           "docker inspect public-repo-with-deployment-dir:latest"
         ).then(({ stdout }) => {
           dockerMeta = JSON.parse(stdout)
@@ -49,7 +50,7 @@ describe("Build docker with deployment dir", function() {
   })
 
   it("should have correct dockerImageTag property", () => {
-    expect(shepherdMeta.dockerImageTag).to.contain(
+    expect(shepherdMeta.dockerImageUrl).to.contain(
       "public-repo-with-deployment-dir"
     )
   })

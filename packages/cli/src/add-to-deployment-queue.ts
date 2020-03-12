@@ -30,7 +30,7 @@ function main(){
   if(deployJson.environments.length){
     fs.appendFileSync(deploymentQueueFile, JSON.stringify(deployJson) + '\n')
   } else {
-    console.warn(`No deployment environments targeted for ${deployJson.deploymentKey}, not queuing for deployment. (probably missing branchDeployToEnvironments list to target environments on a branch).`)
+    console.info(`No deployment environments targeted for ${deployJson.deploymentKey}, not queuing for deployment. (probably missing branchDeployToEnvironments list to target environments on a branch).`)
   }
 }
 

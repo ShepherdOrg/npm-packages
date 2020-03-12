@@ -34,9 +34,10 @@ Environment variable options:
 	DOCKER_REPOSITORY_ORG:   Docker repository organization/namespace. If not provided, defaults to no organization / no namespace.
 	DOCKER_REPOSITORY_NAME:  Docker repository name used to tag the docker image. Defaults to the directory name containing the dockerfile if not provided.
 	FORCE_REBUILD:           Set if you wish to force rebuild of the docker image regardless of its status in the docker registry.
-	BRANCH_NAME:             Git branch name
-	GIT_COMMIT:              Git commit hash
-	SEMANTIC_VERSION:        Use to construct version tag. If not provided, will extract tag from the "FROM" statement in the dockerfile.
+	FORCE_PUSH:              Override docker push prevention on dirty git index.
+	BRANCH_NAME:             Git branch name.
+	GIT_COMMIT:              Git commit hash.
+	SEMANTIC_VERSION:        Use to construct version tag. If not provided, will attempt to extract tag from the "FROM" statement in the dockerfile.
 
 Examples:
 
@@ -64,6 +65,7 @@ if has_param '--help' "$@"; then
 fi
 
 if has_param '--version' "$@"; then
+	echo "${THISDIR}"
 	PACKAGE_VERSION=$(node -p -e "require(\"${THISDIR}\" + '/../package.json').version")
     echo "cli v${PACKAGE_VERSION}"
 	exit 0
@@ -80,8 +82,8 @@ PUSH_ARG=$2
 
 export DOCKERDIR=$(dirname $(echo "$(cd "$(dirname "${DOCKERFILE}")"; pwd -P)/$(basename "${DOCKERFILE}")"))
 
-if [[ -z "${DOCKER_REGISTRY_HOST}" && -e "${DOCKERDIR}/shepherd.json" ]]; then
-	export DOCKER_REGISTRY_HOST=$(node -e "console.log(require('${DOCKERDIR}/shepherd.json').dockerRegistry || '')")
+if [[ -e "${DOCKERDIR}/shepherd.json" ]]; then
+	export DOCKER_REGISTRY_HOST=$(node -e "console.log(require('${DOCKERDIR}/shepherd.json').dockerRegistry || process.env.DOCKER_REGISTRY_HOST || '')")
 fi
 
 if [ -z "${DOCKER_REGISTRY_HOST}" ]; then
@@ -147,25 +149,27 @@ if [ -z "${SEMANTIC_VERSION}" ]; then
 	fi
 fi
 
-DIRHASH=$(git log -n 1 --format="%h" -- ${DOCKERDIR})
+
+
+DIRHASH=$(git ls-files -s ${DOCKERDIR} | git hash-object --stdin)
 if [ "${DIRHASH}" = "" ]; then
 	DIRHASH=NOT_IN_GIT
 fi
 
 export DOCKER_IMAGE=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}:${SEMANTIC_VERSION}
 export DOCKER_IMAGE_LATEST=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}:latest
-export DOCKER_IMAGE_GITHASH=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}:${SEMANTIC_VERSION}-${DIRHASH}
+export DOCKER_IMAGE_GITHASH=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}:${DIRHASH}
 
 if [ -z "${FORCE_REBUILD}" ]; then
 
 	set +e
-	echo "Check if ${DOCKER_IMAGE_GITHASH} is already in docker registry "
+	echo "Check if ${DOCKER_IMAGE_GITHASH} is already published to docker registry."
 	PULLRESULT=$(docker pull ${DOCKER_IMAGE_GITHASH} 2>&1)
 	if [ "$?" = "0" ]; then
 		echo "... is up to date."
 		exit 0
 	else
-		echo "...image not in registry. Building."
+		echo "...image not in registry."
 	fi
 	set -e
 fi
@@ -199,6 +203,9 @@ LAST_COMMITS_B64="$(echo "${LASTFIVECOMMITS}"  | base64encode )"
 pushd .
 
 cd ${DOCKERDIR}
+
+DIFFCHECK=$(git diff --no-ext-diff )
+DIRTY_INDEX=$?
 
 if [ -e "./build.sh" ]; then
 	echo "Custom pre build script detected, sourcing"
@@ -280,18 +287,23 @@ join-metadata-files ./.build/metadata/userdata.json ./.build/metadata/builddata.
 
 SHEPHERD_METADATA=$(cd ./.build/metadata && tar  -b 1 -zcv shepherd.json 2>/dev/null | base64encode )
 
-docker build -t ${DOCKER_IMAGE} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_GITHASH} \
-	--build-arg SHEPHERD_METADATA=${SHEPHERD_METADATA} \
-	${DOCKER_BUILD_ARGS} \
-	-f Dockerfile .
 
-echo Built ${DOCKER_IMAGE}
+INSPECTRESULT=$(docker inspect ${DOCKER_IMAGE_GITHASH} 2>&1)
+if [[ "$?" = "0" && -z "${FORCE_REBUILD}"  ]]; then
+	echo "${DOCKER_IMAGE_GITHASH} is already built, not building again."
+else
+	docker build -t ${DOCKER_IMAGE} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_GITHASH} \
+		--build-arg SHEPHERD_METADATA=${SHEPHERD_METADATA} \
+		${DOCKER_BUILD_ARGS} \
+		-f Dockerfile .
 
-if [ ! -z "${LAYERCACHE_TAR}" ]; then
-	echo "Saving layer cache tar to ${LAYERCACHE_TAR} "
-	docker save -o ${LAYERCACHE_TAR} ${DOCKER_IMAGE_LATEST}
+	echo Built ${DOCKER_IMAGE}
+
+	if [ ! -z "${LAYERCACHE_TAR}" ]; then
+		echo "Saving layer cache tar to ${LAYERCACHE_TAR} "
+		docker save -o ${LAYERCACHE_TAR} ${DOCKER_IMAGE_LATEST}
+	fi
 fi
-
 
 if test ${DRYRUN} -eq 1; then
 	if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
@@ -299,16 +311,20 @@ if test ${DRYRUN} -eq 1; then
 		add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json ./.build/metadata/shepherd.json  ${BRANCH_NAME}
 	fi
 elif [ "${PUSH_ARG}" = "push" ]; then
-	docker push ${DOCKER_IMAGE}
-	echo "pushed ${DOCKER_IMAGE}"
-	docker push ${DOCKER_IMAGE_LATEST}
-	echo "pushed ${DOCKER_IMAGE_LATEST}"
-	docker push ${DOCKER_IMAGE_GITHASH}
-	echo "pushed ${DOCKER_IMAGE_GITHASH}"
+	if [[ "${DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
+		echo "Dirty index, will not push!"
+	else
+		echo "Clean index, can push"
 
-	if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
-		echo "Queueing deployment of ${DOCKER_IMAGE_GITHASH}"
-		add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json ./.build/metadata/shepherd.json ${BRANCH_NAME}
+		docker push ${DOCKER_IMAGE}
+		docker push ${DOCKER_IMAGE_LATEST}
+		docker push ${DOCKER_IMAGE_GITHASH}
+		echo "pushed with tags ${DOCKER_IMAGE} ${DOCKER_IMAGE_GITHASH} ${DOCKER_IMAGE_LATEST}"
+
+		if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
+			echo "Queueing deployment of ${DOCKER_IMAGE_GITHASH}"
+			add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json ./.build/metadata/shepherd.json ${BRANCH_NAME}
+		fi
 	fi
 else
 	echo "Not pushing ${DOCKER_IMAGE}"
