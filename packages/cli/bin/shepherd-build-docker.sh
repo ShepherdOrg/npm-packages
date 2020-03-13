@@ -297,7 +297,7 @@ if [[ "${INSPECTRESULT}" = "0" && -z "${FORCE_REBUILD}"  ]]; then
 	echo "${DOCKER_IMAGE_GITHASH} is already built, not building again."
 else
 	echo "Building ${DOCKER_IMAGE_GITHASH}."
-	docker build -t ${DOCKER_IMAGE} -t ${DOCKER_IMAGE_LATEST} -t ${DOCKER_IMAGE_GITHASH} \
+	docker build -t ${DOCKER_IMAGE_GITHASH} \
 		--build-arg SHEPHERD_METADATA=${SHEPHERD_METADATA} \
 		${DOCKER_BUILD_ARGS} \
 		-f Dockerfile .
@@ -321,6 +321,8 @@ elif [ "${PUSH_ARG}" = "push" ]; then
 		echo "Dirty index, will not push!"
 	else
 		echo "Clean index or forcing image push"
+		docker tag  ${DOCKER_IMAGE_GITHASH} ${DOCKER_IMAGE}
+		docker tag  ${DOCKER_IMAGE_GITHASH} ${DOCKER_IMAGE_LATEST}
 
 		docker push ${DOCKER_IMAGE}
 		docker push ${DOCKER_IMAGE_LATEST}
