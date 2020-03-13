@@ -205,7 +205,7 @@ pushd .
 cd ${DOCKERDIR}
 
 set +eao pipefail
-DIFFCHECK=$(git diff --no-ext-diff )
+DIFFCHECK=$(git diff --no-ext-diff --quiet --exit-code )
 DIRTY_INDEX=$?
 set -eao pipefail
 
@@ -316,10 +316,11 @@ if test ${DRYRUN} -eq 1; then
 		add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json ./.build/metadata/shepherd.json  ${BRANCH_NAME}
 	fi
 elif [ "${PUSH_ARG}" = "push" ]; then
-	if [[ "${DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
+	if [[ ! "${DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
+		git diff --no-ext-diff
 		echo "Dirty index, will not push!"
 	else
-		echo "Clean index, can push"
+		echo "Clean index or forcing image push"
 
 		docker push ${DOCKER_IMAGE}
 		docker push ${DOCKER_IMAGE_LATEST}
