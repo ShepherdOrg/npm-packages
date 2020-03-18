@@ -159,8 +159,6 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
         let modified = false
 
         deploymentActions.forEach(function(deploymentAction: IExecutableAction) {
-          // Ok, so conflicting ideas. Get and store state only on stateful actions. Always creating rollout wait actions and test actions. Print all actions that are going to be performed.
-          // ?? Add a reduction step reducing a) actions in plan to those executed and b) plans with executable actions?
           if (deploymentAction.isStateful && deploymentAction.state) {
             if (deploymentAction.state.modified) {
               if (!modified) {
@@ -174,10 +172,10 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
               logger.info(`  - ${deploymentAction.planString()}`)
             } else if (modified) {
               logger.info(`  - ${deploymentAction.planString()}`)
-            }
+            } // else stateful and not modified
           } else if(modified) { // Supporting action such as rollout wait or deployment test
             logger.info(`  -  > ${deploymentAction.planString()}`)
-          }
+          } // Not stateful and nothing else modified either
         })
         return modified
       },

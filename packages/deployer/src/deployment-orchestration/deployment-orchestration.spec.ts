@@ -1,8 +1,7 @@
 import { expect } from "chai"
-import { DeploymentOrchestration } from "./deployment-orchestration"
+import { DeploymentOrchestration, IDeploymentOrchestration } from "./deployment-orchestration"
 import {
   IAnyDeploymentAction,
-  IDeploymentOrchestration,
   IDockerDeploymentAction,
   IDockerExecutableAction,
   IK8sDirDeploymentAction,

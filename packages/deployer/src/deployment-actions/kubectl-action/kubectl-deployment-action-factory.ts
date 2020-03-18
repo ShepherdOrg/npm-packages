@@ -153,10 +153,6 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
                 err)
             }
           } else {
-            if(isOops(error)){
-              console.log(`We have an oops error!`, error.toString())
-              console.log(error)
-            }
             let message = `Failed to perform ${thisIsMe.operation} from label for image ${JSON.stringify(thisIsMe, null, 2)}`
             message += "\n" + error.message
             message += "\nCode:" + errCode

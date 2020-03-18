@@ -3,13 +3,14 @@
 import * as path from "path"
 
 import * as fs from "fs"
-import { IStorageBackend } from "@shepherdorg/state-store"
+import { IStorageBackend  } from "@shepherdorg/state-store"
 import { TFileSystemPath } from "./helpers/basic-types"
 import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
 import { CreateLogger } from "./logging/logger"
-import { IDeploymentOrchestration } from "./deployment-types"
 import { createLoaderContext } from "./herd-loading/createLoaderContext"
 import { renderPlanExecutionError } from "./deployment-plan/renderPlanExecutionError"
+import { IDeploymentOrchestration } from "./deployment-orchestration/deployment-orchestration"
+import { InMemoryStore } from "@shepherdorg/state-store/dist/in-memory-backend"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -22,14 +23,17 @@ function printUsage() {
 Supported options:
 
     --export             Export deployment documents to outputDir
-    --dryrun             Run without actually deploying. Exports documents to outputDir. 
+    --dryrun             Run without actually deploying. Exports documents to outputDir. Ignores changes to versions 
+                         and configuration, pretends that everything needs to be deployed.
+                         Loads environment variables from dryrun.env, where you can place variables that would otherwise 
+                         come from a secret store.
     --force-push         Force push of deployment data to consumers during --dryrun (this is not git push)
     --wait-for-rollout   Wait for any kubernetes deployment rollouts to complete before determining successful deployment. 
                          Shepherd does not wait for rollouts by default.
     --push-to-ui           Push data to shepherd UI. See SHEPHERD_UI_API_ENDPOINT below.
     
     
-Both will write to directory specified by 
+Dryrun will write to directory specified by 
     --outputDir <directory>
  
 Options through environment variables:
@@ -80,8 +84,6 @@ if (process.argv.indexOf("--version") > 0) {
   process.exit(0)
 }
 
-// parse options - Accept dry-run flags
-
 // @ts-ignore
 global._ = require("lodash")
 global.Promise = require("bluebird")
@@ -130,23 +132,30 @@ export type IPushToShepherdUI = { pushDeploymentStateToUI: (deploymentState: any
 
 let uiDataPusher: IPushToShepherdUI // TODO: Need proper type export form uiDataPusher
 
-if (process.env.SHEPHERD_PG_HOST) {
-  logger.info("Using postgres state store on ", process.env.SHEPHERD_PG_HOST )
-  const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
-  const PostgresStore = require("@shepherdorg/postgres-backend").PostgresStore
-  stateStoreBackend = PostgresStore(pgConfig)
+if(dryRun){
+  logger.info(`NOTE: Dryrun does not take deployment state into account and assumes everything needs to be deployed.`)
+  stateStoreBackend = InMemoryStore()
 } else {
-  const FileStore = require("@shepherdorg/filestore-backend").FileStore
-  let homedir = require("os").homedir()
-  let shepherdStoreDir =
-    process.env.SHEPHERD_FILESTORE_DIR || path.join(homedir, ".shepherdstore", process.env.ENV || "default")
-  logger.info("WARNING: Falling back to file based state store directory in ", shepherdStoreDir)
-  stateStoreBackend = FileStore({ directory: shepherdStoreDir })
+  if (process.env.SHEPHERD_PG_HOST) {
+    logger.info("Using postgres state store on ", process.env.SHEPHERD_PG_HOST )
+    const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
+    const PostgresStore = require("@shepherdorg/postgres-backend").PostgresStore
+    stateStoreBackend = PostgresStore(pgConfig)
+  } else {
+    const FileStore = require("@shepherdorg/filestore-backend").FileStore
+    let homedir = require("os").homedir()
+    let shepherdStoreDir =
+      process.env.SHEPHERD_FILESTORE_DIR || path.join(homedir, ".shepherdstore", process.env.ENV || "default")
+    logger.info("WARNING: Falling back to file based state store directory in ", shepherdStoreDir)
+    stateStoreBackend = FileStore({ directory: shepherdStoreDir })
+  }
+
+  if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
+    logger.info(`Shepherd UI API endpoint configured ${process.env.SHEPHERD_UI_API_ENDPOINT}`)
+    uiDataPusher = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT, console)
+  }
 }
-if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
-  logger.info(`Shepherd UI API endpoint configured ${process.env.SHEPHERD_UI_API_ENDPOINT}`)
-  uiDataPusher = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT, console)
-}
+
 
 const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
 const exec = require("@shepherdorg/exec")
@@ -163,9 +172,6 @@ function terminateProcess(exitCode: number) {
 
 let herdFilePath = process.argv[2]
 let environment = process.argv[3]
-
-
-console.log(`SHEPHERDING environment`, environment)
 
 if(!environment){
   logger.error("Environment is a mandatory parameter")
@@ -187,7 +193,6 @@ stateStoreBackend
     }
 
 
-    console.log(`LOADER CONTEXT environment`, environment)
     let loaderContext = createLoaderContext({
       stateStore: releaseStateStore,
       logger: logger,
@@ -198,6 +203,7 @@ stateStoreBackend
     })
 
     logger.info("Calculating deployment of herd from file " + herdFilePath + " for environment " + environment)
+
     loaderContext.loader
       .loadHerd(herdFilePath)
       .then(function(plan: IDeploymentOrchestration) {
@@ -216,7 +222,6 @@ stateStoreBackend
             })
         } else {
 
-          // TODO NEXT State storage
           // TODO NEXT Rollback on kube config
 
           logger.info("Executing deployment plan...")

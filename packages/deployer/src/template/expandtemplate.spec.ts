@@ -112,7 +112,7 @@ describe("expand environment vars using handlebars template syntax", function() 
   import * as fs from "fs"
   describe("read/write binary test file", function() {
 
-    it.only("should create file", () => {
+    it("should create file", () => {
       var foo = "71%73%70%56%57%97%50%0%50%0%247%0%0%150%140%115%102%94%69%198%187%159%123%114%90%71%71%71%138%129%101%202%193%166%201%193%172%238%234%221%200%197%188%140"
       var bytes = foo.split("%");
 

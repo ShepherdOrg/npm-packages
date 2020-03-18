@@ -1,12 +1,6 @@
 import * as fs from "fs"
 
-import {
-  IDeploymentOrchestration,
-  ILog,
-  THerdFileStructure,
-  THerdSectionDeclaration,
-  THerdSectionType,
-} from "../deployment-types"
+import { ILog, THerdFileStructure, THerdSectionDeclaration, THerdSectionType } from "../deployment-types"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import { TFileSystemPath } from "../helpers/basic-types"
@@ -16,7 +10,7 @@ import { createImagesLoader } from "./image-loader/images-loader"
 import { flatMapPolyfill } from "./folder-loader/flatmap-polyfill"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../deployment-plan/deployment-plan"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
-import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
+import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
 
 const YAML = require("js-yaml")
 
@@ -95,7 +89,7 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
           }
           if (loaders[herdDeclarationType]) {
             let loadHerdDeclarations: FHerdDeclarationLoader = loaders[herdDeclarationType] // folders, infrastructure, or images
-            await loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath).then(plans => {
+            return loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath).then((plans: Array<IDeploymentPlan>) => {
               return Promise.all(plans.map(deploymentOrchestration.addDeploymentPlan))
             })
           } else {

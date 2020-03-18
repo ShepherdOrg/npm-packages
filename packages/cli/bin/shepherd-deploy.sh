@@ -40,14 +40,13 @@ if [ -f "${PWD}/deployments.env" ]; then
 fi
 
 
-if [[ "$*" == *--dryrun*  || "$*" == *--export* ]]
+if [[ "$*" == *--dryrun*  ]]
 then
     DRYRUN_CONFIG_FILE="${HERDFILE_DIR}/dryrun.env"
 
     if [ -e "${DRYRUN_CONFIG_FILE}" ]; then
-      echo "Dryrun or export specified, loading dryrun environment from ${DRYRUN_CONFIG_FILE}"
-      echo "NOTE: Dryrun does not take deployment state into account and assumes everything needs to be deployed."
-    	source "${DRYRUN_CONFIG_FILE}"
+      echo "Dryrun specified, loading dryrun environment from ${DRYRUN_CONFIG_FILE}"
+      source "${DRYRUN_CONFIG_FILE}"
     fi
 fi
 

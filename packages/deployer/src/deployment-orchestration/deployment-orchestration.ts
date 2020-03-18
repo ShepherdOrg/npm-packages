@@ -1,16 +1,31 @@
 import {
   IAnyDeploymentAction,
-  IDeploymentOrchestration,
   IDockerImageKubectlDeploymentAction,
   ILog,
   TActionExecutionOptions,
   TDeploymentOrchestrationDependencies,
 } from "../deployment-types"
 import { TFileSystemPath } from "../helpers/basic-types"
-import { IDeploymentPlan, TK8sDeploymentPlansByKey } from "../deployment-plan/deployment-plan"
+import {
+  IDeploymentPlan,
+  IDeploymentPlanExecutionResult,
+  TK8sDeploymentPlansByKey,
+} from "../deployment-plan/deployment-plan"
 import { flatMapPolyfill } from "../herd-loading/folder-loader/flatmap-polyfill"
 
 flatMapPolyfill()
+
+export interface IDeploymentOrchestration {
+  executePlans: (runOptions?: TActionExecutionOptions) => Promise<Array<IDeploymentPlanExecutionResult>>
+
+  /** Returns true if there is anything planned to be executed. */
+  printPlan: (logger: ILog) => boolean
+  exportDeploymentActions: (exportDirectory: TFileSystemPath) => Promise<unknown>
+  addDeploymentPlan(deploymentPlan: IDeploymentPlan): Promise<IDeploymentPlan>
+}
+
+export type FDeploymentOrchestrationConstructor = (env: string) => IDeploymentOrchestration
+
 
 export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDependencies): IDeploymentOrchestration {
 

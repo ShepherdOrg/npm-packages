@@ -5,7 +5,6 @@ import * as path from "path"
 import * as fs from "fs"
 import {
   IAnyDeploymentAction,
-  IDeploymentOrchestration,
   IDockerDeploymentAction,
   IK8sDirDeploymentAction,
   IDockerImageKubectlDeploymentAction,
@@ -35,6 +34,7 @@ import { createDockerActionFactory } from "../deployment-actions/docker-action/d
 import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
 import { createFolderActionFactory } from "./folder-loader/folder-action-factory"
 import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-deployment-planner"
+import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
 
 /// Inject a mock image metadata loader with fake image information
 

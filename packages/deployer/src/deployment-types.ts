@@ -218,13 +218,3 @@ export type TDeploymentOrchestrationDependencies = {
 export type FnDeploymentStateSave = (stateSignatureObject: any) => Promise<TDeploymentState>
 
 
-export interface IDeploymentOrchestration {
-  executePlans: (runOptions?: TActionExecutionOptions) => Promise<Array<IDeploymentPlanExecutionResult>>
-
-  /** Returns true if there is anything planned to be executed. */
-  printPlan: (logger: ILog) => boolean
-  exportDeploymentActions: (exportDirectory: TFileSystemPath) => Promise<unknown>
-  addDeploymentPlan(deploymentPlan: IDeploymentPlan): Promise<IDeploymentPlan>
-}
-
-export type FDeploymentOrchestrationConstructor = (env: string) => IDeploymentOrchestration

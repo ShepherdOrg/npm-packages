@@ -168,7 +168,7 @@ describe("Deployment plan", function() {
   //   })
   //
   //   // TODO NEXT for migrations support, move derived action adding to plan or action
-  //   it.only("should add migration action to deployment plan", () => {
+  //   it("should add migration action to deployment plan", () => {
   //     expect(depPlan.deploymentActions.length).to.equal(2)
   //   })
   //
