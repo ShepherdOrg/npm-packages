@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "4.0.3",
+  "version": "4.2.3",
   "description": "Deployer application",
   "main": "dist/shepherd.js",
   "engines": {
