@@ -150,8 +150,12 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
     deploymentAction.forTestParameters.push(deploymentAction.imageWithoutTag + ":[image_version]")
 
     if (deploymentAction.command) {
-      deploymentAction.dockerParameters.push(deploymentAction.command)
-      deploymentAction.forTestParameters.push(deploymentAction.command)
+      let commandParts = deploymentAction.command.split(/\s+/)
+      commandParts.forEach((splitPart)=> deploymentAction.dockerParameters.push(splitPart));
+      if(deploymentAction.forTestParameters) {
+        // @ts-ignore
+        commandParts.forEach((splitPart)=> deploymentAction.forTestParameters.push(splitPart));
+      }
     }
 
     deploymentAction.descriptor = allButImageParameter(deploymentAction.dockerParameters).join(" ")

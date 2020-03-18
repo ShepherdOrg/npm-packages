@@ -186,6 +186,7 @@ describe("running shepherd", function() {
         .stdout().shouldContain("rollout undo deployment/deployment-one-to-roll-back FAKED ok")
         .stdout().shouldContain("Rollback complete. Original error follows.")
         .stdout().shouldContain('Post test failed')
+        .stdout().shouldNotContain('not found')
         .done(function() {
           done()
         })

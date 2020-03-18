@@ -10,7 +10,7 @@
   "deployCommand": "deploy",
   "rollbackCommand": "rollback",
   "preDeployTest": {
-    "command": "pretest",
+    "command": "pretest this",
     "environment": [
       {
         "name": "YOU_ARE_IN_PRETEST_MODE",
@@ -19,7 +19,7 @@
     ]
   },
   "postDeployTest": {
-    "command": "posttest"
+    "command": "posttest that"
   },
   "hyperlinks": [
     {

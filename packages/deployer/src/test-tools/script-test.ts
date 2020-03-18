@@ -65,6 +65,7 @@ type TOutputDSL = {
 }
 
 type TStdOutDSL = {
+  shouldNotContain(partialString: string): TScriptTestExecution
   shouldContain(partialString: string): TScriptTestExecution
   shouldEqual(expectedStdOutputRefFile: TFileSystemPath): TScriptTestExecution
 }
@@ -80,6 +81,7 @@ export interface TScriptTestExecution {
   callback?: FExecutionCallback
   processStderr?: string
   expectedStdoutPartials: string[]
+  notExpectedStdoutPartials: string[]
   expectedStderrPartials: string[]
   actualFromStdout: boolean
   expectedStdOutput: string | TFileSystemPath | undefined
@@ -161,6 +163,7 @@ export default {
       expectedStdOutput: undefined,
       processOutput: "",
       ignoreList: emptyArray<string>(),
+      notExpectedStdoutPartials: emptyArray<string>(),
       expectedStdoutPartials: emptyArray<string>(),
       expectedStderrPartials: emptyArray<string>(),
       expectedExitCode: undefined,
@@ -193,6 +196,10 @@ export default {
             execution.expectedStdoutPartials.push(partialString)
             return execution
           },
+          shouldNotContain(partialString: string): TScriptTestExecution {
+            execution.notExpectedStdoutPartials.push(partialString)
+            return execution
+          }
         }
       },
       stderr: function() {
@@ -222,6 +229,10 @@ export default {
       checkExpectations() {
         execution.expectedStdoutPartials.forEach((partialString: string) => {
           expect(execution.processOutput.indexOf(partialString)).to.gte(0, partialString)
+        })
+
+        execution.notExpectedStdoutPartials.forEach((partialString: string) => {
+          expect(execution.processOutput.indexOf(partialString)).to.lt(0, `"${partialString}" is not supposed to be in stdout`)
         })
 
         execution.expectedStderrPartials.forEach((partialString: string) => {

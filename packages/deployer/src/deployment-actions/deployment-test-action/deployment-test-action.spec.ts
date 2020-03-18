@@ -78,9 +78,9 @@ describe("Deployment test action", function() {
     })
   })
 
-  describe("Plain test action execution", function() {
+  describe("Plain deployment test action execution", function() {
     const testDeclaration: TTestSpecification = {
-      command: "pretest",
+      command: "pretest this param",
       environment: [{ name: "ENV_ONE", value: "VALUE_ONE" }],
     }
     let testAction: IExecutableAction
@@ -113,7 +113,13 @@ describe("Deployment test action", function() {
     })
 
     it("should execute with correct parameters", () => {
-      expect(fakeExec.executedCommands[0].params.join(" ")).to.equal("run -i --rm -e ENV=testenv -e ENV_ONE=VALUE_ONE unittest-image:9.9.99 pretest")
+      expect(fakeExec.executedCommands[0].params.join(" ")).to.equal("run -i --rm -e ENV=testenv -e ENV_ONE=VALUE_ONE unittest-image:9.9.99 pretest this param")
+    })
+
+    it("should split command into parameters and not pass as a single string", () => {
+      expect(fakeExec.executedCommands[0].params[8]).to.equal('pretest')
+      expect(fakeExec.executedCommands[0].params[9]).to.equal('this')
+      expect(fakeExec.executedCommands[0].params[10]).to.equal('param')
     })
 
     it("should execute docker", () => {

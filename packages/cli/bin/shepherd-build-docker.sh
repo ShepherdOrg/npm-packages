@@ -302,7 +302,9 @@ else
 		${DOCKER_BUILD_ARGS} \
 		-f Dockerfile .
 
-	echo Built ${DOCKER_IMAGE}
+	docker tag  ${DOCKER_IMAGE_GITHASH} ${DOCKER_IMAGE_LATEST}
+	docker tag  ${DOCKER_IMAGE_GITHASH} ${DOCKER_IMAGE}
+	echo "Built & tagged ${DOCKER_IMAGE} / ${DOCKER_IMAGE_GITHASH} / ${DOCKER_IMAGE_LATEST}"
 
 	if [ ! -z "${LAYERCACHE_TAR}" ]; then
 		echo "Saving layer cache tar to ${LAYERCACHE_TAR} "
@@ -321,8 +323,6 @@ elif [ "${PUSH_ARG}" = "push" ]; then
 		echo "Dirty index, will not push!"
 	else
 		echo "Clean index or forcing image push"
-		docker tag  ${DOCKER_IMAGE_GITHASH} ${DOCKER_IMAGE}
-		docker tag  ${DOCKER_IMAGE_GITHASH} ${DOCKER_IMAGE_LATEST}
 
 		docker push ${DOCKER_IMAGE}
 		docker push ${DOCKER_IMAGE_LATEST}
