@@ -17,8 +17,8 @@
     "typescript": "^3.6.4"
   },
   "peerDependencies": {
-    "@shepherdorg/metadata": "^3.0.0",
-    "@shepherdorg/state-store": "^3.0.0"
+    "@shepherdorg/metadata": "^4.0.0",
+    "@shepherdorg/state-store": "^4.0.0"
   },
   "scripts": {
     "build": "tsc",

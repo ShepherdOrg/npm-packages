@@ -12,8 +12,8 @@
     "lodash": "^4.17.15"
   },
   "peerDependencies": {
-    "@shepherdorg/metadata": "^3.0.0",
-    "@shepherdorg/state-store": "^3.0.0"
+    "@shepherdorg/metadata": "^4.0.0",
+    "@shepherdorg/state-store": "^4.0.0"
   },
   "devDependencies": {
     "@shepherdorg/metadata": "^4.0.0",
