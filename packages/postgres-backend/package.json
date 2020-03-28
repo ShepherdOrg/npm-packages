@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/postgres-backend",
-  "version": "4.0.3",
+  "version": "4.2.5",
   "description": "Postgres backend for shepherd state store",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -18,8 +18,8 @@
   },
   "devDependencies": {
     "@shepherdorg/metadata": "^4.0.0",
-    "@shepherdorg/state-store": "^4.0.3",
-    "@shepherdorg/storage-backend-tester": "^4.0.3",
+    "@shepherdorg/state-store": "^4.2.5",
+    "@shepherdorg/storage-backend-tester": "^4.2.5",
     "@types/chai": "^4.2.3",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.11",
