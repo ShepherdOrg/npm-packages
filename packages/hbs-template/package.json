@@ -1,5 +1,5 @@
 {
-  "name": "k8s-handlebars",
+  "name": "@shepherdorg/hbs-template",
   "version": "4.0.0",
   "description": "Handlebars templating designed for kubernetes config files",
   "main": "dist/expandtemplate.js",
