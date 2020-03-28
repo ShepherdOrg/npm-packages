@@ -1,0 +1,28 @@
+{
+  "name": "k8s-handlebars",
+  "version": "4.0.0",
+  "description": "Handlebars templating designed for kubernetes config files",
+  "main": "dist/expandtemplate.js",
+  "types": "dist/expandtemplate.d.ts",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "hbs-template": "dist/cli.js"
+  },
+  "scripts": {
+    "test": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
+    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts --watch 'src/**/*.spec.ts'",
+    "build": "tsc && chmod +x dist/cli.js",
+    "prepublishOnly": "yarn build && yarn test"
+  },
+  "keywords": [
+    "handlebars",
+    "kubernetes",
+    "template",
+    "cli",
+    "command"
+  ],
+  "author": "Guðlaugur S. Egilsson",
+  "license": "MIT"
+}
