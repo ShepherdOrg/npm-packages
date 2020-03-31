@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/hbs-template",
-  "version": "4.2.5",
+  "version": "4.2.6",
   "description": "Handlebars templating designed for kubernetes config files",
   "main": "dist/expandtemplate.js",
   "types": "dist/expandtemplate.d.ts",
