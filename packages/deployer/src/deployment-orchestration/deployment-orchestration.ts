@@ -24,9 +24,6 @@ export interface IDeploymentOrchestration {
   addDeploymentPlan(deploymentPlan: IDeploymentPlan): Promise<IDeploymentPlan>
 }
 
-export type FDeploymentOrchestrationConstructor = (env: string) => IDeploymentOrchestration
-
-
 export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDependencies): IDeploymentOrchestration {
 
   const deploymentPlans: Array<IDeploymentPlan> = []
@@ -70,7 +67,7 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
       pushToUi: true,
       waitForRollout: false,
     },
-  ) {
+  ) : Promise<IDeploymentPlanExecutionResult[]> {
     return await Promise.all(deploymentPlans.map((deploymentPlan) => deploymentPlan.execute(runOptions)))
   }
 

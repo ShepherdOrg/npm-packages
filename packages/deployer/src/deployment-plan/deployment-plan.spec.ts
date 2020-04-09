@@ -1,13 +1,13 @@
 import {
   createDeploymentPlanFactory,
-  IDeploymentPlan,
+  IDeploymentPlan, IDeploymentPlanExecutionResult,
   IDeploymentPlanFactory,
   TDeploymentPlanDependencies,
 } from "./deployment-plan"
 import { clearEnv, setEnv } from "../deployment-actions/kubectl-action/testdata/test-action-factory"
 import { expect } from "chai"
 import { createFakeExec } from "../test-tools/fake-exec"
-import { createFakeLogger } from "../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
 import { IExecutableAction, IKubectlDeployAction, TActionExecutionOptions } from "../deployment-types"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { emptyArray } from "../helpers/ts-functions"
@@ -26,14 +26,15 @@ import { createDeploymentTestActionFactory } from "../deployment-actions/deploym
 type FFakeLambda = () => Promise<void>
 
 interface IFakeLambdaFactory {
-  createFakeLambda: (atext: string) => FFakeLambda,
-  executedActions: String[]
+  succeedingAction: (atext: string) => FFakeLambda,
+  failingAction: (atext: string) => FFakeLambda,
+  fakeActionCalls: String[]
 }
 
 function fakeLambdaFactory(): IFakeLambdaFactory {
   let executedActions = emptyArray<String>()
 
-  function createFakeLambda(actionText: string) {
+  function succeedingAction(actionText: string) {
     let fakeLambda = async () => {
       let promise = new Promise((resolve) => setTimeout(() => {
         executedActions.push(actionText)
@@ -44,10 +45,22 @@ function fakeLambdaFactory(): IFakeLambdaFactory {
     return fakeLambda
   }
 
+  function failingAction(actionText: string) {
+    let fakeLambda = async () => {
+      let promise = new Promise((resolve, reject) => setTimeout(() => {
+        executedActions.push(actionText)
+        reject(new Error('Failing big time'))
+      }, 10))
+      return promise as Promise<void>
+    }
+    return fakeLambda
+  }
+
 
   return {
-    createFakeLambda,
-    executedActions: executedActions,
+    succeedingAction: succeedingAction,
+    failingAction,
+    fakeActionCalls: executedActions,
   }
 }
 
@@ -140,23 +153,18 @@ describe("Deployment plan", function() {
     PREFIXED_TOP_DOMAIN_NAME: ".com",
   }
 
-  let faf: IFakeLambdaFactory
+  let flf: IFakeLambdaFactory
+  let planDependencies: TDeploymentPlanDependencies
 
   before(async function() {
-    return setEnv(testEnv)
+    planDependencies = fakeDeploymentPlanDependencies()
+    depPlanner = createDeploymentPlanFactory(planDependencies)
+
+    await setEnv(testEnv)
   })
 
   after(() => clearEnv(testEnv))
 
-
-  beforeEach(async () => {
-
-    let planDependencies = fakeDeploymentPlanDependencies()
-    depPlanner = createDeploymentPlanFactory(planDependencies)
-
-    depPlan = depPlanner.createDeploymentPlan({ key: "testKeyOne" })
-    faf = fakeLambdaFactory()
-  })
 
   // describe("plan for image with migration reference", function() {
   //
@@ -180,10 +188,13 @@ describe("Deployment plan", function() {
 
   describe("Regular actions", () => {
 
-    beforeEach(async () => {
-      await depPlan.addAction(createFakeAction(faf.createFakeLambda("FakeAction1")))
-      await depPlan.addAction(createFakeAction(faf.createFakeLambda("FakeAction2")))
-      await depPlan.addAction(createFakeAction(faf.createFakeLambda("FakeAction3")))
+    before(async () => {
+      flf = fakeLambdaFactory()
+      depPlan = depPlanner.createDeploymentPlan({ key: "testKeyOne" })
+
+      await depPlan.addAction(createFakeAction(flf.succeedingAction("FakeAction1")))
+      await depPlan.addAction(createFakeAction(flf.succeedingAction("FakeAction2")))
+      await depPlan.addAction(createFakeAction(flf.succeedingAction("FakeAction3")))
     })
 
     it("should retrieve action state from state store", async () => {
@@ -192,15 +203,53 @@ describe("Deployment plan", function() {
   })
 
   describe("execute", function() {
-    before(() => {
+    before(async () => {
+      flf = fakeLambdaFactory()
+      depPlan = depPlanner.createDeploymentPlan({ key: "testKeyOne" })
+      await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionOne")))
+      await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionTwo")))
+      await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionThree")))
       return depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "" })
     })
 
     it("should execute all deployment actions in serial", () => {
-      expect(faf.executedActions).to.eql([])
+      expect(flf.fakeActionCalls).to.eql(["SucceedingActionOne", "SucceedingActionTwo","SucceedingActionThree"])
     })
 
   })
+
+  describe("first action failure should stop subsequent actions", function() {
+    let planExecutionResult: IDeploymentPlanExecutionResult
+
+    before(async () => {
+
+      depPlan = depPlanner.createDeploymentPlan({ key: "testKeyOne" })
+      flf = fakeLambdaFactory()
+
+      await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionOne")))
+      await depPlan.addAction(createFakeAction(flf.failingAction("FakeAFailing")))
+      await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionTwo")))
+
+      planExecutionResult = await depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "" })
+    })
+
+    it("should not execute anything after first failing action", () => {
+      console.log(`faf.executedActions`, flf.fakeActionCalls)
+      expect(flf.fakeActionCalls.length).to.equal(2)
+    })
+
+    it("should render error message from failing action in logger", () => {
+      expect((planDependencies.logger as IFakeLogging).log).to.contain('Plan execution error')
+      expect((planDependencies.logger as IFakeLogging).log).to.contain('Failing big time')
+    })
+
+    it("should return plan execution result marking it as failed", () => {
+      expect(planExecutionResult.actionExecutionError?.message).to.contain('Failing big time')
+    })
+
+  })
+
+
 
 
 })

@@ -1,0 +1,5 @@
+images:
+  common-claims-web:
+    image: isrvkbuild02:5000/claims-web
+    imagetag: 1c42ffea43f44892d9d672cded5d117f4fa5dd69
+    description: Common claims web UI

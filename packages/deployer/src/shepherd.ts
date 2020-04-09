@@ -11,6 +11,7 @@ import { createLoaderContext } from "./herd-loading/createLoaderContext"
 import { renderPlanExecutionError } from "./deployment-plan/renderPlanExecutionError"
 import { IDeploymentOrchestration } from "./deployment-orchestration/deployment-orchestration"
 import { InMemoryStore } from "@shepherdorg/state-store/dist/in-memory-backend"
+import { IDeploymentPlanExecutionResult, renderPlanFailureSummary } from "./deployment-plan/deployment-plan"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -232,7 +233,12 @@ stateStoreBackend
               pushToUi: pushToUi,
               waitForRollout: waitForRollout,
             })
-            .then(function() {
+            .then(function(planResults:IDeploymentPlanExecutionResult[]) {
+              // Exceptions from plan execution are logged immediatly. Here we render only a summary of deployment results.
+              const failedPlans = planResults.filter((planExecutionResult)=>{ return planExecutionResult.actionExecutionError !== null})
+              if(failedPlans.length > 0){
+                renderPlanFailureSummary(logger, failedPlans)
+              }
               logger.info("...plan execution complete. Exiting shepherd.")
               setTimeout(() => {
                 terminateProcess(0)

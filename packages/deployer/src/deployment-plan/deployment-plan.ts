@@ -26,7 +26,20 @@ import { renderPlanExecutionError } from "./renderPlanExecutionError"
 
 export interface IDeploymentPlanExecutionResult {
   actionResults: IExecutableAction[]
+  actionExecutionError?: Error
+  herdDeclaration: THerdDeclaration
 }
+
+
+export function renderPlanFailureSummary(logger: ILog, failedPlans: IDeploymentPlanExecutionResult[]) {
+  logger.error(`Execution of ${failedPlans.length} deployment plan(s) resulted in failure, test or otherwise. Full error logs found above.`)
+  logger.error(`vvvvvvvvvvvvvvvv failed deployments vvvvvvvvvvvvvvvvvvvv`)
+  failedPlans.forEach((failedPlan) => {
+    logger.error(`    ${failedPlan.herdDeclaration.key}  ${failedPlan.herdDeclaration.description || ""}`)
+  })
+  logger.error(`^^^^^^^^^^^^^^^^ failed deployments ^^^^^^^^^^^^^^^^^^^^`)
+}
+
 
 export interface IDeploymentPlan {
   herdKey: string,
@@ -98,23 +111,31 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
 
     let planInstance: IDeploymentPlan = {
       async execute(executionOptions: TActionExecutionOptions): Promise<IDeploymentPlanExecutionResult> {
-        let executionPromise = deploymentActions.reduce((p, nextAction) => {
-          return p.then((remainingActions) => {
-            return nextAction.execute(executionOptions).then(async (actionResult) => {
-              remainingActions.push(actionResult)
-              if (!executionOptions.dryRun && executionOptions.pushToUi) {
-                await mapDeploymentDataAndPush(nextAction)
-              }
-              return remainingActions
-            }).catch((actionExecutionError)=>{
-              renderPlanExecutionError(injected.logger, actionExecutionError)
-              return []
-            })
-          })
-        }, Promise.resolve(emptyArray<IExecutableAction>()))
-        let actionResults = await executionPromise
 
-        return { actionResults }
+        // console.log(`RUNNING ${deploymentActions.length} actions... \n ${deploymentActions.map((action)=>{return action.planString() + '\n'})}`)
+
+        let actionResults: IExecutableAction[] =[]
+
+        try {
+          let executionPromise = deploymentActions.reduce((p, nextAction) => {
+            return p.then((actionResults) => {
+              return nextAction.execute(executionOptions).then(async (actionResult) => {
+                actionResults.push(actionResult)
+                if (!executionOptions.dryRun && executionOptions.pushToUi) {
+                  await mapDeploymentDataAndPush(nextAction)
+                }
+                return actionResults
+              })
+            })
+          }, Promise.resolve(emptyArray<IExecutableAction>()))
+          actionResults = await executionPromise
+          return { herdDeclaration: herdDeclaration, actionResults }
+
+        } catch(actionExecutionError){
+          renderPlanExecutionError(injected.logger, actionExecutionError)
+          return { herdDeclaration, actionExecutionError, actionResults}
+        }
+
       },
       async addAction(action: IExecutableAction): Promise<void> {
         injected.logger.debug(`Adding action to plan ${herdDeclaration.key} `, action.planString())
