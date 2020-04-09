@@ -13,7 +13,6 @@ import { TDeploymentState } from "@shepherdorg/metadata"
 import { emptyArray } from "../helpers/ts-functions"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import {
-  createFakeDockerImageKubectlDeploymentFactory,
   createFakeUIPusher,
 } from "../deployment-orchestration/deployment-orchestration.spec"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"

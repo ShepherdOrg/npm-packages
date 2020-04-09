@@ -15,11 +15,26 @@
       {
         "name": "YOU_ARE_IN_PRETEST_MODE",
         "value": "true"
+      },
+      {
+        "name": "PRETEST_EXITCODE",
+        "value": "{{ PRETEST_EXITCODE }}"
       }
     ]
   },
   "postDeployTest": {
-    "command": "posttest that"
+    "command": "posttest that",
+    "environment": [
+      {
+        "name": "YOU_ARE_IN_POSTTEST_MODE",
+        "value": "true"
+      },
+      {
+        "name": "POSTTEST_EXITCODE",
+        "value": "{{ POSTTEST_EXITCODE }}"
+      }
+    ]
+
   },
   "hyperlinks": [
     {

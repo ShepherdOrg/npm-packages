@@ -1,7 +1,6 @@
 import {
   IDockerExecutableAction,
   ILog,
-  IRollbackActionExecution,
   TActionExecutionOptions,
 } from "../../deployment-types"
 import { expandEnv } from "../../template/expandenv"
@@ -11,7 +10,7 @@ import * as path from "path"
 import { extendedExec, writeFile } from "../../helpers/promisified"
 import { environmentToEnvSetters } from "./environment-to-env-setters"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
-import { newOperationalOops, newProgrammerOops } from "oops-error"
+import { newProgrammerOops } from "oops-error"
 import { isOops } from "../../helpers/isOops"
 
 type TDockerActionFactoryDependencies = {
