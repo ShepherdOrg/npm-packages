@@ -83,7 +83,7 @@ jobs:
           command: yarn test
 workflows:
   version: 2
-  build_and_deploy:
+  publish:
     jobs:
       - lerna_publish:
           filters:
