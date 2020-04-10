@@ -1,9 +1,6 @@
 version: 2
 jobs:
-  build:
-    branches:
-      only:
-        - master
+  lerna_publish:
     docker:
       - image: circleci/node:12
     working_directory: ~/repo
@@ -31,9 +28,6 @@ jobs:
           paths:
             - ~/.cache/yarn
       - run:
-          name: Build
-          command: yarn build
-      - run:
           name: Publish to NPM
           command: yarn run lerna publish from-package --yes
 #      - run:
@@ -57,3 +51,47 @@ jobs:
 #          key: docker-{{ .Branch }}-{{ epoch }}
 #          paths:
 #            - /tmp/layercache.tar
+  build_and_test:
+    docker:
+      - image: circleci/node:12
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - setup_remote_docker
+      - restore_cache:
+          keys:
+            - docker-{{ .Branch }}
+            - yarn-{{ .Branch }}
+      - run:
+          name: Set yarn cache location
+          command: yarn config set cache-folder ~/.cache/yarn
+      - run:
+          name: Yarn install
+          command: yarn install --frozen-lockfile --check-files
+      - run:
+          name: Bootstrap
+          command: yarn bootstrap
+      - save_cache:
+          key: yarn-{{ .Branch }}-{{ epoch }}
+          paths:
+            - ~/.cache/yarn
+      - run:
+          name: Build
+          command: yarn build
+      - run:
+          name: Run unit tests
+          command: yarn test
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - lerna_publish:
+          filters:
+            branches:
+              only: master
+  build_only:
+    jobs:
+      - build_and_test:
+          filters:
+            branches:
+              ignore: master
