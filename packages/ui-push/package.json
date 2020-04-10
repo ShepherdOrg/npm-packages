@@ -22,8 +22,9 @@
     "add": "^2.0.6"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.4",
+    "@types/chai": "4.2.11",
     "@types/mocha": "^5.2.7",
+    "@types/node": "12.12.6",
     "chai": "^4.2.0",
     "mocha": "^6.2.2",
     "ts-node": "^8.4.1",

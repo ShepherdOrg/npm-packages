@@ -17,5 +17,8 @@
   "scripts": {
     "build": "echo Nothing to build in pure JS module",
     "prepublishOnly": "echo Nothing to do here"
+  },
+  "devDependencies": {
+    "@types/node": "12.12.6"
   }
 }

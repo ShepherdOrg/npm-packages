@@ -45,9 +45,9 @@
     "simple-git": "^1.126.0"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.5",
+    "@types/chai": "4.2.11",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.12.7",
+    "@types/node": "12.12.6",
     "chai": "^4.2.0",
     "child-process-promise": "2.2.1",
     "fluture": "^11.0.3",

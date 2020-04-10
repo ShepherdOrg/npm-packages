@@ -10,15 +10,15 @@
   ],
   "devDependencies": {
     "@shepherdorg/metadata": "^4.0.0",
-    "@shepherdorg/state-store": "^4.2.5",
-    "@types/chai": "^4.2.4",
+    "@shepherdorg/state-store": "4.2.5",
+    "@types/chai": "4.2.11",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.12.3",
+    "@types/node": "12.12.6",
     "typescript": "^3.6.4"
   },
   "peerDependencies": {
     "@shepherdorg/metadata": "^4.0.0",
-    "@shepherdorg/state-store": "^4.0.0"
+    "@shepherdorg/state-store": "4.2.5"
   },
   "scripts": {
     "build": "tsc",

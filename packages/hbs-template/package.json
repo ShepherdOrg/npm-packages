@@ -27,5 +27,8 @@
     "handlebars": "^4.1.2"
   },
   "author": "Guðlaugur S. Egilsson",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "12.12.6"
+  }
 }

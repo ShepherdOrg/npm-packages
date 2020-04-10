@@ -14,15 +14,15 @@
   },
   "peerDependencies": {
     "@shepherdorg/metadata": "^4.0.0",
-    "@shepherdorg/state-store": "^4.0.0"
+    "@shepherdorg/state-store": "4.2.5"
   },
   "devDependencies": {
     "@shepherdorg/metadata": "^4.0.0",
-    "@shepherdorg/state-store": "^4.2.5",
+    "@shepherdorg/state-store": "4.2.5",
     "@shepherdorg/storage-backend-tester": "^4.2.5",
-    "@types/chai": "^4.2.3",
+    "@types/chai": "4.2.11",
     "@types/mocha": "^5.2.7",
-    "@types/node": "^12.7.11",
+    "@types/node": "12.12.6",
     "chai": "^4.2.0",
     "expect.js": "0.3.1",
     "mocha": "^6.2.1",
