@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build_and_publish:
+  lerna_publish:
     docker:
       - image: circleci/node:12
     working_directory: ~/repo
@@ -27,9 +27,6 @@ jobs:
           key: yarn-{{ .Branch }}-{{ epoch }}
           paths:
             - ~/.cache/yarn
-      - run:
-          name: Build
-          command: yarn build
       - run:
           name: Publish to NPM
           command: yarn run lerna publish from-package --yes
@@ -94,7 +91,7 @@ workflows:
               only: master
   build_only:
     jobs:
-      - lerna_build_and_test:
+      - build_and_test:
           filters:
             branches:
               ignore: master
