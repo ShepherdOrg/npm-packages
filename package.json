@@ -24,6 +24,7 @@
   "homepage": "https://github.com/ShepherdOrg/shepherd#readme",
   "devDependencies": {
     "lerna": "^3.18.4",
+    "lerna-update-wizard": "^0.17.8",
     "prettier": "^1.18.2"
   }
 }
