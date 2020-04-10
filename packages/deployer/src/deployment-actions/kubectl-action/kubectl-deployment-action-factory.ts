@@ -209,6 +209,7 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
         },
         async rollback() : Promise<TRollbackResult>{
           return await Promise.all(deploymentRollouts.map((deploymentRollout)=>{
+            console.log(`EXECUTING ROLLBACK!!!!!!!!!!!!!!!`)
             return extendedExec(exec)("kubectl", ["--namespace", deploymentRollout.namespace, "rollout", "undo", `deployment/${deploymentRollout.deploymentName}`], {
               env: process.env,
               debug: true,

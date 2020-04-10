@@ -168,30 +168,33 @@ describe("running shepherd", function() {
       cleanDir(shepherdStoreDir)
     })
 
-    it("should fail on post test and attempt to rollback to previous version, independently on deployment plans", function(done) {
+    it(" should fail on post tests and attempt to rollback to previous version, independently on deployment plans", function(done) {
       script
         .execute(shepherdTestHarness, ["--fakerun", "src/herd-loading/testdata/deploytestherd/herd.yaml"], {
           env: _.extend({}, process.env, {
             NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
             FAIL_POSTDEPLOY_TEST: true,
+            PRETEST_EXITCODE: "0",
+            POSTTEST_EXITCODE: "1",
           }),
           debug: false, // debug:false suppresses stdout of process
         })
         .expectExitCode(255)
         .stdout().shouldContain("Executing docker command pretest")
+        .stdout().shouldContain("Post test exit with code 1")
         .stdout().shouldContain("Executing docker command deploy")
+        .stdout().shouldContain("Yessir, deploying now")
         .stdout().shouldContain("Executing docker command posttest")
         .stdout().shouldContain("Test run failed, rolling back to last good version.")
-        .stdout().shouldContain("rollout undo deployment/deployment-one-to-roll-back FAKED ok")
         .stdout().shouldContain("Rollback complete. Original error follows.")
-        .stdout().shouldContain('Post test failed')
         .stdout().shouldNotContain('not found')
         .done(function() {
           done()
         })
     })
   })
+
 
   xit("should execute infrastructure deployers first to completion", () => {
   })

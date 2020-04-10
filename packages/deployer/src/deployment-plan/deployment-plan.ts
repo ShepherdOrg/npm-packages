@@ -26,7 +26,20 @@ import { renderPlanExecutionError } from "./renderPlanExecutionError"
 
 export interface IDeploymentPlanExecutionResult {
   actionResults: IExecutableAction[]
+  actionExecutionError?: Error
+  herdDeclaration: THerdDeclaration
 }
+
+
+export function renderPlanFailureSummary(logger: ILog, failedPlans: IDeploymentPlanExecutionResult[]) {
+  logger.error(`Execution of ${failedPlans.length} deployment plan(s) resulted in failure, test or otherwise. Full error logs found above.`)
+  logger.error(`vvvvvvvvvvvvvvvv failed deployments vvvvvvvvvvvvvvvvvvvv`)
+  failedPlans.forEach((failedPlan) => {
+    logger.error(`    ${failedPlan.herdDeclaration.key}  ${failedPlan.herdDeclaration.description || ""}`)
+  })
+  logger.error(`^^^^^^^^^^^^^^^^ failed deployments ^^^^^^^^^^^^^^^^^^^^`)
+}
+
 
 export interface IDeploymentPlan {
   herdKey: string,
@@ -41,14 +54,13 @@ export interface IDeploymentPlan {
    * Returns false if there is nothing planned, true otherwise
    * */
   printPlan(logger: ILog): boolean
-
   exportActions(_exportDirectory: TFileSystemPath): Promise<void>
 }
 
 export type TK8sDeploymentPlansByKey = { [herdKey: string]: string }
 
 /* TODO : Need to consider whether to make deployment plans fail/succeed independently. Currently the first one that
-*   fails will stop all deployment. */
+*  fails will stop all deployment. */
 
 export interface TDeploymentPlanDependencies {
   stateStore: IReleaseStateStore
@@ -80,12 +92,10 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
     return resultingActions
   }
 
-
   function createDeploymentPlan(herdDeclaration: THerdDeclaration): IDeploymentPlan {
     const deploymentActions: Array<IExecutableAction> = []
 
 
-    // TODO Map and push on IDeploymentPlan instead of actions
     async function mapDeploymentDataAndPush(deploymentData: IExecutableAction | undefined) {
       if (!deploymentData) {
         return deploymentData
@@ -101,31 +111,38 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
 
     let planInstance: IDeploymentPlan = {
       async execute(executionOptions: TActionExecutionOptions): Promise<IDeploymentPlanExecutionResult> {
-        let executionPromise = deploymentActions.reduce((p, nextAction) => {
-          return p.then((remainingActions) => {
-            return nextAction.execute(executionOptions).then(async (actionResult) => {
-              remainingActions.push(actionResult)
-              if (!executionOptions.dryRun && executionOptions.pushToUi) {
-                await mapDeploymentDataAndPush(nextAction)
-              }
-              return remainingActions
-            }).catch((actionExecutionError)=>{
-              renderPlanExecutionError(injected.logger, actionExecutionError)
-              return []
-            })
-          })
-        }, Promise.resolve(emptyArray<IExecutableAction>()))
-        let actionResults = await executionPromise
 
-        return { actionResults }
+        // console.log(`RUNNING ${deploymentActions.length} actions... \n ${deploymentActions.map((action)=>{return action.planString() + '\n'})}`)
+
+        let actionResults: IExecutableAction[] =[]
+
+        try {
+          let executionPromise = deploymentActions.reduce((p, nextAction) => {
+            return p.then((actionResults) => {
+              return nextAction.execute(executionOptions).then(async (actionResult) => {
+                actionResults.push(actionResult)
+                if (!executionOptions.dryRun && executionOptions.pushToUi) {
+                  await mapDeploymentDataAndPush(nextAction)
+                }
+                return actionResults
+              })
+            })
+          }, Promise.resolve(emptyArray<IExecutableAction>()))
+          actionResults = await executionPromise
+          return { herdDeclaration: herdDeclaration, actionResults }
+
+        } catch(actionExecutionError){
+          renderPlanExecutionError(injected.logger, actionExecutionError)
+          return { herdDeclaration, actionExecutionError, actionResults}
+        }
+
       },
       async addAction(action: IExecutableAction): Promise<void> {
         injected.logger.debug(`Adding action to plan ${herdDeclaration.key} `, action.planString())
+        deploymentActions.push(action)
         if (action.isStateful && !action.state) {
           action.state = await injected.stateStore.getDeploymentState(action as unknown as TDeploymentStateParams)
         }
-
-        deploymentActions.push(action)
       },
       async exportActions(exportDirectory: TFileSystemPath) {
         await Promise.all(deploymentActions.map(function(action: IAnyDeploymentAction) {
@@ -187,6 +204,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
   }
 
   async function createDockerImageDeploymentActions(imageInformation: TImageInformation) {
+
     if (imageInformation.shepherdMetadata) {
       let resultingActions: Array<IExecutableAction> = emptyArray<IExecutableAction>()
 
@@ -230,6 +248,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
           },
         }
         resultingActions.push(injected.deploymentTestActionFactory.createDeploymentTestAction(imageInformation.shepherdMetadata.postDeployTest, imageInformation.shepherdMetadata, deploymentActionsRollback))
+        console.log(`HAVE POSTDEPLOYTEST, ${resultingActions.length} resulting plan is \n ${resultingActions.map((ra)=>ra.planString()).join('\n')} \n \n \n end`)
       }
 
       return resultingActions

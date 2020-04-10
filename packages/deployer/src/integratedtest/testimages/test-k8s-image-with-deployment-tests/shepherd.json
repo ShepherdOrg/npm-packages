@@ -8,14 +8,28 @@
     }
   ],
   "preDeployTest": {
-    "command": "pretest"
-  },
-  "postDeployTest": {
-    "command": "posttest",
+    "command": "pretest this",
     "environment": [
       {
-        "name": "FAIL_POSTDEPLOY_TEST",
-        "value": "{{ FAIL_POSTDEPLOY_TEST }}"
+        "name": "YOU_ARE_IN_PRETEST_MODE",
+        "value": "true"
+      },
+      {
+        "name": "PRETEST_EXITCODE",
+        "value": "{{ PRETEST_EXITCODE }}"
+      }
+    ]
+  },
+  "postDeployTest": {
+    "command": "posttest that",
+    "environment": [
+      {
+        "name": "YOU_ARE_IN_POSTTEST_MODE",
+        "value": "true"
+      },
+      {
+        "name": "POSTTEST_EXITCODE",
+        "value": "{{ POSTTEST_EXITCODE }}"
       }
     ]
   },
