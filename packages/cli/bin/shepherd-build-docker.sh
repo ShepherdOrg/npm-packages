@@ -24,20 +24,33 @@ function installationDir(){
 function outputUsage(){
 	cat << _EOF_
 Usage (bash):
-	OPTION=OPTIONVALUE $(basename $0) <dockerfile> [push]
+    OPTION=OPTIONVALUE $(basename $0) <dockerfile> [push]
 
-	If push parameter is present, docker push will be performed at end of successful build.
+    If push parameter is present, docker push will be performed at end of successful build.
+
+Special files that processed if present in the same directory as the target Dockerfile:
+    shepherd.json            Assumed to contain metadata about the deployment.
+    package.json             Assumed to contain up-to-date version string for human readable semantic versioning.
+    build.sh                 Assumed to be a pre-build script, which is then sourced before invoking docker build.
+    kube.yaml                Assumed to be a kubernetes deployment file describing how to deploy the container built.
+    deployments/ (dir)       Assumed to contain a collection of kubernetes deployment files if you prefer to split
+                             deployments in a more fine-grained manner.
 
 Environment variable options:
-	IMAGE_NAME:              Specify image name. Defaults to directory name containing the dockerfile if not specified. If specified in shepherd.json (recommended), that will override other options.
-	DOCKER_REGISTRY_HOST:    Set if using self-hosted docker registry. Will be prepended to docker name along with a /
-	DOCKER_REPOSITORY_ORG:   Docker repository organization/namespace. If not provided, defaults to no organization / no namespace.
-	DOCKER_REPOSITORY_NAME:  Docker repository name used to tag the docker image. Defaults to the directory name containing the dockerfile if not provided.
-	FORCE_REBUILD:           Set if you wish to force rebuild of the docker image regardless of its status in the docker registry.
-	FORCE_PUSH:              Override docker push prevention on dirty git index.
-	BRANCH_NAME:             Git branch name.
-	GIT_COMMIT:              Git commit hash.
-	SEMANTIC_VERSION:        Use to construct version tag. If not provided, will attempt to extract tag from the "FROM" statement in the dockerfile.
+    IMAGE_NAME:              Specify image name. Defaults to directory name containing the dockerfile if not specified.
+                             If specified in shepherd.json (recommended), that will override other options.
+    DOCKER_REGISTRY_HOST:    Set if using self-hosted docker registry. Will be prepended to docker name along with a /
+    DOCKER_REPOSITORY_ORG:   Docker repository organization/namespace. If not provided, defaults to no organization / no
+                             namespace.
+    DOCKER_REPOSITORY_NAME:  Docker repository name used to tag the docker image. Defaults to the directory name
+                             containing the dockerfile if not provided.
+    FORCE_REBUILD:           Set if you wish to force rebuild of the docker image regardless of its status in the docker
+                             registry.
+    FORCE_PUSH:              Override docker push prevention on dirty git index.
+    BRANCH_NAME:             Git branch name.
+    GIT_COMMIT:              Git commit hash.
+    SEMANTIC_VERSION:        Use to construct version tag. If not provided, will attempt to extract tag from the "FROM"
+                             statement in the dockerfile.
 
 Examples:
 
@@ -47,6 +60,7 @@ $(basename $0) ./Dockerfile
 DOCKER_REGISTRY_HOST=myregistry:8888 $(basename $0) ./Dockerfile push
 	Build dockerfile in current directory and push to myregistry:8888/currentdirname:latest registry/repository.
 
+Example sources can be found in the integratedtest/testimages in the deployer sources.
 _EOF_
 }
 
