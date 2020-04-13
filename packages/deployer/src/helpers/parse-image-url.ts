@@ -1,3 +1,5 @@
+import * as chalk from "chalk"
+
 export type TDockerImageUrl = string
 
 export type TDockerImageUrlStruct ={
@@ -17,7 +19,7 @@ export type TDockerImageUrlStruct ={
 
 export function parseImageUrl(imageUrl:TDockerImageUrl): TDockerImageUrlStruct {
   let match = imageUrl.match(/^(?:([^\/]+)\/)?(?:([^\/]+)\/)?([^@:\/]+)(?:[@:](.+))?$/)
-  if (!match) throw new Error(`${imageUrl} is not a valid docker image URL!`)
+  if (!match) throw new Error(`${chalk.red(imageUrl)} is not a valid docker image URL!`)
 
   let dockerRegistry : string = match[1] || ""
   let dockerNamespace = match[2] || ""

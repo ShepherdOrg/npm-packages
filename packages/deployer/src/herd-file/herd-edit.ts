@@ -3,6 +3,7 @@
 import { TFileSystemPath } from "../helpers/basic-types"
 import * as fs from "fs"
 import { TDockerImageHerdDeclaration } from "../deployment-types"
+import * as chalk from "chalk"
 
 const YAML = require("js-yaml")
 
@@ -74,7 +75,7 @@ export function upgradeOrAddDeploymentInFile(
   }: TDeploymentUpgradeParams,
   logger = console
 ) {
-  if (!fs.existsSync(imageFileName)) throw new Error(imageFileName + " does not exist!")
+  if (!fs.existsSync(imageFileName)) throw new Error(chalk.red(imageFileName) + " does not exist!")
   if (!upstreamHerdKey) throw new Error("upstreamHerdKey parameter must have a value")
   if (!upstreamImageName) throw new Error("upstreamImageName parameter must have a value")
   if (!upstreamImageTag) throw new Error("upstreamImageTag parameter must have a value")

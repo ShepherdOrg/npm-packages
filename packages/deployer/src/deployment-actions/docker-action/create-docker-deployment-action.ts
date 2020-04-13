@@ -1,12 +1,12 @@
 import {
   IDockerDeploymentAction,
-  ILog,
   IRollbackActionExecution,
   TImageInformation,
   TRollbackResult,
 } from "../../deployment-types"
 import { TDeployerMetadata } from "@shepherdorg/metadata"
 import { ICreateDockerActions } from "./docker-action"
+import { ILog, TLogContext } from "../../logging/logger"
 
 export type TDockerDeploymentActionFactoryDependencies = {
   environment: string
@@ -15,12 +15,15 @@ export type TDockerDeploymentActionFactoryDependencies = {
 }
 
 export type ICreateDockerDeploymentActions = {
-  createDockerDeploymentAction: (imageInformation: TImageInformation) => Promise<Array<IDockerDeploymentAction>>
+  createDockerDeploymentAction: (imageInformation: TImageInformation, logContext: TLogContext) => Promise<Array<IDockerDeploymentAction>>
 }
 
-export function createDockerDeployerActionFactory(injected: TDockerDeploymentActionFactoryDependencies): ICreateDockerDeploymentActions {
+export function createDockerDeployerActionFactory(
+  injected: TDockerDeploymentActionFactoryDependencies
+): ICreateDockerDeploymentActions {
   async function createDockerDeploymentAction(
-    imageInformation: TImageInformation
+    imageInformation: TImageInformation,
+    logContext: TLogContext
   ): Promise<Array<IDockerDeploymentAction>> {
     let deployerMetadata = imageInformation.shepherdMetadata as TDeployerMetadata
 
@@ -64,13 +67,14 @@ export function createDockerDeployerActionFactory(injected: TDockerDeploymentAct
             deployerMetadata.environmentVariablesExpansionString
           )
 
-          injected.logger.info(`Executing docker action rollback`, rollbackAction.planString())
+          injected.logger.info(`Executing docker action rollback ${rollbackAction.planString()}`)
           return await rollbackAction
             .execute({
               pushToUi: false,
               dryRun: false,
               waitForRollout: false,
               dryRunOutputDir: "",
+              logContext,
             })
             .then(() => {
               injected.logger.info(`Rollback complete. Original error follows.`)

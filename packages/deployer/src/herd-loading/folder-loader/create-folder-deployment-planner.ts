@@ -1,6 +1,5 @@
 import {
   IK8sDirDeploymentAction,
-  ILog,
   TFolderHerdDeclaration,
   TFolderHerdDeclarations,
   THerdSectionDeclaration,
@@ -12,6 +11,8 @@ import { flatMapPolyfill } from "./flatmap-polyfill"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan"
 import { newProgrammerOops } from "oops-error"
 import Bluebird = require("bluebird")
+import { ILog } from "../../logging/logger"
+import * as chalk from "chalk"
 
 flatMapPolyfill()
 
@@ -62,7 +63,9 @@ export function createFolderDeploymentPlanner(injected: TFolderPlannerDependenci
           })
         })
         .catch(function(e) {
-          throw new Error("When processing folder " + herdFolderName + "\n" + e + (e.stack ? e.stack : ""))
+          console.log(`Caught error, calculating folders plan`)
+          throw new Error(`When processing folder ${chalk.red(herdFolderName)}
+${e.message ? e.message : ""}`)
         })
     })
 

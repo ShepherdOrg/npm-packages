@@ -61,7 +61,8 @@ describe("K8S deployment rollout status wait action factory", function() {
         pushToUi: false,
         waitForRollout: false,
         dryRun: false,
-        dryRunOutputDir: undefined
+        dryRunOutputDir: undefined,
+        logContext: {}
       }
       await rolloutAction.execute(deploymentOptions  )
     })

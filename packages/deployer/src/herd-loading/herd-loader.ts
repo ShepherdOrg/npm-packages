@@ -1,6 +1,6 @@
 import * as fs from "fs"
 
-import { ILog, THerdFileStructure, THerdSectionDeclaration, THerdSectionType } from "../deployment-types"
+import { THerdFileStructure, THerdSectionDeclaration, THerdSectionType } from "../deployment-types"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import { TFileSystemPath } from "../helpers/basic-types"
@@ -11,6 +11,8 @@ import { flatMapPolyfill } from "./folder-loader/flatmap-polyfill"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../deployment-plan/deployment-plan"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
 import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
+import { ILog } from "../logging/logger"
+import * as chalk from "chalk"
 
 const YAML = require("js-yaml")
 
@@ -93,13 +95,13 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
               return Promise.all(plans.map(deploymentOrchestration.addDeploymentPlan))
             })
           } else {
-            throw new Error("No loader registered for type " + herdDeclarationType + JSON.stringify(herdDeclaration))
+            throw new Error("No loader registered for type " + chalk.red(herdDeclarationType) + JSON.stringify(herdDeclaration))
           }
         })
       )
       return deploymentOrchestration
     } else {
-      throw new Error(fileName + " does not exist!")
+      throw new Error(chalk.red(fileName) + " does not exist!")
     }
   }
 

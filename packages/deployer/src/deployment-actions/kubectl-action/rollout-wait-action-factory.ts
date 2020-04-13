@@ -1,13 +1,13 @@
 import {
   IExecutableAction,
   IKubectlAction,
-  ILog,
   TActionExecutionOptions,
 } from "../../deployment-types"
 import { extendedExec } from "../../helpers/promisified"
 import { TDeploymentRollout } from "./kubectl-deployment-action-factory"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
 import { IExec } from "../../helpers/basic-types"
+import { ILog } from "../../logging/logger"
 
 export type TRolloutWaitActionDependencies= {
   stateStore: IReleaseStateStore,
@@ -45,7 +45,7 @@ export function createRolloutWaitActionFactory(actionDependencies: TRolloutWaitA
             debug: true,
           }).then((stdOut) => {
             logger.info(planString())
-            logger.info(stdOut)
+            logger.info(stdOut as string)
             return waitAction
           }).catch((execError) => {
             const { errCode, stdOut, message: err } = execError

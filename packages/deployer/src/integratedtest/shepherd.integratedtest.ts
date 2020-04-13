@@ -92,9 +92,9 @@ describe("running shepherd", function() {
         .stdout()
         .shouldContain("Deploying addedimage")
         .stdout()
-        .shouldContain("Executing deployment plan...")
+        .shouldContain("Executing deployment plan dryrun...")
         .stdout()
-        .shouldContain("...plan execution complete")
+        .shouldContain("...plan dryrun execution complete")
         .done(function() {
           done()
         })

@@ -1,3 +1,5 @@
+import * as chalk from "chalk"
+
 export function expandEnv(lineString:string) {
   if (lineString === undefined || lineString === null) return lineString
 
@@ -13,7 +15,7 @@ export function expandEnv(lineString:string) {
     if (process.env[varName] === undefined) {
       throw new Error(
         "Reference to environment variable ${" +
-          varName +
+          chalk.red(varName) +
           "} could not be resolved: " +
           lineString
       )

@@ -2,6 +2,7 @@ import { TBranchModificationParams, TDocumentKindNameChangeMaps } from "./create
 
 import * as jsYaml from "js-yaml"
 import { TK8sHttpPath, TK8sIngressDoc, TK8sPartialContainer, TK8sPartialDescriptor } from "../k8s-document-types"
+import * as chalk from "chalk"
 
 const { indexNameReferenceChange } = require("./create-name-change-index")
 
@@ -23,7 +24,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
       deploymentDoc.metadata.labels = {}
     }
     if (!branchModificationParams.ttlHours) {
-      throw new Error("ttlHours is a required parameter!")
+      throw new Error(`${chalk.blueBright('ttlHours')} is a required parameter!`)
     }
     deploymentDoc.metadata.labels["ttl-hours"] = `${branchModificationParams.ttlHours}`
   }

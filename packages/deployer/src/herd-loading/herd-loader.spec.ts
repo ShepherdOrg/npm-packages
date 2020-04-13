@@ -8,7 +8,6 @@ import {
   IDockerDeploymentAction,
   IK8sDirDeploymentAction,
   IDockerImageKubectlDeploymentAction,
-  ILog,
   TActionExecutionOptions,
   TFolderHerdDeclaration,
   THerdSectionType,
@@ -35,6 +34,8 @@ import { createDeploymentTestActionFactory } from "../deployment-actions/deploym
 import { createFolderActionFactory } from "./folder-loader/folder-action-factory"
 import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-deployment-planner"
 import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
+import { ILog } from "../logging/logger"
+import { createLogContextColors } from "../logging/log-context-colors"
 
 /// Inject a mock image metadata loader with fake image information
 
@@ -94,7 +95,8 @@ describe("herd.yaml loading", function() {
       rolloutWaitActionFactory: waitActionFactory,
       dockerImageKubectlDeploymentActionFactory: dockerImageKubectlDeploymentActionFactory,
       deployerActionFactory,
-      deploymentTestActionFactory: deploymentTestActionFactory
+      deploymentTestActionFactory: deploymentTestActionFactory,
+      logContextColors: createLogContextColors()
     }
 
     let planFactory = createDeploymentPlanFactory(dependencies)
@@ -256,13 +258,14 @@ describe("herd.yaml loading", function() {
   })
 
   it("should fail if file does not exist", function() {
-    loader
+    return loader
       .loadHerd(__dirname + "/testdata/does-not-exist.yaml")
       .then(function() {
         expect.fail("Should not finish!")
       })
       .catch(function(error) {
-        expect(error.message).to.contain("/testdata/does-not-exist.yaml does not exist!")
+        expect(error.message).to.contain("/testdata/does-not-exist.yaml")
+        expect(error.message).to.contain(" does not exist!")
       })
   })
 

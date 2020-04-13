@@ -1,7 +1,8 @@
 import { newProgrammerOops } from "oops-error"
-import { ILog, TDockerImageHerdDeclarations, THerdFileStructure } from "../deployment-types"
+import { TDockerImageHerdDeclarations, THerdFileStructure } from "../deployment-types"
 import { TFileSystemPath } from "../helpers/basic-types"
 import { parseImageUrl } from "../helpers/parse-image-url"
+import { ILog } from "../logging/logger"
 
 export interface TFeatureDeploymentConfig {
   origin?: string

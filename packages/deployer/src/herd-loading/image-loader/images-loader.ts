@@ -1,5 +1,4 @@
 import {
-  ILog,
   TDockerImageHerdDeclaration,
   TDockerImageHerdDeclarations,
   THerdSectionDeclaration,
@@ -13,6 +12,7 @@ import { parseImageUrl, TDockerImageUrl, TDockerImageUrlStruct } from "../../hel
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan"
 import { newProgrammerOops } from "oops-error"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
+import { ILog } from "../../logging/logger"
 
 export function parseDockerImageUrl(dockerImageUrl: TDockerImageUrl): TDockerImageUrlStruct {
   return parseImageUrl(dockerImageUrl)
@@ -47,7 +47,7 @@ export function createImagesLoader(injected: TImageDeclarationsLoaderDependencie
 
     return Object.entries(images).map(function([imgName, herdSpec]: [string, TDockerImageHerdDeclaration]) {
       herdSpec.key = imgName
-      injected.logger.debug("Deployment image - loading image meta data for docker image", JSON.stringify(herdSpec))
+      injected.logger.debug(`Deployment image - loading image meta data for docker image ${JSON.stringify(herdSpec)}`)
 
       if (!herdSpec.image && herdSpec.dockerImage) {
         Object.assign(herdSpec, parseDockerImageUrl(herdSpec.dockerImage))

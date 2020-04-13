@@ -4,11 +4,13 @@ import * as path from "path"
 
 import { shepherdOptions } from "../../shepherd-options"
 import { ICreateKubectlDeploymentAction } from "./kubectl-deployment-action-factory"
-import { IDockerImageKubectlDeploymentAction, ILog, TImageInformation, TK8sDeploymentPlan2 } from "../../deployment-types"
+import { IDockerImageKubectlDeploymentAction, TImageInformation, TK8sDeploymentPlan2 } from "../../deployment-types"
 import { kubeSupportedExtensions } from "./kube-supported-extensions"
 import { TarFile, TK8sMetadata } from "@shepherdorg/metadata"
 import { TFileSystemPath } from "../../helpers/basic-types"
 import Bluebird = require("bluebird")
+import { ILog } from "../../logging/logger"
+import * as chalk from "chalk"
 
 export type ICreateDockerImageKubectlDeploymentActions = {
   createKubectlDeploymentActions: (
@@ -136,8 +138,8 @@ export function createDockerImageKubectlDeploymentActionsFactory(injected: TActi
             )
           }
         } catch (e) {
-          let error = "When processing " + fileName + ":\n"
-          throw new Error(error + e.message)
+          let message = `When processing ${chalk.red(fileName)}:\n${e.message}`
+          throw new Error(message )
         }
       })
     }
