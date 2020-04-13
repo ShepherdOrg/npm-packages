@@ -23,6 +23,9 @@ jobs:
       - run:
           name: Bootstrap
           command: yarn bootstrap
+      - run:
+          name: Build
+          command: yarn build
       - save_cache:
           key: yarn-{{ .Branch }}-{{ epoch }}
           paths:
