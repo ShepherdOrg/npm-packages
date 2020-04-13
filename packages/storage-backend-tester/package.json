@@ -18,7 +18,7 @@
   },
   "peerDependencies": {
     "@shepherdorg/metadata": "^4.0.0",
-    "@shepherdorg/state-store": "4.2.5"
+    "@shepherdorg/state-store": "^4.3.0"
   },
   "scripts": {
     "build": "tsc",
