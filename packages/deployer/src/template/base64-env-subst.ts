@@ -1,3 +1,5 @@
+const chalk = require('chalk');
+
 export function base64Encode(stringToEncode:string) {
   return Buffer.from(stringToEncode).toString("base64")
 }
@@ -39,12 +41,12 @@ export function processLine(line: string, options:{appendNewline?:boolean}):stri
     if (keyword in KEYWORDS) {
       value = process.env[variable]
       if (value === undefined) {
-        throw new Error(variable + " empty or not defined, in line " + context)
+        throw new Error(chalk.red(variable) + " empty or not defined, in line " + context)
       } else {
         return KEYWORDS[keyword](value)
       }
     } else {
-      throw new Error("Keyword '" + keyword + "' is not valid in: " + context)
+      throw new Error("Keyword '" + chalk.red(keyword) + "' is not valid in: " + context)
     }
   }
 

@@ -21,6 +21,7 @@ import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kub
 import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
 import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
+import { createLogContextColors } from "../logging/log-context-colors"
 
 
 type FFakeLambda = () => Promise<void>
@@ -138,7 +139,8 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
     rolloutWaitActionFactory: rolloutWaitActionFactory,
     dockerImageKubectlDeploymentActionFactory: dockerImageKubectlDeploymentActionFactory,
     deployerActionFactory: deployerActionFactory,
-    deploymentTestActionFactory: deploymentTestActionFactory
+    deploymentTestActionFactory: deploymentTestActionFactory,
+    logContextColors: createLogContextColors()
   }
 }
 
@@ -209,7 +211,7 @@ describe("Deployment plan", function() {
       await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionOne")))
       await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionTwo")))
       await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionThree")))
-      return depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "" })
+      return depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "" , logContext: {}})
     })
 
     it("should execute all deployment actions in serial", () => {
@@ -230,11 +232,10 @@ describe("Deployment plan", function() {
       await depPlan.addAction(createFakeAction(flf.failingAction("FakeAFailing")))
       await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionTwo")))
 
-      planExecutionResult = await depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "" })
+      planExecutionResult = await depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "", logContext: {} })
     })
 
     it("should not execute anything after first failing action", () => {
-      console.log(`faf.executedActions`, flf.fakeActionCalls)
       expect(flf.fakeActionCalls.length).to.equal(2)
     })
 

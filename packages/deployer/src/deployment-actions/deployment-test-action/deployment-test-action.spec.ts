@@ -21,6 +21,7 @@ export const defaultTestExecutionOptions: TActionExecutionOptions = {
   waitForRollout: true,
   dryRun: false,
   dryRunOutputDir: undefined,
+  logContext: {}
 }
 
 

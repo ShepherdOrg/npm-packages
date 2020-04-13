@@ -116,7 +116,7 @@ export default {
 
     options.stdoutLineHandler = options.stdoutLineHandler || function(line:string) {
       if (options.debug) {
-        console.debug(line.trim())
+        process.stdout.write(line)
       }
     }
     options.env = extend({}, options.env, { PATH: process.env.PATH })

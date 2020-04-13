@@ -1,6 +1,5 @@
 import {
   IDockerExecutableAction,
-  ILog,
   TActionExecutionOptions,
 } from "../../deployment-types"
 import { expandEnv } from "../../template/expandenv"
@@ -12,6 +11,8 @@ import { environmentToEnvSetters } from "./environment-to-env-setters"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
 import { newProgrammerOops } from "oops-error"
 import { isOops } from "../../helpers/isOops"
+import { ILog } from "../../logging/logger"
+import * as chalk from "chalk"
 
 type TDockerActionFactoryDependencies = {
   exec: any;
@@ -59,7 +60,7 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
         })
         // logger.enterDeployment(plan.origin + '/' + plan.identifier);
         logger.info(executableAction.planString())
-        logger.info(stdout)
+        logger.info(stdout as string)
         // logger.exitDeployment(plan.origin + '/' + plan.identifier);
 
         try {
@@ -70,12 +71,8 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
         } catch (err) {
           // noinspection ExceptionCaughtLocallyJS
           throw new Error(
-            "Failed to save state after successful deployment! " +
-            executableAction.origin +
-            "/" +
-            executableAction.identifier +
-            "\n" +
-            err,
+            `Failed to save state after successful deployment! ${chalk.blueBright(executableAction.origin)}/${chalk.blueBright(executableAction.identifier)}
+${err.message}`,
           )
         }
       } catch (err) {

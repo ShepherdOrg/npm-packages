@@ -71,7 +71,7 @@ set +e
 shepherdjs "$@"
 SHEPHERD_EXIT_CODE=$?
 
-if [ "${SHEPHERD_ENABLE_TTL_CLEANUP}" = "true" ]; then
+if [[ "$*" != *--dryrun*  &&  "${SHEPHERD_ENABLE_TTL_CLEANUP}" == "true"  ]]; then
   ${THISDIR}/delete-expired-resources.sh "$@"
 fi
 

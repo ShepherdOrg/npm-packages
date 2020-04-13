@@ -29,6 +29,7 @@ import {
   ICreateDockerDeploymentActions,
 } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
+import { createLogContextColors } from "../logging/log-context-colors"
 
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
@@ -145,7 +146,8 @@ describe("Deployment orchestration", function() {
       rolloutWaitActionFactory: rolloutWaitActionFactory,
       dockerImageKubectlDeploymentActionFactory: dockerImageKubectlDeploymentActionFactory,
       deployerActionFactory: deployerActionFactory,
-      deploymentTestActionFactory: deploymentTestActionFactory
+      deploymentTestActionFactory: deploymentTestActionFactory,
+      logContextColors: createLogContextColors()
     }
     let deploymentPlan = createDeploymentPlanFactory(fakeDeps).createDeploymentPlan({ key: depAction.herdKey })
     await deploymentPlan.addAction(depAction)
@@ -217,6 +219,7 @@ describe("Deployment orchestration", function() {
                 waitForRollout: false,
                 dryRun: true,
                 dryRunOutputDir: "/tmp/",
+                logContext: {}
               })
               .then(execResults => {
                 // debug('execResults', execResults)
@@ -286,6 +289,7 @@ describe("Deployment orchestration", function() {
               dryRunOutputDir: undefined,
               pushToUi: false,
               waitForRollout: false,
+              logContext: {}
             })
           )
       })
@@ -320,6 +324,7 @@ describe("Deployment orchestration", function() {
               dryRunOutputDir: undefined,
               pushToUi: true,
               waitForRollout: true,
+              logContext: {}
             })
           )
       })

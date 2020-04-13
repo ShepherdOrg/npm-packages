@@ -1,6 +1,6 @@
 import yaml = require("js-yaml")
-import { ILog } from "../../deployment-types"
 import { TK8sPartialDescriptor } from "./k8s-document-types"
+import { ILog } from "../../logging/logger"
 
 type TK8SClusterPolicy = {
   removePublicServiceIpRestrictions: boolean
@@ -58,12 +58,7 @@ function applyServicePolicies(serviceDoc:TK8sPartialDescriptor, logger:ILog) {
 function applyMaxCpuRequestToContainer(containerSpec:TK8sPartialDescriptor, logger:ILog) {
   if (containerSpec.resources && containerSpec.resources.requests && containerSpec.resources.requests.cpu) {
     logger.info(
-      "Changing CPU request",
-      containerSpec.name,
-      "from",
-      containerSpec.resources.requests.cpu,
-      "to",
-      policies.clusterPolicyMaxCpuRequest
+      `Changing CPU request ${containerSpec.name} from ${containerSpec.resources.requests.cpu} to ${policies.clusterPolicyMaxCpuRequest}`
     )
     containerSpec.resources.requests.cpu = policies.clusterPolicyMaxCpuRequest || ""
     return true
@@ -79,12 +74,7 @@ function applyDeploymentPolicies(deploymentDoc:TK8sPartialDescriptor, logger:ILo
       let replicas = deploymentDoc.spec.replicas || 0
       if (deploymentDoc.spec && replicas > policies.maxReplicasPolicy) {
         logger.info(
-          "Reducing number of replicas in",
-          deploymentDoc.metadata.name,
-          "from",
-          replicas,
-          "to",
-          policies.maxReplicasPolicy
+          `Reducing number of replicas in ${deploymentDoc.metadata.name} from ${replicas} to ${policies.maxReplicasPolicy}`
         )
         modified = true
         deploymentDoc.spec.replicas = policies.maxReplicasPolicy
@@ -115,20 +105,10 @@ function applyHPAPolicies(deploymentDoc:TK8sPartialDescriptor, logger:ILog) {
       let maxReplicas = deploymentDoc.spec.maxReplicas || 0
       if (deploymentDoc.spec && maxReplicas > policies.maxReplicasPolicy) {
         logger.info(
-          "Reducing maxreplicas in HPA ",
-          deploymentDoc.metadata.name,
-          "from",
-          maxReplicas,
-          "to",
-          policies.maxReplicasPolicy
+          `Reducing maxreplicas in HPA ${deploymentDoc.metadata.name} from ${maxReplicas} to ${policies.maxReplicasPolicy}`
         )
         logger.info(
-          "Reducing minreplicas in HPA ",
-          deploymentDoc.metadata.name,
-          "from",
-          deploymentDoc.spec.minReplicas,
-          "to",
-          policies.maxReplicasPolicy
+          `Reducing minreplicas in HPA ${deploymentDoc.metadata.name} from ${deploymentDoc.spec.minReplicas} to ${policies.maxReplicasPolicy}`
         )
         deploymentDoc.spec.maxReplicas = policies.maxReplicasPolicy
         deploymentDoc.spec.minReplicas = policies.maxReplicasPolicy
@@ -192,10 +172,10 @@ function applyPoliciesToDoc(rawDoc:string, logger:ILog) {
       return rawDoc
     }
   } catch (e) {
-    let error = "There was an error applying cluster policy to deployment document: \n" + e
-    error += "In document:\n"
-    error += rawDoc
-    throw new Error(error)
+    let errorMessage = "There was an error applying cluster policy to deployment document: \n" + e.message || e
+    errorMessage += "In document:\n"
+    errorMessage += rawDoc
+    throw new Error(errorMessage)
   }
 }
 

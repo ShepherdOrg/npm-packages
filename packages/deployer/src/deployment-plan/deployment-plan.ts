@@ -1,8 +1,7 @@
 import {
-  IAnyDeploymentAction, IBaseDeploymentAction,
+  IAnyDeploymentAction,
   IExecutableAction,
   IKubectlDeployAction,
-  ILog,
   isDockerDeploymentAction,
   isKubectlDeployAction,
   TActionExecutionOptions,
@@ -18,11 +17,18 @@ import { TFileSystemPath } from "../helpers/basic-types"
 import * as path from "path"
 import { writeFile } from "../helpers/promisified"
 import { IPushToShepherdUI } from "../shepherd"
-import { ICreateDeploymentTestAction, IRollbackAction } from "../deployment-actions/deployment-test-action/deployment-test-action"
+import {
+  ICreateDeploymentTestAction,
+  IRollbackAction,
+} from "../deployment-actions/deployment-test-action/deployment-test-action"
 import { ICreateDockerDeploymentActions } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import { newProgrammerOops } from "oops-error"
 import { renderPlanExecutionError } from "./renderPlanExecutionError"
+import { ILog, LOG_CONTEXT_PREFIX_PADDING, TLogContext } from "../logging/logger"
+import * as chalk from "chalk"
+import { padLeft } from "../logging/padleft"
+import { createLogContextColors, IProvideLogContextColors } from "../logging/log-context-colors"
 
 export interface IDeploymentPlanExecutionResult {
   actionResults: IExecutableAction[]
@@ -63,6 +69,7 @@ export type TK8sDeploymentPlansByKey = { [herdKey: string]: string }
 *  fails will stop all deployment. */
 
 export interface TDeploymentPlanDependencies {
+  logContextColors: IProvideLogContextColors
   stateStore: IReleaseStateStore
   exec: any
   logger: ILog
@@ -95,6 +102,11 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
   function createDeploymentPlan(herdDeclaration: THerdDeclaration): IDeploymentPlan {
     const deploymentActions: Array<IExecutableAction> = []
 
+    let planLogContext: TLogContext = {
+      prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, herdDeclaration.key, true),
+      color: injected.logContextColors.nextLogContextColor(),
+      performanceLog: true
+    }
 
     async function mapDeploymentDataAndPush(deploymentData: IExecutableAction | undefined) {
       if (!deploymentData) {
@@ -119,7 +131,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
         try {
           let executionPromise = deploymentActions.reduce((p, nextAction) => {
             return p.then((actionResults) => {
-              return nextAction.execute(executionOptions).then(async (actionResult) => {
+              return nextAction.execute({...executionOptions,...{logContext: planLogContext}}).then(async (actionResult) => {
                 actionResults.push(actionResult)
                 if (!executionOptions.dryRun && executionOptions.pushToUi) {
                   await mapDeploymentDataAndPush(nextAction)
@@ -138,7 +150,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
 
       },
       async addAction(action: IExecutableAction): Promise<void> {
-        injected.logger.debug(`Adding action to plan ${herdDeclaration.key} `, action.planString())
+        injected.logger.debug(`Adding action to plan ${herdDeclaration.key} ${action.planString()}`)
         deploymentActions.push(action)
         if (action.isStateful && !action.state) {
           action.state = await injected.stateStore.getDeploymentState(action as unknown as TDeploymentStateParams)
@@ -176,22 +188,23 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
         let modified = false
 
         deploymentActions.forEach(function(deploymentAction: IExecutableAction) {
+          let printPlanLogContext: TLogContext = {...planLogContext, ...{performanceLog: false}}
           if (deploymentAction.isStateful && deploymentAction.state) {
             if (deploymentAction.state.modified) {
               if (!modified) {
                 if (herdDeclaration) {
-                  logger.info(`Deploying ${herdDeclaration.key}`)
+                  logger.info(`Deploying ${herdDeclaration.key}`, printPlanLogContext)
                 } else {
-                  logger.info("Missing herdKey for ", planInstance)
+                  logger.info("Missing herdKey for " + planInstance, printPlanLogContext)
                 }
               }
               modified = true
-              logger.info(`  - ${deploymentAction.planString()}`)
+              logger.info(`  - ${deploymentAction.planString()}`, printPlanLogContext)
             } else if (modified) {
-              logger.info(`  - ${deploymentAction.planString()}`)
+              logger.info(`  - ${deploymentAction.planString()}`, printPlanLogContext)
             } // else stateful and not modified
           } else if(modified) { // Supporting action such as rollout wait or deployment test
-            logger.info(`  -  > ${deploymentAction.planString()}`)
+            logger.info(`  -  > ${deploymentAction.planString()}`, printPlanLogContext)
           } // Not stateful and nothing else modified either
         })
         return modified
@@ -205,6 +218,12 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
 
   async function createDockerImageDeploymentActions(imageInformation: TImageInformation) {
 
+    let planLogContext: TLogContext = {
+      prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, imageInformation.imageDeclaration.key, true),
+      color: injected.logContextColors.nextLogContextColor(),
+      performanceLog: true
+    }
+
     if (imageInformation.shepherdMetadata) {
       let resultingActions: Array<IExecutableAction> = emptyArray<IExecutableAction>()
 
@@ -216,7 +235,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
       }
       let deploymentActions: Array<IExecutableAction>
       if (imageInformation.shepherdMetadata.deploymentType === "deployer") {
-        deploymentActions = await injected.deployerActionFactory.createDockerDeploymentAction(imageInformation)
+        deploymentActions = await injected.deployerActionFactory.createDockerDeploymentAction(imageInformation, planLogContext)
       } else if (imageInformation.shepherdMetadata.deploymentType === "k8s") {
         deploymentActions = await injected.dockerImageKubectlDeploymentActionFactory.createKubectlDeploymentActions(imageInformation)
 
@@ -248,7 +267,6 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
           },
         }
         resultingActions.push(injected.deploymentTestActionFactory.createDeploymentTestAction(imageInformation.shepherdMetadata.postDeployTest, imageInformation.shepherdMetadata, deploymentActionsRollback))
-        console.log(`HAVE POSTDEPLOYTEST, ${resultingActions.length} resulting plan is \n ${resultingActions.map((ra)=>ra.planString()).join('\n')} \n \n \n end`)
       }
 
       return resultingActions

@@ -1,5 +1,5 @@
 import { emptyArray } from "../helpers/ts-functions"
-import { ILog } from "../deployment-types"
+import { ILog } from "../logging/logger"
 
 export interface IFakeLogging extends ILog{
   log: string,

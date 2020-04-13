@@ -11,14 +11,7 @@ import { TDescriptorsByKind } from "./deployment-actions/kubectl-action/k8s-depl
 import { TFileSystemPath, TISODateString } from "./helpers/basic-types"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { TDeploymentRollout } from "./deployment-actions/kubectl-action/kubectl-deployment-action-factory"
-import { IDeploymentPlan, IDeploymentPlanExecutionResult } from "./deployment-plan/deployment-plan"
-
-export type ILog = {
-  info: typeof console.info,
-  debug: typeof console.debug,
-  warn: typeof console.warn
-  error: typeof console.error
-}
+import { TLogContext } from "./logging/logger"
 
 export enum THerdSectionType {
   infrastructure = "infrastructure",
@@ -115,26 +108,26 @@ export interface IExecutableAction {
   state?: TDeploymentState
   descriptor: string
 
-  planString():string
+  planString(): string
 
   execute(
-    deploymentOptions: TActionExecutionOptions
+    deploymentOptions: TActionExecutionOptions,
   ): Promise<IExecutableAction>
 
   canRollbackExecution(): this is IRollbackActionExecution
 }
 
-export type TRollbackResult ={
+export type TRollbackResult = {
   code?: number
   stdOut?: string
   stdErr?: string
 }
 
-export interface IRollbackActionExecution{
+export interface IRollbackActionExecution {
   rollback(): Promise<TRollbackResult>
 }
 
-export function canRollbackExecution(action: object): action is IRollbackActionExecution{
+export function canRollbackExecution(action: object): action is IRollbackActionExecution {
   return Boolean((action as IRollbackActionExecution).rollback)
 }
 
@@ -148,7 +141,7 @@ export interface IBaseDeploymentAction {
   version?: string
 }
 
-export interface IDockerExecutableAction extends IExecutableAction{
+export interface IDockerExecutableAction extends IExecutableAction {
   command: string;
   descriptor: string;
   dockerParameters: string[];
@@ -157,6 +150,7 @@ export interface IDockerExecutableAction extends IExecutableAction{
   imageWithoutTag?: string;
   forTestParameters?: string[];
   identifier: string;
+
   execute(deploymentOptions: TActionExecutionOptions): Promise<IDockerExecutableAction>
 }
 
@@ -166,7 +160,7 @@ export interface IDockerDeploymentAction extends IDockerExecutableAction, IBaseD
   metadata: TDeployerMetadata;
 }
 
-export interface IKubectlAction extends  IExecutableAction{
+export interface IKubectlAction extends IExecutableAction {
   identifier: string
   type: string
   operation: string
@@ -199,7 +193,10 @@ export interface IDockerImageKubectlDeploymentAction extends IKubectlDeployActio
 }
 
 
-export type IAnyDeploymentAction = IDockerDeploymentAction | IDockerImageKubectlDeploymentAction | IK8sDirDeploymentAction
+export type IAnyDeploymentAction =
+  IDockerDeploymentAction
+  | IDockerImageKubectlDeploymentAction
+  | IK8sDirDeploymentAction
 
 
 export type TDeploymentOptions = {
@@ -210,10 +207,10 @@ export type TDeploymentOptions = {
 export type TActionExecutionOptions = TDeploymentOptions & {
   waitForRollout: boolean
   pushToUi: boolean
+  logContext: TLogContext
 }
 
-export type TDeploymentOrchestrationDependencies = {
-}
+export type TDeploymentOrchestrationDependencies = {}
 
 export type FnDeploymentStateSave = (stateSignatureObject: any) => Promise<TDeploymentState>
 

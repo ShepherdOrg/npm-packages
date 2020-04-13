@@ -1,5 +1,6 @@
 import * as _ from "lodash"
 import * as fs from "fs"
+import * as chalk from "chalk"
 
 const Handlebars = require("handlebars")
 
@@ -51,7 +52,7 @@ Handlebars.registerHelper("Base64EncodeFile", (fileName:string | undefined, para
     throw new TemplateError(`Variable pointing to file to base64 encode is not set, in line# ${params.loc.start.line}`, params.loc)
   } else {
     if(!fs.existsSync(fileName)){
-      throw new Error(`File to encode not found ${fileName}`)
+      throw new Error(`File to encode not found ${chalk.red(fileName)}`)
     }
     let fileBuf = fs.readFileSync(fileName)
     return fileBuf.toString("base64")
@@ -74,9 +75,9 @@ export function expandTemplate(templateString: string) {
     template = Handlebars.compile(templateString, { strict: true , noEscape: true})
   } catch (err) {
     throw new Error(
-      "Error compiling string as a handlebars template: " +
+      "Error compiling string as a handlebars template: \n" +
         err.message +
-        ". \nStarting with " +
+        ".\nStarting with " +
         templateString.substring(0, 100) +
         "..."
     )

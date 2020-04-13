@@ -1,6 +1,7 @@
 import { expect } from "chai"
 
 import { expandEnv } from "./expandenv"
+import * as chalk from "chalk"
 
 describe("expand environment vars in string", function() {
   beforeEach(function() {
@@ -25,21 +26,7 @@ describe("expand environment vars in string", function() {
     try {
       expandEnv(rawText)
     } catch (e) {
-      expect(e.message).to.equal(
-        "Reference to environment variable ${ENVVAR_MISSING} could not be resolved: ${ENVVAR_MISSING}"
-      )
-    }
-  })
-
-  it("should not expand partially matching variable name", function() {
-    let rawText = "${ENVVAR_MISSING}"
-
-    try {
-      expandEnv(rawText)
-    } catch (e) {
-      expect(e.message).to.equal(
-        "Reference to environment variable ${ENVVAR_MISSING} could not be resolved: ${ENVVAR_MISSING}"
-      )
+      expect(escape(e.message)).to.equal(escape(`Reference to environment variable \${${chalk.red("ENVVAR_MISSING")}} could not be resolved: \${ENVVAR_MISSING}`)      )
     }
   })
 })

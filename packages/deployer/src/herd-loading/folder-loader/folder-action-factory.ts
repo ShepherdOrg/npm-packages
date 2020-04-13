@@ -5,18 +5,19 @@ import { ICreateKubectlDeploymentAction } from "../../deployment-actions/kubectl
 import {
   IK8sDirDeploymentAction,
   IKubectlDeployAction,
-  ILog,
   TFolderHerdDeclaration,
   TFolderMetadata,
 } from "../../deployment-types"
 import { TFileSystemPath } from "../../helpers/basic-types"
 import { TDeploymentType } from "@shepherdorg/metadata"
 import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-action/kube-supported-extensions"
+import { ILog } from "../../logging/logger"
+import * as chalk from "chalk"
 
 export interface ICreateKubectlActionsForFolderStructure {
   scanDir: (
     dir: TScanDirStruct | TFileSystemPath,
-    herdSpec: TFolderHerdDeclaration
+    herdSpec: TFolderHerdDeclaration,
   ) => Promise<Array<IK8sDirDeploymentAction>>
 }
 
@@ -47,7 +48,7 @@ function isScanDirStruct(dir: TFileSystemPath | TScanDirStruct): dir is TScanDir
 
 
 export function createFolderActionFactory(
-  injected: TFolderActionFactoryDependencies
+  injected: TFolderActionFactoryDependencies,
 ): ICreateKubectlActionsForFolderStructure {
   function initDir(dirPath: TFileSystemPath): TScanDirStruct {
     return {
@@ -70,7 +71,7 @@ export function createFolderActionFactory(
   let initialDir: TFileSystemPath
   let scanDir = function(
     dir: TScanDirStruct | TFileSystemPath,
-    herdSpec: TFolderHerdDeclaration
+    herdSpec: TFolderHerdDeclaration,
   ): Promise<Array<IK8sDirDeploymentAction>> {
     return new Promise(function(resolve, reject) {
       let planPromises = emptyArray<any>()
@@ -89,10 +90,12 @@ export function createFolderActionFactory(
               })
               return flattened
             }
+
             resolve(flatten(plans))
           })
           .catch(reject)
       }
+
       let dirStruct: TScanDirStruct
       if (!isScanDirStruct(dir)) {
         initialDir = dir
@@ -113,7 +116,7 @@ export function createFolderActionFactory(
         list.forEach(function(unresolvedPath) {
           let resolvedPath: string = path.resolve(dirStruct.path, unresolvedPath)
           fs.stat(resolvedPath, function(_err, stat) {
-            function calculateFileDeploymentPlan(resolvedPath: TFileSystemPath) {
+            function constructFileDeploymentPlan(resolvedPath: TFileSystemPath) {
               return new Promise(function(resolve, reject) {
                 fs.readFile(resolvedPath, "utf-8", function(err, data) {
                   if (err) return reject(err)
@@ -130,34 +133,41 @@ export function createFolderActionFactory(
                   }
 
                   const kubeDeploymentRelativePath = path.relative(initialDir, resolvedPath)
-                  const deploymentAction: IKubectlDeployAction = injected.kubectlDeploymentActionFactory.createKubectlDeployAction(
-                    kubeDeploymentRelativePath,
-                    data,
-                    dirStruct.forDelete ? "delete" : "apply",
-                    fileName
-                  )
 
-                  if (process.env.hasOwnProperty(imageVariableName)) {
-                    delete process.env.TPL_DOCKER_IMAGE
+                  try {
+                    const deploymentAction: IKubectlDeployAction = injected.kubectlDeploymentActionFactory.createKubectlDeployAction(
+                      kubeDeploymentRelativePath,
+                      data,
+                      dirStruct.forDelete ? "delete" : "apply",
+                      fileName,
+                    )
+
+                    if (process.env.hasOwnProperty(imageVariableName)) {
+                      delete process.env.TPL_DOCKER_IMAGE
+                    }
+
+                    let folderMetadata: TFolderMetadata = {
+                      buildDate: stat.mtime.toISOString(),
+                      deploymentType: TDeploymentType.Kubernetes,
+                      displayName: fileName,
+                      hyperlinks: [],
+                      path: kubeDeploymentRelativePath,
+                      semanticVersion: "none",
+                    }
+                    let deployment: IK8sDirDeploymentAction = Object.assign(deploymentAction, {
+                      version: "immutable",
+                      type: "k8s",
+                      herdDeclaration: herdSpec,
+                      metadata: folderMetadata,
+                      herdKey: herdSpec.key,
+                      env: injected.environment,
+                    })
+                    resolve(deployment)
+                  } catch (err) {
+                    console.log(`DEBUG Rejecting with error`)
+                    return reject(err)
                   }
 
-                  let folderMetadata: TFolderMetadata = {
-                    buildDate: stat.mtime.toISOString(),
-                    deploymentType: TDeploymentType.Kubernetes,
-                    displayName: fileName,
-                    hyperlinks: [],
-                    path: kubeDeploymentRelativePath,
-                    semanticVersion: "none",
-                  }
-                  let deployment: IK8sDirDeploymentAction = Object.assign(deploymentAction, {
-                    version: "immutable",
-                    type: "k8s",
-                    herdDeclaration: herdSpec,
-                    metadata: folderMetadata,
-                    herdKey: herdSpec.key,
-                    env: injected.environment
-                  })
-                  resolve(deployment)
                 })
               })
             }
@@ -173,8 +183,8 @@ export function createFolderActionFactory(
                     return plans
                   })
                   .catch(function(scanErr) {
-                    reject(new Error("While scanning " + resolvedPath + ":" + scanErr))
-                  })
+                    reject(new Error("While scanning " + chalk.blueBright(resolvedPath) + ":" + scanErr.message))
+                  }),
               )
             } else {
               let baseName = path.basename(resolvedPath)
@@ -183,7 +193,7 @@ export function createFolderActionFactory(
                   dirStruct.isDeploymentDir = true
 
                   planPromises.push(
-                    calculateFileDeploymentPlan(resolvedPath)
+                    constructFileDeploymentPlan(resolvedPath)
                       .then(function(plan: any) {
                         dirStruct.files[baseName] = {
                           modified: plan.modified,
@@ -193,8 +203,9 @@ export function createFolderActionFactory(
                       })
                       .catch(function(e) {
                         pending = -1
-                        reject(new Error("Storing deployment state, for file " + resolvedPath + ":\n" + e))
-                      })
+                        reject(new Error(`While constructing deployment plan for file ${chalk.blueBright(resolvedPath)}:
+${e.message}`))
+                      }),
                   )
                 } else {
                   if (!--pending) scanCompleted()
@@ -203,7 +214,7 @@ export function createFolderActionFactory(
                 pending = -1
                 // Not well tested handling of this error is
                 console.error("Scan error", e)
-                reject(new Error("In file " + resolvedPath + ":\n" + e + dir))
+                reject(new Error("In file " + chalk.blueBright(resolvedPath) + ":\n" + e + dir))
               }
             }
           })

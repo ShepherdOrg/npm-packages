@@ -2,7 +2,6 @@ import { identifyDocument, TDescriptorsByKind } from "./k8s-deployment-document-
 import { TBranchModificationParams } from "./k8s-branch-deployment/create-name-change-index"
 import {
   IKubectlDeployAction,
-  ILog,
   IRollbackActionExecution,
   TActionExecutionOptions,
   TRollbackResult,
@@ -19,6 +18,9 @@ import { emptyArray } from "../../helpers/ts-functions"
 import { IExec, TFileSystemPath } from "../../helpers/basic-types"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
 import { isOops } from "../../helpers/isOops"
+import { ILog, TLogContext } from "../../logging/logger"
+
+const chalk = require('chalk');
 
 const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 
@@ -48,7 +50,7 @@ function expandEnvVariables(lines: string[]) {
       lines[idx] = processLine(lines[idx], {})
     } catch (error) {
       let message = `Error expanding variables in line #${idx}: ${line}\n`
-      message += error
+      message += error.message || error
       throw new Error(message)
     }
   })
@@ -68,7 +70,7 @@ export interface ICreateKubectlDeploymentAction {
 
 export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore }: IKubectlActionFactoryDependencies): ICreateKubectlDeploymentAction {
 
-  async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions) {
+  async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions ) {
 
     if (!thisIsMe.state) {
       throw newProgrammerOops("Missing state object on deployment action ! " + thisIsMe.origin)
@@ -79,6 +81,7 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
           actionExecutionOptions.dryRunOutputDir,
           thisIsMe.operation + "-" + thisIsMe.identifier.toLowerCase() + ".yaml",
         )
+        logger.info(`Writing deployment file to ${writePath}`, actionExecutionOptions.logContext)
         await writeFile(writePath, thisIsMe.descriptor.trim())
         return thisIsMe
       } else {
@@ -89,14 +92,9 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
             debug: true,
           })
           logger.info(
-            "kubectl " +
-            thisIsMe.operation +
-            " deployments in " +
-            thisIsMe.origin +
-            "/" +
-            thisIsMe.identifier,
+            `kubectl ${thisIsMe.operation} deployments in ${thisIsMe.origin}/${thisIsMe.identifier}`,
           )
-          logger.info(stdOut || "[empty output]")
+          logger.info(stdOut as string || "[empty output]")
 
           try {
             if(thisIsMe.isStateful){
@@ -145,15 +143,11 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
               thisIsMe.state = state
               return thisIsMe
             } catch (err) {
-              throw new Error("Failed to save state after error in deleting deployment! " +
-                thisIsMe.origin +
-                "/" +
-                thisIsMe.identifier +
-                "\n" +
-                err)
+              throw new Error(`Failed to save state after error in deleting deployment! ${chalk.blueBright(`${thisIsMe.origin}/${thisIsMe.identifier}`)}
+${err.message || err}`)
             }
           } else {
-            let message = `Failed to perform ${thisIsMe.operation} from label for image ${JSON.stringify(thisIsMe, null, 2)}`
+            let message = `Failed to perform ${chalk.blueBright(thisIsMe.operation)} from label for image ${JSON.stringify(thisIsMe, null, 2)}`
             message += "\n" + error.message
             message += "\nCode:" + errCode
             message += "\nStdOut:" + stdOut
@@ -209,12 +203,11 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
         },
         async rollback() : Promise<TRollbackResult>{
           return await Promise.all(deploymentRollouts.map((deploymentRollout)=>{
-            console.log(`EXECUTING ROLLBACK!!!!!!!!!!!!!!!`)
             return extendedExec(exec)("kubectl", ["--namespace", deploymentRollout.namespace, "rollout", "undo", `deployment/${deploymentRollout.deploymentName}`], {
               env: process.env,
               debug: true,
             }).then((stdOut) => {
-              logger.info(stdOut)
+              logger.info(stdOut as string)
               logger.info("Rollback complete. Original error follows.")
               return {
                 stdOut: stdOut
@@ -252,7 +245,7 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
       return documentDeploymentAction
 
     } catch (error) {
-      let message = `In deployment descriptor, origin: ${actionOrigin}\n`
+      let message = `In deployment descriptor, origin: ${chalk.blueBright(actionOrigin)}\n`
       message += error.message
 
       throw new Oops({ message, category: "OperationalError", cause: error })

@@ -1,5 +1,4 @@
 import { IReleaseStateStore } from "@shepherdorg/state-store"
-import { ILog } from "../deployment-types"
 import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import { IExec } from "../helpers/basic-types"
 import { DeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
@@ -22,6 +21,8 @@ import { createDockerActionFactory } from "../deployment-actions/docker-action/d
 import { createDeploymentTestActionFactory, ICreateDeploymentTestAction } from "../deployment-actions/deployment-test-action/deployment-test-action"
 import { createFolderActionFactory } from "./folder-loader/folder-action-factory"
 import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-deployment-planner"
+import { ILog } from "../logging/logger"
+import { createLogContextColors } from "../logging/log-context-colors"
 
 interface TLoaderContextParams {
   stateStore: IReleaseStateStore
@@ -86,6 +87,7 @@ export function createLoaderContext({
     dockerImageKubectlDeploymentActionFactory: dockerImageKubectlDeploymentActionFactory,
     deployerActionFactory,
     deploymentTestActionFactory,
+    logContextColors: createLogContextColors()
   }
 
   let planFactory: IDeploymentPlanFactory = createDeploymentPlanFactory(planDependencies)

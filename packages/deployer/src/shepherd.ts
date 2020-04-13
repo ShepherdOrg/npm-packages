@@ -6,12 +6,14 @@ import * as fs from "fs"
 import { IStorageBackend  } from "@shepherdorg/state-store"
 import { TFileSystemPath } from "./helpers/basic-types"
 import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
-import { CreateLogger } from "./logging/logger"
+import { createLogger, LOG_CONTEXT_PREFIX_PADDING } from "./logging/logger"
 import { createLoaderContext } from "./herd-loading/createLoaderContext"
 import { renderPlanExecutionError } from "./deployment-plan/renderPlanExecutionError"
 import { IDeploymentOrchestration } from "./deployment-orchestration/deployment-orchestration"
 import { InMemoryStore } from "@shepherdorg/state-store/dist/in-memory-backend"
 import { IDeploymentPlanExecutionResult, renderPlanFailureSummary } from "./deployment-plan/deployment-plan"
+import * as chalk from "chalk"
+import { padLeft } from "./logging/padleft"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -92,7 +94,7 @@ global.Promise = require("bluebird")
 
 flatMapPolyfill()
 
-const logger = CreateLogger(console)
+const logger = createLogger(console, { maxWidth: process.stdout.columns, defaultContext: {color: chalk.gray, prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, '>')} })
 
 console.debug = function() {
   // Array.prototype.unshift.call(arguments, 'SHEPDEBUG ');
@@ -138,7 +140,7 @@ if(dryRun){
   stateStoreBackend = InMemoryStore()
 } else {
   if (process.env.SHEPHERD_PG_HOST) {
-    logger.info("Using postgres state store on ", process.env.SHEPHERD_PG_HOST )
+    logger.info(`Using postgres state store on ${process.env.SHEPHERD_PG_HOST}` )
     const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
     const PostgresStore = require("@shepherdorg/postgres-backend").PostgresStore
     stateStoreBackend = PostgresStore(pgConfig)
@@ -147,7 +149,7 @@ if(dryRun){
     let homedir = require("os").homedir()
     let shepherdStoreDir =
       process.env.SHEPHERD_FILESTORE_DIR || path.join(homedir, ".shepherdstore", process.env.ENV || "default")
-    logger.info("WARNING: Falling back to file based state store directory in ", shepherdStoreDir)
+    logger.info(`WARNING: Falling back to file based state store directory in ${shepherdStoreDir}`)
     stateStoreBackend = FileStore({ directory: shepherdStoreDir })
   }
 
@@ -225,21 +227,26 @@ stateStoreBackend
 
           // TODO NEXT Rollback on kube config
 
-          logger.info("Executing deployment plan...")
+          let dryRunString = `${dryRun ? ' dryrun' : ''}`
+
+          logger.info(`Executing deployment plan${dryRunString}... `)
           plan
             .executePlans({
               dryRun: dryRun,
               dryRunOutputDir: outputDirectory,
               pushToUi: pushToUi,
               waitForRollout: waitForRollout,
+              logContext: {}
             })
             .then(function(planResults:IDeploymentPlanExecutionResult[]) {
-              // Exceptions from plan execution are logged immediatly. Here we render only a summary of deployment results.
-              const failedPlans = planResults.filter((planExecutionResult)=>{ return planExecutionResult.actionExecutionError !== null})
+              // Exceptions from plan execution are logged immediately. Here we render only a summary of deployment results.
+              const failedPlans = planResults.filter((planExecutionResult)=>{
+                return planExecutionResult.actionExecutionError !== undefined
+              })
               if(failedPlans.length > 0){
                 renderPlanFailureSummary(logger, failedPlans)
               }
-              logger.info("...plan execution complete. Exiting shepherd.")
+              logger.info(`...plan${dryRunString} execution complete. Exiting shepherd.`)
               setTimeout(() => {
                 terminateProcess(0)
               }, 1000)

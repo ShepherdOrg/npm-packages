@@ -1,6 +1,6 @@
-import { ILog } from "../deployment-types"
 import { Oops } from "oops-error"
 import { isOops } from "../helpers/isOops"
+import { ILog } from "../logging/logger"
 
 export function renderPlanExecutionError(log: ILog, err: Error | Oops) {
   log.error("Plan execution error")

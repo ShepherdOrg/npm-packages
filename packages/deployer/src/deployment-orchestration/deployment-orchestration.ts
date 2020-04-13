@@ -1,7 +1,6 @@
 import {
   IAnyDeploymentAction,
   IDockerImageKubectlDeploymentAction,
-  ILog,
   TActionExecutionOptions,
   TDeploymentOrchestrationDependencies,
 } from "../deployment-types"
@@ -12,6 +11,8 @@ import {
   TK8sDeploymentPlansByKey,
 } from "../deployment-plan/deployment-plan"
 import { flatMapPolyfill } from "../herd-loading/folder-loader/flatmap-polyfill"
+import { ILog } from "../logging/logger"
+import * as chalk from "chalk"
 
 flatMapPolyfill()
 
@@ -39,11 +40,11 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
 
     if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
       throw new Error(
-        deploymentAction.identifier +
+        chalk.red(deploymentAction.identifier) +
         " is already in deployment plan from " +
-        k8sDeploymentsByIdentifier[deploymentAction.identifier].origin +
+        chalk.blueBright(k8sDeploymentsByIdentifier[deploymentAction.identifier].origin )+
         ". When adding deployment from " +
-        deploymentAction.origin,
+        chalk.blueBright(deploymentAction.origin),
       )
     }
 
@@ -66,6 +67,7 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
       dryRunOutputDir: undefined,
       pushToUi: true,
       waitForRollout: false,
+      logContext: {} // This will always be overwritten, probably need a new type here
     },
   ) : Promise<IDeploymentPlanExecutionResult[]> {
     return await Promise.all(deploymentPlans.map((deploymentPlan) => deploymentPlan.execute(runOptions)))
