@@ -178,7 +178,7 @@ describe("running shepherd", function() {
             PRETEST_EXITCODE: "0",
             POSTTEST_EXITCODE: "1",
           }),
-          debug: false, // debug:false suppresses stdout of process
+          debug: true, // debug:false suppresses stdout of process
         })
         .expectExitCode(255)
         .stdout().shouldContain("Executing docker command pretest")

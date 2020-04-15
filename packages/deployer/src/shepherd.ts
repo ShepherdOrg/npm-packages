@@ -3,10 +3,10 @@
 import * as path from "path"
 
 import * as fs from "fs"
-import { IStorageBackend  } from "@shepherdorg/state-store"
+import { IStorageBackend } from "@shepherdorg/state-store"
 import { TFileSystemPath } from "./helpers/basic-types"
 import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
-import { createLogger, LOG_CONTEXT_PREFIX_PADDING } from "./logging/logger"
+import { createLogger, LOG_CONTEXT_PREFIX_PADDING, TLogContext } from "./logging/logger"
 import { createLoaderContext } from "./herd-loading/createLoaderContext"
 import { renderPlanExecutionError } from "./deployment-plan/renderPlanExecutionError"
 import { IDeploymentOrchestration } from "./deployment-orchestration/deployment-orchestration"
@@ -94,7 +94,9 @@ global.Promise = require("bluebird")
 
 flatMapPolyfill()
 
-const logger = createLogger(console, { maxWidth: process.stdout.columns, defaultContext: {color: chalk.gray, prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, '>')} })
+let defaultLogContext = {color: chalk.gray, prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, '>')}
+
+const logger = createLogger(console, { maxWidth: process.stdout.columns, defaultContext: defaultLogContext })
 
 console.debug = function() {
   // Array.prototype.unshift.call(arguments, 'SHEPDEBUG ');
@@ -236,7 +238,7 @@ stateStoreBackend
               dryRunOutputDir: outputDirectory,
               pushToUi: pushToUi,
               waitForRollout: waitForRollout,
-              logContext: {}
+              logContext: defaultLogContext
             })
             .then(function(planResults:IDeploymentPlanExecutionResult[]) {
               // Exceptions from plan execution are logged immediately. Here we render only a summary of deployment results.
@@ -252,7 +254,7 @@ stateStoreBackend
               }, 1000)
             })
             .catch(function(err: Error) {
-              renderPlanExecutionError(logger, err)
+              renderPlanExecutionError(logger, err, defaultLogContext)
               terminateProcess(255)
             })
         }

@@ -111,7 +111,7 @@ export interface IExecutableAction {
   planString(): string
 
   execute(
-    deploymentOptions: TActionExecutionOptions,
+    deploymentOptions: TActionExecutionOptions
   ): Promise<IExecutableAction>
 
   canRollbackExecution(): this is IRollbackActionExecution
@@ -124,7 +124,7 @@ export type TRollbackResult = {
 }
 
 export interface IRollbackActionExecution {
-  rollback(): Promise<TRollbackResult>
+  rollback(deploymentOptions: TActionExecutionOptions): Promise<TRollbackResult>
 }
 
 export function canRollbackExecution(action: object): action is IRollbackActionExecution {

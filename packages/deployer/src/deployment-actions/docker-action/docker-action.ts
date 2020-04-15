@@ -59,8 +59,8 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
           env: process.env,
         })
         // logger.enterDeployment(plan.origin + '/' + plan.identifier);
-        logger.info(executableAction.planString())
-        logger.info(stdout as string)
+        logger.info(executableAction.planString(), deploymentOptions.logContext)
+        logger.info(stdout as string, deploymentOptions.logContext)
         // logger.exitDeployment(plan.origin + '/' + plan.identifier);
 
         try {

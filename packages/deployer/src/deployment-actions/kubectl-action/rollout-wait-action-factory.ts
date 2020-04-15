@@ -44,14 +44,14 @@ export function createRolloutWaitActionFactory(actionDependencies: TRolloutWaitA
             env: process.env,
             debug: true,
           }).then((stdOut) => {
-            logger.info(planString())
-            logger.info(stdOut as string)
+            logger.info(planString(), deploymentOptions.logContext)
+            logger.info(stdOut as string, deploymentOptions.logContext)
             return waitAction
           }).catch((execError) => {
             const { errCode, stdOut, message: err } = execError
-            logger.warn(`Error executing kubectl rollout status ${deploymentRollout}, code ${errCode}`)
-            logger.warn(err)
-            logger.warn(stdOut)
+            logger.warn(`Error executing kubectl rollout status ${deploymentRollout}, code ${errCode}`, deploymentOptions.logContext)
+            logger.warn(err, deploymentOptions.logContext)
+            logger.warn(stdOut, deploymentOptions.logContext)
             return waitAction
           })
         } else {

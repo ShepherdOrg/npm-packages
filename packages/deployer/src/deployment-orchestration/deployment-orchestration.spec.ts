@@ -255,8 +255,8 @@ describe("Deployment orchestration", function() {
         expect(fakeStateStore.savedStates.length).to.equal(0)
       })
 
-      it("should push unmodified data to UI", () => {
-        expect(fakeUiDataPusher.pushedData[0].deploymentState.modified).to.equal(false)
+      it("should not push unmodified data to UI", () => {
+        expect(fakeUiDataPusher.pushedData.length).to.equal(0)
       })
 
       it("should print plan stating no changes", function() {
@@ -444,6 +444,7 @@ describe("Deployment orchestration", function() {
         let outputLogger: IFakeLogging
         outputLogger = createFakeLogger()
         deploymentOrchestration.printPlan(outputLogger)
+
         expect(outputLogger.logStatements.length).to.equal(4)
         expect(outputLogger.logStatements[0].data[0]).to.equal("Deploying testenvimage-migrations:0.0.0")
         expect(outputLogger.logStatements[1].data[0]).to.equal(

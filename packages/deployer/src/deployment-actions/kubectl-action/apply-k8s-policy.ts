@@ -40,7 +40,7 @@ function applyServicePolicies(serviceDoc:TK8sPartialDescriptor, logger:ILog) {
         modified = true
         delete serviceDoc.spec.loadBalancerSourceRanges
       } else {
-        logger.info(
+        logger.warn(
           "WARNING: Public service defined in " +
             serviceDoc.origin +
             "(" +

@@ -3,7 +3,7 @@ import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
 import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { expect } from "chai"
-import { IKubectlDeployAction, TRollbackResult } from "../../deployment-types"
+import { IKubectlDeployAction, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
 import { createKubectlDeploymentActionsFactory } from "./kubectl-deployment-action-factory"
 
 export function createKubectlTestDeployAction(
@@ -57,7 +57,14 @@ describe("Kubectl deployment action factory", function() {
     describe("executing rollback", function() {
       let rollbackResult: TRollbackResult
       before(async () => {
-        rollbackResult = (testAction.canRollbackExecution() && await testAction.rollback() || {})
+        let execOptions:TActionExecutionOptions = {
+          dryRun: false,
+          dryRunOutputDir: undefined,
+          logContext: {},
+          pushToUi: false,
+          waitForRollout: false
+        }
+        rollbackResult = (testAction.canRollbackExecution() && await testAction.rollback(execOptions) || {})
       })
 
       it("should get rollback results", () => {

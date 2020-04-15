@@ -92,9 +92,9 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
             debug: true,
           })
           logger.info(
-            `kubectl ${thisIsMe.operation} deployments in ${thisIsMe.origin}/${thisIsMe.identifier}`,
+            `kubectl ${thisIsMe.operation} descriptors in ${thisIsMe.origin}/${thisIsMe.identifier}`, actionExecutionOptions.logContext
           )
-          logger.info(stdOut as string || "[empty output]")
+          logger.info(stdOut as string || "[empty output]", actionExecutionOptions.logContext)
 
           try {
             if(thisIsMe.isStateful){
@@ -123,15 +123,15 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
               " deployments in " +
               thisIsMe.origin +
               "/" +
-              thisIsMe.identifier,
+              thisIsMe.identifier, actionExecutionOptions.logContext
             )
             logger.info(
-              "Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows.",
+              "Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows.", actionExecutionOptions.logContext
             )
             if (err) {
-              logger.info(err || "[empty error]")
+              logger.info(err || "[empty error]", actionExecutionOptions.logContext)
             }
-            logger.info(stdOut || "[empty output]")
+            logger.info(stdOut || "[empty output]", actionExecutionOptions.logContext)
 
             // @ts-ignore
             thisIsMe.state.stdout = stdOut
@@ -201,22 +201,22 @@ ${err.message || err}`)
         async execute(deploymentOptions: TActionExecutionOptions) {
           return await executeKubectlDeploymentAction(documentDeploymentAction, deploymentOptions)
         },
-        async rollback() : Promise<TRollbackResult>{
+        async rollback(deploymentOptions: TActionExecutionOptions) : Promise<TRollbackResult>{
           return await Promise.all(deploymentRollouts.map((deploymentRollout)=>{
             return extendedExec(exec)("kubectl", ["--namespace", deploymentRollout.namespace, "rollout", "undo", `deployment/${deploymentRollout.deploymentName}`], {
               env: process.env,
               debug: true,
             }).then((stdOut) => {
-              logger.info(stdOut as string)
-              logger.info("Rollback complete. Original error follows.")
+              logger.info(stdOut as string, deploymentOptions.logContext)
+              logger.info("Rollback complete. Original error follows.", deploymentOptions.logContext)
               return {
                 stdOut: stdOut
               }
             }).catch((execError) => {
               const { errCode, stdOut, message: err } = execError
-              logger.warn(`Error executing kubectl rollout undo ${deploymentRollout}, code ${errCode}`)
-              logger.warn(err)
-              logger.warn(stdOut)
+              logger.warn(`Error executing kubectl rollout undo ${deploymentRollout}, code ${errCode}`, deploymentOptions.logContext)
+              logger.warn(err, deploymentOptions.logContext)
+              logger.warn(stdOut, deploymentOptions.logContext)
               return {
                 code: errCode,
                 stdOut: stdOut,

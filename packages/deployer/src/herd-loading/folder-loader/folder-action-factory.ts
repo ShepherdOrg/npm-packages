@@ -164,7 +164,6 @@ export function createFolderActionFactory(
                     })
                     resolve(deployment)
                   } catch (err) {
-                    console.log(`DEBUG Rejecting with error`)
                     return reject(err)
                   }
 

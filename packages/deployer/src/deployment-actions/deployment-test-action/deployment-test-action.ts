@@ -4,7 +4,7 @@ import {
 } from "../../deployment-types"
 import { ICreateDockerActions } from "../docker-action/docker-action"
 import { isOops } from "../../helpers/isOops"
-import { ILog } from "../../logging/logger"
+import { ILog, TLogContext } from "../../logging/logger"
 
 export interface ICreateDeploymentTestAction {
   createDeploymentTestAction(
@@ -17,7 +17,7 @@ export interface ICreateDeploymentTestAction {
 export type TDeploymentTestActionFactoryDependencies = { dockerActionFactory:ICreateDockerActions, logger: ILog }
 
 export interface IRollbackAction {
-  rollback(): Promise<TRollbackResult>
+  rollback(actionExecutionOptions: TActionExecutionOptions): Promise<TRollbackResult>
 }
 
 export function createDeploymentTestActionFactory({dockerActionFactory, logger}:TDeploymentTestActionFactoryDependencies) {
@@ -38,19 +38,19 @@ export function createDeploymentTestActionFactory({dockerActionFactory, logger}:
     const rollbackEnablingExecution = {
       isStateful:false,
       execute: async function(
-        deploymentOptions: TActionExecutionOptions
+        executionOptions: TActionExecutionOptions
       ): Promise<IExecutableAction> {
-        return dockerExecutionAction.execute(deploymentOptions).catch(async testRunException => {
+        return dockerExecutionAction.execute(executionOptions).catch(async testRunException => {
           if(onTestFailureCallMe){
-            logger.info('Test run failed, rolling back to last good version.')
-            await onTestFailureCallMe.rollback()
+            logger.info('Test run failed, rolling back to last good version.', executionOptions.logContext)
+            await onTestFailureCallMe.rollback(executionOptions)
           }
           if(isOops(testRunException)){
-            logger.error('vvvvvvvvvvvvvvvv test output vvvvvvvvvvvvvvvv')
-            logger.error(testRunException.message)
+            logger.error('vvvvvvvvvvvvvvvv test output vvvvvvvvvvvvvvvv', undefined, executionOptions.logContext)
+            logger.error(testRunException.message, testRunException, executionOptions.logContext)
             // @ts-ignore
-            logger.error(testRunException.context.stdOut)
-            logger.error('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^')
+            logger.error(testRunException.context.stdOut, undefined, executionOptions.logContext)
+            logger.error('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^', undefined, executionOptions.logContext)
           }
           throw testRunException
         })

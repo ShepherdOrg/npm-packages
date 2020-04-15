@@ -67,7 +67,7 @@ export function createDockerDeployerActionFactory(
             deployerMetadata.environmentVariablesExpansionString
           )
 
-          injected.logger.info(`Executing docker action rollback ${rollbackAction.planString()}`)
+          injected.logger.info(`Executing docker action rollback ${rollbackAction.planString()}`, logContext)
           return await rollbackAction
             .execute({
               pushToUi: false,
@@ -77,7 +77,7 @@ export function createDockerDeployerActionFactory(
               logContext,
             })
             .then(() => {
-              injected.logger.info(`Rollback complete. Original error follows.`)
+              injected.logger.info(`Rollback complete. Original error follows.`, logContext)
               return {}
             })
         },
