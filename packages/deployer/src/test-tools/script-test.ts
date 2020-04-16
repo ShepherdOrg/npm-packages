@@ -77,6 +77,7 @@ type TStdErrDSL = {
 }
 
 export interface TScriptTestExecution {
+  actualExitCode: number
   expectedExitCode: number | undefined
   callback?: FExecutionCallback
   processStderr?: string
@@ -125,15 +126,15 @@ export default {
       command,
       args,
       options,
-      function(err: string, errCode: number, stdout: string) {
+      function(err: string, exitCode: number, stdout: string) {
+        execution.actualExitCode = exitCode
         if (execution.expectedExitCode) {
-          expect(errCode).to.equal(execution.expectedExitCode)
           execution.processOutput = stdout
           execution.processStderr = err.trim()
           execution.checkExpectations()
           execution.callback && execution.callback(stdout)
         } else {
-          console.error("Process error in test, error code:", errCode, " stderr:", err)
+          console.error("Process error in test, error code:", exitCode, " stderr:", err)
           expect.fail(
             "Error invoking : " +
               command +
@@ -144,11 +145,12 @@ export default {
               "\nError output:\n" +
               err +
               "\n. ErrorCode:" +
-              errCode
+              exitCode
           )
         }
       },
       function(output: string) {
+        execution.actualExitCode = 0
         execution.processOutput = output
         execution.checkExpectations()
         execution.callback && execution.callback(output)
@@ -157,6 +159,7 @@ export default {
     )
 
     let execution: TScriptTestExecution = {
+      actualExitCode: 0,
       actualOutputFileOrDir: undefined,
       dirShouldBeEmpty: false,
       expectedOutputFileOrDir: undefined,
@@ -227,6 +230,10 @@ export default {
         return execution
       },
       checkExpectations() {
+
+        if(execution.expectedExitCode){
+          expect(execution.actualExitCode).to.equal(execution.expectedExitCode)
+        }
         execution.expectedStdoutPartials.forEach((partialString: string) => {
           expect(execution.processOutput.indexOf(partialString)).to.gte(0, partialString)
         })
@@ -322,7 +329,7 @@ export default {
             compareActualVsExpected(expectedFileName, actualFileName, execution.ignoreList)
           }
         }
-      },
+      }
     }
 
     return execution

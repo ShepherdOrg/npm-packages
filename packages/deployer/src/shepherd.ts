@@ -247,6 +247,7 @@ stateStoreBackend
               })
               if(failedPlans.length > 0){
                 renderPlanFailureSummary(logger, failedPlans)
+                return terminateProcess(failedPlans.length)
               }
               logger.info(`...plan${dryRunString} execution complete. Exiting shepherd.`)
               setTimeout(() => {

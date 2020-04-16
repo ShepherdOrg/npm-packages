@@ -168,7 +168,7 @@ describe("running shepherd", function() {
       cleanDir(shepherdStoreDir)
     })
 
-    it(" should fail on post tests and attempt to rollback to previous version, independently on deployment plans", function(done) {
+    it(" should fail on post tests and attempt to rollback to previous version, independently on deployment plans, and exit with number of failing plans", function(done) {
       script
         .execute(shepherdTestHarness, ["--fakerun", "src/herd-loading/testdata/deploytestherd/herd.yaml"], {
           env: _.extend({}, process.env, {
@@ -178,9 +178,9 @@ describe("running shepherd", function() {
             PRETEST_EXITCODE: "0",
             POSTTEST_EXITCODE: "1",
           }),
-          debug: true, // debug:false suppresses stdout of process
+          debug: false, // debug:false suppresses stdout of process
         })
-        .expectExitCode(255)
+        .expectExitCode(2)
         .stdout().shouldContain("Executing docker command pretest")
         .stdout().shouldContain("Post test exit with code 1")
         .stdout().shouldContain("Executing docker command deploy")
