@@ -37,11 +37,6 @@ export function createUpstreamTriggerDeploymentConfig(logger: ILog): IConfigureU
     asHerd():THerdFileStructure {
       let images: TDockerImageHerdDeclarations = {}
 
-      // TODO Remove if (!featureDeploymentConfig.isUpstreamBranchDeployment()) {
-      //   throw new Error(
-      //     "Upstream config does not contain enough information for upstream feature deployment configuration!",
-      //   )
-      // }
       if (!featureDeploymentConfig.upstreamHerdKey) {
         throw newProgrammerOops("Cannot construct a herd declaration from upstream config without an upstreamHerdKey")
       }
