@@ -1,8 +1,9 @@
 import {
   createUpstreamTriggerDeploymentConfig,
-  TFeatureDeploymentConfig,
+  IConfigureUpstreamDeployment,
 } from "./create-upstream-trigger-deployment-config"
 import { createFakeLogger } from "../test-tools/fake-logger"
+import { OmitKey, THerdDeclaration } from "../deployment-types"
 
 const expect = require("chai").expect
 
@@ -25,7 +26,7 @@ describe("Upstream triggered deployment config ", function() {
       branchName: "newnamein-alllowercaps",
       ttlHours: 999,
     }
-    let config : TFeatureDeploymentConfig
+    let config : IConfigureUpstreamDeployment
 
     before(() => {
       config = createUpstreamTriggerDeploymentConfig(createFakeLogger())
@@ -40,7 +41,7 @@ describe("Upstream triggered deployment config ", function() {
     })
 
     it("should be an upstream feature deployment", () => {
-      expect(config.isUpstreamFeatureDeployment()).to.equal(true)
+      expect(config.isUpstreamBranchDeployment()).to.equal(true)
     })
   })
 
@@ -63,7 +64,7 @@ describe("Upstream triggered deployment config ", function() {
       branchName: "newnamein-alllowercaps",
       ttlHours: 999,
     }
-    let config : TFeatureDeploymentConfig
+    let config : IConfigureUpstreamDeployment
 
     before(() => {
       config = createUpstreamTriggerDeploymentConfig(createFakeLogger())
@@ -77,31 +78,51 @@ describe("Upstream triggered deployment config ", function() {
       })
     })
 
-    it("should be an upstream feature deployment", () => {
-      expect(config.isUpstreamFeatureDeployment()).to.equal(true)
+    it("should be an upstream branch deployment", () => {
+      expect(config.isUpstreamBranchDeployment()).to.equal(true)
     })
   })
 
-  describe("upstream deployment with no feature deployment", function() {
+  describe("upstream deployment on master", function() {
     const configObject = {
       UPSTREAM_HERD_KEY: "envKey",
       UPSTREAM_IMAGE_URL: "envimagename:envtag",
       UPSTREAM_HERD_DESCRIPTION: "env description",
     }
 
-    let config : TFeatureDeploymentConfig
+    let herdImageDeclaration: OmitKey<THerdDeclaration & { dockerImage?: string; image: string; imagetag: string }>
+
+    let config : IConfigureUpstreamDeployment
 
     before(() => {
       config = createUpstreamTriggerDeploymentConfig(createFakeLogger())
       config.loadFromEnvironment("herdFilePath", configObject)
+      // @ts-ignore
+      herdImageDeclaration = config.asHerd().images[configObject.UPSTREAM_HERD_KEY]
     })
 
     it("should require herd file edit", () => {
       expect(config.herdFileEditNeeded()).to.equal(true)
     })
 
-    it("should not be upstream triggered", () => {
-      expect(config.isUpstreamFeatureDeployment()).to.equal(false)
+    it("should not be marked as branch deployment", () => {
+      expect(config.isUpstreamBranchDeployment()).to.equal(false)
+    })
+
+    it("should generate herd structure", () => {
+      expect(herdImageDeclaration.image).to.equal("envimagename")
+    })
+
+    it("should extract description", () => {
+      expect(herdImageDeclaration.description).to.equal("env description")
+    })
+
+    it("should extract imagetag", () => {
+      expect(herdImageDeclaration.imagetag).to.equal("envtag")
+    })
+
+    it("should not be marked as branch deployment", () => {
+      expect(herdImageDeclaration.featureDeployment).to.equal(undefined)
     })
   })
 
@@ -149,16 +170,16 @@ describe("Upstream triggered deployment config ", function() {
     })
 
     it("should not be UpstreamFeatureDeployment by default", () => {
-      expect(config.isUpstreamFeatureDeployment()).to.equal(false)
+      expect(config.isUpstreamBranchDeployment()).to.equal(false)
     })
 
-    it("should refuse to generate a herd structure for a non-branch deployment", () => {
+    it("should refuse to generate a herd structure without an upstream herd key", () => {
       try {
         config.asHerd()
         expect.fail("Should throw an error, asdf")
       } catch (err) {
         expect(err.message).to.equal(
-          "Upstream config does not contain enough information for upstream feature deployment configuration!"
+          "Cannot construct a herd declaration from upstream config without an upstreamHerdKey"
         )
       }
     })

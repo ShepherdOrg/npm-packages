@@ -2,7 +2,7 @@ import * as fs from "fs"
 
 import { THerdFileStructure, THerdSectionDeclaration, THerdSectionType } from "../deployment-types"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
-import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstream-trigger-deployment-config"
+import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import { TFileSystemPath } from "../helpers/basic-types"
 import { IPlanFolderDeployments } from "./folder-loader/create-folder-deployment-planner"
 import * as path from "path"
@@ -27,7 +27,7 @@ export type THerdLoaderDependencies = {
   deploymentOrchestration: IDeploymentOrchestration
   planFactory: IDeploymentPlanFactory
   logger: ILog
-  featureDeploymentConfig: TFeatureDeploymentConfig
+  featureDeploymentConfig: IConfigureUpstreamDeployment
   exec: any
   labelsLoader: TDockerMetadataLoader
   stateStore: IReleaseStateStore
@@ -69,7 +69,7 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
       let deploymentOrchestration = injected.deploymentOrchestration
 
       let herd: THerdFileStructure
-      if (featureDeploymentConfig.isUpstreamFeatureDeployment()) {
+      if (featureDeploymentConfig.isUpstreamTriggeredDeployment()) {
         herd = featureDeploymentConfig.asHerd()
       } else {
         herd = YAML.load(fs.readFileSync(fileName, "utf8"))

@@ -15,7 +15,7 @@ import {
 import { detectRecursion } from "../helpers/obj-functions"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
 import { IExec, TFileSystemPath } from "../helpers/basic-types"
-import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstream-trigger-deployment-config"
+import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import {
   createDeploymentPlanFactory,
   IDeploymentPlan,
@@ -62,7 +62,7 @@ describe("herd.yaml loading", function() {
 
   function createTestHerdLoader(
     labelsLoader: TDockerMetadataLoader,
-    featureDeploymentConfig: TFeatureDeploymentConfig,
+    featureDeploymentConfig: IConfigureUpstreamDeployment,
   ) {
     let stateStore = createFakeStateStore()
 
