@@ -1,5 +1,7 @@
 import * as chalk from "chalk"
 
+import 'array-flat-polyfill'
+
 let initialTime = new Date().getTime()
 
 function elapsedTime() {
