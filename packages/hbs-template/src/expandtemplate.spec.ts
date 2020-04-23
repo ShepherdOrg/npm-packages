@@ -19,6 +19,14 @@ describe("expand environment vars using handlebars template syntax", function() 
     expect(expandedText).to.equal("TESTVALUE")
   })
 
+  it("should expand simple variable with enclosing spaces", function() {
+    let rawText = "{{ ENVVAR_ONE }}"
+
+    let expandedText = expandTemplate(rawText, process.env)
+
+    expect(expandedText).to.equal("TESTVALUE")
+  })
+
   it("should throw on missing variable", () => {
     try {
       expandTemplate("{{ENVVAR_MISSING}}", process.env)
