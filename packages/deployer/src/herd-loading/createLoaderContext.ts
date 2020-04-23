@@ -1,5 +1,5 @@
 import { IReleaseStateStore } from "@shepherdorg/state-store"
-import { TFeatureDeploymentConfig } from "../triggered-deployment/create-upstream-trigger-deployment-config"
+import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import { IExec } from "../helpers/basic-types"
 import { DeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
 import {
@@ -27,7 +27,7 @@ import { createLogContextColors } from "../logging/log-context-colors"
 interface TLoaderContextParams {
   stateStore: IReleaseStateStore
   logger: ILog
-  featureDeploymentConfig: TFeatureDeploymentConfig
+  featureDeploymentConfig: IConfigureUpstreamDeployment
   exec: IExec
   uiPusher: IPushToShepherdUI
   environment: string

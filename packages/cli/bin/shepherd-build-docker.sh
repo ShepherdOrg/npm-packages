@@ -52,6 +52,8 @@ Environment variable options:
     SEMANTIC_VERSION:        Use to construct version tag. If not provided, will attempt to extract tag from the "FROM"
                              statement in the dockerfile.
 
+	SHEPHERD_DEPLOYMENT_QUEUE_FILE:    Deployment queue for monorepo build and deployment support.
+
 Examples:
 
 $(basename $0) ./Dockerfile

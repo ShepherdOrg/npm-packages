@@ -4,7 +4,7 @@ import { TFileSystemPath } from "../helpers/basic-types"
 import { parseImageUrl } from "../helpers/parse-image-url"
 import { ILog } from "../logging/logger"
 
-export interface TFeatureDeploymentConfig {
+export interface IConfigureUpstreamDeployment {
   origin?: string
   imageFileName?: string
   ttlHours?: number
@@ -14,7 +14,7 @@ export interface TFeatureDeploymentConfig {
   upstreamHerdKey: string
   branchName?: string
 
-  isUpstreamFeatureDeployment(): boolean
+  isUpstreamBranchDeployment(): boolean
 
   asHerd(): THerdFileStructure
 
@@ -26,33 +26,41 @@ export interface TFeatureDeploymentConfig {
 }
 
 
-export function createUpstreamTriggerDeploymentConfig(logger: ILog): TFeatureDeploymentConfig {
-  const featureDeploymentConfig: TFeatureDeploymentConfig = {
+export function createUpstreamTriggerDeploymentConfig(logger: ILog): IConfigureUpstreamDeployment {
+  const featureDeploymentConfig: IConfigureUpstreamDeployment = {
     upstreamImageTag: "",
     upstreamImageName: "",
     upstreamHerdKey: "",
-    isUpstreamFeatureDeployment():boolean {
+    isUpstreamBranchDeployment():boolean {
       return Boolean(featureDeploymentConfig.branchName)
     },
     asHerd():THerdFileStructure {
       let images: TDockerImageHerdDeclarations = {}
 
-      if (!featureDeploymentConfig.isUpstreamFeatureDeployment()) {
-        throw new Error(
-          "Upstream config does not contain enough information for upstream feature deployment configuration!",
-        )
-      }
+      // TODO Remove if (!featureDeploymentConfig.isUpstreamBranchDeployment()) {
+      //   throw new Error(
+      //     "Upstream config does not contain enough information for upstream feature deployment configuration!",
+      //   )
+      // }
       if (!featureDeploymentConfig.upstreamHerdKey) {
         throw newProgrammerOops("Cannot construct a herd declaration from upstream config without an upstreamHerdKey")
       }
       let upstreamHerdKey: string = featureDeploymentConfig.upstreamHerdKey
-      images[upstreamHerdKey] = {
-        image: featureDeploymentConfig.upstreamImageName,
-        imagetag: featureDeploymentConfig.upstreamImageTag,
-        description: featureDeploymentConfig.upstreamHerdDescription,
-        timeToLiveHours: featureDeploymentConfig.ttlHours,
-        featureDeployment: true,
-        branchName: featureDeploymentConfig.branchName,
+      if(featureDeploymentConfig.isUpstreamBranchDeployment()){
+        images[upstreamHerdKey] = {
+          image: featureDeploymentConfig.upstreamImageName,
+          imagetag: featureDeploymentConfig.upstreamImageTag,
+          description: featureDeploymentConfig.upstreamHerdDescription,
+          timeToLiveHours: featureDeploymentConfig.ttlHours,
+          featureDeployment: featureDeploymentConfig.isUpstreamBranchDeployment(),
+          branchName: featureDeploymentConfig.branchName,
+        }
+      } else {
+        images[upstreamHerdKey] = {
+          image: featureDeploymentConfig.upstreamImageName,
+          imagetag: featureDeploymentConfig.upstreamImageTag,
+          description: featureDeploymentConfig.upstreamHerdDescription
+        }
       }
       return {
         images: images,
@@ -65,7 +73,7 @@ export function createUpstreamTriggerDeploymentConfig(logger: ILog): TFeatureDep
 
     },
     herdFileEditNeeded(): boolean {
-      return Boolean(!featureDeploymentConfig.isUpstreamFeatureDeployment() && featureDeploymentConfig.isUpstreamTriggeredDeployment())
+      return Boolean(!featureDeploymentConfig.isUpstreamBranchDeployment() && featureDeploymentConfig.isUpstreamTriggeredDeployment())
     },
     loadFromEnvironment(herdFilePath: TFileSystemPath, environment: typeof process.env = process.env): void {
 

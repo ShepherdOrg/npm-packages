@@ -190,18 +190,17 @@ stateStoreBackend
     let releaseStateStore = ReleaseStateStore({
       storageBackend: stateStoreBackend,
     })
-    let featureDeploymentConfig = createUpstreamTriggerDeploymentConfig(logger)
-    featureDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
+    let upstreamDeploymentConfig = createUpstreamTriggerDeploymentConfig(logger)
+    upstreamDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
 
-    if (featureDeploymentConfig.herdFileEditNeeded()) {
-      upgradeOrAddDeploymentInFile(featureDeploymentConfig, logger)
+    if (upstreamDeploymentConfig.herdFileEditNeeded()) {
+      upgradeOrAddDeploymentInFile(upstreamDeploymentConfig, logger)
     }
-
 
     let loaderContext = createLoaderContext({
       stateStore: releaseStateStore,
       logger: logger,
-      featureDeploymentConfig: featureDeploymentConfig,
+      featureDeploymentConfig: upstreamDeploymentConfig,
       exec: exec,
       uiPusher: uiDataPusher,
       environment: environment
