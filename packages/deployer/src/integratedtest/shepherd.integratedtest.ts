@@ -5,7 +5,6 @@ import { PgConfig, PostgresStore as PgBackend } from "@shepherdorg/postgres-back
 import script from "../test-tools/script-test"
 import { TFileSystemPath } from "../helpers/basic-types"
 import { base64Encode } from "../template/base64-env-subst"
-import { expect } from "chai"
 
 const fs = require("fs")
 const path = require("path")
@@ -199,6 +198,32 @@ describe("running shepherd", function() {
   xit("should execute infrastructure deployers first to completion", () => {
   })
 
+  describe("local project deployment from shepherd json", function() {
+    beforeEach(() => {
+      const outputFolder = path.join(process.cwd(), "./.build/local_deploy")
+      ensureCleanOutputFolder(outputFolder)
+
+      process.env.KUBECTL_OUTPUT_FOLDER = outputFolder
+      delete process.env.SHEPHERD_UI_API_ENDPOINT
+      let shepherdStoreDir = "./.build/.local_deploy_store"
+      cleanDir(shepherdStoreDir)
+    })
+
+    it("should execute deployment and associated tests", (done) => {
+      script
+        .execute(shepherdTestHarness, ["--fakerun", "./src/integratedtest/testimages/test-k8s-image-with-deployment-tests/shepherd.json"], {
+          env: _.extend({
+            NO_REBUILD_IMAGES: true,
+          }, process.env),
+          debug: false, // debug:false suppresses stdout of process
+        })
+        .done(function() {
+          done()
+        })
+
+    })
+  })
+
   describe("with state storage", function() {
     beforeEach(function() {
       if (!process.env.SHEPHERD_PG_HOST) {
@@ -225,7 +250,7 @@ describe("running shepherd", function() {
             NO_REBUILD_IMAGES: true,
             INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
           }, process.env),
-          debug: false, // debug:false suppresses stdout of process
+          debug: true, // debug:false suppresses stdout of process
         })
         .done(function() {
           done()

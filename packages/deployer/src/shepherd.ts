@@ -22,7 +22,7 @@ This is the main entry point for shepherd deployer agent
  */
 
 function printUsage() {
-  console.info(`Usage: shepherd /path/to/a/herd.yaml ENVIRONMENT <options>
+  console.info(`Usage: shepherd-deploy /path/to/herd.yaml | /path/to/shepherd.json ENVIRONMENT <options>
 Supported options:
 
     --export             Export deployment documents to outputDir
@@ -33,7 +33,7 @@ Supported options:
     --force-push         Force push of deployment data to consumers during --dryrun (this is not git push)
     --wait-for-rollout   Wait for any kubernetes deployment rollouts to complete before determining successful deployment. 
                          Shepherd does not wait for rollouts by default.
-    --push-to-ui           Push data to shepherd UI. See SHEPHERD_UI_API_ENDPOINT below.
+    --push-to-ui         Push data to shepherd UI. See SHEPHERD_UI_API_ENDPOINT below.
     
     
 Dryrun will write to directory specified by 
@@ -43,9 +43,10 @@ Options through environment variables:
 
 Upstream build job input. The first three must be provided together or all skipped.    
     UPSTREAM_HERD_KEY           - Herd key from upstream trigger. Equivalent to key in images section in herd.yaml
-    UPSTREAM_IMAGE_URL          - Docker image url from upstream.  
+    UPSTREAM_IMAGE_URL          - Docker image url from upstream build.  
     UPSTREAM_HERD_DESCRIPTION   - Short description that would otherwise be in the herd.yaml file.
-    UPSTREAM_WAIT_FOR_ROLLOUT   - Upstream build wants rollout to complete before getting control back. Designed for e2e tests.
+    UPSTREAM_WAIT_FOR_ROLLOUT   - Upstream build wants rollout to complete before getting control back. Useful when 
+                                  post-processing in upstream build depends on rollout being complete, such as running e2e tests.
 
 Push data to Shepherd UI:
     SHEPHERD_UI_API_ENDPOINT - GraphQL endpoint for shepherd UI API
@@ -69,6 +70,12 @@ Other reserved environment variables:
     BRANCH_NAME_PREFIX       - set to \${FEATURE_NAME}-
     BRANCH_NAME_POSTFIX      - set to -\${FEATURE_NAME}   
 
+Examples
+    Deploy all deployments in a given herd.yaml    
+        shepherd-deploy ./deployments/dev/herd.yaml DEV --dryrun
+    
+    Deploy a single deployment using the shepherd declaration file. Useful for development and when starting with shepherd.
+        shepherd-deploy ./shepherd.json DEV --dryrun
 `)
 }
 
