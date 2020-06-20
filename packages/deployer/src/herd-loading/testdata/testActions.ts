@@ -8,7 +8,7 @@ import { TDeployerRole, TDeploymentType } from "@shepherdorg/metadata"
 import { emptyArray } from "../../helpers/ts-functions"
 import { TDeploymentRollout } from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 
-type OmitActionFunctions<T> = Omit<Omit<Omit<T, "canRollbackExecution">, "execute">,"planString">
+type OmitActionFunctions<T> = Omit<Omit<Omit<Omit<Omit<T, "getActionDeploymentState">, "setActionDeploymentState">, "canRollbackExecution">, "execute">,"planString">
 
 export type TK8sDirDeploymentActionStruct = OmitActionFunctions<IK8sDirDeploymentAction>
 export type TDockerDeploymentActionStruct = OmitActionFunctions<IDockerDeploymentAction>

@@ -12,14 +12,14 @@ export function mapUntypedDeploymentData(deploymentInfo: IAnyDeploymentAction | 
     return undefined
   }
 
-  if (!deploymentInfo.state) {
-    throw new Error("Expecting state property on deploymentInfo object -> " + Object.keys(deploymentInfo).join(", "))
+  if (!deploymentInfo.getActionDeploymentState) {
+    throw new Error("Expecting state getter on deploymentInfo object -> " + Object.keys(deploymentInfo).join(", "))
   }
 
   function mapHerdSpec(herdSpec: THerdSpec):THerdSpec {
     let unknownSpec = herdSpec as unknown as any
     let key = unknownSpec.herdKey || unknownSpec.key
-    let mappedHerdSpec = { key: key, ...herdSpec}
+    let mappedHerdSpec = { ...herdSpec, key: key}
     // @ts-ignore
     delete mappedHerdSpec.herdKey
     // @ts-ignore
@@ -29,7 +29,7 @@ export function mapUntypedDeploymentData(deploymentInfo: IAnyDeploymentAction | 
 
   const mappedDeploymentInfo:  any = {
     ...deploymentInfo.metadata,
-    deploymentState: deploymentInfo.state,
+    deploymentState: deploymentInfo.getActionDeploymentState(),
     herdSpec: mapHerdSpec(deploymentInfo.herdDeclaration as THerdSpec),
   }
 

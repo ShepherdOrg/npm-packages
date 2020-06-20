@@ -28,7 +28,6 @@ describe("raw deployment data mapping", function() {
     try{
       let deploymentInfo = deploymentData0()
 
-      delete deploymentInfo.herdKey
       mapUntypedDeploymentData(deploymentInfo as IDockerImageKubectlDeploymentAction)
 
     }catch(err){

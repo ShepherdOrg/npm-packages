@@ -13,13 +13,13 @@ import { newProgrammerOops } from "oops-error"
 import { isOops } from "../../helpers/isOops"
 import { ILog } from "../../logging/logger"
 import * as chalk from "chalk"
+import { TDeploymentState } from "@shepherdorg/metadata"
 
 type TDockerActionFactoryDependencies = {
   exec: any;
   logger: ILog;
   stateStore: IReleaseStateStore
 }
-
 
 export interface ICreateDockerActions {
   createDockerExecutionAction: (shepherdMetadata: TImageMetadata,
@@ -64,8 +64,9 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
         // logger.exitDeployment(plan.origin + '/' + plan.identifier);
 
         try {
-          if (executableAction.isStateful && executableAction.state) {
-            executableAction.state = await stateStore.saveDeploymentState(executableAction.state)
+          let deploymentState = executableAction.getActionDeploymentState()
+          if (executableAction.isStateful && deploymentState) {
+            executableAction.setActionDeploymentState( await stateStore.saveDeploymentState(deploymentState))
           }
           return executableAction
         } catch (err) {
@@ -98,6 +99,8 @@ ${err.message}`,
   ): IDockerExecutableAction {
     let operation = "run"
 
+    let deploymentState:TDeploymentState|undefined = undefined
+
     const deploymentAction: IDockerExecutableAction = {
       descriptor: "",
       dockerParameters: ["-i", "--rm"],
@@ -108,6 +111,12 @@ ${err.message}`,
       isStateful: true,
       command: command,
       identifier: herdKey,
+      getActionDeploymentState(): TDeploymentState | undefined {
+        return deploymentState
+      },
+      setActionDeploymentState(newState?: TDeploymentState): void {
+        deploymentState = newState
+      },
       planString(): string {
         return `docker ${operation} ${dockerImageUrl} ${command}`
       },
