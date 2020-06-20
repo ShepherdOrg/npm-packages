@@ -19,6 +19,7 @@ import { IExec, TFileSystemPath } from "../../helpers/basic-types"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
 import { isOops } from "../../helpers/isOops"
 import { ILog, TLogContext } from "../../logging/logger"
+import { TDeploymentState } from "@shepherdorg/metadata"
 
 const chalk = require('chalk');
 
@@ -72,10 +73,11 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
 
   async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions ) {
 
-    if (!thisIsMe.state) {
+    let deploymentState = thisIsMe.getActionDeploymentState()
+    if (!deploymentState) {
       throw newProgrammerOops("Missing state object on deployment action ! " + thisIsMe.origin)
     }
-    if (thisIsMe.state?.modified) {
+    if (deploymentState?.modified) {
       if (actionExecutionOptions.dryRun && actionExecutionOptions.dryRunOutputDir) {
         const writePath = path.join(
           actionExecutionOptions.dryRunOutputDir,
@@ -98,10 +100,10 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
 
           try {
             if(thisIsMe.isStateful){
-              if(!thisIsMe.state){
+              if(!deploymentState){
                 throw newProgrammerOops('Attempting to execute a stateful action without a state! ', thisIsMe)
               }
-              thisIsMe.state = await stateStore.saveDeploymentState(thisIsMe.state)
+              thisIsMe.setActionDeploymentState( await stateStore.saveDeploymentState(deploymentState))
             }
 
             return thisIsMe
@@ -134,13 +136,14 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
             logger.info(stdOut || "[empty output]", actionExecutionOptions.logContext)
 
             // @ts-ignore
-            thisIsMe.state.stdout = stdOut
+            deploymentState.stdout = stdOut
             // @ts-ignore
-            thisIsMe.state.stderr = err
+            deploymentState.stderr = err
 
             try {
-              const state = await stateStore.saveDeploymentState(thisIsMe.state)
-              thisIsMe.state = state
+              const state = await stateStore.saveDeploymentState(deploymentState)
+
+              thisIsMe.setActionDeploymentState( state )
               return thisIsMe
             } catch (err) {
               throw new Error(`Failed to save state after error in deleting deployment! ${chalk.blueBright(`${thisIsMe.origin}/${thisIsMe.identifier}`)}
@@ -191,7 +194,15 @@ ${err.message || err}`)
         deploymentRollouts = listDeploymentRollouts(descriptorsByKind)
       }
 
+      let deploymentState: TDeploymentState | undefined
+
       let documentDeploymentAction: IKubectlDeployAction & IRollbackActionExecution = {
+        getActionDeploymentState(): TDeploymentState | undefined {
+          return deploymentState;
+        },
+        setActionDeploymentState(newState: TDeploymentState | undefined): void {
+          deploymentState = newState
+        },
         canRollbackExecution(): boolean {
           return Boolean(deploymentRollouts.length);
         },

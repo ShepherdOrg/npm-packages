@@ -25,11 +25,11 @@ import { IPushToShepherdUI } from "../shepherd"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import {
-  createDockerDeployerActionFactory,
-  ICreateDockerDeploymentActions,
+  createDockerDeployerActionFactory
 } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
 import { createLogContextColors } from "../logging/log-context-colors"
+import { TDeploymentState } from "@shepherdorg/metadata"
 
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
@@ -42,8 +42,14 @@ export function createKubectlTestDeployAction(
     logger: iFakeLogging,
     stateStore: stateStore,
   })
+  let deploymentState: TDeploymentState | undefined
 
   let testAction: IDockerImageKubectlDeploymentAction & { testInstance: boolean } = {
+    getActionDeploymentState(): TDeploymentState | undefined {
+      return deploymentState;
+    }, setActionDeploymentState(newState: TDeploymentState | undefined): void {
+      deploymentState = newState
+    },
     planString() {
       return `kubectl ${serialisedAction.operation} ${serialisedAction.identifier}`
     },
@@ -57,7 +63,7 @@ export function createKubectlTestDeployAction(
       return false
     },
     testInstance: true,
-    ...serialisedAction,
+    ...serialisedAction
   }
   return testAction
 }
@@ -73,7 +79,14 @@ export function createFakeDockerDeploymentAction(
     logger: iFakeLogging,
     stateStore: stateStore,
   })
-  let testAction = {
+  let deploymentState: TDeploymentState| undefined
+  let testAction: IDockerDeploymentAction = {
+    getActionDeploymentState(): TDeploymentState | undefined {
+      return deploymentState;
+    },
+    setActionDeploymentState(newState: TDeploymentState | undefined): void {
+      deploymentState = newState
+    },
     planString() {
       return `test action docker run ${serialisedAction.identifier} ${serialisedAction.command}`
     },
@@ -88,8 +101,7 @@ export function createFakeDockerDeploymentAction(
     canRollbackExecution(): boolean {
       return false
     },
-    testInstance: true,
-    ...serialisedAction,
+    ...serialisedAction
   }
   return testAction
 }
@@ -392,8 +404,8 @@ describe("Deployment orchestration", function() {
       })
 
       it("should save call log with state", function() {
-        expect(executedAction?.state?.stdout).to.equal(undefined)
-        expect(executedAction?.state?.stderr).to.equal("not found")
+        expect(executedAction?.getActionDeploymentState()?.stdout).to.equal(undefined)
+        expect(executedAction?.getActionDeploymentState()?.stderr).to.equal("not found")
       })
     })
   })

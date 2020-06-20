@@ -105,9 +105,10 @@ export type TFolderMetadata = {
 
 export interface IExecutableAction {
   isStateful: boolean
-  state?: TDeploymentState
   descriptor: string
 
+  getActionDeploymentState(): TDeploymentState | undefined
+  setActionDeploymentState(newState: TDeploymentState | undefined): void
   planString(): string
 
   execute(
@@ -134,7 +135,6 @@ export function canRollbackExecution(action: object): action is IRollbackActionE
 export interface IBaseDeploymentAction {
   metadata: TImageMetadata | TFolderMetadata;
   herdKey: string;
-  state?: TDeploymentState // State on action or deployment? StateDependentAction, StateMutatingAction (as opposed to wait actions). Model this differently?
   identifier: string
   env: string
   type: string
@@ -172,8 +172,6 @@ export interface IKubectlDeployAction extends IKubectlAction {
   descriptorsByKind?: TDescriptorsByKind
   fileName: string,
   origin: string
-
-  state?: TDeploymentState
 }
 
 export function isKubectlDeployAction(deployAction: IExecutableAction): deployAction is IKubectlDeployAction {

@@ -71,7 +71,13 @@ type IFakeExecutableActions = { getInstance: () => IExecutableAction
 }
 
 function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
+  let deploymentState: TDeploymentState | undefined
   let me: IExecutableAction = {
+    getActionDeploymentState(): TDeploymentState | undefined {
+      return deploymentState;
+    }, setActionDeploymentState(newState: TDeploymentState | undefined): void {
+      deploymentState = newState
+    },
     canRollbackExecution(): boolean {
       return false
     },
@@ -85,7 +91,7 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
     planString() {
       return "fake action"
 
-    },
+    }
   }
 
   function newFakeState() : TDeploymentState {
@@ -97,8 +103,9 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
 
   let factory: IFakeExecutableActions = {
     modified(b: boolean): IFakeExecutableActions {
-      me.state = me.state || newFakeState()
-      me.state.modified = b
+      let newState = me.getActionDeploymentState() || newFakeState()
+      newState.modified = b
+      me.setActionDeploymentState( newState)
       return factory;
     },
     stateFul(isStateful: boolean): IFakeExecutableActions {
@@ -227,7 +234,7 @@ describe("Deployment plan", function() {
     })
 
     it("should retrieve action state from state store", async () => {
-      expect(depPlan.deploymentActions[0].state).not.to.equal(undefined)
+      expect(depPlan.deploymentActions[0].getActionDeploymentState()).not.to.equal(undefined)
     })
   })
 
