@@ -37,14 +37,6 @@ export function createDockerImageKubectlDeploymentActionsFactory(injected: TActi
     let origin =
       imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag + ":tar:" + fileName
 
-    // TODO REMOVE AFTER REFACTOR
-    if (shepherdOptions.testRunMode()) {
-      process.env.TPL_DOCKER_IMAGE = "fixed-for-testing-purposes"
-    } else {
-      process.env.TPL_DOCKER_IMAGE =
-        imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag
-    }
-
     let operation = imageInformation.imageDeclaration.delete ? "delete" : "apply"
 
     const documentDeploymentAction = deploymentActionFactory.createKubectlDeployAction(
@@ -57,9 +49,9 @@ export function createDockerImageKubectlDeploymentActionsFactory(injected: TActi
 
     delete process.env.TPL_DOCKER_IMAGE
 
-    // TODO: Consider creating a deployment action for each part of multipart deployment document
-    // Investigate whether kubernetes does clean up removed deployment sections from document.
-    // Only do this if kubernetes in latest incarnations does not clean up.
+    // TODOLATER: Consider creating a deployment action for each part of multipart deployment document
+    //   Investigate whether kubernetes does clean up removed deployment sections from document.
+    //   Only do this if kubernetes in latest incarnations does not clean up.
     return Object.assign(documentDeploymentAction, {
       env: env,
       herdDeclaration: imageInformation.imageDeclaration,

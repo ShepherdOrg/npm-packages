@@ -44,7 +44,6 @@ const CreateFeatureDeploymentConfig = require("../triggered-deployment/create-up
 
 export interface TTestDeploymentOrchestration extends IDeploymentOrchestration {
   addedDeploymentPlans: Array<IDeploymentPlan>
-  // TODO Remove tests on deploymentActions
   addedK8sDeploymentActions: { [key: string]: IDockerImageKubectlDeploymentAction | IK8sDirDeploymentAction }
   addedDockerDeployerActions: { [key: string]: IDockerDeploymentAction }
 }
@@ -204,7 +203,6 @@ describe("herd.yaml loading", function() {
         addedDockerDeployerActions: addedDockerDeployerActions,
         addedK8sDeploymentActions: addedK8sDeployerActions,
         addedDeploymentPlans: deploymentPlans,
-        // TODO addDeployentPlan(deploymentPlan: IDeploymentPlan)
         async addDeploymentPlan(deploymentPlan: IDeploymentPlan): Promise<IDeploymentPlan> {
           await Promise.all(deploymentPlan.deploymentActions.map(async (da) => {
             await addDeploymentAction(da as IAnyDeploymentAction)
@@ -271,7 +269,7 @@ describe("herd.yaml loading", function() {
       })
   })
 
-  /* TODO Probably should move this test block to testing the folder deployment plan loader directly. Limit to checking that folder deployment planner is invoked correctly. */
+  /* TODOLATER Probably should move this test block to testing the folder deployment plan loader directly. Limit to checking that folder deployment planner is invoked correctly. */
   describe("folder execution plan loading", function() {
     let loadedPlan: TTestDeploymentOrchestration
 

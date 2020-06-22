@@ -135,7 +135,7 @@ let stateStoreBackend: IStorageBackend
 
 export type IPushToShepherdUI = { pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined> }
 
-let uiDataPusher: IPushToShepherdUI // TODO: Need proper type export form uiDataPusher
+let uiDataPusher: IPushToShepherdUI
 
 if(dryRun){
   logger.info(`NOTE: Dryrun does not take deployment state into account and assumes everything needs to be deployed.`)
@@ -226,7 +226,7 @@ stateStoreBackend
             })
         } else {
 
-          // TODO NEXT Rollback on kube config
+          // TODOLATER Rollback on kube config
 
           let dryRunString = `${dryRun ? ' dryrun' : ''}`
 

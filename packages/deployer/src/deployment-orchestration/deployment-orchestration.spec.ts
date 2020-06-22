@@ -111,7 +111,7 @@ export function createFakeUIPusher() {
   fakeUiDataPusher = {
     pushedData: emptyArray<any>(),
     pushDeploymentStateToUI: async (data: any) => {
-      // TODO Eliminate this any once we have proper type on structure pushed to UI
+      // TODOLATER Eliminate this any once we have proper type on structure pushed to UI
       fakeUiDataPusher.pushedData.push(data)
       return data
     },

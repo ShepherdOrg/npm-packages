@@ -210,7 +210,7 @@ describe("Deployment plan", function() {
   //     await depPlan.addAction(testActions[0])
   //   })
   //
-  //   // TODO NEXT for migrations support, move derived action adding to plan or action
+  //   // TODOLATER NEXT for migrations support, move derived action adding to plan or action
   //   it("should add migration action to deployment plan", () => {
   //     expect(depPlan.deploymentActions.length).to.equal(2)
   //   })
