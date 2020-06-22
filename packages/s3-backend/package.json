@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/s3-backend",
-  "version": "4.3.1",
+  "version": "4.3.3",
   "description": "Shepherd S3 state store",
   "files": [
     "dist"
@@ -17,9 +17,9 @@
     "@shepherdorg/state-store": "^4.3.0"
   },
   "devDependencies": {
-    "@shepherdorg/metadata": "^4.3.0",
-    "@shepherdorg/state-store": "^4.3.0",
-    "@shepherdorg/storage-backend-tester": "^4.3.1",
+    "@shepherdorg/metadata": "^4.3.3",
+    "@shepherdorg/state-store": "^4.3.3",
+    "@shepherdorg/storage-backend-tester": "^4.3.3",
     "@types/chai": "4.2.11",
     "@types/mocha": "^5.2.7",
     "@types/node": "12.12.6",
