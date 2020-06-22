@@ -50,6 +50,7 @@ describe("running shepherd", function() {
           env: _.extend({}, process.env, {
             SHEPHERD_PG_HOST: "",
             INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
+            SERVICE_HOST_NAME: "svc.host.somewhere",
           }),
           debug: false, // debug:false suppresses stdout of process
         })
@@ -146,8 +147,8 @@ describe("running shepherd", function() {
       }
       pgBackend
         .connect().catch(postgresConnectionError)
-        .then(()=>{
-          pgBackend.resetAllDeploymentStates().catch((resetError: Error)=>{
+        .then(() => {
+          pgBackend.resetAllDeploymentStates().catch((resetError: Error) => {
             console.error(`RESET ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`, resetError)
             return resetError
           })
@@ -155,7 +156,7 @@ describe("running shepherd", function() {
         .then(() => {
           process.env.KUBECTL_OUTPUT_FOLDER = firstRoundFolder
 
-          let testEnv = { INFRASTRUCTURE_IMPORTED_ENV: "thatsme" }
+          let testEnv = { INFRASTRUCTURE_IMPORTED_ENV: "thatsme", SERVICE_HOST_NAME: "svc.host.somewhere" }
           firstRun = script
             .execute(shepherdTestHarness, [], {
               env: _.extend(testEnv, process.env),
@@ -174,8 +175,8 @@ describe("running shepherd", function() {
                   done()
                 })
             })
-        }).catch((setupError:Error)=>{
-          console.error(`DEBUG Error setting up for test!`, setupError)
+        }).catch((setupError: Error) => {
+        console.error(`DEBUG Error setting up for test!`, setupError)
       })
 
 
@@ -189,9 +190,9 @@ describe("running shepherd", function() {
         .shouldBeEmptyDir().checkExpectations()
     })
 
-    EXPECTED_STATE_STORE_KEYS.forEach((expectedKey)=>{
-      it(`should store ${expectedKey} in backend`, ()=>{
-        return pgBackend.get(expectedKey).then((resultingState)=>{
+    EXPECTED_STATE_STORE_KEYS.forEach((expectedKey) => {
+      it(`should store ${expectedKey} in backend`, () => {
+        return pgBackend.get(expectedKey).then((resultingState) => {
           expect(resultingState.value).not.to.equal(undefined)
 
         })
@@ -261,12 +262,12 @@ describe("running shepherd", function() {
         })
     })
 
-
     it("should modify branch deployment", function(done) {
       script
         .execute(shepherdTestHarness, ["--dryrun"], {
           env: _.extend({
             INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
+            SERVICE_HOST_NAME: "svc.host.somewhere",
           }, process.env),
           debug: false, // debug:false suppresses stdout of process
         })
@@ -286,6 +287,7 @@ describe("running shepherd", function() {
       MICRO_SITES_DB_PASSWORD: "somedbpass",
       ENV: "testit",
       EXPORT1: "nowhardcoded",
+      SERVICE_HOST_NAME: "svc.host.somewhere",
     }
 
     beforeEach(function() {

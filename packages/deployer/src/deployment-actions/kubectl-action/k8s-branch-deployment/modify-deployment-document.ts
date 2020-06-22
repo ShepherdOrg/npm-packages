@@ -1,6 +1,6 @@
 import { TBranchModificationParams, TDocumentKindNameChangeMaps } from "./create-name-change-index"
 
-import * as jsYaml from "js-yaml"
+import * as yaml from "js-yaml"
 import { TK8sHttpPath, TK8sIngressDoc, TK8sPartialContainer, TK8sPartialDescriptor } from "../k8s-document-types"
 import * as chalk from "chalk"
 
@@ -154,7 +154,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
     }
   }
 
-  let yamlFiles = jsYaml.safeLoadAll(fileContents)
+  let yamlFiles = yaml.safeLoadAll(fileContents)
 
   if (needToIndexChanges) {
     branchModificationParams.nameChangeIndex = {}
@@ -174,7 +174,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
     adjustIngressSettings(parsedDocument)
 
     try {
-      let yml = jsYaml.safeDump(parsedDocument)
+      let yml = yaml.safeDump(parsedDocument)
       if (outfiles.length > 0) {
         outfiles += "\n---\n"
       }

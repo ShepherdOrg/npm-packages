@@ -137,6 +137,7 @@ describe("herd.yaml loading", function() {
     delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
     delete process.env.INFRASTRUCTURE_IMPORTED_ENV
     delete process.env.ENV
+    delete process.env.SERVICE_HOST_NAME
   })
 
   beforeEach(() => {
@@ -149,6 +150,7 @@ describe("herd.yaml loading", function() {
     process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "anotherValue"
     process.env.INFRASTRUCTURE_IMPORTED_ENV = "thatsme"
     process.env.ENV = "SPECENV"
+    process.env.SERVICE_HOST_NAME='testhost.44'
 
     delete process.env.TPL_DOCKER_IMAGE
 
@@ -331,7 +333,7 @@ describe("herd.yaml loading", function() {
     })
   })
 
-  describe("k8s feature deployment plan", function() {
+  describe("k8s branch deployment plan", function() {
     let loadedPlan: TTestDeploymentOrchestration
 
     before(() => {
@@ -371,6 +373,47 @@ describe("herd.yaml loading", function() {
       expect(addedDockerDeployerActions.join(", ")).to.contain("testenvimage-migrations:0.0.0") // Referred migration image
     })
   })
+
+
+  describe("k8s branch deployment plan, reproducing hbs template expansion bug", function() {
+    let loadedPlan: TTestDeploymentOrchestration
+
+    before(() => {
+      featureDeploymentConfig.imageFileName = "feature-deployment"
+      featureDeploymentConfig.upstreamHerdKey = "test-image-with-yaml-wrecking-hbs"
+      featureDeploymentConfig.upstreamImageName = "test-image-with-yaml-wrecking-hbs"
+      featureDeploymentConfig.upstreamImageTag = "0.4.45"
+      featureDeploymentConfig.upstreamHerdDescription = "Very much a testing image"
+      featureDeploymentConfig.upstreamFeatureDeployment = true
+      featureDeploymentConfig.ttlHours = "22"
+      featureDeploymentConfig.branchName = "branch99"
+    })
+
+    after(() => {
+      featureDeploymentConfig.upstreamFeatureDeployment = false
+
+      delete featureDeploymentConfig.imageFileName
+      delete featureDeploymentConfig.upstreamHerdKey
+      delete featureDeploymentConfig.upstreamImageName
+      delete featureDeploymentConfig.upstreamImageTag
+      delete featureDeploymentConfig.upstreamHerdDescription
+      delete featureDeploymentConfig.ttlHours
+      delete featureDeploymentConfig.branchName
+    })
+
+    beforeEach(function() {
+      return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
+        loadedPlan = plan as TTestDeploymentOrchestration
+      })
+    })
+
+    it("should create plan without error", () => {
+      let addedK8sDeploymentActions = Object.keys(loadedPlan.addedK8sDeploymentActions)
+
+      expect(addedK8sDeploymentActions.join(", ")).to.contain("branch99")
+    })
+  })
+
 
   describe("k8s deployment plan", function() {
     let loadedPlan: TTestDeploymentOrchestration

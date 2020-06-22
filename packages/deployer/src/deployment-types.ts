@@ -62,7 +62,7 @@ export function isK8sDeploymentAction(spec: IExecutableAction): spec is IKubectl
   return Boolean((spec as IKubectlDeployAction).descriptor)
 }
 
-export type TK8sDeploymentPlan2 = {
+export type TK8sDeploymentPlan = {
   dockerLabels?: TDockerImageLabels
   deployments?: {}
   herdKey: string
