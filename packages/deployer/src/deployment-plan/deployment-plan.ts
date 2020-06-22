@@ -1,5 +1,5 @@
 import {
-  IAnyDeploymentAction,
+  IAnyDeploymentAction, IDockerExecutableAction,
   IExecutableAction,
   IKubectlDeployAction,
   isDockerDeploymentAction,
@@ -67,9 +67,6 @@ export interface IDeploymentPlan {
 
 export type TK8sDeploymentPlansByKey = { [herdKey: string]: string }
 
-/* TODO : Need to consider whether to make deployment plans fail/succeed independently. Currently the first one that
- *  fails will stop all deployment. */
-
 export interface TDeploymentPlanDependencies {
   logContextColors: IProvideLogContextColors
   stateStore: IReleaseStateStore
@@ -97,7 +94,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
     if (
       kubectlDeployAction.deploymentRollouts &&
       kubectlDeployAction.operation === "apply" &&
-      kubectlDeployAction.state?.modified
+      kubectlDeployAction.getActionDeploymentState()?.modified
     ) {
       await Promise.all(
         kubectlDeployAction.deploymentRollouts.map(async deploymentRollout => {
@@ -131,7 +128,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
     let planInstance: IDeploymentPlan = {
       hasModifiedAction(): boolean {
         return deploymentActions.reduce((planModified: boolean, action) => {
-          return planModified || (action.isStateful && action.state?.modified) || false
+          return planModified || (action.isStateful && action.getActionDeploymentState()?.modified) || false
         }, false)
       },
 
@@ -175,8 +172,10 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
       async addAction(action: IExecutableAction): Promise<void> {
         injected.logger.debug(`Adding action to plan ${herdDeclaration.key} ${action.planString()}`)
         deploymentActions.push(action)
-        if (action.isStateful && !action.state) {
-          action.state = await injected.stateStore.getDeploymentState((action as unknown) as TDeploymentStateParams)
+
+        if (action.isStateful && !action.getActionDeploymentState()) {
+          let deploymentState = await injected.stateStore.getDeploymentState((action as unknown) as TDeploymentStateParams)
+          action.setActionDeploymentState(deploymentState)
         }
       },
       async exportActions(exportDirectory: TFileSystemPath) {
@@ -215,8 +214,9 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
 
         deploymentActions.forEach(function(deploymentAction: IExecutableAction) {
           let printPlanLogContext: TLogContext = { ...planLogContext, ...{ performanceLog: false } }
-          if (deploymentAction.isStateful && deploymentAction.state) {
-            if (deploymentAction.state.modified) {
+          let deploymentState = deploymentAction.getActionDeploymentState()
+          if (deploymentAction.isStateful && deploymentState) {
+            if (deploymentState.modified) {
               if (!modified) {
                 if (herdDeclaration) {
                   logger.info(`Deploying ${herdDeclaration.key}`, printPlanLogContext)
@@ -278,9 +278,9 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
         await Promise.all(
           deploymentActions.map(async depAction => {
             if (depAction.isStateful) {
-              depAction.state = await injected.stateStore.getDeploymentState(
+              depAction.setActionDeploymentState(await injected.stateStore.getDeploymentState(
                 (depAction as unknown) as TDeploymentStateParams
-              )
+              ))
             }
 
             if (isKubectlDeployAction(depAction)) {

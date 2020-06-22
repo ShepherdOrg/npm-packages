@@ -78,7 +78,7 @@ export function createImagesLoader(injected: TImageDeclarationsLoaderDependencie
     let planLoadingPromises: Array<Promise<IDeploymentPlan>> = loadImageDeploymentPlans(images, herdSectionSpec)
     let imageDeploymentPlans: Array<IDeploymentPlan> = await Promise.all(planLoadingPromises)
 
-    // TODO There should be no derived image deployment plans, migration actions should be a part of the image deployment plan
+    // TODOLATER There should be no derived image deployment plans, migration actions should be a part of the image deployment plan
     let derivedPlanLoadingPromises = loadImageDeploymentPlans(derivedDeployments, herdSectionSpec)
     imageDeploymentPlans = imageDeploymentPlans.concat(await Promise.all(derivedPlanLoadingPromises))
 

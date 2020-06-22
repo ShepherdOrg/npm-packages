@@ -90,7 +90,6 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
   }
 
   return {
-    // TODO This should go once we are only adding IDeploymentPlan instances
     executePlans: executePlans,
     printPlan: printPlan,
     exportDeploymentActions: exportDeploymentActions,

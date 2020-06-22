@@ -31,24 +31,28 @@ const StoreClient = (client: Client) => ({
 export function PostgresStore(config: PGConnectionConfig): IPostgresStorageBackend {
   let client
 
+  const ensureDeploymentsTable= async function() {
+    await client.query(
+      "CREATE TABLE IF NOT EXISTS deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL)",
+    )
+  }
+
   return {
-    async connect() {
+     async connect() {
       client = StoreClient(new Client(config))
       await client.connect()
       if (config.schema) {
         await client.query(`CREATE SCHEMA IF NOT EXISTS ${config.schema} AUTHORIZATION ${config.user};`)
         await client.query(`SET search_path TO ${config.schema}`)
       }
-      await client.query(
-        "CREATE TABLE IF NOT EXISTS deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL)"
-      )
+      await ensureDeploymentsTable()
     },
     async disconnect() {
       client.end()
     },
     async resetAllDeploymentStates() {
       if (!(process.env.RESET_FOR_REAL === "yes-i-really-want-to-drop-deployments-table")) {
-        throw "RESET_FOR_REAL must be set to true"
+        throw "RESET_FOR_REAL must be set to yes-i-really-want-to-drop-deployments-table"
       } else {
         return client.query("DROP TABLE deployments")
       }

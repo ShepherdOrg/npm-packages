@@ -86,6 +86,7 @@ export function expandTemplate(templateString: string, variables: typeof process
       const lines = templateString.split('\n')
       const offendingLine = lines[err.location.start.line-1]
       const offendingBlock = offendingLine.slice(err.location.start.column, err.location.end.column)
+      console.log(`DEBUG Template Error`)
       throw new TemplateError(`Error expanding template block: ${offendingBlock}. ${err.message}`, err.location, err )
     } else if (err.message.indexOf("not defined") >= 0 || err.message.indexOf("Variable pointing to file") >= 0) {
       const startOfFile = templateString.substring(0, 100) + "..."
@@ -95,6 +96,7 @@ Available properties: ${Object.getOwnPropertyNames(variables)
         .filter(key => !key.startsWith("npm_"))
         .join(", ")}`)
     } else {
+      console.log(`DEBUG Other error.....`)
       throw err
     }
   }

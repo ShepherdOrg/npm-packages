@@ -265,7 +265,7 @@ fi
 if [[ -d ./deployment ]]; then
 	mkdir -p ./.build/deployment/
 
-	find ./deployment -name "*.yaml" -type f | xargs -n 1 -I {} bash -c 'cat "$@" | sed -e "s|DOCKER_IMAGE|"${DOCKER_IMAGE_GITHASH}"|" > ./.build/deployment/$(basename $@)  || exit 255' _ {}
+	find ./deployment  -type f -name "*.yaml" -o -name "*.yml" | xargs -n 1 -I {} bash -c 'cat "$@" | sed -e "s|DOCKER_IMAGE|"${DOCKER_IMAGE_GITHASH}"|" > ./.build/deployment/$(basename $@)  || exit 255' _ {}
 
 fi
 
@@ -353,9 +353,9 @@ else
 fi
 
 
-# TODO Return error if docker image produced is not configured with enough information to deploy
+# TODOLATER Return error if docker image produced is not configured with enough information to deploy
 # Create command shepherd-validate-image
-# TODO Add SHEPHERD_METADATA arg and label to Dockerfile if missing, rather than throwing error
+# TODOLATER Add SHEPHERD_METADATA arg and label to Dockerfile if missing, rather than throwing error
 
 popd >/dev/null
 
