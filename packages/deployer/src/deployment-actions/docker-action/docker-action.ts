@@ -33,6 +33,15 @@ export interface ICreateDockerActions {
   executeDockerAction: (executableAction: IDockerExecutableAction, deploymentOptions: TActionExecutionOptions) => Promise<IDockerExecutableAction>
 }
 
+function removeTagFromImageUrl(dockerImageUrl: string) {
+  const indexOfSlash = dockerImageUrl.indexOf('/')
+  const indexOfColonAfterSlash = dockerImageUrl.slice(indexOfSlash).indexOf(':')
+  if(indexOfColonAfterSlash > 0){
+    return dockerImageUrl.slice(0, indexOfSlash + indexOfColonAfterSlash)
+  }
+  return dockerImageUrl
+}
+
 export function createDockerActionFactory({ exec, logger, stateStore }: TDockerActionFactoryDependencies): ICreateDockerActions {
 
   async function executeDockerAction(
@@ -48,9 +57,8 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
         deploymentOptions.dryRunOutputDir,
         executableAction.imageWithoutTag?.replace(/\//g, "_") + "-deployer.txt",
       )
-
       let cmdLine = `docker run ${executableAction.forTestParameters?.join(" ")}`
-
+      logger.info(`Writing deployment command to ${writePath}`, deploymentOptions.logContext)
       await writeFile(writePath, cmdLine)
       return executableAction
     } else {
@@ -62,7 +70,6 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
         logger.info(executableAction.planString(), deploymentOptions.logContext)
         logger.info(stdout as string, deploymentOptions.logContext)
         // logger.exitDeployment(plan.origin + '/' + plan.identifier);
-
         try {
           let deploymentState = executableAction.getActionDeploymentState()
           if (executableAction.isStateful && deploymentState) {
@@ -101,11 +108,13 @@ ${err.message}`,
 
     let deploymentState:TDeploymentState|undefined = undefined
 
+    console.log(`DEBUG RemoveTagFromImageUrl(dockerImageUrl)`, removeTagFromImageUrl(dockerImageUrl))
+
     const deploymentAction: IDockerExecutableAction = {
       descriptor: "",
       dockerParameters: ["-i", "--rm"],
       forTestParameters: undefined,
-      imageWithoutTag: dockerImageUrl.replace(/:.*/g, ""), // For regression testing
+      imageWithoutTag: removeTagFromImageUrl(dockerImageUrl),
       origin: herdKey,
       operation: operation,
       isStateful: true,
