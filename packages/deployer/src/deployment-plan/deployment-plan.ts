@@ -67,9 +67,6 @@ export interface IDeploymentPlan {
 
 export type TK8sDeploymentPlansByKey = { [herdKey: string]: string }
 
-/* TODO : Need to consider whether to make deployment plans fail/succeed independently. Currently the first one that
- *  fails will stop all deployment. */
-
 export interface TDeploymentPlanDependencies {
   logContextColors: IProvideLogContextColors
   stateStore: IReleaseStateStore

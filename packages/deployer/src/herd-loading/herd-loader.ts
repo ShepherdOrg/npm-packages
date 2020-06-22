@@ -13,8 +13,7 @@ import { IReleaseStateStore } from "@shepherdorg/state-store"
 import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
 import { ILog } from "../logging/logger"
 import * as chalk from "chalk"
-
-const YAML = require("js-yaml")
+import * as yaml from "js-yaml"
 
 flatMapPolyfill()
 
@@ -72,7 +71,7 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
       if (featureDeploymentConfig.isUpstreamTriggeredDeployment()) {
         herd = featureDeploymentConfig.asHerd()
       } else {
-        herd = YAML.load(fs.readFileSync(fileName, "utf8"))
+        herd = yaml.load(fs.readFileSync(fileName, "utf8"))
       }
 
       let loaders: TLoaderMap = {

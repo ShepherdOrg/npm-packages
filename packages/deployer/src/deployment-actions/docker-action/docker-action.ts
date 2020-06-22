@@ -3,7 +3,7 @@ import {
   TActionExecutionOptions,
 } from "../../deployment-types"
 import { expandEnv } from "../../template/expandenv"
-import { expandTemplate } from "../../template/expandtemplate"
+import { expandTemplate } from "@shepherdorg/hbs-template"
 import { TEnvironmentVariables, TImageMetadata } from "@shepherdorg/metadata"
 import * as path from "path"
 import { extendedExec, writeFile } from "../../helpers/promisified"

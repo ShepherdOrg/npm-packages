@@ -86,11 +86,8 @@ export type TImageMetadata = {
 export type TDeployerMetadata = TImageMetadata & {
   deployCommand: string
   rollbackCommand?: string
-  // TODO: Support dryrun command
   dryrunCommand?: string
-  // TODO: Make obsolete
   environmentVariablesExpansionString: string
-  // TODO: Add tests for environment array
   environment: TEnvironmentVariables
   deployerRole: TDeployerRole
 }

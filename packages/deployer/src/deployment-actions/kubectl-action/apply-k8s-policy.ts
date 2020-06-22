@@ -1,4 +1,4 @@
-import yaml = require("js-yaml")
+import * as yaml from "js-yaml"
 import { TK8sPartialDescriptor } from "./k8s-document-types"
 import { ILog } from "../../logging/logger"
 

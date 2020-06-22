@@ -1,6 +1,6 @@
 import { TK8sPartialDescriptor } from "./k8s-document-types"
 
-const YAML = require("js-yaml")
+import * as yaml from "js-yaml"
 
 export type TDescriptorsByKind = {
   [key: string] : Array<TK8sPartialDescriptor>
@@ -12,7 +12,7 @@ export function identifyDocument(deploymentDocument:string):{identifyingString:s
 
     let documentKind:string=""
 
-    YAML.safeLoadAll(deploymentDocument, (documentPart:TK8sPartialDescriptor)=>{
+    yaml.safeLoadAll(deploymentDocument, (documentPart:TK8sPartialDescriptor)=>{
       if(!documentPart){
 
         return

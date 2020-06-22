@@ -6,20 +6,19 @@ import {
   TActionExecutionOptions,
   TRollbackResult,
 } from "../../deployment-types"
-import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
 import { newProgrammerOops, Oops } from "oops-error"
 import { expandEnv } from "../../template/expandenv"
 import { processLine } from "../../template/base64-env-subst"
-import { expandTemplate } from "../../template/expandtemplate"
+import { expandTemplate } from "@shepherdorg/hbs-template"
 import * as path from "path"
 import { extendedExec, writeFile } from "../../helpers/promisified"
 import { TK8sPartialDescriptor } from "./k8s-document-types"
 import { emptyArray } from "../../helpers/ts-functions"
 import { IExec, TFileSystemPath } from "../../helpers/basic-types"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
-import { isOops } from "../../helpers/isOops"
-import { ILog, TLogContext } from "../../logging/logger"
+import { ILog } from "../../logging/logger"
 import { TDeploymentState } from "@shepherdorg/metadata"
+import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
 
 const chalk = require('chalk');
 
@@ -59,7 +58,7 @@ function expandEnvVariables(lines: string[]) {
 }
 
 
-function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: string) {
+export function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: string) {
   return expandTemplate(expandEnvVariables(deploymentFileDescriptorContent.split("\n")))
 }
 
@@ -167,17 +166,8 @@ ${err.message || err}`)
   function createKubectlDeployAction(origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, branchModificationParams?: TBranchModificationParams): IKubectlDeployAction {
     let actionOrigin: string = origin
     try {
-      if (branchModificationParams && branchModificationParams.shouldModify) {
-        process.env.BRANCH_NAME = branchModificationParams.branchName
-        process.env.BRANCH_NAME_PREFIX = `${branchModificationParams.branchName}-`
-        process.env.BRANCH_NAME_POSTFIX = `-${branchModificationParams.branchName}`
-      } else {
-        process.env.BRANCH_NAME = ""
-        process.env.BRANCH_NAME_PREFIX = ""
-        process.env.BRANCH_NAME_POSTFIX = ""
-      }
 
-      let finalDescriptor = expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent)
+      let finalDescriptor = deploymentFileDescriptorContent
 
       if (branchModificationParams && branchModificationParams.shouldModify) {
         finalDescriptor = modifyDeploymentDocument(finalDescriptor, branchModificationParams)
