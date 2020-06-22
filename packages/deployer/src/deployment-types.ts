@@ -94,7 +94,7 @@ export type THerdFileStructure = {
   images?: TDockerImageHerdDeclarations
 }
 export type TFolderMetadata = {
-  //TODO This will need git information from directory containing configuration
+  // TODOLATER This will need git information from directory containing configuration
   path: TFileSystemPath
   buildDate: TISODateString
   displayName: string
@@ -167,7 +167,7 @@ export interface IKubectlAction extends IExecutableAction {
 }
 
 export interface IKubectlDeployAction extends IKubectlAction {
-  deploymentRollouts: TDeploymentRollout[] // TODO Move into deploymentActions
+  deploymentRollouts: TDeploymentRollout[]
   descriptor: string
   descriptorsByKind?: TDescriptorsByKind
   fileName: string,

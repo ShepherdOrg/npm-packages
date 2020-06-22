@@ -353,9 +353,9 @@ else
 fi
 
 
-# TODO Return error if docker image produced is not configured with enough information to deploy
+# TODOLATER Return error if docker image produced is not configured with enough information to deploy
 # Create command shepherd-validate-image
-# TODO Add SHEPHERD_METADATA arg and label to Dockerfile if missing, rather than throwing error
+# TODOLATER Add SHEPHERD_METADATA arg and label to Dockerfile if missing, rather than throwing error
 
 popd >/dev/null
 
