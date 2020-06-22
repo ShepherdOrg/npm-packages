@@ -27,7 +27,7 @@ function mapDeployerRole(deployerInfo: THerdDeployerMetadata | THerdK8sMetadata)
       case TDeployerRole.Migration:
         return "Migration"
       default:
-        throw new Error("Don't know how to map " + deployerInfo.deployerRole + " to deployer role for UI")
+        return "Install"
     }
   } else if(isHerdK8sMetadata(deployerInfo)){
     return "Install"

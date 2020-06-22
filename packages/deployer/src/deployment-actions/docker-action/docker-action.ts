@@ -108,8 +108,6 @@ ${err.message}`,
 
     let deploymentState:TDeploymentState|undefined = undefined
 
-    console.log(`DEBUG RemoveTagFromImageUrl(dockerImageUrl)`, removeTagFromImageUrl(dockerImageUrl))
-
     const deploymentAction: IDockerExecutableAction = {
       descriptor: "",
       dockerParameters: ["-i", "--rm"],
