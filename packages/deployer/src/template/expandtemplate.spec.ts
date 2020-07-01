@@ -1,10 +1,10 @@
 import { expect } from "chai"
 import { expandTemplate } from "./expandtemplate"
 
-
 describe("expand environment vars using handlebars template syntax", function() {
   beforeEach(function() {
     process.env.ENVVAR_ONE = "TESTVALUE"
+    process.env.ENVVAR_TWO = "FAKESTUFF"
   })
 
   afterEach(function() {
@@ -32,7 +32,7 @@ describe("expand environment vars using handlebars template syntax", function() 
       expandTemplate("{{ENVVAR_MISSING}}")
     } catch (err) {
       expect(err.message).to.contain("Available properties:")
-      expect(err.message).to.contain("ENVVAR_ONE")
+      expect(err.message).to.contain("ENVVAR_ONE, \nENVVAR_TWO")
     }
   })
 
@@ -54,23 +54,25 @@ describe("expand environment vars using handlebars template syntax", function() 
     })
 
     it("should throw meaningful error if variable not set", () => {
-      let rawText = 'ENCODED: {{{ Base64Encode SOME_BULLSHIT }}}'
-      try{
+      let rawText = "ENCODED: {{{ Base64Encode SOME_BULLSHIT }}}"
+      try {
         expandTemplate(rawText)
-      }catch(err){
-        expect(err.message).to.equal("Error expanding template block: {{{ Base64Encode SOME_BULLSHIT }}}. Variable not set, in line# 1")
+      } catch (err) {
+        expect(err.message).to.equal(
+          "Error expanding template block: {{{ Base64Encode SOME_BULLSHIT }}}. Variable not set, in line# 1"
+        )
       }
     })
   })
 
   describe("Base64 encode file", () => {
-    before(()=>{
-      process.env.ENVVAR_ONE_FILE = __dirname + '/testdata/unencoded-file.txt'
-      process.env.ENVVAR_BINARY_FILE = __dirname + '/testdata/testfile.bin'
-      process.env.ENVVAR_ONE_FILE_DOES_NOT_EXIST = __dirname + '/testdata/does-not-exist.txt'
+    before(() => {
+      process.env.ENVVAR_ONE_FILE = __dirname + "/testdata/unencoded-file.txt"
+      process.env.ENVVAR_BINARY_FILE = __dirname + "/testdata/testfile.bin"
+      process.env.ENVVAR_ONE_FILE_DOES_NOT_EXIST = __dirname + "/testdata/does-not-exist.txt"
     })
 
-    after(()=>{
+    after(() => {
       delete process.env.ENVVAR_ONE_FILE
       delete process.env.ENVVAR_ONE_FILE_DOES_NOT_EXIST
       delete process.env.ENVVAR_BINARY_FILE
@@ -90,25 +92,26 @@ describe("expand environment vars using handlebars template syntax", function() 
 
     it("Should throw meaningful error if file does not exist", () => {
       let rawText = "ENCODED: {{Base64EncodeFile ENVVAR_ONE_FILE_DOES_NOT_EXIST }}"
-      try{
+      try {
         expandTemplate(rawText)
-      }catch(err){
+      } catch (err) {
         expect(err.message).to.contain("/testdata/does-not-exist.txt")
       }
     })
 
     it("Should throw meaningful error if variable is not set in environment", () => {
       let rawText = "\n\nENCODED: {{ Base64EncodeFile ENVVAR_ONE_FILE_NOT_SET }}\n\n"
-      try{
+      try {
         expandTemplate(rawText)
-      }catch(err){
-        expect(err.message).to.equal("Error expanding template block: {{ Base64EncodeFile ENVVAR_ONE_FILE_NOT_SET }}. Variable pointing to file to base64 encode is not set, in line# 3")
+      } catch (err) {
+        expect(err.message).to.equal(
+          "Error expanding template block: {{ Base64EncodeFile ENVVAR_ONE_FILE_NOT_SET }}. Variable pointing to file to base64 encode is not set, in line# 3"
+        )
       }
     })
   })
 
-
-/*
+  /*
   import * as fs from "fs"
   describe("read/write binary test file", function() {
 
@@ -139,5 +142,4 @@ describe("expand environment vars using handlebars template syntax", function() 
     })
   })
 */
-
 })

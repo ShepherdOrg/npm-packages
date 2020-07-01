@@ -16,12 +16,12 @@ type HandleBarsBlock = {
 
 type HandleBarsParams = {
   name: string
-  hash: {},
-  data: object,
+  hash: {}
+  data: object
   loc: HandleBarsBlock
 }
 
-class TemplateError extends Error{
+class TemplateError extends Error {
   constructor(message: string, location: HandleBarsBlock, cause?: TemplateError) {
     super(message)
     this.location = location
@@ -32,10 +32,10 @@ class TemplateError extends Error{
   cause?: TemplateError
 }
 
-Handlebars.registerHelper("Base64Encode", (str:string | undefined, param:HandleBarsParams) => {
+Handlebars.registerHelper("Base64Encode", (str: string | undefined, param: HandleBarsParams) => {
   let postfix
 
-  if(str === undefined){
+  if (str === undefined) {
     throw new TemplateError(`Variable not set, in line# ${param.loc.start.line}`, param.loc)
   }
   if (typeof param !== "object") {
@@ -46,12 +46,14 @@ Handlebars.registerHelper("Base64Encode", (str:string | undefined, param:HandleB
   return Buffer.from(str + postfix).toString("base64")
 })
 
-
-Handlebars.registerHelper("Base64EncodeFile", (fileName:string | undefined, params:HandleBarsParams ) => {
-  if(fileName === undefined){
-    throw new TemplateError(`Variable pointing to file to base64 encode is not set, in line# ${params.loc.start.line}`, params.loc)
+Handlebars.registerHelper("Base64EncodeFile", (fileName: string | undefined, params: HandleBarsParams) => {
+  if (fileName === undefined) {
+    throw new TemplateError(
+      `Variable pointing to file to base64 encode is not set, in line# ${params.loc.start.line}`,
+      params.loc
+    )
   } else {
-    if(!fs.existsSync(fileName)){
+    if (!fs.existsSync(fileName)) {
       throw new Error(`File to encode not found ${chalk.red(fileName)}`)
     }
     let fileBuf = fs.readFileSync(fileName)
@@ -59,7 +61,7 @@ Handlebars.registerHelper("Base64EncodeFile", (fileName:string | undefined, para
   }
 })
 
-Handlebars.registerHelper("Base64Decode", (str:string | undefined) => {
+Handlebars.registerHelper("Base64Decode", (str: string | undefined) => {
   if (!str) {
     return ""
   }
@@ -72,7 +74,7 @@ export function expandTemplate(templateString: string) {
 
   let template
   try {
-    template = Handlebars.compile(templateString, { strict: true , noEscape: true})
+    template = Handlebars.compile(templateString, { strict: true, noEscape: true })
   } catch (err) {
     throw new Error(
       "Error compiling string as a handlebars template: \n" +
@@ -86,11 +88,11 @@ export function expandTemplate(templateString: string) {
   try {
     return template(view)
   } catch (err) {
-    if( err instanceof TemplateError){
-      const lines = templateString.split('\n')
-      const offendingLine = lines[err.location.start.line-1]
+    if (err instanceof TemplateError) {
+      const lines = templateString.split("\n")
+      const offendingLine = lines[err.location.start.line - 1]
       const offendingBlock = offendingLine.slice(err.location.start.column, err.location.end.column)
-      throw new TemplateError(`Error expanding template block: ${offendingBlock}. ${err.message}`, err.location, err )
+      throw new TemplateError(`Error expanding template block: ${offendingBlock}. ${err.message}`, err.location, err)
     } else if (err.message.indexOf("not defined") >= 0 || err.message.indexOf("Variable pointing to file") >= 0) {
       const startOfFile = templateString.substring(0, 100) + "..."
       throw new Error(`Handlebars error in file starting with : ${startOfFile}
@@ -98,6 +100,7 @@ ${err.message}.
 Available properties: ${_(view)
         .keys()
         .filter(key => !key.startsWith("npm_"))
+        .sort((a, b) => (a < b ? -1 : 1))
         .join(", ")}`)
     } else {
       throw err
