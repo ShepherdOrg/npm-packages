@@ -96,6 +96,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
           }
         }
       }
+
       if (deploymentSection.spec.selector) {
         adjustNames(deploymentSection.spec.selector)
         if (Boolean(deploymentSection.spec.selector.app)) {
@@ -135,14 +136,15 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
           deploymentDoc.spec.rules[0].http.paths[0].path += `-${cleanedName}`
         } else {
           deploymentDoc.spec.rules[0].host = `${cleanedName}-${deploymentDoc.spec.rules[0].host}`
-          const http = deploymentDoc.spec.rules[0].http
-          if (http && http.paths) {
-            http.paths.forEach((path: TK8sHttpPath) => {
-              if (path && path.backend && path.backend.serviceName) {
-                path.backend.serviceName += `-${cleanedName}`
-              }
-            })
-          }
+        }
+
+        const http = deploymentDoc.spec.rules[0].http
+        if (http && http.paths) {
+          http.paths.forEach((path: TK8sHttpPath) => {
+            if (path && path.backend && path.backend.serviceName) {
+              path.backend.serviceName += `-${cleanedName}`
+            }
+          })
         }
       }
     }
@@ -175,6 +177,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
 
     try {
       let yml = yaml.safeDump(parsedDocument)
+      // console.log(`DEBUG DUMPING Modified Document\n${yml}`)
       if (outfiles.length > 0) {
         outfiles += "\n---\n"
       }
