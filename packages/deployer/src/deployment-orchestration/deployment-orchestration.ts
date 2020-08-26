@@ -39,7 +39,6 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
       k8sDeploymentPlans[deploymentAction.origin] || deploymentAction.herdKey
     // await k8sDeploymentPlans[deploymentAction.origin].addAction(deploymentAction)
 
-    console.log(`DEBUG cataloguing action for  ${deploymentAction.identifier}`)
     if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
       console.log(`DEBUG Throwing error ${deploymentAction.identifier}`)
       throw new Error(
