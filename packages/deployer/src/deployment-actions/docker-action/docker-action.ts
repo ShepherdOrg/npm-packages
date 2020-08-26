@@ -34,10 +34,11 @@ export interface ICreateDockerActions {
 }
 
 function removeTagFromImageUrl(dockerImageUrl: string) {
-  const indexOfSlash = dockerImageUrl.indexOf('/')
+  const indexOfSlash = Math.max(dockerImageUrl.indexOf('/'), 0)
   const indexOfColonAfterSlash = dockerImageUrl.slice(indexOfSlash).indexOf(':')
   if(indexOfColonAfterSlash > 0){
-    return dockerImageUrl.slice(0, indexOfSlash + indexOfColonAfterSlash)
+    let reducedUrl = dockerImageUrl.slice(0, indexOfSlash + indexOfColonAfterSlash)
+    return reducedUrl
   }
   return dockerImageUrl
 }

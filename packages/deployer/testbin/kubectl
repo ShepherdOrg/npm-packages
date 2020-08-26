@@ -23,6 +23,11 @@ if [ "${KUBEOP}" = "rollout" ]; then
 	exit 0
 fi
 
+if [ "${KUBEOP}" = "annotate" ]; then
+	echo "annotate ${KUBEPARAM1} ${KUBEPARAM2} FAKED ok"
+	exit 0
+fi
+
 if [ "${KUBEOP}" = "delete" ]; then
 	if [ "${KUBEPARAM1}" = "-f" ] && [ "${KUBEPARAM2}" = "-" ];
 	then

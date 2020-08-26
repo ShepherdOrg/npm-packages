@@ -29,7 +29,7 @@ export function createTTLAnnotationActionFactory(injected: TTLAnnotationActionDe
 
     let annotationAction: IKubectlAction = {
       descriptor: planString(),
-      identifier: identifier,
+      identifier: 'ttl annotate ' + identifier,
       isStateful: false,
       operation: "annotate",
       type: "k8s",

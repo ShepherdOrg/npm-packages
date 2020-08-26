@@ -2,7 +2,7 @@ import { kubeDeleteExpiredResources } from "./delete-expired-resources"
 import { expect } from "chai"
 
 
-describe.only("resource filtering", function() {
+describe("resource filtering", function() {
 
   const testData = {
     "apiVersion": "v1",

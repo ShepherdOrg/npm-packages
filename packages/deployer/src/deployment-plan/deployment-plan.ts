@@ -200,6 +200,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
               }
               let cmdLine = `docker run ${action.forTestParameters.join(" ")}`
 
+              console.log(`DEBUG action.imageWithoutTag`, action.imageWithoutTag)
               let writePath = path.join(exportDirectory, action.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt")
               return writeFile(writePath, cmdLine)
             } else if (isKubectlDeployAction(action)) {

@@ -34,11 +34,14 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
   const k8sDeploymentsByIdentifier: { [key: string]: IDockerImageKubectlDeploymentAction } = {}
 
   function addActionToCatalog(deploymentAction: IDockerImageKubectlDeploymentAction) {
+    if(!deploymentAction.isStateful) return
     k8sDeploymentPlans[deploymentAction.origin] =
       k8sDeploymentPlans[deploymentAction.origin] || deploymentAction.herdKey
     // await k8sDeploymentPlans[deploymentAction.origin].addAction(deploymentAction)
 
+    console.log(`DEBUG cataloguing action for  ${deploymentAction.identifier}`)
     if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
+      console.log(`DEBUG Throwing error ${deploymentAction.identifier}`)
       throw new Error(
         chalk.red(deploymentAction.identifier) +
         " is already in deployment plan from " +
