@@ -22,7 +22,8 @@ import { createDeploymentTestActionFactory } from "../deployment-actions/deploym
 import { createLogContextColors } from "../logging/log-context-colors"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import * as chalk from "chalk"
-import { createTTLAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-ttl-annotation-action"
+import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
+import { createFakeTimeoutWrapper } from "../test-tools/fake-timer"
 
 
 type FFakeLambda = () => Promise<void>
@@ -166,8 +167,10 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
 
   let deploymentTestActionFactory = createDeploymentTestActionFactory({logger: fakeLogger, dockerActionFactory: dockerActionFactory})
 
+  const fakeTimeoutWrapper = createFakeTimeoutWrapper()
+
   return {
-    ttlAnnotationActionFactory: createTTLAnnotationActionFactory({exec:fakeExec, logger: fakeLogger}),
+    ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec:fakeExec, logger: fakeLogger, systemTime: () => new Date(), timeout: fakeTimeoutWrapper.fakeTimeout}),
     logger: fakeLogger,
     exec: fakeExec,
     stateStore: fakeStateStore,

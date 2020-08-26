@@ -4,3 +4,10 @@ export type TISODateString = string
 export type TNamedValue<TValueType> = { name: string, value: TValueType }
 
 export type IExec = any
+
+export type FProvideTime = ()=>Date
+
+export type FTimer = (callback: (...args: any[]) => void, ms: number, ...args: any[]) => NodeJS.Timeout
+
+
+

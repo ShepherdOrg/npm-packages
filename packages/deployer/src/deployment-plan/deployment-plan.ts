@@ -31,9 +31,8 @@ import * as chalk from "chalk"
 import { padLeft } from "../logging/padleft"
 import { IProvideLogContextColors } from "../logging/log-context-colors"
 import {
-  createTTLAnnotationActionFactory,
-  ICreateTTLAnnotationActions,
-} from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-ttl-annotation-action"
+  ICreateDeploymentTimeAnnotationActions,
+} from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 
 export interface IDeploymentPlanExecutionResult {
   actionResults: IExecutableAction[]
@@ -72,7 +71,7 @@ export interface IDeploymentPlan {
 export type TK8sDeploymentPlansByKey = { [herdKey: string]: string }
 
 export interface TDeploymentPlanDependencies {
-  ttlAnnotationActionFactory: ICreateTTLAnnotationActions
+  ttlAnnotationActionFactory: ICreateDeploymentTimeAnnotationActions
   logContextColors: IProvideLogContextColors
   stateStore: IReleaseStateStore
   exec: any
@@ -200,7 +199,6 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
               }
               let cmdLine = `docker run ${action.forTestParameters.join(" ")}`
 
-              console.log(`DEBUG action.imageWithoutTag`, action.imageWithoutTag)
               let writePath = path.join(exportDirectory, action.imageWithoutTag.replace(/\//g, "_") + "-deployer.txt")
               return writeFile(writePath, cmdLine)
             } else if (isKubectlDeployAction(action)) {
@@ -297,7 +295,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
             if (imageInformation.imageDeclaration.timeToLiveHours) {
               if (isKubectlDeployAction(depAction)) {
                 let ttAnnotationActionFactory = injected.ttlAnnotationActionFactory
-                let ttlAnnotationActions = ttAnnotationActionFactory.createTTLAnnotationActions(depAction.descriptorsByKind)
+                let ttlAnnotationActions = ttAnnotationActionFactory.createDeploymentTimeAnnotationActions(depAction.descriptorsByKind)
                 ttlAnnotationActions.map(annotationAction => {
                   deploymentActions.push(annotationAction)
                 })

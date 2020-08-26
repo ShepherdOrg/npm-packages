@@ -37,10 +37,8 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
     if(!deploymentAction.isStateful) return
     k8sDeploymentPlans[deploymentAction.origin] =
       k8sDeploymentPlans[deploymentAction.origin] || deploymentAction.herdKey
-    // await k8sDeploymentPlans[deploymentAction.origin].addAction(deploymentAction)
 
     if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
-      console.log(`DEBUG Throwing error ${deploymentAction.identifier}`)
       throw new Error(
         chalk.red(deploymentAction.identifier) +
         " is already in deployment plan from " +

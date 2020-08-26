@@ -30,7 +30,7 @@ import {
 import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
 import { createLogContextColors } from "../logging/log-context-colors"
 import { TDeploymentState } from "@shepherdorg/metadata"
-import { createTTLAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-ttl-annotation-action"
+import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
@@ -152,7 +152,7 @@ describe("Deployment orchestration", function() {
       stateStore: fakeStateStore,
     })
     let fakeDeps: TDeploymentPlanDependencies = {
-      ttlAnnotationActionFactory: createTTLAnnotationActionFactory({exec: fakeExec, logger: fakeLogger}),
+      ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec: fakeExec, logger: fakeLogger, systemTime: () => {return new Date()}, timeout: setTimeout}),
       exec: fakeExec,
       logger: fakeLogger,
       stateStore: fakeStateStore,

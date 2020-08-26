@@ -22,21 +22,21 @@ export type TK8sPartialConfigmap = {
 }
 
 export type TK8sPartialSpec = {
-  loadBalancerSourceRanges: {}
-  scaleTargetRef: {
+  loadBalancerSourceRanges?: {}
+  scaleTargetRef?: {
     name: string
   }
   maxReplicas?: number
   minReplicas?: number
   selector?: TK8sPartialDescriptor
-  volumes: Array<{
+  volumes?: Array<{
     configMap: TK8sPartialConfigmap
   }>
   template?: TK8sPartialDescriptor
   jobTemplate?: TK8sPartialDescriptor
   containers?: Array<TK8sPartialContainer>
   replicas?: number
-  rules: Array<TK8sPartialRule>
+  rules?: Array<TK8sPartialRule>
 }
 
 type TK8sPartialLabels = {[index: string] : string | undefined }
@@ -49,7 +49,7 @@ type TK8sPartialMetadata = {
 }
 
 export type TK8sPartialDescriptor = {
-  resources: {
+  resources?: {
     requests: {
       cpu: string
     }

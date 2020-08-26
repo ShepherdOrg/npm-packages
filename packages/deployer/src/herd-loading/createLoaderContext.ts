@@ -23,7 +23,7 @@ import { createFolderActionFactory } from "./folder-loader/folder-action-factory
 import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-deployment-planner"
 import { ILog } from "../logging/logger"
 import { createLogContextColors } from "../logging/log-context-colors"
-import { createTTLAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-ttl-annotation-action"
+import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 
 interface TLoaderContextParams {
   stateStore: IReleaseStateStore
@@ -47,6 +47,10 @@ export function createLoaderContext({
     logger: logger,
     stateStore: stateStore,
   })
+
+  let provideSystemTime = ()=>{
+    return new Date()
+  }
 
   let deploymentActionFactory: ICreateKubectlDeploymentAction = createKubectlDeploymentActionsFactory({
     exec,
@@ -80,7 +84,7 @@ export function createLoaderContext({
   })
 
   let planDependencies: TDeploymentPlanDependencies = {
-    ttlAnnotationActionFactory: createTTLAnnotationActionFactory({exec:exec, logger:logger}),
+    ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec:exec, logger:logger, systemTime: provideSystemTime, timeout: setTimeout}),
     uiDataPusher: uiPusher,
     exec: exec,
     logger: logger,

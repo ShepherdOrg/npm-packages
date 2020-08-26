@@ -126,7 +126,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
       ) {
         deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"] = "false"
       }
-      if (deploymentDoc?.spec?.rules[0]?.host) {
+      if (deploymentDoc?.spec?.rules && deploymentDoc?.spec?.rules[0]?.host) {
         if (
           deploymentDoc.metadata &&
           deploymentDoc.metadata.annotations &&
@@ -177,7 +177,6 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
 
     try {
       let yml = yaml.safeDump(parsedDocument)
-      // console.log(`DEBUG DUMPING Modified Document\n${yml}`)
       if (outfiles.length > 0) {
         outfiles += "\n---\n"
       }

@@ -176,7 +176,7 @@ describe("running shepherd", function() {
                 })
             })
         }).catch((setupError: Error) => {
-        console.error(`DEBUG Error setting up for test!`, setupError)
+        console.error(`Error setting up for test!`, setupError)
       })
 
 

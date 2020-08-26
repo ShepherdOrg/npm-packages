@@ -14,7 +14,7 @@ import {
 } from "../deployment-types"
 import { detectRecursion } from "../helpers/obj-functions"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
-import { IExec, TFileSystemPath } from "../helpers/basic-types"
+import { FTimer, IExec, TFileSystemPath } from "../helpers/basic-types"
 import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import {
   createDeploymentPlanFactory,
@@ -36,7 +36,8 @@ import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-dep
 import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
 import { ILog } from "../logging/logger"
 import { createLogContextColors } from "../logging/log-context-colors"
-import { createTTLAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-ttl-annotation-action"
+import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
+import { createFakeTimeoutWrapper } from "../test-tools/fake-timer"
 
 /// Inject a mock image metadata loader with fake image information
 
@@ -87,7 +88,10 @@ describe("herd.yaml loading", function() {
     })
     let deploymentTestActionFactory = createDeploymentTestActionFactory({logger, dockerActionFactory})
 
-    let ttlAnnotationActionFactory = createTTLAnnotationActionFactory({exec: exec, logger: logger})
+    const fakeTimeoutWrapper = createFakeTimeoutWrapper()
+
+
+    let ttlAnnotationActionFactory = createDeploymentTimeAnnotationActionFactory({exec: exec, logger: logger, systemTime: () => new Date(), timeout: fakeTimeoutWrapper.fakeTimeout})
 
     let dependencies: TDeploymentPlanDependencies = {
       ttlAnnotationActionFactory: ttlAnnotationActionFactory,
@@ -463,13 +467,12 @@ describe("herd.yaml loading", function() {
       expect(loadedOrchestration.addedK8sDeploymentActions["apply>Deployment_www-icelandair-com"].descriptor).to.contain("27m")
     })
 
-    it("Should add TTL annotation actions for all deployment documents", function() {
-      // Object.entries(loadedOrchestration.addedK8sDeploymentActions).forEach(([key, value])=>{
-      //   console.log(`DEBUG added action >>${key}<< -----> ${value.planString()}`)
-      // })
-      // Object.keys(loadedOrchestration.addedK8sDeploymentActions).forEach(console.log)
-      expect(loadedOrchestration.addedK8sDeploymentActions)
-
+    it("Should add deployment time annotation actions for all deployment documents", function() {
+      let addedActions = Object.keys( loadedOrchestration.addedK8sDeploymentActions).join('\n')
+      expect(addedActions).to.contain('annotate>deployment timestamp Service www-icelandair-com-internal-test1')
+      expect(addedActions).to.contain('annotate>deployment timestamp ConfigMap www-icelandair-com-nginx-acls-test1')
+      expect(addedActions).to.contain('annotate>deployment timestamp Deployment www-icelandair-com-test1')
+      expect(addedActions).to.contain('annotate>deployment timestamp Service www-icelandair-com-test1')
     })
 
     it("should be serializable", function() {
