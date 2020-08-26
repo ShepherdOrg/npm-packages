@@ -2,7 +2,7 @@ import { expect } from "chai"
 import { TK8sMetadata } from "@shepherdorg/metadata"
 import { inspectAndExtractShepherdMetadata } from "./shepherd-inspect"
 
-describe("shepherd inspect", function() {
+xdescribe("NOT A UNIT TEST, shepherd inspect", function() {
   it("should inspect public-repo-with-kube-yaml image with shepherd.metadata label", () => {
     return inspectAndExtractShepherdMetadata(
       "public-repo-with-kube-yaml:latest"

@@ -36,6 +36,7 @@ import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-dep
 import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
 import { ILog } from "../logging/logger"
 import { createLogContextColors } from "../logging/log-context-colors"
+import { createTTLAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-ttl-annotation-action"
 
 /// Inject a mock image metadata loader with fake image information
 
@@ -86,7 +87,10 @@ describe("herd.yaml loading", function() {
     })
     let deploymentTestActionFactory = createDeploymentTestActionFactory({logger, dockerActionFactory})
 
+    let ttlAnnotationActionFactory = createTTLAnnotationActionFactory({exec: exec, logger: logger})
+
     let dependencies: TDeploymentPlanDependencies = {
+      ttlAnnotationActionFactory: ttlAnnotationActionFactory,
       exec: exec,
       logger: logger,
       stateStore: stateStore,
@@ -176,7 +180,7 @@ describe("herd.yaml loading", function() {
             }
             if (deploymentAction.type === "k8s") {
               releasePlan.addedK8sDeploymentActions[
-                deploymentAction.identifier
+                deploymentAction.operation + '>' + deploymentAction.identifier
                 ] = deploymentAction as IDockerImageKubectlDeploymentAction
             } else if (deploymentAction.type === "deployer") {
               releasePlan.addedDockerDeployerActions[deploymentAction.identifier] = deploymentAction as IDockerDeploymentAction
@@ -288,30 +292,30 @@ describe("herd.yaml loading", function() {
     })
 
     it("should add k8s deployment found in scanned directory", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].origin).to.equal(
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].origin).to.equal(
         "namespaces/monitors-namespace.yml",
       )
     })
 
     it("loaded action should have herd name", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdKey).to.contain("kube-config - namespaces")
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdKey).to.contain("kube-config - namespaces")
     })
 
     it("loaded action should have specified environment set", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].env).to.equal("loader-spec-env")
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].env).to.equal("loader-spec-env")
     })
 
     it("should have herdDeclaration", () => {
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.key).to.equal("kube-config")
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.key).to.equal("kube-config")
       expect(
-        (loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration).path,
+        (loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration).path,
       ).to.equal("./")
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.description).to.equal(
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.description).to.equal(
         "Kubernetes pull secrets, namespaces, common config",
       )
 
       expect(
-        loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.sectionDeclaration,
+        loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.sectionDeclaration,
       ).to.deep.equal({
         herdSectionIndex: 1,
         herdSectionType: "folders" as THerdSectionType,
@@ -324,10 +328,10 @@ describe("herd.yaml loading", function() {
         semanticVersion: "none",
         deploymentType: "k8s",
         path: "namespaces/monitors-namespace.yml",
-        buildDate: loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].metadata.buildDate,
+        buildDate: loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].metadata.buildDate,
         hyperlinks: [],
       }
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].metadata).to.deep.equal(expectedMetadata)
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].metadata).to.deep.equal(expectedMetadata)
     })
   })
 
@@ -414,7 +418,7 @@ describe("herd.yaml loading", function() {
 
 
   describe("k8s deployment plan", function() {
-    let loadedPlan: TTestDeploymentOrchestration
+    let loadedOrchestration: TTestDeploymentOrchestration
 
     before(() => {
       process.env.CLUSTER_POLICY_MAX_CPU_REQUEST = "27m"
@@ -424,7 +428,7 @@ describe("herd.yaml loading", function() {
     beforeEach(function() {
       createTestHerdLoader(labelsLoader, featureDeploymentConfig)
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
-        loadedPlan = plan as TTestDeploymentOrchestration
+        loadedOrchestration = plan as TTestDeploymentOrchestration
       })
     })
 
@@ -434,21 +438,21 @@ describe("herd.yaml loading", function() {
     })
 
     it("should base64decode and untar deployment files under file path", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].origin).to.equal(
+      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].origin).to.equal(
         "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml",
       )
     })
 
     it("should extract herdKey from herd.yaml", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].herdKey).to.equal("test-image")
+      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].herdKey).to.equal("test-image")
     })
 
     it("should set specified environment in action", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].env).to.equal("loader-spec-env")
+      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].env).to.equal("loader-spec-env")
     })
 
     it("should include metadata for k8s plan", function() {
-      let addedK8sDeployment = loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"]
+      let addedK8sDeployment = loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"]
       expect(addedK8sDeployment.metadata).not.to.equal(undefined)
 
       expect(addedK8sDeployment.metadata.displayName).to.equal("Testimage")
@@ -456,11 +460,20 @@ describe("herd.yaml loading", function() {
     })
 
     it("should apply k8s deployment-time cluster policy", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Deployment_www-icelandair-com"].descriptor).to.contain("27m")
+      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Deployment_www-icelandair-com"].descriptor).to.contain("27m")
+    })
+
+    it("Should add TTL annotation actions for all deployment documents", function() {
+      // Object.entries(loadedOrchestration.addedK8sDeploymentActions).forEach(([key, value])=>{
+      //   console.log(`DEBUG added action >>${key}<< -----> ${value.planString()}`)
+      // })
+      // Object.keys(loadedOrchestration.addedK8sDeploymentActions).forEach(console.log)
+      expect(loadedOrchestration.addedK8sDeploymentActions)
+
     })
 
     it("should be serializable", function() {
-      let serializable = detectRecursion(loadedPlan)
+      let serializable = detectRecursion(loadedOrchestration)
       expect(serializable.join(".")).to.equal("")
       expect(serializable.length).to.equal(0)
     })

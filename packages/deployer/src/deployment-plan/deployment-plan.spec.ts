@@ -9,7 +9,7 @@ import { clearEnv, setEnv } from "../deployment-actions/kubectl-action/testdata/
 import { expect } from "chai"
 import { createFakeExec } from "../test-tools/fake-exec"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
-import { IExecutableAction, TActionExecutionOptions } from "../deployment-types"
+import { IBasicExecutableAction, IExecutableAction, TActionExecutionOptions } from "../deployment-types"
 import { emptyArray } from "../helpers/ts-functions"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
@@ -22,6 +22,7 @@ import { createDeploymentTestActionFactory } from "../deployment-actions/deploym
 import { createLogContextColors } from "../logging/log-context-colors"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import * as chalk from "chalk"
+import { createTTLAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-ttl-annotation-action"
 
 
 type FFakeLambda = () => Promise<void>
@@ -65,7 +66,7 @@ function fakePromiseFactory(): IFakeLambdaFactory {
   }
 }
 
-type IFakeExecutableActions = { getInstance: () => IExecutableAction
+type IFakeExecutableActions = { getInstance: () => IBasicExecutableAction
   stateFul(isStateful: boolean): IFakeExecutableActions
   modified(b: boolean): IFakeExecutableActions
 }
@@ -166,6 +167,7 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   let deploymentTestActionFactory = createDeploymentTestActionFactory({logger: fakeLogger, dockerActionFactory: dockerActionFactory})
 
   return {
+    ttlAnnotationActionFactory: createTTLAnnotationActionFactory({exec:fakeExec, logger: fakeLogger}),
     logger: fakeLogger,
     exec: fakeExec,
     stateStore: fakeStateStore,

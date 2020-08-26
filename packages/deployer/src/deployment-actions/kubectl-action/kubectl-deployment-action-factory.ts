@@ -2,7 +2,7 @@ import { identifyDocument, TDescriptorsByKind } from "./k8s-deployment-document-
 import { TBranchModificationParams } from "./k8s-branch-deployment/create-name-change-index"
 import {
   IKubectlDeployAction,
-  IRollbackActionExecution,
+  ICanRollbackActionExecution,
   TActionExecutionOptions,
   TRollbackResult,
 } from "../../deployment-types"
@@ -186,7 +186,7 @@ ${err.message || err}`)
 
       let deploymentState: TDeploymentState | undefined
 
-      let documentDeploymentAction: IKubectlDeployAction & IRollbackActionExecution = {
+      let documentDeploymentAction: IKubectlDeployAction & ICanRollbackActionExecution = {
         getActionDeploymentState(): TDeploymentState | undefined {
           return deploymentState;
         },

@@ -93,7 +93,7 @@ export function createDockerImageKubectlDeploymentActionsFactory(injected: TActi
 
     if (branchDeploymentEnabled) {
       branchModificationParams.ttlHours =
-        imageInformation.imageDeclaration.timeToLiveHours || branchModificationParams.ttlHours
+        imageInformation.imageDeclaration.timeToLiveHours
 
       // Feature deployment specified in herdfile
       branchModificationParams.branchName =

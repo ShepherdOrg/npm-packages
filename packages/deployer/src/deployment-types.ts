@@ -103,19 +103,24 @@ export type TFolderMetadata = {
   hyperlinks: Array<THref>,
 }
 
-export interface IExecutableAction {
+
+
+export interface IBasicExecutableAction {
+  planString(): string
+
+  execute(
+    deploymentOptions: TActionExecutionOptions,
+  ): Promise<IExecutableAction>
+}
+
+export interface IExecutableAction extends IBasicExecutableAction {
   isStateful: boolean
   descriptor: string
 
   getActionDeploymentState(): TDeploymentState | undefined
   setActionDeploymentState(newState: TDeploymentState | undefined): void
-  planString(): string
 
-  execute(
-    deploymentOptions: TActionExecutionOptions
-  ): Promise<IExecutableAction>
-
-  canRollbackExecution(): this is IRollbackActionExecution
+  canRollbackExecution(): this is ICanRollbackActionExecution
 }
 
 export type TRollbackResult = {
@@ -124,12 +129,12 @@ export type TRollbackResult = {
   stdErr?: string
 }
 
-export interface IRollbackActionExecution {
+export interface ICanRollbackActionExecution {
   rollback(deploymentOptions: TActionExecutionOptions): Promise<TRollbackResult>
 }
 
-export function canRollbackExecution(action: object): action is IRollbackActionExecution {
-  return Boolean((action as IRollbackActionExecution).rollback)
+export function canRollbackExecution(action: object): action is ICanRollbackActionExecution {
+  return Boolean((action as ICanRollbackActionExecution).rollback)
 }
 
 export interface IBaseDeploymentAction {

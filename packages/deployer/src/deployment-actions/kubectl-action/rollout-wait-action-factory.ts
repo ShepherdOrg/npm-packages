@@ -25,7 +25,7 @@ export function createRolloutWaitActionFactory(actionDependencies: TRolloutWaitA
       return `kubectl --namespace ${deploymentRollout.namespace} rollout status ${deploymentRollout.deploymentKind}/${deploymentRollout.deploymentName}`
     }
 
-    const cmd = actionDependencies.exec
+    const exec = actionDependencies.exec
     const logger = actionDependencies.logger
     let identifier = `${deploymentRollout.deploymentKind}/${deploymentRollout.deploymentName}`
     const waitAction: IKubectlAction = {
@@ -45,7 +45,7 @@ export function createRolloutWaitActionFactory(actionDependencies: TRolloutWaitA
       planString: planString,
       execute(deploymentOptions: TActionExecutionOptions): Promise<IExecutableAction> {
         if (deploymentOptions.waitForRollout) {
-          return extendedExec(cmd)("kubectl", ["--namespace", deploymentRollout.namespace, "rollout", "status", identifier], {
+          return extendedExec(exec)("kubectl", ["--namespace", deploymentRollout.namespace, "rollout", "status", identifier], {
             env: process.env,
             debug: true,
           }).then((stdOut) => {

@@ -1,6 +1,6 @@
 import {
   IDockerDeploymentAction,
-  IRollbackActionExecution,
+  ICanRollbackActionExecution,
   TImageInformation,
   TRollbackResult,
 } from "../../deployment-types"
@@ -52,7 +52,7 @@ export function createDockerDeployerActionFactory(
     }
 
     if (deployerMetadata.rollbackCommand) {
-      const rollbackExecution: IRollbackActionExecution = {
+      const rollbackExecution: ICanRollbackActionExecution = {
         async rollback(): Promise<TRollbackResult> {
           // TODOLATER Push old state to UI
 
