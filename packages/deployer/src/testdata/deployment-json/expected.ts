@@ -49,6 +49,7 @@ export function expectedK8sDeployment0(): THerdK8sMetadata {
       description: "Shepherd web UI API",
       // "herdKey": "shepherd-ui-api",
       key: "shepherd-ui-api",
+      "timeToLiveHours":99
     },
   }
 }

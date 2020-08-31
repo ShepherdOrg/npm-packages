@@ -1081,21 +1081,21 @@
   dependencies:
     yargs "^11.0.0"
 
-"@shepherdorg/shepherd-ui-api@^3.2.0":
-  version "3.2.0"
-  resolved "https://registry.npmjs.org/@shepherdorg/shepherd-ui-api/-/shepherd-ui-api-3.2.0.tgz#fc17675d8daaad10db3de0e1dda158a9f87f4a47"
-  integrity sha512-M98WNgEtq5haYxXfD6/vnDECaZJcHUB4WTofcPAP+ZwCjzkoYpGfxWIiP3QIC1ylhsw5cVVOLuZuiWcHTEyOmA==
+"@shepherdorg/shepherd-ui-api@^3.3.0":
+  version "3.3.0"
+  resolved "https://registry.npmjs.org/@shepherdorg/shepherd-ui-api/-/shepherd-ui-api-3.3.0.tgz#e8a1f9c40444a689118bdde595dd777fc5783a7d"
+  integrity sha512-XslvGlw/r0l+XvGL5PMLVaLHrkUmc8SuILztYORITh/yjm/S40WyjOyyzeRCLw8YSwghXTuCXYP2dkaU9i93Xg==
   dependencies:
     "@pongsatt/graphql-schema-typescript" "^1.0.25"
     graphql "^0.13.0"
     typescript "^3.6.4"
 
 "@shepherdorg/ui-graphql-client@^3.1.1":
-  version "3.2.0"
-  resolved "https://registry.npmjs.org/@shepherdorg/ui-graphql-client/-/ui-graphql-client-3.2.0.tgz#ec8ec13b08ef26d904b6973aa327a6a3eae29959"
-  integrity sha512-DswE2/x4nvN7yddjMhGLWHf1oJrLvzHKJrUXxmJtMbtiHSVzIUxQWiLl+taU++2O/KkVPUh3hOCiD+pxUOkQZg==
+  version "3.3.0"
+  resolved "https://registry.npmjs.org/@shepherdorg/ui-graphql-client/-/ui-graphql-client-3.3.0.tgz#12139b0e51dbb3f00c59a6f7122361508064a015"
+  integrity sha512-Bot9K0vhDALGcn0oltSUsfQOK9CxQf7dRIY25w+DD1aL1Zm81oXyiqy4We2pJY1t42iO3MrI2pXqJL3Lvwwiww==
   dependencies:
-    "@shepherdorg/shepherd-ui-api" "^3.2.0"
+    "@shepherdorg/shepherd-ui-api" "^3.3.0"
     "@types/node-fetch" "^2.5.2"
     graphql "^14.5.8"
     node-fetch "^2.6.0"
@@ -1167,15 +1167,20 @@
     "@types/node" "*"
     form-data "^3.0.0"
 
-"@types/node@*", "@types/node@>= 8":
-  version "14.0.13"
-  resolved "https://registry.npmjs.org/@types/node/-/node-14.0.13.tgz#ee1128e881b874c371374c1f72201893616417c9"
-  integrity sha512-rouEWBImiRaSJsVA+ITTFM6ZxibuAlTuNOCyxVbwreu6k6+ujs7DfnU9o+PShFhET78pMBl3eH+AGSI5eOTkPA==
+"@types/node@*":
+  version "14.6.2"
+  resolved "https://registry.npmjs.org/@types/node/-/node-14.6.2.tgz#264b44c5a28dfa80198fc2f7b6d3c8a054b9491f"
+  integrity sha512-onlIwbaeqvZyniGPfdw/TEhKIh79pz66L1q06WUQqJLnAb6wbjvOtepLYTGHTqzdXgBYIE3ZdmqHDGsRsbBz7A==
 
 "@types/node@12.12.6":
   version "12.12.6"
   resolved "https://registry.npmjs.org/@types/node/-/node-12.12.6.tgz#a47240c10d86a9a57bb0c633f0b2e0aea9ce9253"
   integrity sha512-FjsYUPzEJdGXjwKqSpE0/9QEh6kzhTAeObA54rn6j3rR4C/mzpI9L0KNfoeASSPMMdxIsoJuCLDWcM/rVjIsSA==
+
+"@types/node@>= 8":
+  version "14.0.13"
+  resolved "https://registry.npmjs.org/@types/node/-/node-14.0.13.tgz#ee1128e881b874c371374c1f72201893616417c9"
+  integrity sha512-rouEWBImiRaSJsVA+ITTFM6ZxibuAlTuNOCyxVbwreu6k6+ujs7DfnU9o+PShFhET78pMBl3eH+AGSI5eOTkPA==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
@@ -3194,9 +3199,9 @@ graphql@^0.13.0:
     iterall "^1.2.1"
 
 graphql@^14.5.8:
-  version "14.6.0"
-  resolved "https://registry.npmjs.org/graphql/-/graphql-14.6.0.tgz#57822297111e874ea12f5cd4419616930cd83e49"
-  integrity sha512-VKzfvHEKybTKjQVpTFrA5yUq2S9ihcZvfJAtsDBBCuV6wauPu1xl/f9ehgVf0FcEJJs4vz6ysb/ZMkGigQZseg==
+  version "14.7.0"
+  resolved "https://registry.npmjs.org/graphql/-/graphql-14.7.0.tgz#7fa79a80a69be4a31c27dda824dc04dac2035a72"
+  integrity sha512-l0xWZpoPKpppFzMfvVyFmp9vLN7w/ZZJPefUicMCepfJeQ8sMcztloGYY9DfjVPo6tIUDzU5Hw3MUbIjj9AVVA==
   dependencies:
     iterall "^1.2.2"
 
@@ -6838,10 +6843,15 @@ typedarray@^0.0.6:
   resolved "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typescript@^3.6.3, typescript@^3.6.4, typescript@^3.7.2, typescript@^3.7.3:
+typescript@^3.6.3, typescript@^3.7.2, typescript@^3.7.3:
   version "3.9.5"
   resolved "https://registry.npmjs.org/typescript/-/typescript-3.9.5.tgz#586f0dba300cde8be52dd1ac4f7e1009c1b13f36"
   integrity sha512-hSAifV3k+i6lEoCJ2k6R2Z/rp/H3+8sdmcn5NrS3/3kE7+RyZXm9aqvxWqjEXHAd8b0pShatpcdMTvEdvAJltQ==
+
+typescript@^3.6.4:
+  version "3.9.7"
+  resolved "https://registry.npmjs.org/typescript/-/typescript-3.9.7.tgz#98d600a5ebdc38f40cb277522f12dc800e9e25fa"
+  integrity sha512-BLbiRkiBzAwsjut4x/dsibSTB6yWpwT5qWmC2OfuCg3GgVQCSgMs4vEctYPhsaGtd0AeuuHMkjZ2h2WG8MSzRw==
 
 uglify-js@^3.1.4:
   version "3.9.4"

@@ -2,6 +2,9 @@ import { THerdK8sMetadata, THerdSpec } from "@shepherdorg/metadata"
 import { IAnyDeploymentAction } from "../deployment-types"
 
 
+/*
+This is a legacy mapper from since before shepherd was typescripted. It should be unnecessary and be removed sooner than later.
+* */
 export function mapUntypedDeploymentData(deploymentInfo: IAnyDeploymentAction | undefined): any { // TODOLATER Type on output data here, depends on exported types from UI API
 
   if(!deploymentInfo){

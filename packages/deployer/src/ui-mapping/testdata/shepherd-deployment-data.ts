@@ -15,6 +15,7 @@ export function deploymentData0(): TK8sDockerImageDeploymentActionTestDataType {
       "imagetag": "3.0.3-c481249",
       "description": "Shepherd web UI API",
       "key": "shepherd-ui-api",
+      "timeToLiveHours":99,
       "sectionDeclaration": {
         "herdSectionIndex": 1,
         "herdSectionType": THerdSectionType.images,

@@ -22,7 +22,8 @@ export type THerdSpec = {
   key: string // Key used in herd file
   image: string // For example isrvkbuild02:5000/fluentd
   imagetag: string // For example v1.1.2-g-2b48d1c
-  description: string //"Log writer to AWS ES/Kibana"
+  description: string //Log writer to AWS ES/Kibana"
+  timeToLiveHours?: number //Mark deployment as temporary branch deployment and specify how long it should live
 }
 
 export enum TDeploymentType {
