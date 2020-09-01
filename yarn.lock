@@ -1081,21 +1081,21 @@
   dependencies:
     yargs "^11.0.0"
 
-"@shepherdorg/shepherd-ui-api@^3.3.0":
-  version "3.3.0"
-  resolved "https://registry.npmjs.org/@shepherdorg/shepherd-ui-api/-/shepherd-ui-api-3.3.0.tgz#e8a1f9c40444a689118bdde595dd777fc5783a7d"
-  integrity sha512-XslvGlw/r0l+XvGL5PMLVaLHrkUmc8SuILztYORITh/yjm/S40WyjOyyzeRCLw8YSwghXTuCXYP2dkaU9i93Xg==
+"@shepherdorg/shepherd-ui-api@^3.3.1":
+  version "3.3.1"
+  resolved "https://registry.npmjs.org/@shepherdorg/shepherd-ui-api/-/shepherd-ui-api-3.3.1.tgz#b46b1de97db9f981967a85c377f1906ebd38a37d"
+  integrity sha512-kyKAfxllvoUc3/f97PkOmuMtVzEu+BpqxXOyx3Hq+enoLzVyTR65/JBirHnKLUupZtnycjT4rxWFOVAxTKISVQ==
   dependencies:
     "@pongsatt/graphql-schema-typescript" "^1.0.25"
     graphql "^0.13.0"
     typescript "^3.6.4"
 
-"@shepherdorg/ui-graphql-client@^3.1.1":
-  version "3.3.0"
-  resolved "https://registry.npmjs.org/@shepherdorg/ui-graphql-client/-/ui-graphql-client-3.3.0.tgz#12139b0e51dbb3f00c59a6f7122361508064a015"
-  integrity sha512-Bot9K0vhDALGcn0oltSUsfQOK9CxQf7dRIY25w+DD1aL1Zm81oXyiqy4We2pJY1t42iO3MrI2pXqJL3Lvwwiww==
+"@shepherdorg/ui-graphql-client@^3.3.0":
+  version "3.3.1"
+  resolved "https://registry.npmjs.org/@shepherdorg/ui-graphql-client/-/ui-graphql-client-3.3.1.tgz#c9f0a353dac8424599eb5bd3ce1c4c3b14955b93"
+  integrity sha512-1qFV4ck1+AnV7RgWJEj1Fn5/nl2OnjdEGM4UupbZGIY4FjPyr0SxNRD7Lb3NX9Rknz3V3XLuE5wbX6D9iOU9kQ==
   dependencies:
-    "@shepherdorg/shepherd-ui-api" "^3.3.0"
+    "@shepherdorg/shepherd-ui-api" "^3.3.1"
     "@types/node-fetch" "^2.5.2"
     graphql "^14.5.8"
     node-fetch "^2.6.0"
