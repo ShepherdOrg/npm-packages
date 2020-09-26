@@ -5,12 +5,15 @@ import { inspectFormatText } from "./shepherd-inspect-format-text-output"
 
 let dockerImageReference = process.argv[2]
 
-if (!dockerImageReference || process.argv.indexOf("--help") > 0) {
+if (!dockerImageReference || process.argv.includes("--help")) {
   console.info(`
 Inspect shepherd metadata for a docker image.
 
 Usage:
 ${process.argv[1]}  <DockerImageReference>     
+
+Options:
+    --json        Output full metadata, including extracted files.
 
 Example:
 
