@@ -17,6 +17,4 @@ Base64Encode and Base64EncodeFile
 
 See [Expand Template](./src/template/expandtemplate.spec.ts) tests for exact usage.
 
-Additionally, envsubst syntax is supported (deprecated). Please avoid use, support will be removed at the
-earliest convenient opportunity.
 
