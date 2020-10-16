@@ -52,6 +52,16 @@ export function upgradeOrAddDeployment(
       )
       targetImage.imagetag = upstreamImageTag
     }
+    if (targetImage.image !== upstreamImageName) {
+      logger.info(
+        imageFileName + ": Changing",
+        targetImage.image,
+        " image url",
+        "to",
+        upstreamImageName
+      )
+      targetImage.image = upstreamImageName
+    }
   } else {
     logger.info(`Adding ${upstreamHerdKey}->${upstreamImageName}:${upstreamImageTag} to ${imageFileName}`)
     imglist[upstreamHerdKey] = {
