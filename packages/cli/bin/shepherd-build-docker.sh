@@ -310,11 +310,10 @@ set -eao pipefail
 if [[ "${INSPECTRESULT}" = "0" && -z "${FORCE_REBUILD}"  ]]; then
 	echo "${DOCKER_IMAGE_GITHASH} is already built, not building again."
 else
-	echo "Building ${DOCKER_IMAGE_GITHASH}."
+	echo "Building ${DOCKER_IMAGE_GITHASH}. Build args ${DOCKER_BUILD_ARGS}"
 	docker build -t ${DOCKER_IMAGE_GITHASH} \
 		--build-arg SHEPHERD_METADATA=${SHEPHERD_METADATA} \
-		${DOCKER_BUILD_ARGS} \
-		-f Dockerfile .
+		${DOCKER_BUILD_ARGS} .
 
 	docker tag  ${DOCKER_IMAGE_GITHASH} ${DOCKER_IMAGE_LATEST}
 	docker tag  ${DOCKER_IMAGE_GITHASH} ${DOCKER_IMAGE}
