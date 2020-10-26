@@ -1,13 +1,7 @@
 import * as fs from "fs"
 
-export function assembleDeploymentQueueEntry(shepherdJsonFile: string, deployJsonFilePath: string, branchName: string, ttlHours: string | number) {
-  let shepherdJson: any
+export function assembleDeploymentQueueEntry(shepherdJson: any, deployJsonFilePath: string, branchName: string, ttlHours: string | number) {
   let deployJson: any
-  try {
-    shepherdJson = JSON.parse(fs.readFileSync(shepherdJsonFile, "utf-8"))
-  } catch (e) {
-    console.error("Error reading ", shepherdJsonFile, e)
-  }
   try {
     deployJson = JSON.parse(fs.readFileSync(deployJsonFilePath, "utf-8"))
 

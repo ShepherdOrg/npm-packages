@@ -38,6 +38,10 @@
       "type": "string",
       "description": "Docker registry portion of docker image tag. Not used if using dockerhub."
     },
+    "dockerImageUrl": {
+      "type": "string",
+      "description": "Full docker image url. registry/repository/imageName:tag."
+    },
     "preDeployTest": {
       "type": "object",
       "properties": {
