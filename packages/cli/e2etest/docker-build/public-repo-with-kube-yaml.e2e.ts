@@ -12,7 +12,7 @@ async function getDockerTags(image: string){
 
 }
 
-describe.only("Build docker with kube.yaml deployment on branch", function() {
+describe("Build docker with kube.yaml deployment on branch", function() {
   this.timeout(10000)
   let shepherdMeta, buildOutput
   let dockerMeta: any

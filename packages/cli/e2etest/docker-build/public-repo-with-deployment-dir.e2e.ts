@@ -1,4 +1,6 @@
 import { expect } from "chai"
+import * as path from "path"
+import { execCmd } from "../../src/exec/exec-cmd"
 
 const shellExec = require('shell-exec')
 
@@ -8,13 +10,14 @@ describe("Build docker with deployment dir", function() {
   let dockerMeta: any
 
   before(() => {
-    let dockerDir = __dirname
-    return shellExec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile`).then(
+    let dockerDir = path.join(__dirname, 'public-repo-with-deployment-dir')
+
+    return execCmd(`./bin/shepherd-build-docker.sh`, [`${dockerDir}/Dockerfile`] ).then(
       ({ stdout, stderr }) => {
         if (stderr) expect.fail("GOT ERROR> " + stderr)
 
         buildOutput = stdout
-        shepherdMeta = require(__dirname + '/.build/metadata/shepherd.json')
+        shepherdMeta = require(dockerDir + '/.build/metadata/shepherd.json')
 
         return shellExec(
           "docker inspect public-repo-with-deployment-dir:latest"
