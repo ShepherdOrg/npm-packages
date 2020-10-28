@@ -1,4 +1,4 @@
-import { TDeployerMetadata, TDeploymentState, TTestSpecification } from "@shepherdorg/metadata"
+import { TDeployerMetadata, TTestSpecification } from "@shepherdorg/metadata"
 import {
   createDeploymentTestActionFactory,
   IRollbackAction,
@@ -36,6 +36,7 @@ export function createFakeDeploymentTestActionFactoryDependencies(): TDeployment
 describe("Deployment test action", function() {
   describe("Plain test action creation", function() {
     const testDeclaration: TTestSpecification = {
+      inEnvironments:[],
       command: "pretest",
       environment: [{ name: "ENV_ONE", value: "VALUE_ONE" }],
     }
@@ -67,7 +68,7 @@ describe("Deployment test action", function() {
 
   describe("plain test action creation, another image", () => {
     let testAction: IExecutableAction
-    const testDeclaration: TTestSpecification = { command: "pretest", dockerImageUrl: "test-specific-image:999" }
+    const testDeclaration: TTestSpecification = { command: "pretest", dockerImageUrl: "test-specific-image:999", inEnvironments:[] }
 
     before(() => {
       const shepherdMetadata: TDeployerMetadata = metadataDsl().instance()
@@ -81,6 +82,7 @@ describe("Deployment test action", function() {
 
   describe("Plain deployment test action execution", function() {
     const testDeclaration: TTestSpecification = {
+      inEnvironments:[],
       command: "pretest this param",
       environment: [{ name: "ENV_ONE", value: "VALUE_ONE" }],
     }
@@ -153,6 +155,7 @@ describe("Deployment test action", function() {
 
   describe("postDeployTest action execution", function() {
     const testDeclaration: TTestSpecification = {
+      inEnvironments:[],
       command: "postTest",
       environment: [{ name: "ENV_ONE", value: "VALUE_ONE" }],
     }

@@ -37,10 +37,26 @@
       "format": "date-time",
       "description": "Build date and time"
     },
+    "dockerImageUrl": {
+      "type": "string",
+      "description": "Full docker image URL with tag"
+    },
+    "dockerImageTag": {
+      "type": "string",
+      "description": "Full docker image with tag"
+    },
+    "dockerImageGithash": {
+      "type": "string",
+      "description": "Full docker image with tag that is "
+    },
+    "migrationImage": {
+      "type": "string",
+      "description": "Full docker image with tag for database migrations"
+    },
     "semanticVersion": {
       "type": "string",
       "format": "regex",
-      "pattern": "^[0-9.-]",
+      "pattern": "^[0-9.-]|latest",
 
       "description": "Semantic version"
     }

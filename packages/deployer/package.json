@@ -30,6 +30,7 @@
     "js-yaml": "^3.10.0",
     "lodash": "^4.17.15",
     "oops-error": "^2.4.0",
+    "prompt": "^1.0.0",
     "tmp": "^0.1.0"
   },
   "devDependencies": {

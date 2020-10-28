@@ -4,7 +4,7 @@ import * as fs from 'fs'
 import { expect } from "chai"
 
 
-describe.only("assembling deployment queue entry", function() {
+describe("assembling deployment queue entry", function() {
 
   function readJsonFile(path: string) {
     return JSON.parse(fs.readFileSync(path, "utf8"))

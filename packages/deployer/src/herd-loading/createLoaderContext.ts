@@ -9,7 +9,6 @@ import {
 } from "../deployment-plan/deployment-plan"
 import { createHerdLoader } from "./herd-loader"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
-import { IPushToShepherdUI } from "../shepherd"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { createDockerImageKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import {
@@ -24,6 +23,7 @@ import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-dep
 import { ILog } from "../logging/logger"
 import { createLogContextColors } from "../logging/log-context-colors"
 import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
+import { IPushToShepherdUI } from "../deployment-types"
 
 interface TLoaderContextParams {
   stateStore: IReleaseStateStore
@@ -35,13 +35,13 @@ interface TLoaderContextParams {
 }
 
 export function createLoaderContext({
-  stateStore,
-  logger,
-  featureDeploymentConfig,
-  exec,
-  uiPusher,
-  environment
-}: TLoaderContextParams) {
+                                      stateStore,
+                                      logger,
+                                      featureDeploymentConfig,
+                                      exec,
+                                      uiPusher,
+                                      environment
+                                    }: TLoaderContextParams ) {
   const deploymentOrchestration = DeploymentOrchestration({
     cmd: exec,
     logger: logger,
@@ -84,6 +84,7 @@ export function createLoaderContext({
   })
 
   let planDependencies: TDeploymentPlanDependencies = {
+    deploymentEnvironment: environment,
     ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec:exec, logger:logger, systemTime: provideSystemTime, timeout: setTimeout}),
     uiDataPusher: uiPusher,
     exec: exec,

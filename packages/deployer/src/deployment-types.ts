@@ -217,4 +217,4 @@ export type TDeploymentOrchestrationDependencies = {}
 
 export type FnDeploymentStateSave = (stateSignatureObject: any) => Promise<TDeploymentState>
 
-
+export type IPushToShepherdUI = { pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined> }

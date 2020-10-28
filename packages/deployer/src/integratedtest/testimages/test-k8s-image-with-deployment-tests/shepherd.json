@@ -7,32 +7,38 @@
       "secret": true
     }
   ],
-  "preDeployTest": {
-    "command": "pretest this",
-    "environment": [
-      {
-        "name": "YOU_ARE_IN_PRETEST_MODE",
-        "value": "true"
-      },
-      {
-        "name": "PRETEST_EXITCODE",
-        "value": "{{ PRETEST_EXITCODE }}"
-      }
-    ]
-  },
-  "postDeployTest": {
-    "command": "posttest that",
-    "environment": [
-      {
-        "name": "YOU_ARE_IN_POSTTEST_MODE",
-        "value": "true"
-      },
-      {
-        "name": "POSTTEST_EXITCODE",
-        "value": "{{ POSTTEST_EXITCODE }}"
-      }
-    ]
-  },
+  "preDeploymentTests": [
+    {
+      "inEnvironments": ["integratedtestenv"],
+      "command": "pretest this",
+      "environment": [
+        {
+          "name": "YOU_ARE_IN_PRETEST_MODE",
+          "value": "true"
+        },
+        {
+          "name": "PRETEST_EXITCODE",
+          "value": "{{ PRETEST_EXITCODE }}"
+        }
+      ]
+    }
+  ],
+  "postDeploymentTests": [
+    {
+      "inEnvironments": ["integratedtestenv"],
+      "command": "posttest that",
+      "environment": [
+        {
+          "name": "YOU_ARE_IN_POSTTEST_MODE",
+          "value": "true"
+        },
+        {
+          "name": "POSTTEST_EXITCODE",
+          "value": "{{ POSTTEST_EXITCODE }}"
+        }
+      ]
+    }
+  ],
   "hyperlinks": [
     {
       "title": "Sources for this",

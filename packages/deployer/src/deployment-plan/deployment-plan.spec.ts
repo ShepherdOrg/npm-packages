@@ -170,6 +170,7 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   const fakeTimeoutWrapper = createFakeTimeoutWrapper()
 
   return {
+    deploymentEnvironment:"specEnv",
     ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec:fakeExec, logger: fakeLogger, systemTime: () => new Date(), timeout: fakeTimeoutWrapper.fakeTimeout}),
     logger: fakeLogger,
     exec: fakeExec,

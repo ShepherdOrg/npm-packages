@@ -24,6 +24,7 @@ describe("running shepherd", function() {
 
   this.timeout(40000)
 
+
   beforeEach(function() {
     if (!fs.existsSync("./.build/.testdata")) {
       fs.mkdirSync("./.build/.testdata")
@@ -225,7 +226,7 @@ describe("running shepherd", function() {
           }),
           debug: false, // debug:false suppresses stdout of process
         })
-        .expectExitCode(2)
+        .expectExitCode(1)
         .stdout().shouldContain("Executing docker command pretest")
         .stdout().shouldContain("Post test exit with code 1")
         .stdout().shouldContain("Executing docker command deploy")
@@ -233,6 +234,7 @@ describe("running shepherd", function() {
         .stdout().shouldContain("Executing docker command posttest")
         .stdout().shouldContain("Test run failed, rolling back to last good version.")
         .stdout().shouldContain("Rollback complete. Original error follows.")
+        .stdout().shouldContain("Execution of 1 deployment plan(s) resulted in failure")
         .stdout().shouldNotContain("not found")
         .done(function() {
           done()

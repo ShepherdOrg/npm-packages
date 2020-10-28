@@ -57,6 +57,7 @@ export type TDockerImageUrl = string
 
 export type TTestSpecification ={
   command:string
+  inEnvironments: Array<string>
   dockerImageUrl?:TDockerImageUrl
   environment?:TEnvironmentVariables
 }
@@ -82,6 +83,8 @@ export type TImageMetadata = {
   semanticVersion: string
   preDeployTest?: TTestSpecification
   postDeployTest?: TTestSpecification
+  preDeploymentTests?: Array<TTestSpecification>
+  postDeploymentTests?: Array<TTestSpecification>
 }
 
 export type TDeployerMetadata = TImageMetadata & {

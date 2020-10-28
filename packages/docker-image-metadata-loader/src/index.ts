@@ -11,3 +11,5 @@ export type ILog = {
 }
 
 export * from "./image-labels-loader"
+
+export * from "./registry-login"

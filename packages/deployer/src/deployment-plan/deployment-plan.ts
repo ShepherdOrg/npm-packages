@@ -2,7 +2,7 @@ import {
   IAnyDeploymentAction,
   IBasicExecutableAction,
   IExecutableAction,
-  IKubectlDeployAction,
+  IKubectlDeployAction, IPushToShepherdUI,
   isDockerDeploymentAction,
   isKubectlDeployAction,
   TActionExecutionOptions,
@@ -17,7 +17,6 @@ import { mapUntypedDeploymentData } from "../ui-mapping/map-untyped-deployment-d
 import { TFileSystemPath } from "../helpers/basic-types"
 import * as path from "path"
 import { writeFile } from "../helpers/promisified"
-import { IPushToShepherdUI } from "../shepherd"
 import {
   ICreateDeploymentTestAction,
   IRollbackAction,
@@ -71,6 +70,7 @@ export interface IDeploymentPlan {
 export type TK8sDeploymentPlansByKey = { [herdKey: string]: string }
 
 export interface TDeploymentPlanDependencies {
+  deploymentEnvironment: string
   ttlAnnotationActionFactory: ICreateDeploymentTimeAnnotationActions
   logContextColors: IProvideLogContextColors
   stateStore: IReleaseStateStore
@@ -86,7 +86,7 @@ export interface TDeploymentPlanDependencies {
 export interface IDeploymentPlanFactory {
   createDeploymentPlan: (herdSpec: THerdDeclaration) => IDeploymentPlan
 
-  createDockerImageDeploymentActions(imageInformation: TImageInformation): Promise<Array<IExecutableAction>>
+  createDockerImageDeploymentActions(imageInformation: TImageInformation, envFilter: string): Promise<Array<IExecutableAction>>
 
   createDockerImageDeploymentPlan(imageInformation: TImageInformation): Promise<IDeploymentPlan>
 }
@@ -252,7 +252,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
     return planInstance
   }
 
-  async function createDockerImageDeploymentActions(imageInformation: TImageInformation) {
+  async function createDockerImageDeploymentActions(imageInformation: TImageInformation, envFilter: string) {
     let planLogContext: TLogContext = {
       prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, imageInformation.imageDeclaration.key, true),
       color: injected.logContextColors.nextLogContextColor(),
@@ -265,13 +265,20 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
       if (!imageInformation.imageDeclaration) {
         throw newProgrammerOops("Invalid image information, no image declaration!", imageInformation)
       }
-      if (imageInformation.shepherdMetadata.preDeployTest) {
-        resultingActions.push(
-          injected.deploymentTestActionFactory.createDeploymentTestAction(
-            imageInformation.shepherdMetadata.preDeployTest,
-            imageInformation.shepherdMetadata,
-          ),
-        )
+      if (imageInformation.shepherdMetadata.preDeploymentTests ) {
+        imageInformation.shepherdMetadata.preDeploymentTests.forEach((deploymentTestSpec)=>{
+          if( imageInformation.shepherdMetadata && deploymentTestSpec.inEnvironments.includes(envFilter)){ // To satisfy typescript, not sure why the outside check is not enough
+            resultingActions.push(
+              injected.deploymentTestActionFactory.createDeploymentTestAction(
+                deploymentTestSpec,
+                imageInformation.shepherdMetadata,
+              ),
+            )
+          } else {
+
+          }
+
+        })
       }
       let deploymentActions: Array<IExecutableAction>
       if (imageInformation.shepherdMetadata.deploymentType === "deployer") {
@@ -316,7 +323,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
       }
       resultingActions = resultingActions.concat(deploymentActions)
 
-      if (imageInformation.shepherdMetadata.postDeployTest) {
+      if (imageInformation.shepherdMetadata.postDeploymentTests) {
         let deploymentActionsRollback: IRollbackAction = {
           async rollback(executionOptions: TActionExecutionOptions): Promise<TRollbackResult> {
             let NO_ROLLBACK_RESULT = { code: 0 }
@@ -329,13 +336,22 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
             })
           },
         }
-        resultingActions.push(
-          injected.deploymentTestActionFactory.createDeploymentTestAction(
-            imageInformation.shepherdMetadata.postDeployTest,
-            imageInformation.shepherdMetadata,
-            deploymentActionsRollback,
-          ),
-        )
+
+
+        imageInformation.shepherdMetadata.postDeploymentTests.forEach((deploymentTestSpec)=>{
+          if( imageInformation.shepherdMetadata && deploymentTestSpec.inEnvironments.includes(envFilter)){ // To satisfy typescript, not sure why the outside check is not enough
+            resultingActions.push(
+              injected.deploymentTestActionFactory.createDeploymentTestAction(
+                deploymentTestSpec,
+                imageInformation.shepherdMetadata,
+                deploymentActionsRollback
+              ),
+            )
+          } else {
+
+          }
+
+        })
       }
 
       return resultingActions
@@ -346,7 +362,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
 
   async function createDockerImageDeploymentPlan(imageInformation: TImageInformation) {
     if (imageInformation.shepherdMetadata) {
-      const resultingActions = await createDockerImageDeploymentActions(imageInformation)
+      const resultingActions = await createDockerImageDeploymentActions(imageInformation, injected.deploymentEnvironment)
       const resultingPlan = createDeploymentPlan(imageInformation.imageDeclaration)
       await Promise.all(resultingActions.map(resultingPlan.addAction))
 

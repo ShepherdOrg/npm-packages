@@ -94,6 +94,7 @@ describe("herd.yaml loading", function() {
     let ttlAnnotationActionFactory = createDeploymentTimeAnnotationActionFactory({exec: exec, logger: logger, systemTime: () => new Date(), timeout: fakeTimeoutWrapper.fakeTimeout})
 
     let dependencies: TDeploymentPlanDependencies = {
+      deploymentEnvironment: 'specEnv',
       ttlAnnotationActionFactory: ttlAnnotationActionFactory,
       exec: exec,
       logger: logger,

@@ -12,20 +12,27 @@ async function getDockerTags(image: string){
 
 }
 
-describe("Build docker with kube.yaml deployment on branch", function() {
+describe("Build docker with kube.yaml deployment on branch (Flaky test, succeeds alone, fails with others. Some race condidions or interaction in place)", function() {
   this.timeout(10000)
   let shepherdMeta, buildOutput
   let dockerMeta: any
 
-  let dockerDir = path.join(__dirname, 'public-repo-with-kube-yaml')
+  let testImageName = 'public-repo-with-kube-yaml'
+  let dockerDir = path.join(__dirname, testImageName)
 
   before(async () => {
 
-    const existingTags = await getDockerTags('public-repo-with-kube-yaml')
+    console.log(`DEBUG Cleaning up tags for ${testImageName}`)
+    try{
+      const existingTags = await getDockerTags(testImageName)
 
-    await Promise.all(existingTags.map((etag)=>{
-      return execCmd('docker', ['rmi', etag])
-    }))
+      await Promise.all(existingTags.map((etag)=>{
+        return execCmd('docker', ['rmi', etag])
+      }))
+
+    }catch(err){
+      console.info(`No need to clean up ${testImageName}`)
+    }
 
     return execCmd(`./bin/shepherd-build-docker.sh`, [`${dockerDir}/Dockerfile`], { env: {...process.env, ...{'BRANCH_NAME':'fakebranch'} }}).then(
       ({ code, stdout, stderr }) => {
@@ -113,7 +120,7 @@ describe("Build docker with kube.yaml deployment on branch", function() {
     })
 
     it("should have deployment key correct", () => {
-      expect(queueEntry.deploymentKey).to.equal('public-repo-with-kube-yaml')
+      expect(queueEntry.deploymentKey).to.equal(testImageName)
     })
 
 

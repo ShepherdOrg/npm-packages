@@ -7,7 +7,7 @@ import {
   IK8sDirDeploymentAction,
   IDockerImageKubectlDeploymentAction,
   IKubectlDeployAction,
-  TActionExecutionOptions,
+  TActionExecutionOptions, IPushToShepherdUI,
 } from "../deployment-types"
 import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { emptyArray } from "../helpers/ts-functions"
@@ -21,7 +21,6 @@ import { createDockerActionFactory } from "../deployment-actions/docker-action/d
 import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createDeploymentPlanFactory, TDeploymentPlanDependencies } from "../deployment-plan/deployment-plan"
-import { IPushToShepherdUI } from "../shepherd"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import {
@@ -152,6 +151,7 @@ describe("Deployment orchestration", function() {
       stateStore: fakeStateStore,
     })
     let fakeDeps: TDeploymentPlanDependencies = {
+      deploymentEnvironment: "specenv",
       ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec: fakeExec, logger: fakeLogger, systemTime: () => {return new Date()}, timeout: setTimeout}),
       exec: fakeExec,
       logger: fakeLogger,

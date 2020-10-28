@@ -24,22 +24,28 @@
           "value": "true"
         }
       ],
-      "inEnvironments":["FAKEENV"]
+      "inEnvironments":[]
     }
   ],
-  "postDeploymentTests": [
-    {
-      "command": "testme",
-      "imageUrl": "",
-      "environment": [
-        {
-          "name": "YOU_ARE_IN_PRETEST_MODE",
-          "value": "true"
-        }
-      ],
-      "inEnvironments":["FAKEENV"]
-    }
-  ],
+  "preDeployTest": {
+    "command": "testme",
+    "imageUrl": "",
+    "environment": [
+      {
+        "name": "YOU_ARE_IN_PRETEST_MODE",
+        "value": "true"
+      }
+    ]
+  },
+  "postDeployTest": {
+    "command": "testme",
+    "environment": [
+      {
+        "name": "YOU_ARE_IN_POST_TEST_MODE",
+        "value": "true"
+      }
+    ]
+  },
   "deployCommand": "ls",
   "rollbackCommand": "cat",
   "end2endTestCommand": "e2etest",

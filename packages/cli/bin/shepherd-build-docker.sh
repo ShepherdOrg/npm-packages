@@ -51,7 +51,9 @@ Environment variable options:
     SEMANTIC_VERSION:        Use to construct version tag. If not provided, will attempt to extract tag from the "FROM"
                              statement in the dockerfile.
 
-	SHEPHERD_DEPLOYMENT_QUEUE_FILE:    Deployment queue for monorepo build and deployment support.
+    TRUNK_BRANCH_NAME:       Branch that is considered trunk. Default is "master".
+
+	  SHEPHERD_DEPLOYMENT_QUEUE_FILE:    Deployment queue for monorepo build and deployment support.
 
 Examples:
 
@@ -65,32 +67,34 @@ Example sources can be found in the integratedtest/testimages in the deployer so
 _EOF_
 }
 
-function ensure-branch-tag-and-deploy() {
+function ensure-trunk-tag-and-deploy() {
   DOCKER_IMAGE_GITHASH_TAG=$1
   DOCKER_IMAGE_BRANCH_HASH_TAG=$2
-  if test $(docker image ls $DOCKER_IMAGE_GITHASH_TAG | grep ${DOCKER_IMAGE_BRANCH_HASH_TAG}); then
-    echo "Already have branch tag on image ${DOCKER_IMAGE_BRANCH_HASH_TAG}"
-  else
-    echo "Missing branch tag from $DOCKER_IMAGE_GITHASH_TAG, tagging and deploying"
+  if [ "${BRANCH_NAME}" = "${TRUNK_BRANCH_NAME}" ]; then
 
-    docker tag ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+    if test $(docker image ls $DOCKER_IMAGE_GITHASH_TAG | grep ${DOCKER_IMAGE_BRANCH_HASH_TAG}); then
+      echo "Already have branch tag on image ${DOCKER_IMAGE_BRANCH_HASH_TAG}"
+    else
 
+      echo "Missing ${TRUNK_BRANCH_NAME} branch tag from $DOCKER_IMAGE_GITHASH_TAG, tagging and deploying"
 
-    if [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
-      if [[ ! "${__SHEPHERD_DIRTY_INDEX}" == "0" && -z "${FORCE_PUSH}" ]]; then
-        echo "Dirty index, will not push!"
-      else
-        echo docker push ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+      docker tag ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+
+      if [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
+        if [[ ! "${__SHEPHERD_DIRTY_INDEX}" == "0" && -z "${FORCE_PUSH}" ]]; then
+          echo "Dirty index, will not push!"
+        else
+          echo docker push ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+        fi
       fi
-    fi
 
-    if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
-      echo "New tag on branch.........      Queueing deployment of ${DOCKER_IMAGE_GITHASH_TAG}" on branch "${BRANCH_NAME}"
-      add-to-deployment-queue "${SHEPHERD_DEPLOYMENT_QUEUE_FILE}" ./deploy.json "${DOCKER_IMAGE_BRANCH_HASH_TAG}" "${BRANCH_NAME}"
-    fi
+      if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
+        echo "New tag on branch.........      Queueing deployment of ${DOCKER_IMAGE_GITHASH_TAG}" on branch "${BRANCH_NAME}"
+        add-to-deployment-queue "${SHEPHERD_DEPLOYMENT_QUEUE_FILE}" ./deploy.json "${DOCKER_IMAGE_BRANCH_HASH_TAG}" "${BRANCH_NAME}"
+      fi
 
+    fi
   fi
-
 }
 
 export THISDIR=$(installationDir ${BASH_SOURCE[0]})
@@ -123,8 +127,7 @@ fi
 DOCKERFILE=$1
 export __SHEPHERD_PUSH_ARG=$2
 
-export DOCKERDIR=$(dirname $(echo "$(
-  cd "$(dirname "${DOCKERFILE}")"
+export DOCKERDIR=$(dirname $(echo "$(  cd "$(dirname "${DOCKERFILE}")"
   pwd -P
 )/$(basename "${DOCKERFILE}")"))
 
@@ -137,6 +140,10 @@ if [ -z "${DOCKER_REGISTRY_HOST}" ]; then
   export DOCKER_REGISTRY_HOST=""
 else
   export DOCKER_REGISTRY_HOST=${DOCKER_REGISTRY_HOST}/
+fi
+
+if [ -z "${TRUNK_BRANCH_NAME}" ]; then
+  export TRUNK_BRANCH_NAME="master"
 fi
 
 if [ -z "${DOCKER_REPOSITORY_ORG}" ]; then
@@ -203,17 +210,16 @@ export DOCKER_IMAGE_LATEST_TAG=${IMAGE_URL}:latest
 export DOCKER_IMAGE_GITHASH_TAG=${IMAGE_URL}:${DIRHASH}
 export DOCKER_IMAGE_BRANCH_HASH_TAG=${IMAGE_URL}:${BRANCH_NAME}-${DIRHASH}
 
-echo "Building with branch hash ${DOCKER_IMAGE_BRANCH_HASH_TAG} "
-
 if [ -z "${FORCE_REBUILD}" ]; then
 
   set +e
   echo "Check if ${DOCKER_IMAGE_GITHASH_TAG} is already published to docker registry."
   PULLRESULT=$(docker pull ${DOCKER_IMAGE_GITHASH_TAG} 2>&1)
   if [ "$?" = "0" ]; then
+
     echo "... is already present in registry."
 
-    ensure-branch-tag-and-deploy ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+    ensure-trunk-tag-and-deploy ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
 
     exit 0
   else
@@ -251,7 +257,7 @@ pushd .
 cd ${DOCKERDIR}
 
 set +eao pipefail
-DIFFCHECK=$(git diff --no-ext-diff --quiet --exit-code > /dev/null 2>&1)
+DIFFCHECK=$(git diff --no-ext-diff --quiet --exit-code >/dev/null 2>&1)
 export __SHEPHERD_DIRTY_INDEX=$?
 set -eao pipefail
 
@@ -332,7 +338,7 @@ set -eao pipefail
 if [[ "${INSPECTRESULT}" == "0" && -z "${FORCE_REBUILD}" ]]; then
   echo "${DOCKER_IMAGE_GITHASH_TAG} is already built, not building again."
 
-  ensure-branch-tag-and-deploy ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+  ensure-trunk-tag-and-deploy ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
   exit 0
 
 else
@@ -363,12 +369,11 @@ elif [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
   else
     echo "Clean index or forcing image push"
 
- echo    docker push ${DOCKER_IMAGE}
- echo    docker push ${DOCKER_IMAGE_LATEST_TAG}
- echo    docker push ${DOCKER_IMAGE_GITHASH_TAG}
- echo    docker push ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+    echo docker push ${DOCKER_IMAGE}
+    echo docker push ${DOCKER_IMAGE_LATEST_TAG}
+    echo docker push ${DOCKER_IMAGE_GITHASH_TAG}
+    echo docker push ${DOCKER_IMAGE_BRANCH_HASH_TAG}
     echo "pushed with tags ${DOCKER_IMAGE} ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_LATEST_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}"
-
 
     if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
       echo "Queueing deployment of ${DOCKER_IMAGE_GITHASH_TAG}"

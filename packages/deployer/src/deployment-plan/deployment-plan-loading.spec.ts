@@ -15,7 +15,7 @@ import {
 import { TDeployerMetadata } from "@shepherdorg/metadata/dist"
 import { metadataDsl } from "../test-tools/metadata-dsl"
 import { imageInfoDSL } from "../test-tools/image-info-dsl"
-import { createDeploymentPlanFactory, IDeploymentPlan } from "./deployment-plan"
+import { createDeploymentPlanFactory, IDeploymentPlan, IDeploymentPlanFactory } from "./deployment-plan"
 import { fakeDeploymentPlanDependencies } from "./deployment-plan.spec"
 import { TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeLogger } from "../test-tools/fake-logger"
@@ -457,29 +457,66 @@ describe("Docker image plan loader", function() {
     })
   })
 
-  describe("planning actions for deployer with postDeployTest", function() {
+  describe("planning actions for deployer with postDeploymentTests", function() {
 
     let actions: Array<IExecutableAction>
+    let fakeImageInfo: TImageInformation
+    let planFactory: IDeploymentPlanFactory
 
-    beforeEach(async ()=>{
-      const shepherdMetadata: TDeployerMetadata = metadataDsl().instance()
-      let fakeImageInfo : TImageInformation = imageInfoDSL( shepherdMetadata ).instance()
-      let planFactory = createDeploymentPlanFactory(fakeDeploymentPlanDependencies() )
-      actions = await planFactory.createDockerImageDeploymentActions(fakeImageInfo)
+    before(async ()=>{
+      let metaDsl = metadataDsl()
+      metaDsl.addPreDeploymentTest('pretestcmd', 'devenv')
+      metaDsl.addPostDeploymentTest('posttestcmd', 'devenv').addEnv('testenv')
+      const shepherdMetadata: TDeployerMetadata = metaDsl.instance()
+      fakeImageInfo = imageInfoDSL(shepherdMetadata).instance()
+      planFactory = createDeploymentPlanFactory(fakeDeploymentPlanDependencies())
     })
 
-    it("should create actions for postDeployTest and preDeployTest", () => {
-      expect(actions.length).to.equal(3)
+    describe("in devenv", function() {
+
+      before(async ()=>{
+        actions = await planFactory.createDockerImageDeploymentActions(fakeImageInfo, "devenv")
+      })
+
+      it("should create actions for postDeploymentTests and preDeploymentTests", () => {
+        expect(actions.length).to.equal(3)
+      })
+
+      it("should create actions for postDeploymentTests and preDeploymentTests", () => {
+        expect(actions[0].planString()).to.equal("docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT pretestcmd")
+      })
+
     })
 
-    it("should create actions for postDeployTest and preDeployTest", () => {
-      expect(actions[0].planString()).to.equal("docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT pretest")
+    describe("in test env", function() {
+      before(async ()=>{
+        actions = await planFactory.createDockerImageDeploymentActions(fakeImageInfo, 'testenv')
+      })
+
+      it("should create actions for postDeploymentTests matching the environment", () => {
+        expect(actions.length).to.equal(2)
+      })
+
+      it("should create actions for postDeploymentTests", () => {
+        expect(actions[1].planString()).to.equal("docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT posttestcmd")
+      })
+
     })
 
-    it("should create actions for postDeployTest and preDeployTest", () => {
-      expect(actions[2].planString()).to.equal("docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT posttest")
+    describe("in prod env", function() {
+      before(async ()=>{
+        actions = await planFactory.createDockerImageDeploymentActions(fakeImageInfo, 'prodenv')
+      })
+
+      it("should only create action for deployment", () => {
+        expect(actions.length).to.equal(1)
+      })
+
     })
+
 
   })
+
+
 
 })
