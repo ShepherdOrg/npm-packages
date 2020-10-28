@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/exec",
-  "version": "4.3.0",
+  "version": "5.0.0",
   "description": "Wrapper around process exec",
   "keywords": [],
   "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
