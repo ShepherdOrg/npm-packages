@@ -55,10 +55,7 @@
     },
     "semanticVersion": {
       "type": "string",
-      "format": "regex",
-      "pattern": "^[0-9.-]|latest",
-
-      "description": "Semantic version"
+      "description": "Free-form semantic version"
     }
   },
   "required": [
