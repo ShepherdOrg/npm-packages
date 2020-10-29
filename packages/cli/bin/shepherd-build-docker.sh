@@ -84,7 +84,7 @@ function ensure-trunk-tag-and-deploy() {
         if [[ ! "${__SHEPHERD_DIRTY_INDEX}" == "0" && -z "${FORCE_PUSH}" ]]; then
           echo "Dirty index, will not push!"
         else
-          echo docker push ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+          docker push ${DOCKER_IMAGE_BRANCH_HASH_TAG}
         fi
       fi
 
@@ -369,10 +369,10 @@ elif [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
   else
     echo "Clean index or forcing image push"
 
-    echo docker push ${DOCKER_IMAGE}
-    echo docker push ${DOCKER_IMAGE_LATEST_TAG}
-    echo docker push ${DOCKER_IMAGE_GITHASH_TAG}
-    echo docker push ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+    docker push ${DOCKER_IMAGE}
+    docker push ${DOCKER_IMAGE_LATEST_TAG}
+    docker push ${DOCKER_IMAGE_GITHASH_TAG}
+    docker push ${DOCKER_IMAGE_BRANCH_HASH_TAG}
     echo "pushed with tags ${DOCKER_IMAGE} ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_LATEST_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}"
 
     if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
