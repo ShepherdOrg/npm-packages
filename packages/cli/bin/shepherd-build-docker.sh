@@ -195,7 +195,7 @@ if [ -z "${SEMANTIC_VERSION}" ]; then
   fi
 fi
 
-DIRHASH=$(git ls-files -s ${DOCKERDIR} | git hash-object --stdin)
+DIRHASH=$(cd ${DOCKERDIR} && git ls-files -s . | git hash-object --stdin)
 if [ "${DIRHASH}" = "" ]; then
   DIRHASH=NOT_IN_GIT
 fi
