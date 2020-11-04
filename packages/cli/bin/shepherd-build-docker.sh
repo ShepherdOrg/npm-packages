@@ -81,8 +81,9 @@ function ensure-trunk-tag-and-deploy() {
       docker tag ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
 
       if [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
-        if [[ ! "${__SHEPHERD_DIRTY_INDEX}" == "0" && -z "${FORCE_PUSH}" ]]; then
-          echo "Dirty index, will not push!"
+        if [[ ! "${__SHEPHERD_DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
+          echo "Dirty index, will not push! Git diff follows."
+      		git diff --no-ext-diff
         else
           docker push ${DOCKER_IMAGE_BRANCH_HASH_TAG}
         fi
@@ -90,7 +91,7 @@ function ensure-trunk-tag-and-deploy() {
 
       if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
         echo "New tag on branch.........      Queueing deployment of ${DOCKER_IMAGE_GITHASH_TAG}" on branch "${BRANCH_NAME}"
-        add-to-deployment-queue "${SHEPHERD_DEPLOYMENT_QUEUE_FILE}" ./deploy.json "${DOCKER_IMAGE_BRANCH_HASH_TAG}" "${BRANCH_NAME}"
+        add-to-deployment-queue "${SHEPHERD_DEPLOYMENT_QUEUE_FILE}" ./deploy.json "${DOCKER_IMAGE_GITHASH_TAG}" "${BRANCH_NAME}"
       fi
 
     fi
@@ -350,7 +351,7 @@ else
   docker tag ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_LATEST_TAG}
   docker tag ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE}
   docker tag ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
-  echo "Built & tagged ${DOCKER_IMAGE} / ${DOCKER_IMAGE_GITHASH_TAG} / ${DOCKER_IMAGE_LATEST_TAG}"
+  echo "Built & tagged ${DOCKER_IMAGE} / ${DOCKER_IMAGE_BRANCH_HASH_TAG} / ${DOCKER_IMAGE_GITHASH_TAG} / ${DOCKER_IMAGE_LATEST_TAG}"
 
   if [ ! -z "${LAYERCACHE_TAR}" ]; then
     echo "Saving layer cache tar to ${LAYERCACHE_TAR} "
@@ -364,8 +365,9 @@ if test ${DRYRUN} -eq 1; then
     add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json "${DOCKER_IMAGE_GITHASH_TAG}" ${BRANCH_NAME}
   fi
 elif [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
-  if [[ ! "${__SHEPHERD_DIRTY_INDEX}" == "0" && -z "${FORCE_PUSH}" ]]; then
-    echo "Dirty index, will not push!"
+  if [[ ! "${__SHEPHERD_DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
+    echo "Dirty index, will not push! Git diff follows."
+		git diff --no-ext-diff
   else
     echo "Clean index or forcing image push"
 
@@ -378,7 +380,7 @@ elif [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
     if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
       echo "Queueing deployment of ${DOCKER_IMAGE_GITHASH_TAG}"
       # NEXT: Change deployment to use docker image metadata instead of local file, might not be built locally !
-      add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json "${DOCKER_IMAGE_BRANCH_HASH_TAG}" ${BRANCH_NAME}
+      add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json "${DOCKER_IMAGE_GITHASH_TAG}" ${BRANCH_NAME}
     fi
   fi
 else

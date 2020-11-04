@@ -41,6 +41,9 @@ async function main(){
 
 main().then(()=>{
   process.exit(0)
+}).catch((err)=>{
+  console.error('Error adding to deployment queue. ' + process.argv.join(' '))
+  console.error(err)
 })
 
 
