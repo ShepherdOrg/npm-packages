@@ -72,7 +72,8 @@ function ensure-trunk-tag-and-deploy() {
   DOCKER_IMAGE_BRANCH_HASH_TAG=$2
   if [ "${BRANCH_NAME}" = "${TRUNK_BRANCH_NAME}" ]; then
 
-    if test $(docker image ls $DOCKER_IMAGE_GITHASH_TAG | grep ${DOCKER_IMAGE_BRANCH_HASH_TAG}); then
+    PULLRESULT=$(docker pull ${DOCKER_IMAGE_BRANCH_HASH_TAG} 2>&1)
+    if [ "$?" = "0" ]; then
       echo "Already have branch tag on image ${DOCKER_IMAGE_BRANCH_HASH_TAG}"
     else
       echo "Missing ${TRUNK_BRANCH_NAME} branch tag from $DOCKER_IMAGE_GITHASH_TAG, tagging"
