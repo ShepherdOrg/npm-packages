@@ -2,15 +2,7 @@ import { expect } from "chai"
 import * as fs from "fs"
 import * as path from "path"
 import { execCmd } from "../../src/exec/exec-cmd"
-
-async function getDockerTags(image: string){
-  return execCmd("docker", ["inspect", image]
-  ).then(({ stdout }) => {
-    const dockerMeta = JSON.parse(stdout)
-    return dockerMeta[0].RepoTags
-  })
-
-}
+import { getDockerTags } from "./get-docker.tags"
 
 describe("Build docker with kube.yaml deployment on branch (Flaky test, succeeds alone, fails with others. Some race condidions or interaction in place)", function() {
   this.timeout(10000)

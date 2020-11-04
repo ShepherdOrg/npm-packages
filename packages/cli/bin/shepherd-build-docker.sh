@@ -75,18 +75,13 @@ function ensure-trunk-tag-and-deploy() {
     if test $(docker image ls $DOCKER_IMAGE_GITHASH_TAG | grep ${DOCKER_IMAGE_BRANCH_HASH_TAG}); then
       echo "Already have branch tag on image ${DOCKER_IMAGE_BRANCH_HASH_TAG}"
     else
+      echo "Missing ${TRUNK_BRANCH_NAME} branch tag from $DOCKER_IMAGE_GITHASH_TAG, tagging"
 
-      echo "Missing ${TRUNK_BRANCH_NAME} branch tag from $DOCKER_IMAGE_GITHASH_TAG, tagging and deploying"
-
-      docker tag ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
-
-      if [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
-        if [[ ! "${DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
-          echo "Dirty index, will not push! Git diff follows."
-      		git diff --no-ext-diff
-        else
-          docker push ${DOCKER_IMAGE_BRANCH_HASH_TAG}
-        fi
+      if test ${DRYRUN} -eq 1; then
+        echo DRYRUN set, not tagging and pushing using "${DOCKER_IMAGE_GITHASH_TAG}" "${DOCKER_IMAGE_BRANCH_HASH_TAG}"
+      else
+        docker tag "${DOCKER_IMAGE_GITHASH_TAG}" "${DOCKER_IMAGE_BRANCH_HASH_TAG}"
+        docker push "${DOCKER_IMAGE_BRANCH_HASH_TAG}"
       fi
 
       if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
@@ -211,24 +206,6 @@ export DOCKER_IMAGE_LATEST_TAG=${IMAGE_URL}:latest
 export DOCKER_IMAGE_GITHASH_TAG=${IMAGE_URL}:${DIRHASH}
 export DOCKER_IMAGE_BRANCH_HASH_TAG=${IMAGE_URL}:${BRANCH_NAME}-${DIRHASH}
 
-if [ -z "${FORCE_REBUILD}" ]; then
-
-  set +e
-  echo "Check if ${DOCKER_IMAGE_GITHASH_TAG} is already published to docker registry."
-  PULLRESULT=$(docker pull ${DOCKER_IMAGE_GITHASH_TAG} 2>&1)
-  if [ "$?" = "0" ]; then
-
-    echo "... is already present in registry."
-
-    ensure-trunk-tag-and-deploy ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
-
-    exit 0
-  else
-    echo "...image not in registry."
-  fi
-  set -e
-fi
-
 rm -rf ${DOCKERDIR}/.build
 mkdir -p ${DOCKERDIR}/.build
 mkdir -p ${DOCKERDIR}/.build/metadata
@@ -259,9 +236,33 @@ cd ${DOCKERDIR}
 
 set +eao pipefail
 DIFFCHECK=$(git diff --no-ext-diff --quiet --exit-code )
-DIRTY_INDEX=$?
+__GIT_DIRTY_INDEX=$?
 
-echo DIRTY_INDEX is ${DIRTY_INDEX}
+
+if [ -z "${FORCE_REBUILD}" ]; then
+
+  set +e
+  echo "Check if ${DOCKER_IMAGE_GITHASH_TAG} is already published to docker registry."
+  PULLRESULT=$(docker pull ${DOCKER_IMAGE_GITHASH_TAG} 2>&1)
+  if [ "$?" = "0" ]; then
+
+    echo "... is already present in registry."
+
+    if [  "${__SHEPHERD_PUSH_ARG}" = "push"  ]; then
+      if [[ ! "${__GIT_DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
+        echo "Dirty index, will not push! Git diff follows."
+        git diff --no-ext-diff
+      else
+        ensure-trunk-tag-and-deploy ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+      fi
+    fi
+    exit 0
+  else
+    echo "...image not in registry."
+  fi
+  set -e
+fi
+
 set -eao pipefail
 
 if [ -e "./build.sh" ]; then
@@ -367,7 +368,7 @@ if test ${DRYRUN} -eq 1; then
     add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json "${DOCKER_IMAGE_GITHASH_TAG}" ${BRANCH_NAME}
   fi
 elif [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
-  if [[ ! "${DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
+  if [[ ! "${__GIT_DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
     echo "Dirty index, will not push! Git diff follows."
 		git diff --no-ext-diff
   else
