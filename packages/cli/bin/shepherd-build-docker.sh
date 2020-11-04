@@ -81,7 +81,7 @@ function ensure-trunk-tag-and-deploy() {
       docker tag ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
 
       if [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
-        if [[ ! "${__SHEPHERD_DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
+        if [[ ! "${DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
           echo "Dirty index, will not push! Git diff follows."
       		git diff --no-ext-diff
         else
@@ -258,8 +258,10 @@ pushd .
 cd ${DOCKERDIR}
 
 set +eao pipefail
-DIFFCHECK=$(git diff --no-ext-diff --quiet --exit-code >/dev/null 2>&1)
-export __SHEPHERD_DIRTY_INDEX=$?
+DIFFCHECK=$(git diff --no-ext-diff --quiet --exit-code )
+DIRTY_INDEX=$?
+
+echo DIRTY_INDEX is ${DIRTY_INDEX}
 set -eao pipefail
 
 if [ -e "./build.sh" ]; then
@@ -365,7 +367,7 @@ if test ${DRYRUN} -eq 1; then
     add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json "${DOCKER_IMAGE_GITHASH_TAG}" ${BRANCH_NAME}
   fi
 elif [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
-  if [[ ! "${__SHEPHERD_DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
+  if [[ ! "${DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
     echo "Dirty index, will not push! Git diff follows."
 		git diff --no-ext-diff
   else
