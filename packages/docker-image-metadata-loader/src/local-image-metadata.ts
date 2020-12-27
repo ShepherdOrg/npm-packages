@@ -53,12 +53,12 @@ export function dockerImageMetadata(injected: TLocalImageMetadataOptions) {
       cmd.extendedExec(
         "docker",
         ["inspect", dockerImage],
-        process.env,
+        { stdErrLineHandler:(_errOutputSuppressedHere)=>{}} ,
         function(err) {
           logger.debug("docker inspect error:", err)
           if (err.indexOf("No such") >= 0) {
             if (retryCount > 1) {
-              reject("ERROR:" + dockerImage + ": " + err)
+              reject(new Error("ERROR:" + dockerImage + ": " + err))
             }
             logger.debug("Going to pull ", JSON.stringify(imageDef))
 
@@ -67,7 +67,7 @@ export function dockerImageMetadata(injected: TLocalImageMetadataOptions) {
               ["pull", dockerImage],
               process.env,
               function(err) {
-                reject("Error pulling " + dockerImage + "\n" + err)
+                reject(new Error("Error pulling " + dockerImage + "\n" + err))
               },
               function(/*stdout*/) {
                 logger.info(
@@ -77,13 +77,11 @@ export function dockerImageMetadata(injected: TLocalImageMetadataOptions) {
                   .then(function(result) {
                     resolve(result)
                   })
-                  .catch(function(e) {
-                    reject(e)
-                  })
+                  .catch(reject)
               }
             )
           } else {
-            reject("Error inspecting " + dockerImage + ":\n" + err)
+            reject(new Error("Error inspecting " + dockerImage + ":\n" + err))
           }
         },
         function(stdout) {
