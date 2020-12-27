@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/metadata",
-  "version": "4.3.0",
+  "version": "5.0.1",
   "description": "Shepherd metadata model handling",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

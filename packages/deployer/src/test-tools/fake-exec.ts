@@ -13,7 +13,7 @@ export type TFakeExec = {
   };
   setErr: (errResponse:string)=>TFakeExec
   extendedExec: (command: string, params: string[], options: Object, err: FExecutionCallback, success: FExecutionCallback) => void;
-  onExec: undefined;
+  onExec?: (command: string, params: string[], options: Object, err: FExecutionCallback, success: FExecutionCallback) => void;
   executedCommands: any[]
 }
 

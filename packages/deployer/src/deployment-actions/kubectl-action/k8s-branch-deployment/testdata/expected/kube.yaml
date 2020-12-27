@@ -162,7 +162,7 @@ spec:
         paths:
           - path: /myservice-new-branch
             backend:
-              serviceName: myservice
+              serviceName: myservice-new-branch
               servicePort: 80
   tls:
     - hosts:

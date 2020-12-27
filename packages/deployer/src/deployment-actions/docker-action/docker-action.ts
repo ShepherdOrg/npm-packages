@@ -3,7 +3,7 @@ import {
   TActionExecutionOptions,
 } from "../../deployment-types"
 import { expandEnv } from "../../template/expandenv"
-import { expandTemplate } from "../../template/expandtemplate"
+import { expandTemplate } from "@shepherdorg/hbs-template"
 import { TEnvironmentVariables, TImageMetadata } from "@shepherdorg/metadata"
 import * as path from "path"
 import { extendedExec, writeFile } from "../../helpers/promisified"
@@ -13,13 +13,13 @@ import { newProgrammerOops } from "oops-error"
 import { isOops } from "../../helpers/isOops"
 import { ILog } from "../../logging/logger"
 import * as chalk from "chalk"
+import { TDeploymentState } from "@shepherdorg/metadata"
 
 type TDockerActionFactoryDependencies = {
   exec: any;
   logger: ILog;
   stateStore: IReleaseStateStore
 }
-
 
 export interface ICreateDockerActions {
   createDockerExecutionAction: (shepherdMetadata: TImageMetadata,
@@ -31,6 +31,16 @@ export interface ICreateDockerActions {
                                 environmentVariablesExpansionString?: string) => IDockerExecutableAction;
 
   executeDockerAction: (executableAction: IDockerExecutableAction, deploymentOptions: TActionExecutionOptions) => Promise<IDockerExecutableAction>
+}
+
+function removeTagFromImageUrl(dockerImageUrl: string) {
+  const indexOfSlash = Math.max(dockerImageUrl.indexOf('/'), 0)
+  const indexOfColonAfterSlash = dockerImageUrl.slice(indexOfSlash).indexOf(':')
+  if(indexOfColonAfterSlash > 0){
+    let reducedUrl = dockerImageUrl.slice(0, indexOfSlash + indexOfColonAfterSlash)
+    return reducedUrl
+  }
+  return dockerImageUrl
 }
 
 export function createDockerActionFactory({ exec, logger, stateStore }: TDockerActionFactoryDependencies): ICreateDockerActions {
@@ -48,9 +58,8 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
         deploymentOptions.dryRunOutputDir,
         executableAction.imageWithoutTag?.replace(/\//g, "_") + "-deployer.txt",
       )
-
       let cmdLine = `docker run ${executableAction.forTestParameters?.join(" ")}`
-
+      logger.info(`Writing deployment command to ${writePath}`, deploymentOptions.logContext)
       await writeFile(writePath, cmdLine)
       return executableAction
     } else {
@@ -62,10 +71,10 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
         logger.info(executableAction.planString(), deploymentOptions.logContext)
         logger.info(stdout as string, deploymentOptions.logContext)
         // logger.exitDeployment(plan.origin + '/' + plan.identifier);
-
         try {
-          if (executableAction.isStateful && executableAction.state) {
-            executableAction.state = await stateStore.saveDeploymentState(executableAction.state)
+          let deploymentState = executableAction.getActionDeploymentState()
+          if (executableAction.isStateful && deploymentState) {
+            executableAction.setActionDeploymentState( await stateStore.saveDeploymentState(deploymentState))
           }
           return executableAction
         } catch (err) {
@@ -98,16 +107,24 @@ ${err.message}`,
   ): IDockerExecutableAction {
     let operation = "run"
 
+    let deploymentState:TDeploymentState|undefined = undefined
+
     const deploymentAction: IDockerExecutableAction = {
       descriptor: "",
       dockerParameters: ["-i", "--rm"],
       forTestParameters: undefined,
-      imageWithoutTag: dockerImageUrl.replace(/:.*/g, ""), // For regression testing
+      imageWithoutTag: removeTagFromImageUrl(dockerImageUrl),
       origin: herdKey,
       operation: operation,
       isStateful: true,
       command: command,
       identifier: herdKey,
+      getActionDeploymentState(): TDeploymentState | undefined {
+        return deploymentState
+      },
+      setActionDeploymentState(newState?: TDeploymentState): void {
+        deploymentState = newState
+      },
       planString(): string {
         return `docker ${operation} ${dockerImageUrl} ${command}`
       },

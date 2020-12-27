@@ -16,7 +16,7 @@ export const LOG_CONTEXT_PREFIX_PADDING = "            "
 
 export type TLogContext = { prefix?: string; color?: chalk.ChalkFunction; performanceLog?: boolean }
 
-export type FLogFunction = (logLine: string, logContext?: TLogContext) => void
+export type FLogFunction = (logLine: string | null | undefined, logContext?: TLogContext) => void
 
 export type ILog = {
   info: FLogFunction
@@ -48,13 +48,23 @@ function formatLogWithPrefix(
   prefixWithContext: (logLine: string) => string,
   consoleInstance: any
 ) {
-  logString
-    .toString()
-    .split("\n")
-    .map(chunkSubstr(logLineLength))
-    .flat(1)
-    .map(prefixWithContext)
-    .forEach((prefixedLine: string) => consoleInstance.log(prefixedLine))
+  if(logString===undefined || logString === null){
+    return consoleInstance.log(prefixWithContext("undefined or null string in output!"))
+  }
+
+  try{
+    logString
+      .toString()
+      .split("\n")
+      .map(chunkSubstr(logLineLength))
+      .flat(1)
+      .map(prefixWithContext)
+      .forEach((prefixedLine: string) => consoleInstance.log(prefixedLine))
+  }catch(err){
+    consoleInstance.log('Log formatter encountered an error while formatting a string for output! String follows unformatted, followed by the error.')
+    consoleInstance.log(logString)
+    consoleInstance.log(err)
+  }
 }
 
 function renderLogStringWithColoredPrefix(

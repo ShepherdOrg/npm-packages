@@ -232,10 +232,10 @@ export default {
       checkExpectations() {
 
         if(execution.expectedExitCode){
-          expect(execution.actualExitCode).to.equal(execution.expectedExitCode)
+          expect(execution.actualExitCode).to.equal(execution.expectedExitCode, 'Process exit code')
         }
         execution.expectedStdoutPartials.forEach((partialString: string) => {
-          expect(execution.processOutput.indexOf(partialString)).to.gte(0, partialString)
+          expect(execution.processOutput.indexOf(partialString)).to.gte(0, partialString )
         })
 
         execution.notExpectedStdoutPartials.forEach((partialString: string) => {

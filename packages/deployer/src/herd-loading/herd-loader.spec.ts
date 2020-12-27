@@ -14,7 +14,7 @@ import {
 } from "../deployment-types"
 import { detectRecursion } from "../helpers/obj-functions"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
-import { IExec, TFileSystemPath } from "../helpers/basic-types"
+import { FTimer, IExec, TFileSystemPath } from "../helpers/basic-types"
 import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import {
   createDeploymentPlanFactory,
@@ -36,6 +36,8 @@ import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-dep
 import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
 import { ILog } from "../logging/logger"
 import { createLogContextColors } from "../logging/log-context-colors"
+import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
+import { createFakeTimeoutWrapper } from "../test-tools/fake-timer"
 
 /// Inject a mock image metadata loader with fake image information
 
@@ -44,7 +46,6 @@ const CreateFeatureDeploymentConfig = require("../triggered-deployment/create-up
 
 export interface TTestDeploymentOrchestration extends IDeploymentOrchestration {
   addedDeploymentPlans: Array<IDeploymentPlan>
-  // TODO Remove tests on deploymentActions
   addedK8sDeploymentActions: { [key: string]: IDockerImageKubectlDeploymentAction | IK8sDirDeploymentAction }
   addedDockerDeployerActions: { [key: string]: IDockerDeploymentAction }
 }
@@ -87,7 +88,14 @@ describe("herd.yaml loading", function() {
     })
     let deploymentTestActionFactory = createDeploymentTestActionFactory({logger, dockerActionFactory})
 
+    const fakeTimeoutWrapper = createFakeTimeoutWrapper()
+
+
+    let ttlAnnotationActionFactory = createDeploymentTimeAnnotationActionFactory({exec: exec, logger: logger, systemTime: () => new Date(), timeout: fakeTimeoutWrapper.fakeTimeout})
+
     let dependencies: TDeploymentPlanDependencies = {
+      deploymentEnvironment: 'specEnv',
+      ttlAnnotationActionFactory: ttlAnnotationActionFactory,
       exec: exec,
       logger: logger,
       stateStore: stateStore,
@@ -137,6 +145,7 @@ describe("herd.yaml loading", function() {
     delete process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE
     delete process.env.INFRASTRUCTURE_IMPORTED_ENV
     delete process.env.ENV
+    delete process.env.SERVICE_HOST_NAME
   })
 
   beforeEach(() => {
@@ -149,6 +158,7 @@ describe("herd.yaml loading", function() {
     process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "anotherValue"
     process.env.INFRASTRUCTURE_IMPORTED_ENV = "thatsme"
     process.env.ENV = "SPECENV"
+    process.env.SERVICE_HOST_NAME='testhost.44'
 
     delete process.env.TPL_DOCKER_IMAGE
 
@@ -175,7 +185,7 @@ describe("herd.yaml loading", function() {
             }
             if (deploymentAction.type === "k8s") {
               releasePlan.addedK8sDeploymentActions[
-                deploymentAction.identifier
+                deploymentAction.operation + '>' + deploymentAction.identifier
                 ] = deploymentAction as IDockerImageKubectlDeploymentAction
             } else if (deploymentAction.type === "deployer") {
               releasePlan.addedDockerDeployerActions[deploymentAction.identifier] = deploymentAction as IDockerDeploymentAction
@@ -202,7 +212,6 @@ describe("herd.yaml loading", function() {
         addedDockerDeployerActions: addedDockerDeployerActions,
         addedK8sDeploymentActions: addedK8sDeployerActions,
         addedDeploymentPlans: deploymentPlans,
-        // TODO addDeployentPlan(deploymentPlan: IDeploymentPlan)
         async addDeploymentPlan(deploymentPlan: IDeploymentPlan): Promise<IDeploymentPlan> {
           await Promise.all(deploymentPlan.deploymentActions.map(async (da) => {
             await addDeploymentAction(da as IAnyDeploymentAction)
@@ -269,7 +278,7 @@ describe("herd.yaml loading", function() {
       })
   })
 
-  /* TODO Probably should move this test block to testing the folder deployment plan loader directly. Limit to checking that folder deployment planner is invoked correctly. */
+  /* TODOLATER Probably should move this test block to testing the folder deployment plan loader directly. Limit to checking that folder deployment planner is invoked correctly. */
   describe("folder execution plan loading", function() {
     let loadedPlan: TTestDeploymentOrchestration
 
@@ -288,30 +297,30 @@ describe("herd.yaml loading", function() {
     })
 
     it("should add k8s deployment found in scanned directory", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].origin).to.equal(
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].origin).to.equal(
         "namespaces/monitors-namespace.yml",
       )
     })
 
     it("loaded action should have herd name", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdKey).to.contain("kube-config - namespaces")
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdKey).to.contain("kube-config - namespaces")
     })
 
     it("loaded action should have specified environment set", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].env).to.equal("loader-spec-env")
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].env).to.equal("loader-spec-env")
     })
 
     it("should have herdDeclaration", () => {
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.key).to.equal("kube-config")
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.key).to.equal("kube-config")
       expect(
-        (loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration).path,
+        (loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration).path,
       ).to.equal("./")
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.description).to.equal(
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.description).to.equal(
         "Kubernetes pull secrets, namespaces, common config",
       )
 
       expect(
-        loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.sectionDeclaration,
+        loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.sectionDeclaration,
       ).to.deep.equal({
         herdSectionIndex: 1,
         herdSectionType: "folders" as THerdSectionType,
@@ -324,14 +333,14 @@ describe("herd.yaml loading", function() {
         semanticVersion: "none",
         deploymentType: "k8s",
         path: "namespaces/monitors-namespace.yml",
-        buildDate: loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].metadata.buildDate,
+        buildDate: loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].metadata.buildDate,
         hyperlinks: [],
       }
-      expect(loadedPlan.addedK8sDeploymentActions["Namespace_monitors"].metadata).to.deep.equal(expectedMetadata)
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].metadata).to.deep.equal(expectedMetadata)
     })
   })
 
-  describe("k8s feature deployment plan", function() {
+  describe("k8s branch deployment plan", function() {
     let loadedPlan: TTestDeploymentOrchestration
 
     before(() => {
@@ -372,8 +381,49 @@ describe("herd.yaml loading", function() {
     })
   })
 
-  describe("k8s deployment plan", function() {
+
+  describe("k8s branch deployment plan, reproducing hbs template expansion bug", function() {
     let loadedPlan: TTestDeploymentOrchestration
+
+    before(() => {
+      featureDeploymentConfig.imageFileName = "feature-deployment"
+      featureDeploymentConfig.upstreamHerdKey = "test-image-with-yaml-wrecking-hbs"
+      featureDeploymentConfig.upstreamImageName = "test-image-with-yaml-wrecking-hbs"
+      featureDeploymentConfig.upstreamImageTag = "0.4.45"
+      featureDeploymentConfig.upstreamHerdDescription = "Very much a testing image"
+      featureDeploymentConfig.upstreamFeatureDeployment = true
+      featureDeploymentConfig.ttlHours = "22"
+      featureDeploymentConfig.branchName = "branch99"
+    })
+
+    after(() => {
+      featureDeploymentConfig.upstreamFeatureDeployment = false
+
+      delete featureDeploymentConfig.imageFileName
+      delete featureDeploymentConfig.upstreamHerdKey
+      delete featureDeploymentConfig.upstreamImageName
+      delete featureDeploymentConfig.upstreamImageTag
+      delete featureDeploymentConfig.upstreamHerdDescription
+      delete featureDeploymentConfig.ttlHours
+      delete featureDeploymentConfig.branchName
+    })
+
+    beforeEach(function() {
+      return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
+        loadedPlan = plan as TTestDeploymentOrchestration
+      })
+    })
+
+    it("should create plan without error", () => {
+      let addedK8sDeploymentActions = Object.keys(loadedPlan.addedK8sDeploymentActions)
+
+      expect(addedK8sDeploymentActions.join(", ")).to.contain("branch99")
+    })
+  })
+
+
+  describe("k8s deployment plan", function() {
+    let loadedOrchestration: TTestDeploymentOrchestration
 
     before(() => {
       process.env.CLUSTER_POLICY_MAX_CPU_REQUEST = "27m"
@@ -383,7 +433,7 @@ describe("herd.yaml loading", function() {
     beforeEach(function() {
       createTestHerdLoader(labelsLoader, featureDeploymentConfig)
       return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
-        loadedPlan = plan as TTestDeploymentOrchestration
+        loadedOrchestration = plan as TTestDeploymentOrchestration
       })
     })
 
@@ -393,21 +443,21 @@ describe("herd.yaml loading", function() {
     })
 
     it("should base64decode and untar deployment files under file path", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].origin).to.equal(
+      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].origin).to.equal(
         "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml",
       )
     })
 
     it("should extract herdKey from herd.yaml", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].herdKey).to.equal("test-image")
+      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].herdKey).to.equal("test-image")
     })
 
     it("should set specified environment in action", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"].env).to.equal("loader-spec-env")
+      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].env).to.equal("loader-spec-env")
     })
 
     it("should include metadata for k8s plan", function() {
-      let addedK8sDeployment = loadedPlan.addedK8sDeploymentActions["Service_www-icelandair-com"]
+      let addedK8sDeployment = loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"]
       expect(addedK8sDeployment.metadata).not.to.equal(undefined)
 
       expect(addedK8sDeployment.metadata.displayName).to.equal("Testimage")
@@ -415,11 +465,19 @@ describe("herd.yaml loading", function() {
     })
 
     it("should apply k8s deployment-time cluster policy", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["Deployment_www-icelandair-com"].descriptor).to.contain("27m")
+      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Deployment_www-icelandair-com"].descriptor).to.contain("27m")
+    })
+
+    it("Should add deployment time annotation actions for all deployment documents", function() {
+      let addedActions = Object.keys( loadedOrchestration.addedK8sDeploymentActions).join('\n')
+      expect(addedActions).to.contain('annotate>deployment timestamp Service www-icelandair-com-internal-test1')
+      expect(addedActions).to.contain('annotate>deployment timestamp ConfigMap www-icelandair-com-nginx-acls-test1')
+      expect(addedActions).to.contain('annotate>deployment timestamp Deployment www-icelandair-com-test1')
+      expect(addedActions).to.contain('annotate>deployment timestamp Service www-icelandair-com-test1')
     })
 
     it("should be serializable", function() {
-      let serializable = detectRecursion(loadedPlan)
+      let serializable = detectRecursion(loadedOrchestration)
       expect(serializable.join(".")).to.equal("")
       expect(serializable.length).to.equal(0)
     })

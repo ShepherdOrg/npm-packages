@@ -62,7 +62,7 @@ export function isK8sDeploymentAction(spec: IExecutableAction): spec is IKubectl
   return Boolean((spec as IKubectlDeployAction).descriptor)
 }
 
-export type TK8sDeploymentPlan2 = {
+export type TK8sDeploymentPlan = {
   dockerLabels?: TDockerImageLabels
   deployments?: {}
   herdKey: string
@@ -94,7 +94,7 @@ export type THerdFileStructure = {
   images?: TDockerImageHerdDeclarations
 }
 export type TFolderMetadata = {
-  //TODO This will need git information from directory containing configuration
+  // TODOLATER This will need git information from directory containing configuration
   path: TFileSystemPath
   buildDate: TISODateString
   displayName: string
@@ -103,18 +103,24 @@ export type TFolderMetadata = {
   hyperlinks: Array<THref>,
 }
 
-export interface IExecutableAction {
-  isStateful: boolean
-  state?: TDeploymentState
-  descriptor: string
 
+
+export interface IBasicExecutableAction {
   planString(): string
 
   execute(
-    deploymentOptions: TActionExecutionOptions
+    deploymentOptions: TActionExecutionOptions,
   ): Promise<IExecutableAction>
+}
 
-  canRollbackExecution(): this is IRollbackActionExecution
+export interface IExecutableAction extends IBasicExecutableAction {
+  isStateful: boolean
+  descriptor: string
+
+  getActionDeploymentState(): TDeploymentState | undefined
+  setActionDeploymentState(newState: TDeploymentState | undefined): void
+
+  canRollbackExecution(): this is ICanRollbackActionExecution
 }
 
 export type TRollbackResult = {
@@ -123,18 +129,17 @@ export type TRollbackResult = {
   stdErr?: string
 }
 
-export interface IRollbackActionExecution {
+export interface ICanRollbackActionExecution {
   rollback(deploymentOptions: TActionExecutionOptions): Promise<TRollbackResult>
 }
 
-export function canRollbackExecution(action: object): action is IRollbackActionExecution {
-  return Boolean((action as IRollbackActionExecution).rollback)
+export function canRollbackExecution(action: object): action is ICanRollbackActionExecution {
+  return Boolean((action as ICanRollbackActionExecution).rollback)
 }
 
 export interface IBaseDeploymentAction {
   metadata: TImageMetadata | TFolderMetadata;
   herdKey: string;
-  state?: TDeploymentState // State on action or deployment? StateDependentAction, StateMutatingAction (as opposed to wait actions). Model this differently?
   identifier: string
   env: string
   type: string
@@ -167,13 +172,11 @@ export interface IKubectlAction extends IExecutableAction {
 }
 
 export interface IKubectlDeployAction extends IKubectlAction {
-  deploymentRollouts: TDeploymentRollout[] // TODO Move into deploymentActions
+  deploymentRollouts: TDeploymentRollout[]
   descriptor: string
   descriptorsByKind?: TDescriptorsByKind
   fileName: string,
   origin: string
-
-  state?: TDeploymentState
 }
 
 export function isKubectlDeployAction(deployAction: IExecutableAction): deployAction is IKubectlDeployAction {
@@ -214,4 +217,4 @@ export type TDeploymentOrchestrationDependencies = {}
 
 export type FnDeploymentStateSave = (stateSignatureObject: any) => Promise<TDeploymentState>
 
-
+export type IPushToShepherdUI = { pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined> }

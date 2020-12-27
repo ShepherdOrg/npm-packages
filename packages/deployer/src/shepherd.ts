@@ -14,6 +14,8 @@ import { InMemoryStore } from "@shepherdorg/state-store/dist/in-memory-backend"
 import { IDeploymentPlanExecutionResult, renderPlanFailureSummary } from "./deployment-plan/deployment-plan"
 import * as chalk from "chalk"
 import { padLeft } from "./logging/padleft"
+import { initRegistryLogin } from "@shepherdorg/docker-image-metadata-loader"
+import { IPushToShepherdUI } from "./deployment-types"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -35,6 +37,9 @@ Supported options:
                          Shepherd does not wait for rollouts by default.
     --push-to-ui         Push data to shepherd UI. See SHEPHERD_UI_API_ENDPOINT below.
     
+    --registry-login 
+                         Login to docker registry to enable API usage and avoid docker pulls where possible. Only necessary
+                         where docker is using a credentials manager like on OsX. Will prompt for username and password. 
     
 Dryrun will write to directory specified by 
     --outputDir <directory>
@@ -79,7 +84,11 @@ Examples
 `)
 }
 
-if (process.argv.indexOf("--help") > 0) {
+function hasArg(param: string) {
+  return process.argv.includes(param)
+}
+
+if (hasArg("--help")) {
   printUsage()
   process.exit(0)
 }
@@ -89,194 +98,239 @@ function printVersions() {
   console.info(`metadata v${require("@shepherdorg/metadata/package").version}`)
 }
 
-if (process.argv.indexOf("--version") > 0) {
-  printVersions()
-  process.exit(0)
-}
 
-// @ts-ignore
-global._ = require("lodash")
-global.Promise = require("bluebird")
+function loginToRegistryWithPrompt() {
+  const prompt = require("prompt")
 
+  prompt.message = "Docker registry"
+  const properties = [
+    {
+      name: "host",
+    },
+    {
+      name: "username",
+    },
+    {
+      name: "password",
+      hidden: true,
+    },
+  ]
 
-flatMapPolyfill()
+  prompt.start()
 
-let defaultLogContext = {color: chalk.gray, prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, '>')}
-
-const logger = createLogger(console, { maxWidth: process.stdout.columns, defaultContext: defaultLogContext })
-
-console.debug = function() {
-  // Array.prototype.unshift.call(arguments, 'SHEPDEBUG ');
-  // console.log.apply(console, arguments);
-}
-
-let dryRun = process.argv.indexOf("--dryrun") > 0
-let pushToUi = process.argv.indexOf("--push-to-ui") > 0 || Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)
-
-let waitForRollout = process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process.argv.indexOf("--wait-for-rollout") > 0
-
-const exportDocuments = process.argv.indexOf("--export") > 0
-
-let outputDirectory: TFileSystemPath | undefined
-
-if (process.argv.indexOf("--help") > 0) {
-  printUsage()
-  process.exit(0)
-}
-
-if (process.argv.indexOf("--outputDir") > 0) {
-  outputDirectory = process.argv[process.argv.indexOf("--outputDir") + 1]
-  logger.info("Writing deployment documents to " + outputDirectory)
-
-  if (!fs.existsSync(outputDirectory)) {
-    fs.mkdirSync(outputDirectory)
-  }
-}
-
-if ((exportDocuments || dryRun) && !outputDirectory) {
-  console.error("Must specify output dir in export and dryrun modes with --outputDir parameter")
-  process.exit(255)
-}
-
-let stateStoreBackend: IStorageBackend
-
-export type IPushToShepherdUI = { pushDeploymentStateToUI: (deploymentState: any) => Promise<any | undefined> }
-
-let uiDataPusher: IPushToShepherdUI // TODO: Need proper type export form uiDataPusher
-
-if(dryRun){
-  logger.info(`NOTE: Dryrun does not take deployment state into account and assumes everything needs to be deployed.`)
-  stateStoreBackend = InMemoryStore()
-} else {
-  if (process.env.SHEPHERD_PG_HOST) {
-    logger.info(`Using postgres state store on ${process.env.SHEPHERD_PG_HOST}` )
-    const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
-    const PostgresStore = require("@shepherdorg/postgres-backend").PostgresStore
-    stateStoreBackend = PostgresStore(pgConfig)
-  } else {
-    const FileStore = require("@shepherdorg/filestore-backend").FileStore
-    let homedir = require("os").homedir()
-    let shepherdStoreDir =
-      process.env.SHEPHERD_FILESTORE_DIR || path.join(homedir, ".shepherdstore", process.env.ENV || "default")
-    logger.info(`WARNING: Falling back to file based state store directory in ${shepherdStoreDir}`)
-    stateStoreBackend = FileStore({ directory: shepherdStoreDir })
-  }
-
-  if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
-    logger.info(`Shepherd UI API endpoint configured ${process.env.SHEPHERD_UI_API_ENDPOINT}`)
-    uiDataPusher = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT, console)
-  }
-}
-
-
-const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
-const exec = require("@shepherdorg/exec")
-const {
-  createUpstreamTriggerDeploymentConfig,
-} = require("./triggered-deployment/create-upstream-trigger-deployment-config")
-
-const upgradeOrAddDeploymentInFile = require("./herd-file/herd-edit").upgradeOrAddDeploymentInFile
-
-function terminateProcess(exitCode: number) {
-  stateStoreBackend.disconnect()
-  process.exit(exitCode)
-}
-
-let herdFilePath = process.argv[2]
-let environment = process.argv[3]
-
-if(!environment){
-  logger.error("Environment is a mandatory parameter")
-  printUsage()
-  process.exit(255)
-}
-
-stateStoreBackend
-  .connect()
-  .then(function() {
-    let releaseStateStore = ReleaseStateStore({
-      storageBackend: stateStoreBackend,
-    })
-    let upstreamDeploymentConfig = createUpstreamTriggerDeploymentConfig(logger)
-    upstreamDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
-
-    if (upstreamDeploymentConfig.herdFileEditNeeded()) {
-      upgradeOrAddDeploymentInFile(upstreamDeploymentConfig, logger)
+  prompt.get(properties, function(err: Error, result: { username: string, password: string, host: string }) {
+    if (err) {
+      return onErr(err)
     }
 
-    let loaderContext = createLoaderContext({
-      stateStore: releaseStateStore,
-      logger: logger,
-      featureDeploymentConfig: upstreamDeploymentConfig,
-      exec: exec,
-      uiPusher: uiDataPusher,
-      environment: environment
+    initRegistryLogin({ homeDir: require("os").homedir() }).registryLogin(result.host, result.username, result.password).then((loginSuccess) => {
+      loginSuccess ? console.info(chalk.green(result.username) + " logged in to " + chalk.green(result.host)) : console.error(chalk.red("Login failed"))
     })
-
-    logger.info("Calculating deployment of herd from file " + herdFilePath + " for environment " + environment)
-
-    loaderContext.loader
-      .loadHerd(herdFilePath)
-      .then(function(plan: IDeploymentOrchestration) {
-        plan.printPlan(logger)
-        if (exportDocuments) {
-          logger.info("Testrun mode set - exporting all deployment documents to " + outputDirectory)
-          logger.info("Testrun mode set - no deployments will be performed")
-          plan
-            .exportDeploymentActions(outputDirectory as TFileSystemPath)
-            .then(function() {
-              terminateProcess(0)
-            })
-            .catch(function(writeError: Error) {
-              logger.error("Error exporting deployment document! ", writeError)
-              terminateProcess(255)
-            })
-        } else {
-
-          // TODO NEXT Rollback on kube config
-
-          let dryRunString = `${dryRun ? ' dryrun' : ''}`
-
-          logger.info(`Executing deployment plan${dryRunString}... `)
-          plan
-            .executePlans({
-              dryRun: dryRun,
-              dryRunOutputDir: outputDirectory,
-              pushToUi: pushToUi,
-              waitForRollout: waitForRollout,
-              logContext: defaultLogContext
-            })
-            .then(function(planResults:IDeploymentPlanExecutionResult[]) {
-              // Exceptions from plan execution are logged immediately. Here we render only a summary of deployment results.
-              const failedPlans = planResults.filter((planExecutionResult)=>{
-                return planExecutionResult.actionExecutionError !== undefined
-              })
-              if(failedPlans.length > 0){
-                renderPlanFailureSummary(logger, failedPlans)
-                return terminateProcess(failedPlans.length)
-              }
-              logger.info(`...plan${dryRunString} execution complete. Exiting shepherd.`)
-              setTimeout(() => {
-                terminateProcess(0)
-              }, 1000)
-            })
-            .catch(function(err: Error) {
-              renderPlanExecutionError(logger, err, defaultLogContext)
-              terminateProcess(255)
-            })
-        }
-      })
-      .catch(function(loadError) {
-        logger.debug(`Plan load error, with stack`, loadError)
-        logger.error(`Plan load error. ${loadError.message}`)
-        if(loadError.context){
-          logger.error(` ${JSON.stringify(loadError.context)}`)
-        }
-        stateStoreBackend.disconnect()
-        process.exit(255)
-      })
   })
-  .catch(function(err: Error) {
-    console.error("Connection/migration error", err)
+
+  function onErr(err: Error) {
+    console.log(err)
+    return 1
+  }
+}
+
+function main(){
+
+  if (process.argv.indexOf("--version") > 0) {
+    printVersions()
+    process.exit(0)
+  }
+
+  if(hasArg("--registry-login")){
+    return loginToRegistryWithPrompt()
+  }
+
+// @ts-ignore
+  global._ = require("lodash")
+  global.Promise = require("bluebird")
+
+
+  flatMapPolyfill()
+
+  let defaultLogContext = {color: chalk.gray, prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, '>')}
+
+  const logger = createLogger(console, { maxWidth: process.stdout.columns, defaultContext: defaultLogContext })
+
+  console.debug = function() {
+    // Array.prototype.unshift.call(arguments, 'SHEPDEBUG ');
+    // console.log.apply(console, arguments);
+  }
+
+  let dryRun = process.argv.indexOf("--dryrun") > 0
+  let pushToUi = process.argv.indexOf("--push-to-ui") > 0 || Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)
+
+  let waitForRollout = process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process.argv.indexOf("--wait-for-rollout") > 0
+
+  const exportDocuments = process.argv.indexOf("--export") > 0
+
+  let outputDirectory: TFileSystemPath | undefined
+
+  if (process.argv.indexOf("--help") > 0) {
+    printUsage()
+    process.exit(0)
+  }
+
+  if (process.argv.indexOf("--outputDir") > 0) {
+    outputDirectory = process.argv[process.argv.indexOf("--outputDir") + 1]
+    logger.info("Writing deployment documents to " + outputDirectory)
+
+    if (!fs.existsSync(outputDirectory)) {
+      fs.mkdirSync(outputDirectory)
+    }
+  }
+
+  if ((exportDocuments || dryRun) && !outputDirectory) {
+    console.error("Must specify output dir in export and dryrun modes with --outputDir parameter")
     process.exit(255)
-  })
+  }
+
+  let stateStoreBackend: IStorageBackend
+
+
+  let uiDataPusher: IPushToShepherdUI
+
+  if(dryRun){
+    logger.info(`NOTE: Dryrun does not take deployment state into account and assumes everything needs to be deployed.`)
+    stateStoreBackend = InMemoryStore()
+  } else {
+    if (process.env.SHEPHERD_PG_HOST) {
+      logger.info(`Using postgres state store on ${process.env.SHEPHERD_PG_HOST}` )
+      const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
+      const PostgresStore = require("@shepherdorg/postgres-backend").PostgresStore
+      stateStoreBackend = PostgresStore(pgConfig)
+    } else {
+      const FileStore = require("@shepherdorg/filestore-backend").FileStore
+      let homedir = require("os").homedir()
+      let shepherdStoreDir =
+        process.env.SHEPHERD_FILESTORE_DIR || path.join(homedir, ".shepherdstore", process.env.ENV || "default")
+      logger.info(`WARNING: Falling back to file based state store directory in ${shepherdStoreDir}`)
+      stateStoreBackend = FileStore({ directory: shepherdStoreDir })
+    }
+
+    if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
+      logger.info(`Shepherd UI API endpoint configured ${process.env.SHEPHERD_UI_API_ENDPOINT}`)
+      uiDataPusher = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT, console)
+    }
+  }
+
+
+  const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
+  const exec = require("@shepherdorg/exec")
+  const {
+    createUpstreamTriggerDeploymentConfig,
+  } = require("./triggered-deployment/create-upstream-trigger-deployment-config")
+
+  const upgradeOrAddDeploymentInFile = require("./herd-file/herd-edit").upgradeOrAddDeploymentInFile
+
+  function terminateProcess(exitCode: number) {
+    console.log(`DEBUG Terminating process with code`, exitCode)
+    stateStoreBackend.disconnect()
+    process.exit(exitCode)
+  }
+
+  let herdFilePath = process.argv[2]
+  let environment = process.argv[3]
+
+  if(!environment){
+    logger.error("Environment is a mandatory parameter")
+    printUsage()
+    process.exit(255)
+  }
+
+  stateStoreBackend
+    .connect()
+    .then(function() {
+      let releaseStateStore = ReleaseStateStore({
+        storageBackend: stateStoreBackend,
+      })
+      let upstreamDeploymentConfig = createUpstreamTriggerDeploymentConfig(logger)
+      upstreamDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
+
+      if (upstreamDeploymentConfig.herdFileEditNeeded()) {
+        upgradeOrAddDeploymentInFile(upstreamDeploymentConfig, logger)
+      }
+
+      let loaderContext = createLoaderContext({
+        stateStore: releaseStateStore,
+        logger: logger,
+        featureDeploymentConfig: upstreamDeploymentConfig,
+        exec: exec,
+        uiPusher: uiDataPusher,
+        environment: environment
+      } )
+
+      logger.info("Calculating deployment of herd from file " + herdFilePath + " for environment " + environment)
+
+      loaderContext.loader
+        .loadHerd(herdFilePath)
+        .then(function(plan: IDeploymentOrchestration) {
+          plan.printPlan(logger)
+          if (exportDocuments) {
+            logger.info("Testrun mode set - exporting all deployment documents to " + outputDirectory)
+            logger.info("Testrun mode set - no deployments will be performed")
+            plan
+              .exportDeploymentActions(outputDirectory as TFileSystemPath)
+              .then(function() {
+                terminateProcess(0)
+              })
+              .catch(function(writeError: Error) {
+                logger.error("Error exporting deployment document! ", writeError)
+                terminateProcess(255)
+              })
+          } else {
+
+            // TODOLATER Rollback on kube config
+
+            let dryRunString = `${dryRun ? ' dryrun' : ''}`
+
+            logger.info(`Executing deployment plan${dryRunString}... `)
+            plan
+              .executePlans({
+                dryRun: dryRun,
+                dryRunOutputDir: outputDirectory,
+                pushToUi: pushToUi,
+                waitForRollout: waitForRollout,
+                logContext: defaultLogContext
+              })
+              .then(function(planResults:IDeploymentPlanExecutionResult[]) {
+                // Exceptions from plan execution are logged immediately. Here we render only a summary of deployment results.
+                const failedPlans = planResults.filter((planExecutionResult)=>{
+                  return planExecutionResult.actionExecutionError !== undefined
+                })
+                if(failedPlans.length > 0){
+                  renderPlanFailureSummary(logger, failedPlans)
+                  return terminateProcess(failedPlans.length)
+                }
+                logger.info(`...plan${dryRunString} execution complete. Exiting shepherd.`)
+                setTimeout(() => {
+                  terminateProcess(0)
+                }, 1000)
+              })
+              .catch(function(err: Error) {
+                renderPlanExecutionError(logger, err, defaultLogContext)
+                terminateProcess(255)
+              })
+          }
+        })
+        .catch(function(loadError) {
+          logger.debug(`Plan load error, with stack`, loadError)
+          logger.error(`Plan load error. ${loadError.message}`)
+          if(loadError.context){
+            logger.error(` ${JSON.stringify(loadError.context)}`)
+          }
+          stateStoreBackend.disconnect()
+          process.exit(255)
+        })
+    })
+    .catch(function(err: Error) {
+      console.error("Connection/migration error", err)
+      process.exit(255)
+    })
+}
+
+main()

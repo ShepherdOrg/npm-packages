@@ -2,9 +2,11 @@ import * as _ from "lodash"
 
 import { PgConfig, PostgresStore as PgBackend } from "@shepherdorg/postgres-backend"
 
-import script from "../test-tools/script-test"
+import script, { TScriptTestExecution } from "../test-tools/script-test"
 import { TFileSystemPath } from "../helpers/basic-types"
 import { base64Encode } from "../template/base64-env-subst"
+import { IPostgresStorageBackend } from "@shepherdorg/postgres-backend"
+import { expect } from "chai"
 
 const fs = require("fs")
 const path = require("path")
@@ -22,6 +24,7 @@ describe("running shepherd", function() {
 
   this.timeout(40000)
 
+
   beforeEach(function() {
     if (!fs.existsSync("./.build/.testdata")) {
       fs.mkdirSync("./.build/.testdata")
@@ -35,7 +38,7 @@ describe("running shepherd", function() {
     cleanDir("./.build/.testdata/actual", false)
   })
 
-  describe("default state storage", function() {
+  describe("using file state storage", function() {
     beforeEach(() => {
       delete process.env.SHEPHERD_UI_API_ENDPOINT
       let shepherdStoreDir = "./.build/.shepherdstore"
@@ -46,9 +49,9 @@ describe("running shepherd", function() {
       script
         .execute(shepherdTestHarness, ["--dryrun"], {
           env: _.extend({}, process.env, {
-            NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
             INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
+            SERVICE_HOST_NAME: "svc.host.somewhere",
           }),
           debug: false, // debug:false suppresses stdout of process
         })
@@ -78,7 +81,6 @@ describe("running shepherd", function() {
       script
         .execute(shepherdTestHarness, ["--dryrun", tempHerdFilePath], {
           env: _.extend({}, process.env, {
-            NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
             UPSTREAM_IMAGE_URL: "testenvimage:0.0.0",
             UPSTREAM_HERD_KEY: "addedimage",
@@ -100,20 +102,43 @@ describe("running shepherd", function() {
     })
   })
 
-  describe("using fake kubectl", function() {
+  describe("use of state storage", function() {
+
+    const EXPECTED_STATE_STORE_KEYS = [
+      "integratedtestenv-Service_image2",
+      "integratedtestenv-Service_www-fromdir",
+      "integratedtestenv-Service_www-icelandair-com-internal",
+      "integratedtestenv-Service_www-icelandair-com-internal-test1",
+      "integratedtestenv-Deployment_image2",
+      "integratedtestenv-Namespace_monitors",
+      "integratedtestenv-ConfigMap_www-icelandair-com-nginx-acls",
+      "integratedtestenv-ConfigMap_www-icelandair-com-nginx-acls-test1",
+      "integratedtestenv-ConfigMap_image2-config",
+      "integratedtestenv-Deployment_www-icelandair-com",
+      "integratedtestenv-Deployment_www-icelandair-com-test1",
+      "integratedtestenv-Service_www-icelandair-com",
+      "integratedtestenv-Service_www-icelandair-com-test1",
+      "integratedtestenv-test-migration-image-newformat",
+      "integratedtestenv-testenvimage-migrations:0.0.0",
+      "integratedtestenv-testInfrastructure"]
+
     const firstRoundFolder = path.join(process.cwd(), "./.build/kubeapply")
     const secondRoundFolder = path.join(
       process.cwd(),
       "./.build/kubeapply-secondround",
     )
+    let pgBackend: IPostgresStorageBackend
+    let firstRun: TScriptTestExecution
+    let secondRun: TScriptTestExecution
 
-    beforeEach(function() {
+    before(function(done) {
       if (!process.env.SHEPHERD_PG_HOST) {
         process.env.SHEPHERD_PG_HOST = "localhost"
       }
       process.env.RESET_FOR_REAL = "yes-i-really-want-to-drop-deployments-table"
       process.env.UPSTREAM_WAIT_FOR_ROLLOUT = "true"
-      let pgBackend = PgBackend(PgConfig())
+      let config = PgConfig()
+      pgBackend = PgBackend(config)
 
       ensureCleanOutputFolder(firstRoundFolder)
       ensureCleanOutputFolder(secondRoundFolder)
@@ -121,38 +146,61 @@ describe("running shepherd", function() {
       let postgresConnectionError = (err: Error) => {
         throw new Error("Error connecting to postgres! Cause: " + err.message)
       }
-      return pgBackend
+      pgBackend
         .connect().catch(postgresConnectionError)
-        .then(() => pgBackend.resetAllDeploymentStates())
-    })
-
-    it("should deploy once in two runs", function(done) {
-      process.env.KUBECTL_OUTPUT_FOLDER = firstRoundFolder
-
-      let testEnv = { NO_REBUILD_IMAGES: true, INFRASTRUCTURE_IMPORTED_ENV: "thatsme" }
-      script
-        .execute(shepherdTestHarness, [], {
-          env: _.extend(testEnv, process.env),
-          debug: false, // debug:false suppresses stdout of process
+        .then(() => {
+          pgBackend.resetAllDeploymentStates().catch((resetError: Error) => {
+            console.error(`RESET ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`, resetError)
+            return resetError
+          })
         })
-        .output(firstRoundFolder)
-        .shouldEqual(process.cwd() + "/src/integratedtest/expected/k8s-deployments")
-        .done(function(_stdout) {
-          // console.log(`stdout`, stdout)
-          process.env.KUBECTL_OUTPUT_FOLDER = secondRoundFolder
+        .then(() => {
+          process.env.KUBECTL_OUTPUT_FOLDER = firstRoundFolder
 
-          script
+          let testEnv = { INFRASTRUCTURE_IMPORTED_ENV: "thatsme", SERVICE_HOST_NAME: "svc.host.somewhere" }
+          firstRun = script
             .execute(shepherdTestHarness, [], {
               env: _.extend(testEnv, process.env),
               debug: false, // debug:false suppresses stdout of process
             })
-            .output(secondRoundFolder)
-            .shouldBeEmptyDir()
             .done(function(_stdout) {
-              done()
+              // console.log(`stdout`, stdout)
+              process.env.KUBECTL_OUTPUT_FOLDER = secondRoundFolder
+
+              secondRun = script
+                .execute(shepherdTestHarness, [], {
+                  env: _.extend(testEnv, process.env),
+                  debug: false, // debug:false suppresses stdout of process
+                })
+                .done(function(_stdout) {
+                  done()
+                })
             })
-        })
+        }).catch((setupError: Error) => {
+        console.error(`Error setting up for test!`, setupError)
+      })
+
+
     })
+
+
+    it("should deploy once in two runs", function() {
+      firstRun.output(firstRoundFolder)
+        .shouldEqual(process.cwd() + "/src/integratedtest/expected/k8s-deployments").checkExpectations()
+      secondRun.output(secondRoundFolder)
+        .shouldBeEmptyDir().checkExpectations()
+    })
+
+    EXPECTED_STATE_STORE_KEYS.forEach((expectedKey) => {
+      it(`should store ${expectedKey} in backend`, () => {
+        return pgBackend.get(expectedKey).then((resultingState) => {
+          expect(resultingState.value).not.to.equal(undefined)
+
+        })
+
+      })
+    })
+
   })
 
   describe("postDeployTest support", function() {
@@ -171,7 +219,6 @@ describe("running shepherd", function() {
       script
         .execute(shepherdTestHarness, ["--fakerun", "src/herd-loading/testdata/deploytestherd/herd.yaml"], {
           env: _.extend({}, process.env, {
-            NO_REBUILD_IMAGES: true,
             SHEPHERD_PG_HOST: "",
             FAIL_POSTDEPLOY_TEST: true,
             PRETEST_EXITCODE: "0",
@@ -179,7 +226,7 @@ describe("running shepherd", function() {
           }),
           debug: false, // debug:false suppresses stdout of process
         })
-        .expectExitCode(2)
+        .expectExitCode(1)
         .stdout().shouldContain("Executing docker command pretest")
         .stdout().shouldContain("Post test exit with code 1")
         .stdout().shouldContain("Executing docker command deploy")
@@ -187,7 +234,8 @@ describe("running shepherd", function() {
         .stdout().shouldContain("Executing docker command posttest")
         .stdout().shouldContain("Test run failed, rolling back to last good version.")
         .stdout().shouldContain("Rollback complete. Original error follows.")
-        .stdout().shouldNotContain('not found')
+        .stdout().shouldContain("Execution of 1 deployment plan(s) resulted in failure")
+        .stdout().shouldNotContain("not found")
         .done(function() {
           done()
         })
@@ -196,32 +244,6 @@ describe("running shepherd", function() {
 
 
   xit("should execute infrastructure deployers first to completion", () => {
-  })
-
-  describe("local project deployment from shepherd json", function() {
-    beforeEach(() => {
-      const outputFolder = path.join(process.cwd(), "./.build/local_deploy")
-      ensureCleanOutputFolder(outputFolder)
-
-      process.env.KUBECTL_OUTPUT_FOLDER = outputFolder
-      delete process.env.SHEPHERD_UI_API_ENDPOINT
-      let shepherdStoreDir = "./.build/.local_deploy_store"
-      cleanDir(shepherdStoreDir)
-    })
-
-    it("should execute deployment and associated tests", (done) => {
-      script
-        .execute(shepherdTestHarness, ["--fakerun", "./src/integratedtest/testimages/test-k8s-image-with-deployment-tests/shepherd.json"], {
-          env: _.extend({
-            NO_REBUILD_IMAGES: true,
-          }, process.env),
-          debug: false, // debug:false suppresses stdout of process
-        })
-        .done(function() {
-          done()
-        })
-
-    })
   })
 
   describe("with state storage", function() {
@@ -242,15 +264,14 @@ describe("running shepherd", function() {
         })
     })
 
-
     it("should modify branch deployment", function(done) {
       script
         .execute(shepherdTestHarness, ["--dryrun"], {
           env: _.extend({
-            NO_REBUILD_IMAGES: true,
             INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
+            SERVICE_HOST_NAME: "svc.host.somewhere",
           }, process.env),
-          debug: true, // debug:false suppresses stdout of process
+          debug: false, // debug:false suppresses stdout of process
         })
         .done(function() {
           done()
@@ -258,7 +279,6 @@ describe("running shepherd", function() {
     })
 
     const testEnv = {
-      SHEPHERD_FILESTORE_DIR: "./.build/.shepherdstore",
       www_icelandair_com_image: "www-image:99",
       PREFIXED_TOP_DOMAIN_NAME: "testtopdomain",
       SUB_DOMAIN_PREFIX: "testSDP",
@@ -269,7 +289,7 @@ describe("running shepherd", function() {
       MICRO_SITES_DB_PASSWORD: "somedbpass",
       ENV: "testit",
       EXPORT1: "nowhardcoded",
-      NO_REBUILD_IMAGES: true,
+      SERVICE_HOST_NAME: "svc.host.somewhere",
     }
 
     beforeEach(function() {

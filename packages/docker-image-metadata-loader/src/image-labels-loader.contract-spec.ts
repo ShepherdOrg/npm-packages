@@ -1,6 +1,6 @@
 import { getTestCaseLogger, ITestLog } from "./testcase-logger"
 import { expect } from "chai"
-import { imageLabelsLoader } from "./image-labels-loader"
+import { ILoadDockerImageLabels, imageLabelsLoader } from "./image-labels-loader"
 import { TDockerRegistryClientMap } from "./docker-registry-clients-config"
 import { TDockerInspectMetadata } from "./local-image-metadata"
 import { getLocalhostTestingDockerRegistryClients } from "./local-testing-docker-registry-clients-config"
@@ -8,7 +8,7 @@ import { getLocalhostTestingDockerRegistryClients } from "./local-testing-docker
 describe("Loading image labels", function() {
   this.timeout(60000)
   let testLogger: ITestLog
-  let loader
+  let loader: ILoadDockerImageLabels
 
   // const dockerRegistries = getDockerRegistryClientsFromConfig();
   const dockerRegistries: TDockerRegistryClientMap = getLocalhostTestingDockerRegistryClients()
@@ -34,6 +34,20 @@ describe("Loading image labels", function() {
           expect(testLogger.debugEntries).to.contain(
             "shepherdorg/shepherd:latest metadata loaded using docker inspect"
           )
+        })
+    })
+  })
+
+  describe("hub.docker.com registry by pulling and inspecting unknown image", function() {
+    it("should pull remote registry and inspect without showing error output", () => {
+      return loader
+        .getImageLabels({
+          image: "bullshitimage/notexisting",
+          imagetag: "latest",
+        })
+        .catch((imageInspectError) => {
+          expect(imageInspectError.message).to.contain('Error pulling bullshitimage/notexisting:latest')
+          expect(imageInspectError.message).to.contain('repository does not exist')
         })
     })
   })

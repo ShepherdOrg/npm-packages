@@ -2,23 +2,23 @@ import { identifyDocument, TDescriptorsByKind } from "./k8s-deployment-document-
 import { TBranchModificationParams } from "./k8s-branch-deployment/create-name-change-index"
 import {
   IKubectlDeployAction,
-  IRollbackActionExecution,
+  ICanRollbackActionExecution,
   TActionExecutionOptions,
   TRollbackResult,
 } from "../../deployment-types"
-import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
 import { newProgrammerOops, Oops } from "oops-error"
 import { expandEnv } from "../../template/expandenv"
 import { processLine } from "../../template/base64-env-subst"
-import { expandTemplate } from "../../template/expandtemplate"
+import { expandTemplate } from "@shepherdorg/hbs-template"
 import * as path from "path"
 import { extendedExec, writeFile } from "../../helpers/promisified"
 import { TK8sPartialDescriptor } from "./k8s-document-types"
 import { emptyArray } from "../../helpers/ts-functions"
 import { IExec, TFileSystemPath } from "../../helpers/basic-types"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
-import { isOops } from "../../helpers/isOops"
-import { ILog, TLogContext } from "../../logging/logger"
+import { ILog } from "../../logging/logger"
+import { TDeploymentState } from "@shepherdorg/metadata"
+import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
 
 const chalk = require('chalk');
 
@@ -58,7 +58,7 @@ function expandEnvVariables(lines: string[]) {
 }
 
 
-function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: string) {
+export function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: string) {
   return expandTemplate(expandEnvVariables(deploymentFileDescriptorContent.split("\n")))
 }
 
@@ -72,10 +72,11 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
 
   async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions ) {
 
-    if (!thisIsMe.state) {
+    let deploymentState = thisIsMe.getActionDeploymentState()
+    if (!deploymentState) {
       throw newProgrammerOops("Missing state object on deployment action ! " + thisIsMe.origin)
     }
-    if (thisIsMe.state?.modified) {
+    if (deploymentState?.modified) {
       if (actionExecutionOptions.dryRun && actionExecutionOptions.dryRunOutputDir) {
         const writePath = path.join(
           actionExecutionOptions.dryRunOutputDir,
@@ -98,10 +99,10 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
 
           try {
             if(thisIsMe.isStateful){
-              if(!thisIsMe.state){
+              if(!deploymentState){
                 throw newProgrammerOops('Attempting to execute a stateful action without a state! ', thisIsMe)
               }
-              thisIsMe.state = await stateStore.saveDeploymentState(thisIsMe.state)
+              thisIsMe.setActionDeploymentState( await stateStore.saveDeploymentState(deploymentState))
             }
 
             return thisIsMe
@@ -134,13 +135,14 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
             logger.info(stdOut || "[empty output]", actionExecutionOptions.logContext)
 
             // @ts-ignore
-            thisIsMe.state.stdout = stdOut
+            deploymentState.stdout = stdOut
             // @ts-ignore
-            thisIsMe.state.stderr = err
+            deploymentState.stderr = err
 
             try {
-              const state = await stateStore.saveDeploymentState(thisIsMe.state)
-              thisIsMe.state = state
+              const state = await stateStore.saveDeploymentState(deploymentState)
+
+              thisIsMe.setActionDeploymentState( state )
               return thisIsMe
             } catch (err) {
               throw new Error(`Failed to save state after error in deleting deployment! ${chalk.blueBright(`${thisIsMe.origin}/${thisIsMe.identifier}`)}
@@ -164,17 +166,8 @@ ${err.message || err}`)
   function createKubectlDeployAction(origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, branchModificationParams?: TBranchModificationParams): IKubectlDeployAction {
     let actionOrigin: string = origin
     try {
-      if (branchModificationParams && branchModificationParams.shouldModify) {
-        process.env.BRANCH_NAME = branchModificationParams.branchName
-        process.env.BRANCH_NAME_PREFIX = `${branchModificationParams.branchName}-`
-        process.env.BRANCH_NAME_POSTFIX = `-${branchModificationParams.branchName}`
-      } else {
-        process.env.BRANCH_NAME = ""
-        process.env.BRANCH_NAME_PREFIX = ""
-        process.env.BRANCH_NAME_POSTFIX = ""
-      }
 
-      let finalDescriptor = expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent)
+      let finalDescriptor = deploymentFileDescriptorContent
 
       if (branchModificationParams && branchModificationParams.shouldModify) {
         finalDescriptor = modifyDeploymentDocument(finalDescriptor, branchModificationParams)
@@ -191,7 +184,15 @@ ${err.message || err}`)
         deploymentRollouts = listDeploymentRollouts(descriptorsByKind)
       }
 
-      let documentDeploymentAction: IKubectlDeployAction & IRollbackActionExecution = {
+      let deploymentState: TDeploymentState | undefined
+
+      let documentDeploymentAction: IKubectlDeployAction & ICanRollbackActionExecution = {
+        getActionDeploymentState(): TDeploymentState | undefined {
+          return deploymentState;
+        },
+        setActionDeploymentState(newState: TDeploymentState | undefined): void {
+          deploymentState = newState
+        },
         canRollbackExecution(): boolean {
           return Boolean(deploymentRollouts.length);
         },

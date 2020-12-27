@@ -24,6 +24,14 @@ images:
         imagetag: 0.0.66
         description: New metadata format, testing env variable expansion in herd execution
 
+    test-image-with-yaml-wrecking-hbs:
+        image: test-image-with-yaml-wrecking-hbs
+        imagetag: 0.4.44
+
+#    testInfrastructure:
+#        image: test-infrastructure
+#        imagetag: 0.0.2
+
 #    test2:
 #        image: testenvimage
 #        imagetag: 0.0.0

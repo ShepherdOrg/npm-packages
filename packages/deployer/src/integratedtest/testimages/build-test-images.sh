@@ -21,3 +21,5 @@ echo "Rebuilding test images"
 (SEMANTIC_VERSION=0.7.77 shepherd-build-docker ${THISDIR}/test-deployer-image-with-deployment-tests/Dockerfile)
 
 (SEMANTIC_VERSION=0.8.88 shepherd-build-docker ${THISDIR}/test-k8s-image-with-deployment-tests/Dockerfile)
+
+(SEMANTIC_VERSION=0.4.44 shepherd-build-docker ${THISDIR}/test-image-with-yaml-wrecking-hbs/Dockerfile)

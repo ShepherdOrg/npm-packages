@@ -55,9 +55,9 @@ describe("logger", function() {
     it("should add elapsed milliseconds entry after each log", function() {
       logger.info("TestLogLine", { performanceLog: true })
 
-
       expect(logLines.length).to.equal(2)
-      expect(logLines).to.contain("TestLogLine")
+      expect(logLines[0]).to.equal("TestLogLine")
+      expect(logLines[1]).to.contain("ms elapsed")
     })
 
   })
@@ -77,6 +77,25 @@ describe("logger", function() {
       expect(escapedLines[0]).to.equal(escape(`${chalk.green("MyPrefix  |")} TestLogLine `))
     })
   })
+
+  describe('logging unexpected input', function () {
+    let logger: ILog
+
+    before(()=>{
+      logger = createLogger(createFakeLogger() )
+      logger.info(undefined, { color: chalk.green, performanceLog: false, prefix: "MyPrefix " })
+      logger.info(null, { color: chalk.green, performanceLog: false, prefix: "MyPrefix " })
+    })
+
+    it('should log undefined if input is undefined', () => {
+      expect(logLines[0]).to.contain('undefined')
+    });
+
+    it('should log null if input is null', () => {
+      expect(logLines[1]).to.contain('null')
+    });
+
+  });
 
 
   describe("with terminal width limits and color prefix enabled", function() {

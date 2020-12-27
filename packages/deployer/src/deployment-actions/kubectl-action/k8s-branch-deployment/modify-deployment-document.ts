@@ -1,6 +1,6 @@
 import { TBranchModificationParams, TDocumentKindNameChangeMaps } from "./create-name-change-index"
 
-import * as jsYaml from "js-yaml"
+import * as yaml from "js-yaml"
 import { TK8sHttpPath, TK8sIngressDoc, TK8sPartialContainer, TK8sPartialDescriptor } from "../k8s-document-types"
 import * as chalk from "chalk"
 
@@ -96,6 +96,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
           }
         }
       }
+
       if (deploymentSection.spec.selector) {
         adjustNames(deploymentSection.spec.selector)
         if (Boolean(deploymentSection.spec.selector.app)) {
@@ -125,7 +126,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
       ) {
         deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/ssl-redirect"] = "false"
       }
-      if (deploymentDoc?.spec?.rules[0]?.host) {
+      if (deploymentDoc?.spec?.rules && deploymentDoc?.spec?.rules[0]?.host) {
         if (
           deploymentDoc.metadata &&
           deploymentDoc.metadata.annotations &&
@@ -135,14 +136,15 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
           deploymentDoc.spec.rules[0].http.paths[0].path += `-${cleanedName}`
         } else {
           deploymentDoc.spec.rules[0].host = `${cleanedName}-${deploymentDoc.spec.rules[0].host}`
-          const http = deploymentDoc.spec.rules[0].http
-          if (http && http.paths) {
-            http.paths.forEach((path: TK8sHttpPath) => {
-              if (path && path.backend && path.backend.serviceName) {
-                path.backend.serviceName += `-${cleanedName}`
-              }
-            })
-          }
+        }
+
+        const http = deploymentDoc.spec.rules[0].http
+        if (http && http.paths) {
+          http.paths.forEach((path: TK8sHttpPath) => {
+            if (path && path.backend && path.backend.serviceName) {
+              path.backend.serviceName += `-${cleanedName}`
+            }
+          })
         }
       }
     }
@@ -154,7 +156,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
     }
   }
 
-  let yamlFiles = jsYaml.safeLoadAll(fileContents)
+  let yamlFiles = yaml.safeLoadAll(fileContents)
 
   if (needToIndexChanges) {
     branchModificationParams.nameChangeIndex = {}
@@ -174,7 +176,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
     adjustIngressSettings(parsedDocument)
 
     try {
-      let yml = jsYaml.safeDump(parsedDocument)
+      let yml = yaml.safeDump(parsedDocument)
       if (outfiles.length > 0) {
         outfiles += "\n---\n"
       }

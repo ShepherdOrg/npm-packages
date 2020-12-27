@@ -35,6 +35,9 @@ export interface IRetrieveDockerImageLabels {
   addCertificate(caCrt: string)
 
   getCertificate(): string | undefined
+
+  verifyVersion(version: string): Promise<boolean>
+
 }
 
 export type TRegistryClientDependencies = {
@@ -154,6 +157,11 @@ export function createDockerRegistryClient(
       })
   }
 
+  async function verifyVersion(versionStr):Promise<boolean>{
+    let versionCheckResult = await getFromDockerRegistry(`${options.httpProtocol}://${options.registryHost}/${versionStr}`)
+    return Boolean(versionCheckResult )
+  }
+
   function getCertificate(): string | undefined {
     return options.ca
   }
@@ -165,5 +173,6 @@ export function createDockerRegistryClient(
     addCertificate,
     getCertificate,
 
+    verifyVersion
   }
 }

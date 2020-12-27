@@ -1,5 +1,4 @@
 import { extractShepherdMetadata } from "@shepherdorg/metadata/dist/dockerLabelParser"
-import { inject } from "@shepherdorg/nano-inject"
 
 const labelsLoader = require("@shepherdorg/docker-image-metadata-loader")
 
@@ -11,7 +10,7 @@ function shepherdInspect(dockerImageWithTag: string) {
   }
   const dockerRegistries = labelsLoader.getDockerRegistryClientsFromConfig()
   const loader = labelsLoader.imageLabelsLoader(
-    inject({ dockerRegistries: dockerRegistries, logger: logger })
+    { dockerRegistries: dockerRegistries, logger: logger }
   )
 
   return loader

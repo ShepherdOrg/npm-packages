@@ -1,4 +1,4 @@
-import { logExpiredKubeResources } from "./log-expired-resources"
+import { kubeDeleteExpiredResources } from "./delete-expired-resources"
 import { expect } from "chai"
 
 
@@ -52,14 +52,14 @@ describe("resource filtering", function() {
           "tier": "frontend",
         },
       },
-    },{
+    }, {
       "apiVersion": "v1",
       "kind": "Service",
       "metadata": {
         "creationTimestamp": "2019-11-06T13:29:56Z",
         "name": "myservice-internal-regular-service",
         "labels": {
-          "name": "myservice-internal-regular-service"
+          "name": "myservice-internal-regular-service",
         },
       },
       "spec": {
@@ -79,27 +79,68 @@ describe("resource filtering", function() {
   }
 
   it("should create dryrun commands testService", () => {
-    const logentries:Array<String>=[]
+    const logentries: Array<String> = []
     const logger = {
-      log:(logentry:string)=>{
+      log: (logentry: string) => {
         logentries.push(logentry)
-      }
+      },
     }
-    logExpiredKubeResources(testData, logger, true, new Date("2019-11-06T13:29:56Z").getTime())
+    kubeDeleteExpiredResources(testData, logger, true, new Date("2019-11-06T13:29:56Z").getTime())
     expect(logentries.length).to.equal(1)
-    expect(logentries[0]).to.equal('echo DRYRUN kubectl delete service myservice-internal-expired-service')
+    expect(logentries[0]).to.equal("echo DRYRUN kubectl delete service myservice-internal-expired-service")
   })
 
   it("should create delete commands testService", () => {
-    const logentries:Array<String>=[]
+    const deleteCommands: Array<String> = []
     const logger = {
-      log:(logentry:string)=>{
-        logentries.push(logentry)
-      }
+      log: (logentry: string) => {
+        deleteCommands.push(logentry)
+      },
     }
-    logExpiredKubeResources(testData, logger, false, new Date("2019-11-06T13:29:56Z").getTime())
-    expect(logentries.length).to.equal(1)
-    expect(logentries[0]).to.equal('kubectl delete service myservice-internal-expired-service')
+    kubeDeleteExpiredResources(testData, logger, false, new Date("2019-11-06T13:29:56Z").getTime())
+    expect(deleteCommands.length).to.equal(1)
+    expect(deleteCommands[0]).to.equal("kubectl delete service myservice-internal-expired-service")
+  })
+
+  it("should create delete command based on lastDeploymentStamp", () => {
+
+    const localTestData ={
+      "apiVersion": "v1",
+      items:
+
+        [{
+          "apiVersion": "v1",
+          "kind": "Ingress",
+          "metadata": {
+            "creationTimestamp": "2020-08-01T13:29:56Z",
+            "name": "internal-ingress",
+            "annotations": {
+              "lastDeploymentTimestamp": "2020-08-25T09:13:37Z",
+            },
+            "labels": {
+              "name": "internal-ingress",
+              "ttl-hours": "120",
+            },
+          },
+          "spec": {},
+        },
+      ]
+    }
+    const deleteCommands: Array<String> = []
+    const logger = {
+      log: (logentry: string) => {
+        deleteCommands.push(logentry)
+      },
+    }
+    kubeDeleteExpiredResources(localTestData, logger, false, new Date("2020-08-30T13:29:56Z").getTime())
+
+    expect(deleteCommands[0]).to.equal("kubectl delete ingress internal-ingress")
+
+    deleteCommands.length = 0
+
+    kubeDeleteExpiredResources(localTestData, logger, false, new Date("2020-08-26T13:29:56Z").getTime())
+
+    expect(deleteCommands.length).to.equal(0)
   })
 
 

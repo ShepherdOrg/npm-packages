@@ -2,6 +2,10 @@ import { isHerdDeployerMetadata, isHerdK8sMetadata, THerdDeployerMetadata, THerd
 import { TDeployerRole, TDeploymentType } from "@shepherdorg/metadata"
 import { DeploymentVersion, Deployment } from "@shepherdorg/ui-graphql-client"
 
+import * as yaml from "js-yaml"
+import path from "path"
+
+
 export interface DeploymentUIInfo {
   versionInfo: DeploymentVersion
   deploymentInfo: Deployment
@@ -27,7 +31,7 @@ function mapDeployerRole(deployerInfo: THerdDeployerMetadata | THerdK8sMetadata)
       case TDeployerRole.Migration:
         return "Migration"
       default:
-        throw new Error("Don't know how to map " + deployerInfo.deployerRole + " to deployer role for UI")
+        return "Install"
     }
   } else if(isHerdK8sMetadata(deployerInfo)){
     return "Install"
@@ -36,14 +40,56 @@ function mapDeployerRole(deployerInfo: THerdDeployerMetadata | THerdK8sMetadata)
   }
 }
 
+function buildLink(linkInfo: {protocol: string, host: string, path: string, title: string}) {
+  return {title: linkInfo.title, url: `${linkInfo.protocol}://${path.join(linkInfo.host,linkInfo.path)}` }
+}
+
 export function mapToUiVersion(deployerInfo: THerdDeployerMetadata | THerdK8sMetadata): DeploymentUIInfo | undefined {
   function mapLinks() {
+    let ingressLinks: { title: string; url: string }[] = []
+
+    if (isHerdK8sMetadata(deployerInfo)) {
+      const foundHttpPaths: any[] = []
+      if (deployerInfo.kubeDeploymentFiles) {
+        Object.values(deployerInfo.kubeDeploymentFiles).forEach((kubeYamlOrJson) => {
+          try{
+            let parsedMultiContent = yaml.safeLoadAll(kubeYamlOrJson.content)
+
+            parsedMultiContent.forEach(function(parsedContent) {
+              let linkTitle: string = parsedContent.metadata.name
+              if (parsedContent && parsedContent.kind && parsedContent.kind.toLowerCase() === "ingress") {
+                parsedContent.spec.rules.forEach((specRule)=>{
+                  specRule.http && specRule.http.paths && specRule.http.paths.forEach((rulePath)=>{
+                    if(rulePath.path){
+                      foundHttpPaths.push({protocol: 'http', host: specRule.host, path: rulePath.path, title: linkTitle })
+                    }
+                  })
+                })
+                if(parsedContent.spec.tls){
+                  parsedContent.spec.tls.forEach((tlsSpec)=>{
+                    tlsSpec.hosts.forEach((tlsHost)=>{
+                      const matchingHttpPath = foundHttpPaths.find((httpPath)=>httpPath.host === tlsHost)
+                      if(matchingHttpPath){
+                        foundHttpPaths.push({...matchingHttpPath, protocol: 'https', title: 'Secure ' + linkTitle  })
+                      }
+                    })
+                  })
+                }
+              }
+            })
+          }catch(err){
+            console.warn("Error parsing deployment files, not generating links for kube ingresses!")
+          }
+        })
+      }
+      ingressLinks = foundHttpPaths.map(buildLink)
+    }
     if (deployerInfo.hyperlinks) {
-      return deployerInfo.hyperlinks.map(link => {
+      return ingressLinks.concat(deployerInfo.hyperlinks.map(link => {
         return { title: link.title, url: link.url }
-      })
+      }))
     } else {
-      return []
+      return ingressLinks
     }
   }
 
@@ -62,8 +108,10 @@ export function mapToUiVersion(deployerInfo: THerdDeployerMetadata | THerdK8sMet
         git_commit: deployerInfo.gitCommit || "missing",
         git_hash: deployerInfo.gitHash,
         git_url: deployerInfo.gitUrl,
+        hyperlinks: mapLinks(),
         kubernetes_deployment_files: [],
         last_commits: deployerInfo.lastCommits,
+        time_to_live: deployerInfo.herdSpec.timeToLiveHours,
         version: deployerInfo.semanticVersion,
         id:
           deployerInfo.deploymentState.env +

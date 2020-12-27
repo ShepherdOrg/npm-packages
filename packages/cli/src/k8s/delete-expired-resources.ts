@@ -1,4 +1,4 @@
-export function logExpiredKubeResources(resourceQueryResult, console1, dryRunOn:boolean, time: number) {
+export function kubeDeleteExpiredResources(resourceQueryResult, console1, dryRunOn:boolean, time: number) {
   let items = resourceQueryResult.items
 
   for (let item of items) {
@@ -10,8 +10,11 @@ export function logExpiredKubeResources(resourceQueryResult, console1, dryRunOn:
       } catch (e) {
         timeToLive = Number.MAX_SAFE_INTEGER
       }
-      let creationTimestamp = new Date(item.metadata.creationTimestamp).getTime()
-      let ageInHours = (Math.abs(time - creationTimestamp) / 36e5)
+      let lastDeploymentTimestamp = new Date(item.metadata.creationTimestamp).getTime()
+      if(item.metadata?.annotations?.lastDeploymentTimestamp){
+        lastDeploymentTimestamp = new Date(item.metadata.annotations.lastDeploymentTimestamp).getTime()
+      }
+      let ageInHours = (Math.abs(time - lastDeploymentTimestamp) / 36e5)
 
       if (ageInHours > timeToLive) {
         console1.log(`${dryRunOn?'echo DRYRUN ':''}kubectl delete ${item.kind.toLowerCase()} ${item.metadata.name}`)

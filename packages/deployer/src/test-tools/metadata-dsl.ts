@@ -1,4 +1,33 @@
-import { TDeployerRole, TDeploymentType, TDeployerMetadata } from "@shepherdorg/metadata"
+import { TDeployerMetadata, TDeployerRole, TDeploymentType, TTestSpecification } from "@shepherdorg/metadata"
+
+function initTestDataDsl(instance: TDeployerMetadata, ownerDsl: IShepherdMetadataDsl, testSpec: TTestSpecification): ITestDataDsl {
+
+  let testSpecDsl = {
+    instance: ownerDsl.instance,
+    addEnv(envSpecStr: string){
+      testSpec.inEnvironments.push(envSpecStr)
+      return testSpecDsl
+    }
+  }
+  return testSpecDsl
+
+}
+
+export interface ITestDataDsl {
+  instance(): TDeployerMetadata
+
+  addEnv(envSpecString: string): ITestDataDsl
+}
+
+export interface IShepherdMetadataDsl {
+  dockerImageUrl(url: string): IShepherdMetadataDsl
+
+  instance(): TDeployerMetadata
+
+  addPreDeploymentTest(command: string, testenv: string): ITestDataDsl
+
+  addPostDeploymentTest(command: string, testenv: string): ITestDataDsl
+}
 
 export function metadataDsl() {
   let defaultInstance: TDeployerMetadata = {
@@ -24,8 +53,8 @@ export function metadataDsl() {
     ],
     deployCommand: "ls",
     rollbackCommand: "cat",
-    preDeployTest: { command: "pretest", environment: [] },
-    postDeployTest: { command: "posttest" },
+    preDeploymentTests: [],
+    postDeploymentTests: [],
     hyperlinks: [
       {
         title: "Sources for this",
@@ -34,13 +63,37 @@ export function metadataDsl() {
     ],
     deploymentType: "deployer" as TDeploymentType,
   }
-  let dsl = {
-    dockerImageUrl(url:string){
+  let dsl: IShepherdMetadataDsl = {
+    dockerImageUrl(url: string) {
       defaultInstance.dockerImageUrl = url
       return dsl
     },
-    instance():TDeployerMetadata {
+    instance(): TDeployerMetadata {
       return defaultInstance
+    },
+    addPreDeploymentTest(command: string, testenv: string) {
+      if (!defaultInstance.preDeploymentTests) {
+        defaultInstance.preDeploymentTests = []
+      }
+      let testSpec = {
+        command: command,
+        inEnvironments: [testenv],
+      }
+      defaultInstance.preDeploymentTests.push(testSpec)
+
+      const testDataDsl = initTestDataDsl(defaultInstance, dsl, testSpec)
+      return testDataDsl
+    }, addPostDeploymentTest(command: string, testenv: string) {
+      if (!defaultInstance.postDeploymentTests) {
+        defaultInstance.postDeploymentTests = []
+      }
+      let testSpec = {
+        command: command,
+        inEnvironments: [testenv],
+      }
+      defaultInstance.postDeploymentTests.push(testSpec)
+
+      return initTestDataDsl(defaultInstance, dsl, testSpec)
     },
   }
   return dsl

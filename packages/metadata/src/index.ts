@@ -22,7 +22,8 @@ export type THerdSpec = {
   key: string // Key used in herd file
   image: string // For example isrvkbuild02:5000/fluentd
   imagetag: string // For example v1.1.2-g-2b48d1c
-  description: string //"Log writer to AWS ES/Kibana"
+  description: string //Log writer to AWS ES/Kibana"
+  timeToLiveHours?: number //Mark deployment as temporary branch deployment and specify how long it should live
 }
 
 export enum TDeploymentType {
@@ -56,6 +57,7 @@ export type TDockerImageUrl = string
 
 export type TTestSpecification ={
   command:string
+  inEnvironments: Array<string>
   dockerImageUrl?:TDockerImageUrl
   environment?:TEnvironmentVariables
 }
@@ -81,16 +83,15 @@ export type TImageMetadata = {
   semanticVersion: string
   preDeployTest?: TTestSpecification
   postDeployTest?: TTestSpecification
+  preDeploymentTests?: Array<TTestSpecification>
+  postDeploymentTests?: Array<TTestSpecification>
 }
 
 export type TDeployerMetadata = TImageMetadata & {
   deployCommand: string
   rollbackCommand?: string
-  // TODO: Support dryrun command
   dryrunCommand?: string
-  // TODO: Make obsolete
   environmentVariablesExpansionString: string
-  // TODO: Add tests for environment array
   environment: TEnvironmentVariables
   deployerRole: TDeployerRole
 }

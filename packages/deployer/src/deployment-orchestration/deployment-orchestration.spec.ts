@@ -7,7 +7,7 @@ import {
   IK8sDirDeploymentAction,
   IDockerImageKubectlDeploymentAction,
   IKubectlDeployAction,
-  TActionExecutionOptions,
+  TActionExecutionOptions, IPushToShepherdUI,
 } from "../deployment-types"
 import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { emptyArray } from "../helpers/ts-functions"
@@ -21,15 +21,15 @@ import { createDockerActionFactory } from "../deployment-actions/docker-action/d
 import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createDeploymentPlanFactory, TDeploymentPlanDependencies } from "../deployment-plan/deployment-plan"
-import { IPushToShepherdUI } from "../shepherd"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import {
-  createDockerDeployerActionFactory,
-  ICreateDockerDeploymentActions,
+  createDockerDeployerActionFactory
 } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
 import { createLogContextColors } from "../logging/log-context-colors"
+import { TDeploymentState } from "@shepherdorg/metadata"
+import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
@@ -42,8 +42,14 @@ export function createKubectlTestDeployAction(
     logger: iFakeLogging,
     stateStore: stateStore,
   })
+  let deploymentState: TDeploymentState | undefined
 
   let testAction: IDockerImageKubectlDeploymentAction & { testInstance: boolean } = {
+    getActionDeploymentState(): TDeploymentState | undefined {
+      return deploymentState;
+    }, setActionDeploymentState(newState: TDeploymentState | undefined): void {
+      deploymentState = newState
+    },
     planString() {
       return `kubectl ${serialisedAction.operation} ${serialisedAction.identifier}`
     },
@@ -57,7 +63,7 @@ export function createKubectlTestDeployAction(
       return false
     },
     testInstance: true,
-    ...serialisedAction,
+    ...serialisedAction
   }
   return testAction
 }
@@ -73,7 +79,14 @@ export function createFakeDockerDeploymentAction(
     logger: iFakeLogging,
     stateStore: stateStore,
   })
-  let testAction = {
+  let deploymentState: TDeploymentState| undefined
+  let testAction: IDockerDeploymentAction = {
+    getActionDeploymentState(): TDeploymentState | undefined {
+      return deploymentState;
+    },
+    setActionDeploymentState(newState: TDeploymentState | undefined): void {
+      deploymentState = newState
+    },
     planString() {
       return `test action docker run ${serialisedAction.identifier} ${serialisedAction.command}`
     },
@@ -88,8 +101,7 @@ export function createFakeDockerDeploymentAction(
     canRollbackExecution(): boolean {
       return false
     },
-    testInstance: true,
-    ...serialisedAction,
+    ...serialisedAction
   }
   return testAction
 }
@@ -99,7 +111,7 @@ export function createFakeUIPusher() {
   fakeUiDataPusher = {
     pushedData: emptyArray<any>(),
     pushDeploymentStateToUI: async (data: any) => {
-      // TODO Eliminate this any once we have proper type on structure pushed to UI
+      // TODOLATER Eliminate this any once we have proper type on structure pushed to UI
       fakeUiDataPusher.pushedData.push(data)
       return data
     },
@@ -139,6 +151,8 @@ describe("Deployment orchestration", function() {
       stateStore: fakeStateStore,
     })
     let fakeDeps: TDeploymentPlanDependencies = {
+      deploymentEnvironment: "specenv",
+      ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec: fakeExec, logger: fakeLogger, systemTime: () => {return new Date()}, timeout: setTimeout}),
       exec: fakeExec,
       logger: fakeLogger,
       stateStore: fakeStateStore,
@@ -392,8 +406,8 @@ describe("Deployment orchestration", function() {
       })
 
       it("should save call log with state", function() {
-        expect(executedAction?.state?.stdout).to.equal(undefined)
-        expect(executedAction?.state?.stderr).to.equal("not found")
+        expect(executedAction?.getActionDeploymentState()?.stdout).to.equal(undefined)
+        expect(executedAction?.getActionDeploymentState()?.stderr).to.equal("not found")
       })
     })
   })

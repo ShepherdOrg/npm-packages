@@ -33,7 +33,7 @@ export function createFakeLogger() : IFakeLogging {
     warn() {
       fakeLogger.log +=
         "warn           " + Array.prototype.join.call(arguments, " ") + "\n"
-      fakeLogger.logStatements.push({ logLevel: "debug", data: arguments })
+      fakeLogger.logStatements.push({ logLevel: "warn", data: arguments })
     },
     error() {
       fakeLogger.log +=

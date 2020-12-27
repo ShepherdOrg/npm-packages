@@ -5,7 +5,8 @@ import * as fs from "fs"
 import { TDockerImageHerdDeclaration } from "../deployment-types"
 import * as chalk from "chalk"
 
-const YAML = require("js-yaml")
+import * as yaml from "js-yaml"
+
 
 export type THerdImagesSpec = {
   images: { [key: string]: Omit<TDockerImageHerdDeclaration, "key"> }
@@ -51,6 +52,16 @@ export function upgradeOrAddDeployment(
       )
       targetImage.imagetag = upstreamImageTag
     }
+    if (targetImage.image !== upstreamImageName) {
+      logger.info(
+        imageFileName + ": Changing",
+        targetImage.image,
+        " image url",
+        "to",
+        upstreamImageName
+      )
+      targetImage.image = upstreamImageName
+    }
   } else {
     logger.info(`Adding ${upstreamHerdKey}->${upstreamImageName}:${upstreamImageTag} to ${imageFileName}`)
     imglist[upstreamHerdKey] = {
@@ -80,7 +91,7 @@ export function upgradeOrAddDeploymentInFile(
   if (!upstreamImageName) throw new Error("upstreamImageName parameter must have a value")
   if (!upstreamImageTag) throw new Error("upstreamImageTag parameter must have a value")
 
-  let herd = YAML.safeLoad(fs.readFileSync(imageFileName, "utf8"))
+  let herd = yaml.safeLoad(fs.readFileSync(imageFileName, "utf8"))
 
   if (!herd) {
     throw new Error(imageFileName + " does not seem to contain a legal herd file")
@@ -97,7 +108,7 @@ export function upgradeOrAddDeploymentInFile(
     logger
   )
 
-  let yml = YAML.safeDump(herd)
+  let yml = yaml.safeDump(herd)
   let file = fs.openSync(imageFileName, "w+")
   fs.writeSync(file, yml)
   fs.closeSync(file)

@@ -1,7 +1,10 @@
 import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
-import { ICreateKubectlDeploymentAction } from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
+import {
+  expandEnvAndMustacheVariablesInFile,
+  ICreateKubectlDeploymentAction,
+} from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import {
   IK8sDirDeploymentAction,
   IKubectlDeployAction,
@@ -25,7 +28,6 @@ export interface TFolderActionFactoryDependencies {
   environment: string
   logger: ILog
   kubectlDeploymentActionFactory: ICreateKubectlDeploymentAction
-  // TODO change here
 }
 
 type TFilePlanStruct = {}
@@ -135,6 +137,7 @@ export function createFolderActionFactory(
                   const kubeDeploymentRelativePath = path.relative(initialDir, resolvedPath)
 
                   try {
+                    data = expandEnvAndMustacheVariablesInFile(data)
                     const deploymentAction: IKubectlDeployAction = injected.kubectlDeploymentActionFactory.createKubectlDeployAction(
                       kubeDeploymentRelativePath,
                       data,

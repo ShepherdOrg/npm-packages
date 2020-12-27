@@ -7,7 +7,7 @@ describe("Build docker with insufficient deployment information", function() {
   let dockerMeta: any
 
   before(() => {
-    let dockerDir = __dirname
+    let dockerDir = __dirname + '/insufficient-deployment-data'
     return exec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile`).catch(({stdout, code}) => {
       buildOutput = stdout
       buildExitCode = code

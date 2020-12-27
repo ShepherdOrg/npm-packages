@@ -1,0 +1,59 @@
+{
+  "displayName": "Plain Deployer Repo",
+  "deployerRole": "install",
+  "dockerRegistry": "myownregistry.com:666",
+  "dockerRepository": "plain-deployer-repo",
+  "environment": [
+    {
+      "name": "DB_HOST",
+      "value": "MICROSERVICES_POSTGRES_RDS_HOST"
+    },
+    {
+      "name": "DB_PASS",
+      "value": "MICRO_SITES_DB_PASSWORD",
+      "secret": true
+    }
+  ],
+  "preDeploymentTests": [
+    {
+      "command": "testme",
+      "imageUrl": "",
+      "environment": [
+        {
+          "name": "YOU_ARE_IN_PRETEST_MODE",
+          "value": "true"
+        }
+      ],
+      "inEnvironments":[]
+    }
+  ],
+  "preDeployTest": {
+    "command": "testme",
+    "imageUrl": "",
+    "environment": [
+      {
+        "name": "YOU_ARE_IN_PRETEST_MODE",
+        "value": "true"
+      }
+    ]
+  },
+  "postDeployTest": {
+    "command": "testme",
+    "environment": [
+      {
+        "name": "YOU_ARE_IN_POST_TEST_MODE",
+        "value": "true"
+      }
+    ]
+  },
+  "deployCommand": "ls",
+  "rollbackCommand": "cat",
+  "end2endTestCommand": "e2etest",
+  "hyperlinks": [
+    {
+      "title": "TestlinkOne",
+      "url": "https://link.to.nowhere"
+    }
+  ]
+}
+

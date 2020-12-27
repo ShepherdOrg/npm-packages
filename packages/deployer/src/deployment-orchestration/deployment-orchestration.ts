@@ -34,9 +34,9 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
   const k8sDeploymentsByIdentifier: { [key: string]: IDockerImageKubectlDeploymentAction } = {}
 
   function addActionToCatalog(deploymentAction: IDockerImageKubectlDeploymentAction) {
+    if(!deploymentAction.isStateful) return
     k8sDeploymentPlans[deploymentAction.origin] =
       k8sDeploymentPlans[deploymentAction.origin] || deploymentAction.herdKey
-    // await k8sDeploymentPlans[deploymentAction.origin].addAction(deploymentAction)
 
     if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
       throw new Error(
@@ -90,7 +90,6 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
   }
 
   return {
-    // TODO This should go once we are only adding IDeploymentPlan instances
     executePlans: executePlans,
     printPlan: printPlan,
     exportDeploymentActions: exportDeploymentActions,

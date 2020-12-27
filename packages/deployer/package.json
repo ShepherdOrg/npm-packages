@@ -1,20 +1,21 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "4.3.2",
+  "version": "5.0.9",
   "description": "Deployer application",
   "main": "dist/shepherd.js",
   "engines": {
     "node": ">=8"
   },
   "dependencies": {
-    "@shepherdorg/docker-image-metadata-loader": "^4.3.0",
-    "@shepherdorg/exec": "^4.3.0",
-    "@shepherdorg/filestore-backend": "^4.3.1",
-    "@shepherdorg/metadata": "^4.3.0",
-    "@shepherdorg/nano-inject": "^4.3.0",
-    "@shepherdorg/postgres-backend": "^4.3.1",
-    "@shepherdorg/state-store": "^4.3.0",
-    "@shepherdorg/ui-push": "^4.3.0",
+    "@shepherdorg/docker-image-metadata-loader": "^5.0.9",
+    "@shepherdorg/exec": "^5.0.9",
+    "@shepherdorg/filestore-backend": "^5.0.9",
+    "@shepherdorg/hbs-template": "^5.0.0",
+    "@shepherdorg/metadata": "^5.0.1",
+    "@shepherdorg/nano-inject": "^5.0.0",
+    "@shepherdorg/postgres-backend": "^5.0.9",
+    "@shepherdorg/state-store": "^5.0.9",
+    "@shepherdorg/ui-push": "^5.0.1",
     "@types/diff": "^4.0.2",
     "@types/js-yaml": "^3.12.1",
     "array-flat-polyfill": "^1.0.1",
@@ -29,6 +30,7 @@
     "js-yaml": "^3.10.0",
     "lodash": "^4.17.15",
     "oops-error": "^2.4.0",
+    "prompt": "^1.0.0",
     "tmp": "^0.1.0"
   },
   "devDependencies": {
@@ -54,7 +56,7 @@
     "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts --watch 'src/**/*.spec.ts'",
     "integratedtest": "yarn build && yarn build-test-images && mocha --exit --recursive 'dist/integratedtest/**/*.integratedtest.js'",
     "compile-in-background": "tsc -w > /dev/null &",
-    "itdd": "npm run compile-in-background && mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/integratedtest/**/*.integratedtest.ts'",
+    "itdd": "npm run compile-in-background && mocha --exit --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/**/*.integratedtest.ts'",
     "test": "yarn specs",
     "build": "tsc && chmod +x dist/shepherd.js",
     "prepublishOnly": "yarn build && yarn test"

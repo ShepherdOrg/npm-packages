@@ -2,12 +2,14 @@
 
 import * as fs from "fs"
 import { assembleDeploymentQueueEntry } from "./deploymentQueue/assemble-deployment-queue-entry"
+import { inspectAndExtractShepherdMetadata } from "./shepherd-inspect"
 
-function main(){
+async function main(){
   // Required parameters
   const deploymentQueueFile = process.argv[2]
   const deployJsonFilePath = process.argv[3]
-  const shepherdJsonFile = process.argv[4]
+
+  const shepherdDockerImage = process.argv[4]
 
   // Optional parameters
   const branchName = process.argv[5]
@@ -23,9 +25,11 @@ function main(){
   fileMustExist(deploymentQueueFile, "Deployment queue file must exist.")
 
   fileMustExist(deployJsonFilePath, "Deployment information file must exist.")
-  fileMustExist(shepherdJsonFile, "Shepherd metadata file must exist.")
 
-  let deployJson = assembleDeploymentQueueEntry(shepherdJsonFile, deployJsonFilePath, branchName, ttlHours)
+  const shepherdJson = await inspectAndExtractShepherdMetadata(shepherdDockerImage)
+
+  let deployJson = assembleDeploymentQueueEntry(shepherdJson, deployJsonFilePath, branchName, ttlHours)
+
 
   if(deployJson.environments.length){
     fs.appendFileSync(deploymentQueueFile, JSON.stringify(deployJson) + '\n')
@@ -35,6 +39,11 @@ function main(){
 }
 
 
-main()
+main().then(()=>{
+  process.exit(0)
+}).catch((err)=>{
+  console.error('Error adding to deployment queue. ' + process.argv.join(' '))
+  console.error(err)
+})
 
 

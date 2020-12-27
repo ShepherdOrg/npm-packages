@@ -38,92 +38,117 @@
       "type": "string",
       "description": "Docker registry portion of docker image tag. Not used if using dockerhub."
     },
-    "preDeployTest": {
-      "type": "object",
-      "properties": {
-        "imageUrl": {
-          "type": "string"
-        },
-        "command": {
-          "type": "string"
-        },
-        "environment": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "value": {
-                "type": "string"
-              },
-              "secret": {
-                "type": "boolean"
-              }
-            }
-          },
-          "patternProperties": {
-            "^.*$": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          }
-        }
-      },
-      "required": [
-        "command"
-      ],
-      "additionalProperties": false
+    "dockerImageUrl": {
+      "type": "string",
+      "description": "Full docker image url. registry/repository/imageName:tag."
     },
-    "postDeployTest": {
-      "type": "object",
-      "properties": {
-        "imageUrl": {
-          "type": "string"
-        },
-        "command": {
-          "type": "string"
-        },
-        "environment": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string"
-              },
-              "value": {
-                "type": "string"
-              },
-              "secret": {
-                "type": "boolean"
-              }
-            }
+    "preDeploymentTests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "string"
           },
-          "patternProperties": {
-            "^.*$": {
-              "anyOf": [
-                {
+          "command": {
+            "type": "string"
+          },
+          "inEnvironments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "environment": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
                   "type": "string"
                 },
-                {
-                  "type": "null"
+                "value": {
+                  "type": "string"
+                },
+                "secret": {
+                  "type": "boolean"
                 }
-              ]
+              }
+            },
+            "patternProperties": {
+              "^.*$": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
             }
           }
-        }
-      },
-      "required": [
-        "command"
-      ]
+        },
+        "required": [
+          "command",
+          "inEnvironments"
+        ]
+      }
+    },
+    "postDeploymentTests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "imageUrl": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "inEnvironments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "environment": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                },
+                "secret": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "patternProperties": {
+              "^.*$": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "required": [
+          "command",
+          "inEnvironments"
+        ]
+      }
     },
     "environment": {
       "type": "array",

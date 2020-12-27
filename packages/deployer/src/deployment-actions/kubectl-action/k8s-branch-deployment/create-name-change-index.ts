@@ -2,8 +2,9 @@ import * as path from "path"
 import { newProgrammerOops } from "oops-error"
 import { kubeSupportedExtensions, TExtensionsMap } from "../kube-supported-extensions"
 import { TK8sPartialDescriptor } from "../k8s-document-types"
-import { TK8sDeploymentPlan2 } from "../../../deployment-types"
-import yaml = require("js-yaml")
+import { TK8sDeploymentPlan } from "../../../deployment-types"
+
+import * as yaml from "js-yaml"
 
 export type TStringMap = {
   [key: string]: string
@@ -34,7 +35,7 @@ export function indexNameReferenceChange(
 }
 
 export function addResourceNameChangeIndex(
-  plan: TK8sDeploymentPlan2,
+  plan: TK8sDeploymentPlan,
   branchModificationParams: TBranchModificationParams,
 ) {
   branchModificationParams.nameChangeIndex = branchModificationParams.nameChangeIndex || {}

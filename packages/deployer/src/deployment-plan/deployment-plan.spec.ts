@@ -9,7 +9,7 @@ import { clearEnv, setEnv } from "../deployment-actions/kubectl-action/testdata/
 import { expect } from "chai"
 import { createFakeExec } from "../test-tools/fake-exec"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
-import { IExecutableAction, TActionExecutionOptions } from "../deployment-types"
+import { IBasicExecutableAction, IExecutableAction, TActionExecutionOptions } from "../deployment-types"
 import { emptyArray } from "../helpers/ts-functions"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
@@ -22,6 +22,8 @@ import { createDeploymentTestActionFactory } from "../deployment-actions/deploym
 import { createLogContextColors } from "../logging/log-context-colors"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import * as chalk from "chalk"
+import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
+import { createFakeTimeoutWrapper } from "../test-tools/fake-timer"
 
 
 type FFakeLambda = () => Promise<void>
@@ -65,13 +67,19 @@ function fakePromiseFactory(): IFakeLambdaFactory {
   }
 }
 
-type IFakeExecutableActions = { getInstance: () => IExecutableAction
+type IFakeExecutableActions = { getInstance: () => IBasicExecutableAction
   stateFul(isStateful: boolean): IFakeExecutableActions
   modified(b: boolean): IFakeExecutableActions
 }
 
 function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
+  let deploymentState: TDeploymentState | undefined
   let me: IExecutableAction = {
+    getActionDeploymentState(): TDeploymentState | undefined {
+      return deploymentState;
+    }, setActionDeploymentState(newState: TDeploymentState | undefined): void {
+      deploymentState = newState
+    },
     canRollbackExecution(): boolean {
       return false
     },
@@ -85,7 +93,7 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
     planString() {
       return "fake action"
 
-    },
+    }
   }
 
   function newFakeState() : TDeploymentState {
@@ -97,8 +105,9 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
 
   let factory: IFakeExecutableActions = {
     modified(b: boolean): IFakeExecutableActions {
-      me.state = me.state || newFakeState()
-      me.state.modified = b
+      let newState = me.getActionDeploymentState() || newFakeState()
+      newState.modified = b
+      me.setActionDeploymentState( newState)
       return factory;
     },
     stateFul(isStateful: boolean): IFakeExecutableActions {
@@ -158,7 +167,11 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
 
   let deploymentTestActionFactory = createDeploymentTestActionFactory({logger: fakeLogger, dockerActionFactory: dockerActionFactory})
 
+  const fakeTimeoutWrapper = createFakeTimeoutWrapper()
+
   return {
+    deploymentEnvironment:"specEnv",
+    ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec:fakeExec, logger: fakeLogger, systemTime: () => new Date(), timeout: fakeTimeoutWrapper.fakeTimeout}),
     logger: fakeLogger,
     exec: fakeExec,
     stateStore: fakeStateStore,
@@ -203,7 +216,7 @@ describe("Deployment plan", function() {
   //     await depPlan.addAction(testActions[0])
   //   })
   //
-  //   // TODO NEXT for migrations support, move derived action adding to plan or action
+  //   // TODOLATER NEXT for migrations support, move derived action adding to plan or action
   //   it("should add migration action to deployment plan", () => {
   //     expect(depPlan.deploymentActions.length).to.equal(2)
   //   })
@@ -227,7 +240,7 @@ describe("Deployment plan", function() {
     })
 
     it("should retrieve action state from state store", async () => {
-      expect(depPlan.deploymentActions[0].state).not.to.equal(undefined)
+      expect(depPlan.deploymentActions[0].getActionDeploymentState()).not.to.equal(undefined)
     })
   })
 

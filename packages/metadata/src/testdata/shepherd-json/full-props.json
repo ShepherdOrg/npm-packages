@@ -26,7 +26,7 @@
   "gitUrl": "git@github.com:ShepherdOrg/npm-packages.git",
   "gitCommit": "031a5f15fe211745a241d0f2ae6be0bdc3b60ff0",
   "gitHash": "031a5f15fe211745a241d0f2ae6be0bdc3b60ff0",
-  "semanticVersion": "1.1.1"
+  "semanticVersion": "latest"
 }
 
 

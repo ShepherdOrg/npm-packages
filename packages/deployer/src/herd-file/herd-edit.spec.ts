@@ -36,10 +36,11 @@ describe("Herd editing", function() {
       },
       upstreamImageTag: "100",
       upstreamHerdKey: "test88",
-      upstreamImageName: "test88image",
+      upstreamImageName: "test99image",
       imageFileName: 'na'
     }, logger)
     expect(editedHerd.images.test88.imagetag).to.equal("100")
+    expect(editedHerd.images.test88.image).to.equal("test99image")
   })
 
   it("should edit description", () => {

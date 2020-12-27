@@ -31,6 +31,9 @@ const spawnProcess = (name, command, args, spawnOptions = {}) => {
     const prefixError = s => `${chalk.red(`${name} |`)} ${s}`
 
     proc.stdout.on('data', data => {
+      if(data===undefined || data === null){
+        return
+      }
       console.info(
         data
           .toString()
@@ -41,6 +44,9 @@ const spawnProcess = (name, command, args, spawnOptions = {}) => {
     })
 
     proc.stderr.on('data', data => {
+      if(data===undefined || data === null){
+        return
+      }
       console.error(
         data
           .toString()

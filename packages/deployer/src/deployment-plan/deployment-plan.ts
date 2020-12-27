@@ -1,7 +1,8 @@
 import {
   IAnyDeploymentAction,
+  IBasicExecutableAction,
   IExecutableAction,
-  IKubectlDeployAction,
+  IKubectlDeployAction, IPushToShepherdUI,
   isDockerDeploymentAction,
   isKubectlDeployAction,
   TActionExecutionOptions,
@@ -16,7 +17,6 @@ import { mapUntypedDeploymentData } from "../ui-mapping/map-untyped-deployment-d
 import { TFileSystemPath } from "../helpers/basic-types"
 import * as path from "path"
 import { writeFile } from "../helpers/promisified"
-import { IPushToShepherdUI } from "../shepherd"
 import {
   ICreateDeploymentTestAction,
   IRollbackAction,
@@ -28,7 +28,10 @@ import { renderPlanExecutionError } from "./renderPlanExecutionError"
 import { ILog, LOG_CONTEXT_PREFIX_PADDING, TLogContext } from "../logging/logger"
 import * as chalk from "chalk"
 import { padLeft } from "../logging/padleft"
-import { createLogContextColors, IProvideLogContextColors } from "../logging/log-context-colors"
+import { IProvideLogContextColors } from "../logging/log-context-colors"
+import {
+  ICreateDeploymentTimeAnnotationActions,
+} from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 
 export interface IDeploymentPlanExecutionResult {
   actionResults: IExecutableAction[]
@@ -38,7 +41,7 @@ export interface IDeploymentPlanExecutionResult {
 
 export function renderPlanFailureSummary(logger: ILog, failedPlans: IDeploymentPlanExecutionResult[]) {
   logger.error(
-    `Execution of ${failedPlans.length} deployment plan(s) resulted in failure, test or otherwise. Full error logs found above.`
+    `Execution of ${failedPlans.length} deployment plan(s) resulted in failure, test or otherwise. Full error logs found above.`,
   )
   logger.error(`vvvvvvvvvvvvvvvv failed deployments vvvvvvvvvvvvvvvvvvvv`)
   failedPlans.forEach(failedPlan => {
@@ -52,12 +55,11 @@ export interface IDeploymentPlan {
   herdDeclaration: THerdDeclaration
   deploymentActions: Array<IExecutableAction>
 
-  addAction(action: IExecutableAction): Promise<void>
-
+  addAction(action: IBasicExecutableAction): Promise<void>
   execute(deploymentOptions: TActionExecutionOptions): Promise<IDeploymentPlanExecutionResult>
-
   hasModifiedAction(): boolean
   hasStatefulAction(): boolean
+
   /**
    * Returns false if there is nothing planned, true otherwise
    * */
@@ -67,10 +69,9 @@ export interface IDeploymentPlan {
 
 export type TK8sDeploymentPlansByKey = { [herdKey: string]: string }
 
-/* TODO : Need to consider whether to make deployment plans fail/succeed independently. Currently the first one that
- *  fails will stop all deployment. */
-
 export interface TDeploymentPlanDependencies {
+  deploymentEnvironment: string
+  ttlAnnotationActionFactory: ICreateDeploymentTimeAnnotationActions
   logContextColors: IProvideLogContextColors
   stateStore: IReleaseStateStore
   exec: any
@@ -85,26 +86,30 @@ export interface TDeploymentPlanDependencies {
 export interface IDeploymentPlanFactory {
   createDeploymentPlan: (herdSpec: THerdDeclaration) => IDeploymentPlan
 
-  createDockerImageDeploymentActions(imageInformation: TImageInformation): Promise<Array<IExecutableAction>>
+  createDockerImageDeploymentActions(imageInformation: TImageInformation, envFilter: string): Promise<Array<IExecutableAction>>
+
   createDockerImageDeploymentPlan(imageInformation: TImageInformation): Promise<IDeploymentPlan>
 }
 
+
 export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencies): IDeploymentPlanFactory {
+
   async function createRolloutWaitActions(
-    kubectlDeployAction: IKubectlDeployAction
+    kubectlDeployAction: IKubectlDeployAction,
   ): Promise<Array<IExecutableAction>> {
     const resultingActions: Array<IExecutableAction> = []
     if (
       kubectlDeployAction.deploymentRollouts &&
       kubectlDeployAction.operation === "apply" &&
-      kubectlDeployAction.state?.modified
+      kubectlDeployAction.getActionDeploymentState()?.modified
     ) {
       await Promise.all(
         kubectlDeployAction.deploymentRollouts.map(async deploymentRollout => {
           resultingActions.push(await injected.rolloutWaitActionFactory.createRolloutWaitAction(deploymentRollout))
-        }, {})
+        }, {}),
       )
     }
+
     return resultingActions
   }
 
@@ -128,10 +133,11 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
         return deploymentData
       }
     }
+
     let planInstance: IDeploymentPlan = {
       hasModifiedAction(): boolean {
         return deploymentActions.reduce((planModified: boolean, action) => {
-          return planModified || (action.isStateful && action.state?.modified) || false
+          return planModified || (action.isStateful && action.getActionDeploymentState()?.modified) || false
         }, false)
       },
 
@@ -143,7 +149,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
 
       async execute(executionOptions: TActionExecutionOptions): Promise<IDeploymentPlanExecutionResult> {
         // console.log(`RUNNING ${deploymentActions.length} actions... \n ${deploymentActions.map((action)=>{return action.planString() + '\n'})}`)
-        if(!planInstance.hasStatefulAction()){
+        if (!planInstance.hasStatefulAction()) {
           throw new Error(`Plan for ${chalk.red(herdDeclaration.key)} has no stateful action! This is probably a programming error.`)
         }
         let actionResults: IExecutableAction[] = []
@@ -175,8 +181,10 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
       async addAction(action: IExecutableAction): Promise<void> {
         injected.logger.debug(`Adding action to plan ${herdDeclaration.key} ${action.planString()}`)
         deploymentActions.push(action)
-        if (action.isStateful && !action.state) {
-          action.state = await injected.stateStore.getDeploymentState((action as unknown) as TDeploymentStateParams)
+
+        if (action.isStateful && !action.getActionDeploymentState()) {
+          let deploymentState = await injected.stateStore.getDeploymentState((action as unknown) as TDeploymentStateParams)
+          action.setActionDeploymentState(deploymentState)
         }
       },
       async exportActions(exportDirectory: TFileSystemPath) {
@@ -196,14 +204,14 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
             } else if (isKubectlDeployAction(action)) {
               let writePath = path.join(
                 exportDirectory,
-                action.operation + "-" + action.identifier.toLowerCase() + ".yaml"
+                action.operation + "-" + action.identifier.toLowerCase() + ".yaml",
               )
               return writeFile(writePath, action.descriptor.trim())
             } // else its a followup action, such as rollout status or e2e test, which we do not export
-          })
+          }),
         ).then(() => {
           injected.logger.debug(
-            `Exported ${deploymentActions.length} actions to ${exportDirectory} from ${herdDeclaration.key}`
+            `Exported ${deploymentActions.length} actions to ${exportDirectory} from ${herdDeclaration.key}`,
           )
         })
       },
@@ -215,8 +223,9 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
 
         deploymentActions.forEach(function(deploymentAction: IExecutableAction) {
           let printPlanLogContext: TLogContext = { ...planLogContext, ...{ performanceLog: false } }
-          if (deploymentAction.isStateful && deploymentAction.state) {
-            if (deploymentAction.state.modified) {
+          let deploymentState = deploymentAction.getActionDeploymentState()
+          if (deploymentAction.isStateful && deploymentState) {
+            if (deploymentState.modified) {
               if (!modified) {
                 if (herdDeclaration) {
                   logger.info(`Deploying ${herdDeclaration.key}`, printPlanLogContext)
@@ -243,7 +252,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
     return planInstance
   }
 
-  async function createDockerImageDeploymentActions(imageInformation: TImageInformation) {
+  async function createDockerImageDeploymentActions(imageInformation: TImageInformation, envFilter: string) {
     let planLogContext: TLogContext = {
       prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, imageInformation.imageDeclaration.key, true),
       color: injected.logContextColors.nextLogContextColor(),
@@ -256,68 +265,93 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
       if (!imageInformation.imageDeclaration) {
         throw newProgrammerOops("Invalid image information, no image declaration!", imageInformation)
       }
-      if (imageInformation.shepherdMetadata.preDeployTest) {
-        resultingActions.push(
-          injected.deploymentTestActionFactory.createDeploymentTestAction(
-            imageInformation.shepherdMetadata.preDeployTest,
-            imageInformation.shepherdMetadata
-          )
-        )
+      if (imageInformation.shepherdMetadata.preDeploymentTests ) {
+        imageInformation.shepherdMetadata.preDeploymentTests.forEach((deploymentTestSpec)=>{
+          if( imageInformation.shepherdMetadata && deploymentTestSpec.inEnvironments.includes(envFilter)){ // To satisfy typescript, not sure why the outside check is not enough
+            resultingActions.push(
+              injected.deploymentTestActionFactory.createDeploymentTestAction(
+                deploymentTestSpec,
+                imageInformation.shepherdMetadata,
+              ),
+            )
+          } else {
+
+          }
+
+        })
       }
       let deploymentActions: Array<IExecutableAction>
       if (imageInformation.shepherdMetadata.deploymentType === "deployer") {
         deploymentActions = await injected.deployerActionFactory.createDockerDeploymentAction(
           imageInformation,
-          planLogContext
+          planLogContext,
         )
       } else if (imageInformation.shepherdMetadata.deploymentType === "k8s") {
         deploymentActions = await injected.dockerImageKubectlDeploymentActionFactory.createKubectlDeploymentActions(
-          imageInformation
+          imageInformation,
         )
 
         await Promise.all(
           deploymentActions.map(async depAction => {
             if (depAction.isStateful) {
-              depAction.state = await injected.stateStore.getDeploymentState(
-                (depAction as unknown) as TDeploymentStateParams
-              )
+              depAction.setActionDeploymentState(await injected.stateStore.getDeploymentState(
+                (depAction as unknown) as TDeploymentStateParams,
+              ))
             }
 
+            if (imageInformation.imageDeclaration.timeToLiveHours) {
+              if (isKubectlDeployAction(depAction)) {
+                let ttAnnotationActionFactory = injected.ttlAnnotationActionFactory
+                let ttlAnnotationActions = ttAnnotationActionFactory.createDeploymentTimeAnnotationActions(depAction.descriptorsByKind)
+                ttlAnnotationActions.map(annotationAction => {
+                  deploymentActions.push(annotationAction)
+                })
+              }
+            }
             if (isKubectlDeployAction(depAction)) {
               let waitActions = await createRolloutWaitActions(depAction)
               waitActions.map(waitAction => {
                 deploymentActions.push(waitAction)
               })
             }
-          })
+          }),
         )
       } else {
         throw new Error(
-          `Unexpected: No planner in place for deploymentType ${imageInformation.shepherdMetadata.deploymentType} in ${imageInformation.shepherdMetadata.displayName} `
+          `Unexpected: No planner in place for deploymentType ${imageInformation.shepherdMetadata.deploymentType} in ${imageInformation.shepherdMetadata.displayName} `,
         )
       }
       resultingActions = resultingActions.concat(deploymentActions)
 
-      if (imageInformation.shepherdMetadata.postDeployTest) {
+      if (imageInformation.shepherdMetadata.postDeploymentTests) {
         let deploymentActionsRollback: IRollbackAction = {
           async rollback(executionOptions: TActionExecutionOptions): Promise<TRollbackResult> {
             let NO_ROLLBACK_RESULT = { code: 0 }
             return await Promise.all(
               deploymentActions.map(
-                rollback => (rollback.canRollbackExecution() && rollback.rollback(executionOptions)) || NO_ROLLBACK_RESULT
-              )
+                rollback => (rollback.canRollbackExecution() && rollback.rollback(executionOptions)) || NO_ROLLBACK_RESULT,
+              ),
             ).then(() => {
               return {}
             })
           },
         }
-        resultingActions.push(
-          injected.deploymentTestActionFactory.createDeploymentTestAction(
-            imageInformation.shepherdMetadata.postDeployTest,
-            imageInformation.shepherdMetadata,
-            deploymentActionsRollback
-          )
-        )
+
+
+        imageInformation.shepherdMetadata.postDeploymentTests.forEach((deploymentTestSpec)=>{
+          if( imageInformation.shepherdMetadata && deploymentTestSpec.inEnvironments.includes(envFilter)){ // To satisfy typescript, not sure why the outside check is not enough
+            resultingActions.push(
+              injected.deploymentTestActionFactory.createDeploymentTestAction(
+                deploymentTestSpec,
+                imageInformation.shepherdMetadata,
+                deploymentActionsRollback
+              ),
+            )
+          } else {
+
+          }
+
+        })
       }
 
       return resultingActions
@@ -328,7 +362,7 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
 
   async function createDockerImageDeploymentPlan(imageInformation: TImageInformation) {
     if (imageInformation.shepherdMetadata) {
-      const resultingActions = await createDockerImageDeploymentActions(imageInformation)
+      const resultingActions = await createDockerImageDeploymentActions(imageInformation, injected.deploymentEnvironment)
       const resultingPlan = createDeploymentPlan(imageInformation.imageDeclaration)
       await Promise.all(resultingActions.map(resultingPlan.addAction))
 

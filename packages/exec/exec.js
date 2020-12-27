@@ -2,7 +2,7 @@ const spawn = require("child_process").execFile
 const _ = require("lodash")
 
 module.exports = {
-  exec(command, params, envMap, err, success, stdoutLineHandler) {
+  exec(command, params, envMap, err, success, stdoutLineHandler ) {
     envMap = envMap || {}
     let child = spawn(command, params, { env: envMap })
     let stdout = ""
@@ -18,6 +18,7 @@ module.exports = {
     })
 
     child.stderr.on("data", data => {
+      /*This is a bad design, should get an injected logger interface, which may be console.*/
       console.error(data)
       strerr += data + "\n"
     })
@@ -25,6 +26,7 @@ module.exports = {
     child.on("close", code => {
       if (code) {
         if (!stdoutLineHandler) {
+          /*This is a bad design, should get an injected logger interface, which may be console.*/
           console.info(stdout)
         }
         err(strerr, code, stdout)
@@ -47,7 +49,13 @@ module.exports = {
     })
 
     child.stderr.on("data", data => {
-      console.error(data)
+      if (options.stdErrLineHandler) {
+        options.stdErrLineHandler(data)
+      } else{
+        /*This is a bad design, should get an injected logger interface, which may be console.*/
+        console.error(data)
+      }
+
       strerr += data + "\n"
     })
 

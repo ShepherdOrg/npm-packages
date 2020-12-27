@@ -17,11 +17,22 @@ export type TRendererMap = {
 
 export type TValidationErrors = { errors: Array<any> }
 
+type TStringMap = { [key: string]: string }
+
+const obsoletePropertyMessages:TStringMap={
+  'preDeployTest':"preDeployTest is no longer supported and has been replaced by preDeploymentTests",
+  'postDeployTest':"postDeployTest is no longer supported and has been replaced by postDeploymentTests"
+}
+
 export function renderValidationMessage(validate:TValidationErrors) {
   function renderValidationError(validationError: any) {
     const keywordRenderers:TRendererMap = {
       additionalProperties: (validationErr: any) => {
-        return `.${validationErr.params.additionalProperty} : Not recognized as a valid shepherd metadata property`
+        let additionalProperty:string = validationErr.params.additionalProperty || ''
+        if(obsoletePropertyMessages[additionalProperty]){
+          return obsoletePropertyMessages[additionalProperty]
+        }
+        return `.${additionalProperty} : Not recognized as a valid shepherd metadata property`
       },
       required: (validationErr: any) => {
         return `.${validationErr.params.missingProperty} : Must be specified`
@@ -100,23 +111,30 @@ function compileGeneratedPropertiesSchema() {
   return ajv.compile(schema)
 }
 
-export function validateAndCombineFullProps(
-  userProps:any,
-  generatedProps:any
-): TImageMetadata {
+export function validateUserShepherdJson(userProps: any) {
   const validateUserProps = compileUserPropertiesSchema()
 
   validateUserProps(userProps)
+
   if (validateUserProps.errors) {
     throw new Error(
-      `User properties did not pass validation: ${renderValidationMessage(
+      `shepherd.json did not pass schema validation: ${renderValidationMessage(
         validateUserProps as TValidationErrors
       )}`
     )
   }
 
+  return validateUserProps
+}
+
+export function validateAndCombineFullProps(
+  userProps:any,
+  generatedProps:any
+): TImageMetadata {
+  validateUserShepherdJson(userProps)
+
   const validateGeneratedProps = compileGeneratedPropertiesSchema()
-  validateUserProps(generatedProps)
+  validateGeneratedProps(generatedProps)
   if (validateGeneratedProps.errors) {
     throw new Error(
       `Generated properties did not pass validation: ${renderValidationMessage(

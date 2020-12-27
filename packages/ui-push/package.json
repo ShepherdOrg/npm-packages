@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/ui-push",
-  "version": "4.3.0",
+  "version": "5.0.1",
   "description": "Push information about deployments to Shepherd UI",
   "types": "dist/upload.d.ts",
   "main": "dist/upload.js",
@@ -17,8 +17,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@shepherdorg/metadata": "^4.3.0",
-    "@shepherdorg/ui-graphql-client": "^3.1.1",
+    "@shepherdorg/metadata": "^5.0.1",
+    "@shepherdorg/ui-graphql-client": "^3.3.0",
     "add": "^2.0.6"
   },
   "devDependencies": {

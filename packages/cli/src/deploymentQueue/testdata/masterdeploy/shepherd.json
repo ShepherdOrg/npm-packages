@@ -1,4 +1,5 @@
 {
   "dockerRepository": "spec-docker-repo",
-  "displayName": "Spec display name"
+  "displayName": "Spec display name",
+  "dockerImageUrl": "docker/image:master-url"
 }

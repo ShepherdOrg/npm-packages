@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 'use strict';
-import { logExpiredKubeResources } from "./k8s/log-expired-resources"
+import { kubeDeleteExpiredResources } from "./k8s/delete-expired-resources"
 
 const dryRunOn = process.argv.indexOf("--dryrun") > 0
 
@@ -26,6 +26,6 @@ rl.on('line', function(line){
 
 rl.on('close', function(){
     let kubeResourceList=JSON.parse(stdin);
-    logExpiredKubeResources(kubeResourceList, console,dryRunOn, new Date().getTime())
+    kubeDeleteExpiredResources(kubeResourceList, console,dryRunOn, new Date().getTime())
     process.exit(0);
 });

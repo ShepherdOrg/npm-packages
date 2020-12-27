@@ -1,5 +1,8 @@
 import * as fs from "fs"
 import { expect } from "chai"
+import * as path from "path"
+import { execCmd } from "../../src/exec/exec-cmd"
+import { getDockerTags } from "./get-docker.tags"
 
 const shellExec = require('shell-exec')
 
@@ -12,22 +15,20 @@ describe("Build docker with kube.yaml deployment", function() {
     let queuedDeployment: any
 
     before(() => {
-      let dockerDir = __dirname
-      if(!fs.existsSync(process.cwd() + '/.build')){
-        fs.mkdirSync(process.cwd() + '/.build')
-      }
       process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE = process.cwd() + '/.build/deploymentq.jsonl'
 
       fs.writeFileSync(process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE, '')
-      // fs.closeSync(fs.openSync(process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE as string, 'a'));
-      return shellExec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile --dryrun`,{env: {...process.env, ...{BRANCH_NAME:'master'}}}).then(
+
+      let dockerDir = path.join(__dirname, 'plain-deployer-repo')
+
+      return shellExec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile`,{env: {...process.env, ...{BRANCH_NAME:'master'}}}).then(
         ({ stdout, stderr }) => {
           if (stderr) expect.fail("GOT ERROR> " + stderr)
-          shepherdMeta = require(__dirname + '/.build/metadata/shepherd.json')
+          shepherdMeta = require(dockerDir + '/.build/metadata/shepherd.json')
           buildOutput = stdout
 
           return shellExec(
-            "docker inspect plain-deployer-repo:latest"
+            "docker inspect mylocalregistry:5000/plain-deployer-repo:latest"
           ).then(({ stdout }) => {
             dockerMeta = JSON.parse(stdout)
             queuedDeployment = JSON.parse(fs.readFileSync(process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE as string, "utf-8"))
@@ -61,7 +62,7 @@ describe("Build docker with kube.yaml deployment", function() {
     })
 
     it("should have correct dockerImageTag", () => {
-      expect(queuedDeployment.dockerImageUrl).to.equal('mylocalregistry:5000/plain-deployer-repo:bffb1ea83a5e05013fdc81918e9e40d6465bf481')
+      expect(queuedDeployment.dockerImageUrl).to.match(/mylocalregistry:5000\/plain-deployer-repo:[a-z1-9]*/)
     })
 
     it("should log adding to deployment queue", () => {
@@ -82,20 +83,37 @@ describe("Build docker with kube.yaml deployment", function() {
     let dockerMeta: any
     let queuedDeploymentFileContents: string
 
-    before(() => {
-      let dockerDir = __dirname
+    let testImageName = 'plain-deployer-repo'
+
+
+    before(async () => {
+      let dockerDir = path.join(__dirname, testImageName)
       if(!fs.existsSync(process.cwd() + '/.build')){
         fs.mkdirSync(process.cwd() + '/.build')
       }
       process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE = process.cwd() + '/.build/deploymentq.jsonl'
 
+      try{
+        const existingTags = await getDockerTags('mylocalregistry:5000/' + testImageName)
+
+        await Promise.all(existingTags.map((etag)=>{
+          return execCmd('docker', ['rmi', etag])
+        }))
+
+      }catch(err){
+        console.info(`No need to clean up ${testImageName}`)
+      }
+
+
+
       fs.writeFileSync(process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE, '')
-      // fs.closeSync(fs.openSync(process.env.SHEPHERD_DEPLOYMENT_QUEUE_FILE as string, 'a'));
-      return shellExec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile --dryrun`,{env: {...process.env, ...{BRANCH_NAME:'specBranch99', BUILD_NUMBER:'specBranch99'}}}).then(
+
+      return shellExec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile push --dryrun`,{env: {...process.env, ...{BRANCH_NAME:'specBranch99', BUILD_NUMBER:'specBranch99'}}}).then(
         ({ stdout, stderr }) => {
           if (stderr) expect.fail("GOT ERROR> " + stderr)
-          shepherdMeta = require(__dirname + '/.build/metadata/shepherd.json')
+          shepherdMeta = require(dockerDir + '/.build/metadata/shepherd.json')
           buildOutput = stdout
+          // console.log(`DEBUG stdout`, stdout)
 
           return shellExec(
             "docker inspect plain-deployer-repo:latest"

@@ -49,12 +49,13 @@ export function expectedK8sDeployment0(): THerdK8sMetadata {
       description: "Shepherd web UI API",
       // "herdKey": "shepherd-ui-api",
       key: "shepherd-ui-api",
+      "timeToLiveHours":99
     },
   }
 }
 
 export function expectedK8sDeployment1(): THerdK8sMetadata {
-  return {
+  let data = {
     buildDate: new Date("2019-10-29T15:16:31.000Z"),
     buildHostName: "fb7bee96cc25",
     dockerImageTag: "shepherdorg/shepherd-ui:latest",
@@ -187,4 +188,5 @@ export function expectedK8sDeployment1(): THerdK8sMetadata {
       key: "shepherd-ui",
     },
   }
+  return data
 }
