@@ -1,6 +1,11 @@
 import * as fs from "fs"
 
-import { THerdFileStructure, THerdSectionDeclaration, THerdSectionType } from "../deployment-types"
+import {
+  TDockerImageHerdDeclarations,
+  THerdFileStructure,
+  THerdSectionDeclaration,
+  THerdSectionType,
+} from "../deployment-types"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import { TFileSystemPath } from "../helpers/basic-types"
@@ -65,10 +70,24 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
 
   async function loadHerd(fileName: TFileSystemPath): Promise<IDeploymentOrchestration> {
     if (fs.existsSync(fileName)) {
+
+      console.log(`DEBUG Loading herd from fileName ${fileName}`)
+
       let deploymentOrchestration = injected.deploymentOrchestration
 
       let herd: THerdFileStructure
-      if (featureDeploymentConfig.isUpstreamTriggeredDeployment()) {
+      if(path.basename(fileName) === 'shepherd.json'){
+        console.log(`WARNING: Single-deployment deployment is work in progress. Need to finish versionist package for this to work.`)
+        let localImageDef: TDockerImageHerdDeclarations = {
+          localImage:{
+            image: "string",
+            imagetag: "string",
+          }
+        }
+        herd = {
+          images:localImageDef
+        }
+      } else if (featureDeploymentConfig.isUpstreamTriggeredDeployment()) {
         herd = featureDeploymentConfig.asHerd()
       } else {
         herd = yaml.load(fs.readFileSync(fileName, "utf8"))

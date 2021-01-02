@@ -55,9 +55,9 @@ HERDCONFIG_FILE="${HERDFILE_DIR}/herd.env"
 if [ -e "${HERDCONFIG_FILE}" ]; then
 	source "${HERDCONFIG_FILE}"
 	echo "Loaded environment ${ENV} config from ${HERDCONFIG_FILE}"
-else
-	echo "Environment config file "${HERDCONFIG_FILE}" is required."
-	exit 255
+#else
+#	echo "Environment config file "${HERDCONFIG_FILE}" is required."
+#	exit 255
 fi
 
 if [ -e ~/.shepherd/${ENV}.env ]

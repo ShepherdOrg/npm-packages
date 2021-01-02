@@ -1,4 +1,5 @@
 import { expect } from "chai"
+import * as path from "path"
 
 // Create a domain lingo for versionist, or use docker lingo? Docker image naming and
 
@@ -232,36 +233,53 @@ describe("Preferred semantic version", function() {
 
       })
     })
-
-
   })
-
-
 })
 
 
-describe("Create version hash", function() {
+const shellExec = require('shell-exec')
 
-  describe("Never committed", function() {
-    it("should use LOCALBUILD as hash", () => {
-      expect.fail("IMPLEMENT")
+async function gitDirHash(dirname: string) {
+  const GIT_DIR_HASH_CMD = "git ls-files -s . | git hash-object --stdin"
+  const EMPTY_DIR_HASH='e69de29bb2d1d6434b8b29ae775ad8c2e48c5391'
+
+  const dirHash = await shellExec(GIT_DIR_HASH_CMD, { cwd: dirname, env: { ...process.env, ...{ BRANCH_NAME: "master" } } }).then(
+    ({ stdout, stderr,code }) => {
+      if (code !== 0) throw new Error(`Process exited with code ${code} while calculating dir hash. \n${stdout}\n ${stderr}\n` )
+      let hash = stdout.trim()
+      if(hash === EMPTY_DIR_HASH){
+        return ""
+      }
+      return hash
+    },
+  )
+  return dirHash
+}
+
+describe("Git dir hash", function() {
+  let dirHash: any
+
+
+  describe("for current directory", function() {
+    before(async ()=>{
+      dirHash = await gitDirHash(process.cwd())
     })
 
+    it("should be a hash", () => {
+      expect(dirHash.length).to.equal('b89e57d488a04de2ddfd9a43620b59e6b28ec98c'.length)
+    })
   })
 
-  describe("Normal check in", function() {
-    it("should ", () => {
-      expect.fail("IMPLEMENT")
+
+  describe.only("No files in git", function() {
+    before(async ()=>{
+      dirHash = await gitDirHash(path.join(process.cwd(), 'node_modules'))
     })
 
-  })
-
-  describe("Not pushed", function() {
-
-    it("should include LOCAL in hash string", () => {
-      expect.fail("IMPLEMENT")
-
+    it("should return empty string as hash", () => {
+      expect(dirHash).to.equal('')
     })
+
   })
 
   describe("With .dockerignore file present (or other mechanism to exclude files from hash generation)", function() {

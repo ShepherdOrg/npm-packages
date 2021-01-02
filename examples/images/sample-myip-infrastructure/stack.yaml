@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Common infrastructure for CI/CD sample app"
+
+Resources:
+  lambdaDeploymentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-lambdadeployment"
+      AccessControl: Private
+    DeletionPolicy: Delete
+
+  lambdaApiGateway:
+    Type: "AWS::ApiGateway::RestApi"
+    Properties:
+      Name: "myip-api"
+      Description: "MyIp API"
+
+  webDeploymentBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-webdeployment"
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - '*'
+            AllowedMethods:
+              - 'GET'
+              - 'HEAD'
+    DeletionPolicy: Delete
+
+
+Outputs:
+  lambdaDeploymentBucketName:
+    Value: !Sub "${AWS::StackName}-lambdadeployment"
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaDeploymentBucketName"
+
+  webDeploymentBucketName:
+    Value: !Sub "${AWS::StackName}-webdeployment"
+    Export:
+      Name: !Sub "${AWS::StackName}-WebDeploymentBucketName"
+
+  lambdaApiGateway:
+    Value: !Ref "lambdaApiGateway"
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaApiGateway"
+
+  lambdaApiGatewayRootResourceId:
+    Value: !GetAtt "lambdaApiGateway.RootResourceId"
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaApiGatewayRootResourceId"

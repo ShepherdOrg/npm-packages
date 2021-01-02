@@ -1,0 +1,24 @@
+{
+  "name": "myip-infrastructure",
+  "version": "0.0.1",
+  "description": "sample app infrastructure on AWS Lambda",
+  "main": "index.js",
+  "scripts": {
+    "e2e-test": "mocha --recursive ./e2e-test/**/*.e2espec.js",
+    "build": "mkdir -p .build &&  zip -r -j .build/myip.zip src/handler.js",
+    "deploy": "./create-or-update-stack.sh ${STACK_NAME}"
+  },
+  "keywords": [
+    "api",
+    "myip"
+  ],
+  "author": "Gudlaugur Egilsson",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "lambda-local": "^1.6.3",
+    "mocha": "^6.2.0",
+    "execa": "^2.0.4",
+    "node-fetch": "^2.6.0"
+  }
+}

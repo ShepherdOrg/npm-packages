@@ -1,0 +1,9 @@
+{
+  "deploymentKey": "public-repo-with-kube-yaml",
+  "semanticVersion": "NotSet",
+  "herdDescription": "Plain Deployer Repo",
+  "waitForRollout": false,
+  "environments": [
+    "dev"
+  ]
+}

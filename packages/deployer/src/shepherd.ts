@@ -88,7 +88,7 @@ function hasArg(param: string) {
   return process.argv.includes(param)
 }
 
-if (hasArg("--help")) {
+if (hasArg("--help")) {1
   printUsage()
   process.exit(0)
 }

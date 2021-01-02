@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "Using dev version......."
+
 set -eao pipefail
 
 function installationDir() {
@@ -23,9 +25,12 @@ function installationDir() {
 function outputUsage() {
   cat <<_EOF_
 Usage (bash):
-    OPTION=OPTIONVALUE $(basename $0) <dockerfile> [push]
+    OPTION=OPTIONVALUE $(basename $0) <dockerfile> [push] <parameters>
 
     If push parameter is present, docker push will be performed at end of successful build.
+
+Parameters:
+    --force-rebuild          Force rebuild image. Same as setting FORCE_REBUILD to non-empty value.
 
 Special files that processed if present in the same directory as the target Dockerfile:
     shepherd.json            Assumed to contain metadata about the deployment.
@@ -121,6 +126,11 @@ else
   DRYRUN=0
 fi
 
+if has_param '--force-build' "$@"; then
+  FORCE_REBUILD="true"
+fi
+
+
 DOCKERFILE=$1
 export __SHEPHERD_PUSH_ARG=$2
 
@@ -130,6 +140,11 @@ export DOCKERDIR=$(dirname $(echo "$(  cd "$(dirname "${DOCKERFILE}")"
 
 if [[ -e "${DOCKERDIR}/shepherd.json" ]]; then
   export DOCKER_REGISTRY_HOST=$(node -e "console.log(require('${DOCKERDIR}/shepherd.json').dockerRegistry || process.env.DOCKER_REGISTRY_HOST || '')")
+  export SHEPHERD_JSON_IMAGE_NAME=$(node -e "console.log(require('${DOCKERDIR}/shepherd.json').imageName || require('${DOCKERDIR}/shepherd.json').dockerRepository || '')")
+  SHEPHERD_JSON_ORG_NAME=$(node -e "console.log(require('${DOCKERDIR}/shepherd.json').dockerOrganization || '')")
+  if [ ! -z "${SHEPHERD_JSON_ORG_NAME}" ]; then
+    export DOCKER_REPOSITORY_ORG="${SHEPHERD_JSON_ORG_NAME}"
+  fi
 fi
 
 if [ -z "${DOCKER_REGISTRY_HOST}" ]; then
@@ -146,12 +161,7 @@ fi
 if [ -z "${DOCKER_REPOSITORY_ORG}" ]; then
   export DOCKER_REPOSITORY_ORG=""
 else
-  echo "DOCKER_REPOSITORY_ORG is set to DOCKER_REPOSITORY_ORG"
   export DOCKER_REPOSITORY_ORG="${DOCKER_REPOSITORY_ORG}/"
-fi
-
-if [ -e "${DOCKERDIR}/shepherd.json" ]; then
-  SHEPHERD_JSON_IMAGE_NAME=$(node -e "console.log(require('${DOCKERDIR}/shepherd.json').imageName || '')")
 fi
 
 if [ -z "${SHEPHERD_JSON_IMAGE_NAME}" ]; then
