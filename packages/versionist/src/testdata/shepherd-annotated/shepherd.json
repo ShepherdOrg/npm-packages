@@ -1,6 +1,7 @@
 {
   "dockerRegistry": "mylocalregistry:5000",
   "dockerRepository": "plain-deployer-image",
+  "dockerOrganization": "myorgone",
   "displayName": "Just a plain deployer",
   "deployerRole": "install",
   "environment": [

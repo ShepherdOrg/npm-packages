@@ -41,13 +41,9 @@ Special files that processed if present in the same directory as the target Dock
                              deployments in a more fine-grained manner.
 
 Environment variable options:
-    IMAGE_NAME:              Specify image name. Defaults to directory name containing the dockerfile if not specified.
-                             If specified in shepherd.json (recommended), that will override other options.
-    DOCKER_REGISTRY_HOST:    Set if using self-hosted docker registry. Will be prepended to docker name along with a /
-    DOCKER_REPOSITORY_ORG:   Docker repository organization/namespace. If not provided, defaults to no organization / no
-                             namespace.
-    DOCKER_REPOSITORY_NAME:  Docker repository name used to tag the docker image. Defaults to the directory name
-                             containing the dockerfile if not provided.
+    DOCKER_REGISTRY_HOST:    Set if using self-hosted docker registry. Used to construct image URL along with
+                             organisation and repository names.
+
     FORCE_REBUILD:           Set if you wish to force rebuild of the docker image regardless of its status in the docker
                              registry.
     FORCE_PUSH:              Override docker push prevention on dirty git index.
@@ -59,6 +55,17 @@ Environment variable options:
     TRUNK_BRANCH_NAME:       Branch that is considered trunk. Default is "master".
 
 	  SHEPHERD_DEPLOYMENT_QUEUE_FILE:    Deployment queue for monorepo build and deployment support.
+
+The following options are deprecated. Use shepherd.json options to control organization and repository names instead.
+
+    IMAGE_NAME:              Specify image name. Defaults to directory name containing the dockerfile if not specified.
+                             If specified in shepherd.json (recommended), that will override other options.
+    DOCKER_REPOSITORY_NAME:  Docker repository name used to tag the docker image. Defaults to the directory name
+                             containing the dockerfile if not provided. Same as specifying IMAGE_NAME.
+
+    DOCKER_REPOSITORY_ORG:   Docker repository organization/namespace. If not provided, defaults to no organization / no
+                             namespace.
+
 
 Examples:
 
