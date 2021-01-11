@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-echo "Using dev version......."
-
 set -eao pipefail
 
 function installationDir() {
@@ -31,6 +29,7 @@ Usage (bash):
 
 Parameters:
     --force-rebuild          Force rebuild image. Same as setting FORCE_REBUILD to non-empty value.
+    --verbose                More verbose output about decisions being made during build.
 
 Special files that processed if present in the same directory as the target Dockerfile:
     shepherd.json            Assumed to contain metadata about the deployment.
@@ -80,6 +79,8 @@ _EOF_
 }
 
 function ensure-trunk-tag-and-deploy() {
+  set +e
+
   DOCKER_IMAGE_GITHASH_TAG=$1
   DOCKER_IMAGE_BRANCH_HASH_TAG=$2
   if [ "${BRANCH_NAME}" = "${TRUNK_BRANCH_NAME}" ]; then
@@ -104,6 +105,7 @@ function ensure-trunk-tag-and-deploy() {
 
     fi
   fi
+  set -e
 }
 
 export THISDIR=$(installationDir ${BASH_SOURCE[0]})
@@ -137,6 +139,11 @@ if has_param '--force-build' "$@"; then
   FORCE_REBUILD="true"
 fi
 
+if has_param '--verbose' "$@"; then
+  echo "Verbose output ON."
+  __SHEPHERD_VERBOSE=1
+fi
+
 
 DOCKERFILE=$1
 export __SHEPHERD_PUSH_ARG=$2
@@ -153,6 +160,8 @@ if [[ -e "${DOCKERDIR}/shepherd.json" ]]; then
     export DOCKER_REPOSITORY_ORG="${SHEPHERD_JSON_ORG_NAME}"
   fi
 fi
+
+export DOCKER_REGISTRY_HOST_ONLY=${DOCKER_REGISTRY_HOST}
 
 if [ -z "${DOCKER_REGISTRY_HOST}" ]; then
   # Still empty
@@ -196,12 +205,13 @@ fi
 if [ -z "${SEMANTIC_VERSION}" ]; then
   if [ -e "${DOCKERDIR}/version.txt" ]; then
     export SEMANTIC_VERSION=$(cat ${DOCKERDIR}/version.txt)
-    echo "Using versiontxt version ${SEMANTIC_VERSION}"
+    [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Using versiontxt version ${SEMANTIC_VERSION}"
   elif [ -e "${DOCKERDIR}/package.json" ]; then
     export SEMANTIC_VERSION=$(node -e 'console.log(require("./package.json").version)')
-    echo "Using package.json version ${SEMANTIC_VERSION}"
+    [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Using package.json version ${SEMANTIC_VERSION}"
   else
     SEMANTIC_VERSION=$(cat ${DOCKERFILE} | grep '^FROM.*' | sed "s/^.*:\(.*\)/\1/")
+    echo "WARNING: Using deprecated versioning method to extract version from Dockerfile. Please use some other means to version your image."
 
     if [ -e "${DOCKERDIR}/version-postfix.txt" ]; then
       export SEMANTIC_VERSION=${SEMANTIC_VERSION}$(cat ${DOCKERDIR}/version-postfix.txt)
@@ -218,11 +228,29 @@ if [ -z "$BRANCH_NAME" ]; then
   export BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
 fi
 
-export IMAGE_URL=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}
-export DOCKER_IMAGE=${IMAGE_URL}:${SEMANTIC_VERSION}
-export DOCKER_IMAGE_LATEST_TAG=${IMAGE_URL}:latest
-export DOCKER_IMAGE_GITHASH_TAG=${IMAGE_URL}:${DIRHASH}
-export DOCKER_IMAGE_BRANCH_HASH_TAG=${IMAGE_URL}:${BRANCH_NAME}-${DIRHASH}
+# echo $(versionist ${DOCKERDIR} --json --docker-registry "${DOCKER_REGISTRY_HOST_ONLY}" --branch-name "${BRANCH_NAME}")
+
+eval "$(versionist ${DOCKERDIR} --bash-export --docker-registry "${DOCKER_REGISTRY_HOST_ONLY}" --branch-name "${BRANCH_NAME}" )"
+
+export OLD_IMAGE_URL=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}
+export OLD_DOCKER_IMAGE=${IMAGE_URL}:${SEMANTIC_VERSION}
+export OLD_DOCKER_IMAGE_LATEST_TAG=${IMAGE_URL}:latest
+export OLD_DOCKER_IMAGE_GITHASH_TAG=${IMAGE_URL}:${DIRHASH}
+export OLD_DOCKER_IMAGE_BRANCH_HASH_TAG=${IMAGE_URL}:${BRANCH_NAME}-${DIRHASH}
+
+function compareValues(){
+  V1=${!1}
+  V2=${!2}
+  if [ ! "$V1" = "$V2" ]; then
+    echo "WARNING Backwards compatibility broken on a docker tag ${1} / ${2}. New tag = ${V1}, Was = ${V2}"
+  fi
+}
+
+compareValues 'IMAGE_URL' 'OLD_IMAGE_URL'
+compareValues 'DOCKER_IMAGE' 'OLD_DOCKER_IMAGE'
+compareValues 'DOCKER_IMAGE_LATEST_TAG' 'OLD_DOCKER_IMAGE_LATEST_TAG'
+compareValues 'DOCKER_IMAGE_GITHASH_TAG' 'OLD_DOCKER_IMAGE_GITHASH_TAG'
+compareValues 'DOCKER_IMAGE_BRANCH_HASH_TAG' 'OLD_DOCKER_IMAGE_BRANCH_HASH_TAG'
 
 rm -rf ${DOCKERDIR}/.build
 mkdir -p ${DOCKERDIR}/.build
@@ -248,7 +276,8 @@ done
 LASTFIVECOMMITS=$(git log -5 --pretty=format:" %aD by %an. --- %s %n" -- ${DOCKERDIR} >${DOCKERDIR}/.build/gitlog.log && cat ${DOCKERDIR}/.build/gitlog.log)
 LAST_COMMITS_B64="$(echo "${LASTFIVECOMMITS}" | base64encode)"
 
-pushd .
+pushd . > /dev/null
+
 
 cd ${DOCKERDIR}
 
@@ -256,17 +285,14 @@ set +eao pipefail
 DIFFCHECK=$(git diff --no-ext-diff --quiet --exit-code )
 __GIT_DIRTY_INDEX=$?
 
-
 if [ -z "${FORCE_REBUILD}" ]; then
 
   set +e
-  echo "Check if ${DOCKER_IMAGE_GITHASH_TAG} is already published to docker registry."
+  [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Check if ${DOCKER_IMAGE_GITHASH_TAG} is already published to docker registry."
+
   PULLRESULT=$(docker pull ${DOCKER_IMAGE_GITHASH_TAG} 2>&1)
   if [ "$?" = "0" ]; then
-
-    echo "... is already present in registry."
-
-    if [  "${__SHEPHERD_PUSH_ARG}" = "push"  ]; then
+   if [  "${__SHEPHERD_PUSH_ARG}" = "push"  ]; then
       if [[ ! "${__GIT_DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
         echo "Dirty index, will not push! Git diff follows."
         git diff --no-ext-diff
@@ -275,8 +301,6 @@ if [ -z "${FORCE_REBUILD}" ]; then
       fi
     fi
     exit 0
-  else
-    echo "...image not in registry."
   fi
   set -e
 fi
@@ -284,8 +308,16 @@ fi
 set -eao pipefail
 
 if [ -e "./build.sh" ]; then
-  echo "Custom pre build script detected, sourcing"
+  [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Custom pre build script detected, sourcing"
+  echo ""
+  echo "WARNING: Using build.sh is DEPRECATED, use filename shepherd-prebuild.sh instead."
+  echo ""
   . ./build.sh
+fi
+
+if [ -e "./shepherd-prebuild.sh" ]; then
+  [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Custom pre build script detected, sourcing"
+  . ./shepherd-prebuild.sh
 fi
 
 if [ -z "$GIT_COMMIT" ]; then
@@ -322,7 +354,7 @@ if [[ -d ./deployment ]]; then
 fi
 
 if [[ -d ./.build/deployment/ ]]; then
-  echo "Packaging kubernetes deployment files with ${DOCKER_IMAGE}"
+  [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Packaging kubernetes deployment files with ${DOCKER_IMAGE}"
   set -e
 
   KUBECONFIG_B64=$(cd ./.build && tar -b 1 -zcv ./deployment/ 2>/dev/null | base64encode)
@@ -340,10 +372,9 @@ cat >>./.build/metadata/builddata.json <<_EOF_
 _EOF_
 
 if [ -e ./shepherd.json ]; then
-  echo "Have shepherd.json userdata file"
   cp ./shepherd.json ./.build/metadata/userdata.json
 else
-  echo "NO shepherd.json userdata file, generating displayname"
+  [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "NO shepherd.json userdata file, generating displayname"
   cat >./.build/metadata/userdata.json <<_EOF_
 {  "displayName":"${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}" }
 _EOF_
@@ -358,13 +389,16 @@ INSPECTOUT=$(docker inspect ${DOCKER_IMAGE_GITHASH_TAG} 2>&1)
 INSPECTRESULT=$?
 set -eao pipefail
 if [[ "${INSPECTRESULT}" == "0" && -z "${FORCE_REBUILD}" ]]; then
-  echo "${DOCKER_IMAGE_GITHASH_TAG} is already built, not building again."
+  echo "${DOCKER_IMAGE_GITHASH_TAG} is already built, not building again. Use --force-build to force building of image."
 
+  echo "Ensuring trunk tag and deploy"
+  echo ensure-trunk-tag-and-deploy ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
   ensure-trunk-tag-and-deploy ${DOCKER_IMAGE_GITHASH_TAG} ${DOCKER_IMAGE_BRANCH_HASH_TAG}
+  echo "Exit with code 0"
   exit 0
 
 else
-  echo "Building ${DOCKER_IMAGE_GITHASH_TAG}. Build args ${DOCKER_BUILD_ARGS}"
+  [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Building ${DOCKER_IMAGE_GITHASH_TAG}. Build args ${DOCKER_BUILD_ARGS}"
   docker build -t ${DOCKER_IMAGE_GITHASH_TAG} \
     --build-arg SHEPHERD_METADATA=${SHEPHERD_METADATA} \
     ${DOCKER_BUILD_ARGS} .
@@ -375,7 +409,7 @@ else
   echo "Built & tagged ${DOCKER_IMAGE} / ${DOCKER_IMAGE_BRANCH_HASH_TAG} / ${DOCKER_IMAGE_GITHASH_TAG} / ${DOCKER_IMAGE_LATEST_TAG}"
 
   if [ ! -z "${LAYERCACHE_TAR}" ]; then
-    echo "Saving layer cache tar to ${LAYERCACHE_TAR} "
+    [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Saving layer cache tar to ${LAYERCACHE_TAR} "
     docker save -o ${LAYERCACHE_TAR} ${DOCKER_IMAGE_LATEST_TAG}
   fi
 fi
@@ -387,10 +421,10 @@ if test ${DRYRUN} -eq 1; then
   fi
 elif [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
   if [[ ! "${__GIT_DIRTY_INDEX}" = "0" && -z "${FORCE_PUSH}" ]]; then
-    echo "Dirty index, will not push! Git diff follows."
-		git diff --no-ext-diff
+    echo "Dirty index, will not push without being forced  with FORCE_PUSH"
+		[[ ${__SHEPHERD_VERBOSE} = 1 ]] && git diff --no-ext-diff
   else
-    echo "Clean index or forcing image push"
+    [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Clean index or forcing image push"
 
     docker push ${DOCKER_IMAGE}
     docker push ${DOCKER_IMAGE_LATEST_TAG}
@@ -405,7 +439,7 @@ elif [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
     fi
   fi
 else
-  echo "Not pushing ${DOCKER_IMAGE}"
+  [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Not pushing ${DOCKER_IMAGE}"
 fi
 
 # TODOLATER Return error if docker image produced is not configured with enough information to deploy
@@ -414,4 +448,4 @@ fi
 
 popd >/dev/null
 
-echo "Build exit" $(pwd)
+[[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Build exit" $(pwd)

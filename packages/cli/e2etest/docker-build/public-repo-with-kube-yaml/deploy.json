@@ -1,6 +1,6 @@
 {
   "deploymentKey": "public-repo-with-kube-yaml",
-  "semanticVersion": "NotSet",
+  "semanticVersion": "4.5.5",
   "herdDescription": "Plain Deployer Repo",
   "waitForRollout": false,
   "environments": [

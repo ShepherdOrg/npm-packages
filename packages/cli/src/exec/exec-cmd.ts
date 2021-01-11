@@ -1,20 +1,17 @@
+import { execFile } from "child_process"
 
-import {execFile} from "child_process"
-
-export async function execCmd(command: string, params?: string[], options?:any ){
-
-  return new Promise((resolve, reject)=>{
-
-    try{
+export async function execCmd(command: string, params?: string[], options?: any) {
+  return new Promise((resolve, reject) => {
+    try {
       let child = execFile(command, params, options)
       let stdout = ""
       let stderr = ""
 
-      if(!child.stdout){
-        return reject(new Error('Error opening stdout on child process'))
+      if (!child.stdout) {
+        return reject(new Error("Error opening stdout on child process"))
       }
-      if(!child.stderr){
-        return reject(new Error('Error opening stderr on child process'))
+      if (!child.stderr) {
+        return reject(new Error("Error opening stderr on child process"))
       }
 
       child.stdout.setEncoding("utf8")
@@ -27,19 +24,14 @@ export async function execCmd(command: string, params?: string[], options?:any )
       })
 
       child.stderr.on("data", data => {
-        console.error(data)
         stderr += data + "\n"
       })
 
       child.on("close", code => {
-        resolve({code, stdout, stderr})
+        resolve({ code, stdout, stderr })
       })
-
-    } catch(err){
+    } catch (err) {
       reject(err)
     }
   })
-
-
-
 }

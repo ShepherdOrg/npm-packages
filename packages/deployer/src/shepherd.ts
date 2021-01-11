@@ -6,7 +6,7 @@ import * as fs from "fs"
 import { IStorageBackend } from "@shepherdorg/state-store"
 import { TFileSystemPath } from "./helpers/basic-types"
 import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
-import { createLogger, LOG_CONTEXT_PREFIX_PADDING, TLogContext } from "./logging/logger"
+import { createLogger, LOG_CONTEXT_PREFIX_PADDING } from "./logging/logger"
 import { createLoaderContext } from "./herd-loading/createLoaderContext"
 import { renderPlanExecutionError } from "./deployment-plan/renderPlanExecutionError"
 import { IDeploymentOrchestration } from "./deployment-orchestration/deployment-orchestration"
@@ -88,7 +88,7 @@ function hasArg(param: string) {
   return process.argv.includes(param)
 }
 
-if (hasArg("--help")) {1
+if (hasArg("--help")) {
   printUsage()
   process.exit(0)
 }
@@ -170,12 +170,7 @@ function main(){
 
   let outputDirectory: TFileSystemPath | undefined
 
-  if (process.argv.indexOf("--help") > 0) {
-    printUsage()
-    process.exit(0)
-  }
-
-  if (process.argv.indexOf("--outputDir") > 0) {
+  if (hasArg("--outputDir") ) {
     outputDirectory = process.argv[process.argv.indexOf("--outputDir") + 1]
     logger.info("Writing deployment documents to " + outputDirectory)
 
@@ -190,7 +185,6 @@ function main(){
   }
 
   let stateStoreBackend: IStorageBackend
-
 
   let uiDataPusher: IPushToShepherdUI
 

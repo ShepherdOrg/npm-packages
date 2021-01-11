@@ -1,10 +1,13 @@
 {
   "name": "@shepherdorg/versionist",
-  "version": "4.3.2",
+  "version": "0.0.1",
   "description": "Creates or prefers version for shepherd docker building",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "engines": {
+  "bin": {
+    "versionist": "dist/versionist.js"
+  },
+    "engines": {
     "node": ">=8"
   },
   "dependencies": {
@@ -17,8 +20,8 @@
     "chai": "^4.2.0",
     "mocha": "^6.2.1",
     "nyc": "^15.0.0",
-    "ts-node": "^8.4.1",
-    "typescript": "^3.9.3"
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.3"
   },
   "scripts": {
     "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
@@ -27,7 +30,7 @@
     "integratedtest": "yarn build && yarn build-test-images && mocha --exit --recursive 'dist/integratedtest/**/*.integratedtest.js'",
     "compile-in-background": "tsc -w > /dev/null &",
     "test": "yarn specs",
-    "build": "tsc",
+    "build": "tsc && chmod +x dist/versionist.js",
     "prepublishOnly": "yarn build && yarn test"
   },
   "nyc": {

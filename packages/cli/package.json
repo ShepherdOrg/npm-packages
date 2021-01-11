@@ -39,7 +39,7 @@
     "@shepherdorg/deployer": "^5.0.9",
     "@shepherdorg/docker-image-metadata-loader": "^5.0.9",
     "@shepherdorg/metadata": "^5.0.1",
-    "@shepherdorg/nano-inject": "^5.0.0",
+    "@shepherdorg/versionist": "^0.0.1",
     "js-yaml": "^3.13.1",
     "shell-exec": "^1.0.2",
     "simple-git": "^1.126.0"
