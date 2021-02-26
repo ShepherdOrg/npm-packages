@@ -86,6 +86,20 @@ describe("full directory version info for versionist", function() {
       expect(dirVersion.txtVersion).to.equal("0.1")
     })
   })
+
+  describe("with dockerOrganisation as parameter", function() {
+    let dirVersion: TDirVersion
+
+    before(async () => {
+      dirVersion = await versionInfo(path.join(__dirname, "testdata", "not-annotated"), {
+        dockerOrganization: "fakeOrgOne",
+      })
+    })
+
+    it("should use provided organisation", async () => {
+      expect(dirVersion.dockerRegistryOrganization).to.equal("fakeOrgOne")
+    })
+  })
 })
 
 describe("output as bash exports", function() {
@@ -152,9 +166,26 @@ describe("output as bash exports", function() {
     })
   })
 
-  describe("", function() {})
+  describe("with docker organisation from parameter", function() {
+    let bashExports: string
+    before(() => {
+      bashExports = asBashExports({
+        ...dirVersion,
+        dockerRegistryOrganization: "someOrg",
+        dockerRegistry: "private.reg",
+      })
+    })
 
-  describe("with docker organisation", function() {})
+    it("should include registry organisation", () => {
+      expect(bashExports).to.equal(
+        "export IMAGE_URL=private.reg/someOrg/plain-deployer-image\n" +
+          "export DOCKER_IMAGE=private.reg/someOrg/plain-deployer-image:0.1\n" +
+          "export DOCKER_IMAGE_LATEST_TAG=private.reg/someOrg/plain-deployer-image:latest\n" +
+          "export DOCKER_IMAGE_GITHASH_TAG=private.reg/someOrg/plain-deployer-image:c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n" +
+          "export DOCKER_IMAGE_BRANCH_HASH_TAG=private.reg/someOrg/plain-deployer-image:unittest-c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n"
+      )
+    })
+  })
 
   describe("bug", function() {
     let dirInfo: TDirVersion = {

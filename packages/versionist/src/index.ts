@@ -113,7 +113,10 @@ async function getShepherdJsonDockerRepoName(dirname: string) {
   })
 }
 
-export async function versionInfo(dirname: string, options?: { dockerRegistry: string; branchName: string }) {
+export async function versionInfo(
+  dirname: string,
+  options?: { dockerRegistry?: string; branchName?: string; dockerOrganization?: string }
+) {
   let dirHash = await gitDirHash(dirname)
   let packageJsonInfo = await getPackageJsonInfo(dirname)
 
@@ -127,7 +130,7 @@ export async function versionInfo(dirname: string, options?: { dockerRegistry: s
     packageJsonVersion: packageJsonInfo?.packageJsonVersion,
     txtVersion: versionTxt,
     dockerRepositoryName: shepherdJsonInfo?.dockerRepository,
-    dockerRegistryOrganization: shepherdJsonInfo?.dockerOrganization,
+    dockerRegistryOrganization: shepherdJsonInfo?.dockerOrganization || options?.dockerOrganization,
     dockerRegistry: options?.dockerRegistry,
     branchName: options?.branchName,
   }

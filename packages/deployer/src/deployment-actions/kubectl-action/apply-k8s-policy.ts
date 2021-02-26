@@ -26,7 +26,7 @@ function readPoliciesFromEnv() {
   }
 }
 
-function applyServicePolicies(serviceDoc:TK8sPartialDescriptor, logger:ILog) {
+function applyServicePolicies(serviceDoc: TK8sPartialDescriptor, logger: ILog) {
   let modified = false
   function applyPublicServicePolicy() {
     if (
@@ -55,7 +55,7 @@ function applyServicePolicies(serviceDoc:TK8sPartialDescriptor, logger:ILog) {
   return modified
 }
 
-function applyMaxCpuRequestToContainer(containerSpec:TK8sPartialDescriptor, logger:ILog) {
+function applyMaxCpuRequestToContainer(containerSpec: TK8sPartialDescriptor, logger: ILog) {
   if (containerSpec.resources && containerSpec.resources.requests && containerSpec.resources.requests.cpu) {
     logger.info(
       `Changing CPU request ${containerSpec.name} from ${containerSpec.resources.requests.cpu} to ${policies.clusterPolicyMaxCpuRequest}`
@@ -66,7 +66,7 @@ function applyMaxCpuRequestToContainer(containerSpec:TK8sPartialDescriptor, logg
   return false
 }
 
-function applyDeploymentPolicies(deploymentDoc:TK8sPartialDescriptor, logger:ILog) {
+function applyDeploymentPolicies(deploymentDoc: TK8sPartialDescriptor, logger: ILog) {
   let modified = false
 
   function applyReplicasPolicy() {
@@ -98,7 +98,7 @@ function applyDeploymentPolicies(deploymentDoc:TK8sPartialDescriptor, logger:ILo
   return modified
 }
 
-function applyHPAPolicies(deploymentDoc:TK8sPartialDescriptor, logger:ILog) {
+function applyHPAPolicies(deploymentDoc: TK8sPartialDescriptor, logger: ILog) {
   let modified = false
   function applyReplicasPolicy() {
     if (policies.maxReplicasPolicy !== 0) {
@@ -133,7 +133,7 @@ function applyHPAPolicies(deploymentDoc:TK8sPartialDescriptor, logger:ILog) {
   return modified
 }
 
-function applyPolicies(parsedDoc:TK8sPartialDescriptor, logger: ILog) {
+function applyPolicies(parsedDoc: TK8sPartialDescriptor, logger: ILog) {
   readPoliciesFromEnv()
   let modified = false
   if (parsedDoc.kind === "Service") {
@@ -148,7 +148,7 @@ function applyPolicies(parsedDoc:TK8sPartialDescriptor, logger: ILog) {
   return modified
 }
 
-function applyPoliciesToDoc(rawDoc:string, logger:ILog) {
+function applyPoliciesToDoc(rawDoc: string, logger: ILog) {
   readPoliciesFromEnv()
   try {
     let files = rawDoc.split("\n---\n")
@@ -157,7 +157,7 @@ function applyPoliciesToDoc(rawDoc:string, logger:ILog) {
     let outfiles = ""
     for (let filec of files) {
       if (filec && filec.trim()) {
-        let parsedDoc = yaml.safeLoad(filec)
+        let parsedDoc = yaml.safeLoad(filec) as TK8sPartialDescriptor
         modified = modified || applyPolicies(parsedDoc, logger)
         let yml = yaml.safeDump(parsedDoc)
         if (outfiles.length > 0) {

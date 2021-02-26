@@ -98,7 +98,6 @@ function printVersions() {
   console.info(`metadata v${require("@shepherdorg/metadata/package").version}`)
 }
 
-
 function loginToRegistryWithPrompt() {
   const prompt = require("prompt")
 
@@ -118,14 +117,18 @@ function loginToRegistryWithPrompt() {
 
   prompt.start()
 
-  prompt.get(properties, function(err: Error, result: { username: string, password: string, host: string }) {
+  prompt.get(properties, function(err: Error, result: { username: string; password: string; host: string }) {
     if (err) {
       return onErr(err)
     }
 
-    initRegistryLogin({ homeDir: require("os").homedir() }).registryLogin(result.host, result.username, result.password).then((loginSuccess) => {
-      loginSuccess ? console.info(chalk.green(result.username) + " logged in to " + chalk.green(result.host)) : console.error(chalk.red("Login failed"))
-    })
+    initRegistryLogin({ homeDir: require("os").homedir() })
+      .registryLogin(result.host, result.username, result.password)
+      .then((loginSuccess: boolean) => {
+        loginSuccess
+          ? console.info(chalk.green(result.username) + " logged in to " + chalk.green(result.host))
+          : console.error(chalk.red("Login failed"))
+      })
   })
 
   function onErr(err: Error) {
@@ -134,25 +137,23 @@ function loginToRegistryWithPrompt() {
   }
 }
 
-function main(){
-
+function main() {
   if (process.argv.indexOf("--version") > 0) {
     printVersions()
     process.exit(0)
   }
 
-  if(hasArg("--registry-login")){
+  if (hasArg("--registry-login")) {
     return loginToRegistryWithPrompt()
   }
 
-// @ts-ignore
+  // @ts-ignore
   global._ = require("lodash")
   global.Promise = require("bluebird")
 
-
   flatMapPolyfill()
 
-  let defaultLogContext = {color: chalk.gray, prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, '>')}
+  let defaultLogContext = { color: chalk.gray, prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, ">") }
 
   const logger = createLogger(console, { maxWidth: process.stdout.columns, defaultContext: defaultLogContext })
 
@@ -164,13 +165,14 @@ function main(){
   let dryRun = process.argv.indexOf("--dryrun") > 0
   let pushToUi = process.argv.indexOf("--push-to-ui") > 0 || Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)
 
-  let waitForRollout = process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process.argv.indexOf("--wait-for-rollout") > 0
+  let waitForRollout =
+    process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process.argv.indexOf("--wait-for-rollout") > 0
 
   const exportDocuments = process.argv.indexOf("--export") > 0
 
   let outputDirectory: TFileSystemPath | undefined
 
-  if (hasArg("--outputDir") ) {
+  if (hasArg("--outputDir")) {
     outputDirectory = process.argv[process.argv.indexOf("--outputDir") + 1]
     logger.info("Writing deployment documents to " + outputDirectory)
 
@@ -188,12 +190,12 @@ function main(){
 
   let uiDataPusher: IPushToShepherdUI
 
-  if(dryRun){
+  if (dryRun) {
     logger.info(`NOTE: Dryrun does not take deployment state into account and assumes everything needs to be deployed.`)
     stateStoreBackend = InMemoryStore()
   } else {
     if (process.env.SHEPHERD_PG_HOST) {
-      logger.info(`Using postgres state store on ${process.env.SHEPHERD_PG_HOST}` )
+      logger.info(`Using postgres state store on ${process.env.SHEPHERD_PG_HOST}`)
       const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
       const PostgresStore = require("@shepherdorg/postgres-backend").PostgresStore
       stateStoreBackend = PostgresStore(pgConfig)
@@ -212,7 +214,6 @@ function main(){
     }
   }
 
-
   const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
   const exec = require("@shepherdorg/exec")
   const {
@@ -230,7 +231,7 @@ function main(){
   let herdFilePath = process.argv[2]
   let environment = process.argv[3]
 
-  if(!environment){
+  if (!environment) {
     logger.error("Environment is a mandatory parameter")
     printUsage()
     process.exit(255)
@@ -255,8 +256,8 @@ function main(){
         featureDeploymentConfig: upstreamDeploymentConfig,
         exec: exec,
         uiPusher: uiDataPusher,
-        environment: environment
-      } )
+        environment: environment,
+      })
 
       logger.info("Calculating deployment of herd from file " + herdFilePath + " for environment " + environment)
 
@@ -277,10 +278,9 @@ function main(){
                 terminateProcess(255)
               })
           } else {
-
             // TODOLATER Rollback on kube config
 
-            let dryRunString = `${dryRun ? ' dryrun' : ''}`
+            let dryRunString = `${dryRun ? " dryrun" : ""}`
 
             logger.info(`Executing deployment plan${dryRunString}... `)
             plan
@@ -289,14 +289,14 @@ function main(){
                 dryRunOutputDir: outputDirectory,
                 pushToUi: pushToUi,
                 waitForRollout: waitForRollout,
-                logContext: defaultLogContext
+                logContext: defaultLogContext,
               })
-              .then(function(planResults:IDeploymentPlanExecutionResult[]) {
+              .then(function(planResults: IDeploymentPlanExecutionResult[]) {
                 // Exceptions from plan execution are logged immediately. Here we render only a summary of deployment results.
-                const failedPlans = planResults.filter((planExecutionResult)=>{
+                const failedPlans = planResults.filter(planExecutionResult => {
                   return planExecutionResult.actionExecutionError !== undefined
                 })
-                if(failedPlans.length > 0){
+                if (failedPlans.length > 0) {
                   renderPlanFailureSummary(logger, failedPlans)
                   return terminateProcess(failedPlans.length)
                 }
@@ -314,7 +314,7 @@ function main(){
         .catch(function(loadError) {
           logger.debug(`Plan load error, with stack`, loadError)
           logger.error(`Plan load error. ${loadError.message}`)
-          if(loadError.context){
+          if (loadError.context) {
             logger.error(` ${JSON.stringify(loadError.context)}`)
           }
           stateStoreBackend.disconnect()

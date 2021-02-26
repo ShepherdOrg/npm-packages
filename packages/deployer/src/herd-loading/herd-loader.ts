@@ -70,22 +70,21 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
 
   async function loadHerd(fileName: TFileSystemPath): Promise<IDeploymentOrchestration> {
     if (fs.existsSync(fileName)) {
-
-      console.log(`DEBUG Loading herd from fileName ${fileName}`)
-
       let deploymentOrchestration = injected.deploymentOrchestration
 
       let herd: THerdFileStructure
-      if(path.basename(fileName) === 'shepherd.json'){
-        console.log(`WARNING: Single-deployment deployment is work in progress. Need to finish versionist package for this to work.`)
+      if (path.basename(fileName) === "shepherd.json") {
+        console.log(
+          `WARNING: Single-deployment deployment is work in progress. Need to finish versionist package for this to work.`
+        )
         let localImageDef: TDockerImageHerdDeclarations = {
-          localImage:{
+          localImage: {
             image: "string",
             imagetag: "string",
-          }
+          },
         }
         herd = {
-          images:localImageDef
+          images: localImageDef,
         }
       } else if (featureDeploymentConfig.isUpstreamTriggeredDeployment()) {
         herd = featureDeploymentConfig.asHerd()
@@ -109,11 +108,15 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
           }
           if (loaders[herdDeclarationType]) {
             let loadHerdDeclarations: FHerdDeclarationLoader = loaders[herdDeclarationType] // folders, infrastructure, or images
-            return loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath).then((plans: Array<IDeploymentPlan>) => {
-              return Promise.all(plans.map(deploymentOrchestration.addDeploymentPlan))
-            })
+            return loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath).then(
+              (plans: Array<IDeploymentPlan>) => {
+                return Promise.all(plans.map(deploymentOrchestration.addDeploymentPlan))
+              }
+            )
           } else {
-            throw new Error("No loader registered for type " + chalk.red(herdDeclarationType) + JSON.stringify(herdDeclaration))
+            throw new Error(
+              "No loader registered for type " + chalk.red(herdDeclarationType) + JSON.stringify(herdDeclaration)
+            )
           }
         })
       )

@@ -24,7 +24,6 @@ describe("running shepherd", function() {
 
   this.timeout(40000)
 
-
   beforeEach(function() {
     if (!fs.existsSync("./.build/.testdata")) {
       fs.mkdirSync("./.build/.testdata")
@@ -65,7 +64,6 @@ describe("running shepherd", function() {
   })
 
   describe("adding to herd", function() {
-
     let tempHerdFilePath = path.resolve("./.build/herd-for-editing.yaml")
 
     beforeEach(() => {
@@ -76,8 +74,7 @@ describe("running shepherd", function() {
       fs.copyFileSync("./src/herd-loading/testdata/herd-editing/herd.yaml", tempHerdFilePath)
     })
 
-
-    it("should add deployment to herd", (done) => {
+    it("should add deployment to herd", done => {
       script
         .execute(shepherdTestHarness, ["--dryrun", tempHerdFilePath], {
           env: _.extend({}, process.env, {
@@ -103,7 +100,6 @@ describe("running shepherd", function() {
   })
 
   describe("use of state storage", function() {
-
     const EXPECTED_STATE_STORE_KEYS = [
       "integratedtestenv-Service_image2",
       "integratedtestenv-Service_www-fromdir",
@@ -120,13 +116,11 @@ describe("running shepherd", function() {
       "integratedtestenv-Service_www-icelandair-com-test1",
       "integratedtestenv-test-migration-image-newformat",
       "integratedtestenv-testenvimage-migrations:0.0.0",
-      "integratedtestenv-testInfrastructure"]
+      "integratedtestenv-testInfrastructure",
+    ]
 
     const firstRoundFolder = path.join(process.cwd(), "./.build/kubeapply")
-    const secondRoundFolder = path.join(
-      process.cwd(),
-      "./.build/kubeapply-secondround",
-    )
+    const secondRoundFolder = path.join(process.cwd(), "./.build/kubeapply-secondround")
     let pgBackend: IPostgresStorageBackend
     let firstRun: TScriptTestExecution
     let secondRun: TScriptTestExecution
@@ -147,7 +141,8 @@ describe("running shepherd", function() {
         throw new Error("Error connecting to postgres! Cause: " + err.message)
       }
       pgBackend
-        .connect().catch(postgresConnectionError)
+        .connect()
+        .catch(postgresConnectionError)
         .then(() => {
           pgBackend.resetAllDeploymentStates().catch((resetError: Error) => {
             console.error(`RESET ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`, resetError)
@@ -176,35 +171,33 @@ describe("running shepherd", function() {
                   done()
                 })
             })
-        }).catch((setupError: Error) => {
-        console.error(`Error setting up for test!`, setupError)
-      })
-
-
+        })
+        .catch((setupError: Error) => {
+          console.error(`Error setting up for test!`, setupError)
+        })
     })
-
 
     it("should deploy once in two runs", function() {
-      firstRun.output(firstRoundFolder)
-        .shouldEqual(process.cwd() + "/src/integratedtest/expected/k8s-deployments").checkExpectations()
-      secondRun.output(secondRoundFolder)
-        .shouldBeEmptyDir().checkExpectations()
+      firstRun
+        .output(firstRoundFolder)
+        .shouldEqual(process.cwd() + "/src/integratedtest/expected/k8s-deployments")
+        .checkExpectations()
+      secondRun
+        .output(secondRoundFolder)
+        .shouldBeEmptyDir()
+        .checkExpectations()
     })
 
-    EXPECTED_STATE_STORE_KEYS.forEach((expectedKey) => {
+    EXPECTED_STATE_STORE_KEYS.forEach(expectedKey => {
       it(`should store ${expectedKey} in backend`, () => {
-        return pgBackend.get(expectedKey).then((resultingState) => {
+        return pgBackend.get(expectedKey).then(resultingState => {
           expect(resultingState.value).not.to.equal(undefined)
-
         })
-
       })
     })
-
   })
 
   describe("postDeployTest support", function() {
-
     beforeEach(() => {
       const firstRoundFolder = path.join(process.cwd(), "./.build/kubeapply")
       ensureCleanOutputFolder(firstRoundFolder)
@@ -227,24 +220,31 @@ describe("running shepherd", function() {
           debug: false, // debug:false suppresses stdout of process
         })
         .expectExitCode(1)
-        .stdout().shouldContain("Executing docker command pretest")
-        .stdout().shouldContain("Post test exit with code 1")
-        .stdout().shouldContain("Executing docker command deploy")
-        .stdout().shouldContain("Yessir, deploying now")
-        .stdout().shouldContain("Executing docker command posttest")
-        .stdout().shouldContain("Test run failed, rolling back to last good version.")
-        .stdout().shouldContain("Rollback complete. Original error follows.")
-        .stdout().shouldContain("Execution of 1 deployment plan(s) resulted in failure")
-        .stdout().shouldNotContain("not found")
+        .stdout()
+        .shouldContain("Executing docker command pretest")
+        .stdout()
+        .shouldContain("Post test exit with code 1")
+        .stdout()
+        .shouldContain("Executing docker command deploy")
+        .stdout()
+        .shouldContain("Yessir, deploying now")
+        .stdout()
+        .shouldContain("Executing docker command posttest")
+        .stdout()
+        .shouldContain("Test run failed, rolling back to last good version.")
+        .stdout()
+        .shouldContain("Rollback complete. Original error follows.")
+        .stdout()
+        .shouldContain("Execution of 1 deployment plan(s) resulted in failure")
+        .stdout()
+        .shouldNotContain("not found")
         .done(function() {
           done()
         })
     })
   })
 
-
-  xit("should execute infrastructure deployers first to completion", () => {
-  })
+  xit("should execute infrastructure deployers first to completion", () => {})
 
   describe("with state storage", function() {
     beforeEach(function() {
@@ -259,7 +259,8 @@ describe("running shepherd", function() {
 
       return pgBackend
         .connect()
-        .then(() => pgBackend.resetAllDeploymentStates()).catch((err: Error) => {
+        .then(() => pgBackend.resetAllDeploymentStates())
+        .catch((err: Error) => {
           throw new Error("Error connecting to postgres! Cause: " + err.message)
         })
     })
@@ -267,10 +268,13 @@ describe("running shepherd", function() {
     it("should modify branch deployment", function(done) {
       script
         .execute(shepherdTestHarness, ["--dryrun"], {
-          env: _.extend({
-            INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
-            SERVICE_HOST_NAME: "svc.host.somewhere",
-          }, process.env),
+          env: _.extend(
+            {
+              INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
+              SERVICE_HOST_NAME: "svc.host.somewhere",
+            },
+            process.env
+          ),
           debug: false, // debug:false suppresses stdout of process
         })
         .done(function() {
@@ -303,8 +307,7 @@ describe("running shepherd", function() {
     })
 
     it("should export deployment documents directly", function(done) {
-      let expectedOutputFileOrDir =
-        process.cwd() + "/src/integratedtest/expected/exported"
+      let expectedOutputFileOrDir = process.cwd() + "/src/integratedtest/expected/exported"
       script
         .execute(
           "./dist/shepherd.js",
@@ -316,12 +319,16 @@ describe("running shepherd", function() {
             ".build/testexport",
           ],
           {
-            env: _.extend({
-              GLOBAL_MIGRATION_ENV_VARIABLE_ONE: "justAValue",
-              INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
-            }, testEnv, process.env),
+            env: _.extend(
+              {
+                GLOBAL_MIGRATION_ENV_VARIABLE_ONE: "justAValue",
+                INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
+              },
+              testEnv,
+              process.env
+            ),
             debug: false, // debug:false suppresses stdout of process
-          },
+          }
         )
         .output(".build/testexport")
         .shouldEqual(expectedOutputFileOrDir)

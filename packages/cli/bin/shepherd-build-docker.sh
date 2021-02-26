@@ -20,6 +20,19 @@ function installationDir() {
   echo $RESULT
 }
 
+function outputVersion(){
+  echo Script located in "${THISDIR}"
+  PACKAGE_VERSION=$(node -p -e "require(\"${THISDIR}\" + '/../package.json').version")
+  echo "cli v${PACKAGE_VERSION}"
+  set +e
+  thisgitinfo=$(cd ${THISDIR} && git rev-parse --abbrev-ref HEAD 2> /dev/null)
+  set -e
+
+  if [[ ! thisgitinfo = "master" && ! thisgitinfo = "" ]]; then
+    echo "Executing from branch ${thisgitinfo}"
+  fi
+}
+
 function outputUsage() {
   cat <<_EOF_
 Usage (bash):
@@ -30,6 +43,8 @@ Usage (bash):
 Parameters:
     --force-rebuild          Force rebuild image. Same as setting FORCE_REBUILD to non-empty value.
     --verbose                More verbose output about decisions being made during build.
+    --docker-repository      Specify docker organization for image. Alternative to specifying in dockerOrganization field in shepherd.json.
+
 
 Special files that processed if present in the same directory as the target Dockerfile:
     shepherd.json            Assumed to contain metadata about the deployment.
@@ -55,7 +70,7 @@ Environment variable options:
 
 	  SHEPHERD_DEPLOYMENT_QUEUE_FILE:    Deployment queue for monorepo build and deployment support.
 
-The following options are deprecated. Use shepherd.json options to control organization and repository names instead.
+The following options are obsolete and no longer supported. Use shepherd.json options or program parameters to control organization and repository names instead.
 
     IMAGE_NAME:              Specify image name. Defaults to directory name containing the dockerfile if not specified.
                              If specified in shepherd.json (recommended), that will override other options.
@@ -91,11 +106,15 @@ function ensure-trunk-tag-and-deploy() {
     else
       echo "Missing ${TRUNK_BRANCH_NAME} branch tag from $DOCKER_IMAGE_GITHASH_TAG, tagging"
 
-      if test ${DRYRUN} -eq 1; then
-        echo DRYRUN set, not tagging and pushing using "${DOCKER_IMAGE_GITHASH_TAG}" "${DOCKER_IMAGE_BRANCH_HASH_TAG}"
+      if test ${__DRYRUN} -eq 1; then
+        echo __DRYRUN set, not tagging and pushing using "${DOCKER_IMAGE_GITHASH_TAG}" "${DOCKER_IMAGE_BRANCH_HASH_TAG}"
       else
         docker tag "${DOCKER_IMAGE_GITHASH_TAG}" "${DOCKER_IMAGE_BRANCH_HASH_TAG}"
-        docker push "${DOCKER_IMAGE_BRANCH_HASH_TAG}"
+        if [  "${__SHEPHERD_PUSH_ARG}" = "push"  ]; then
+          docker push "${DOCKER_IMAGE_BRANCH_HASH_TAG}"
+        else
+          echo "Missing "${DOCKER_IMAGE_BRANCH_HASH_TAG}" in registry, but push not specified. Tag created, but not pushed."
+        fi
       fi
 
       if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
@@ -117,36 +136,25 @@ if [[ "${1}" == "" ]]; then
   exit 0
 fi
 
-if has_param '--help' "$@"; then
-  outputUsage
-  exit 0
-fi
-
-if has_param '--version' "$@"; then
-  echo "${THISDIR}"
-  PACKAGE_VERSION=$(node -p -e "require(\"${THISDIR}\" + '/../package.json').version")
-  echo "cli v${PACKAGE_VERSION}"
-  exit 0
-fi
-
-if has_param '--dryrun' "$@"; then
-  DRYRUN=1
-else
-  DRYRUN=0
-fi
-
-if has_param '--force-build' "$@"; then
-  FORCE_REBUILD="true"
-fi
-
-if has_param '--verbose' "$@"; then
-  echo "Verbose output ON."
-  __SHEPHERD_VERBOSE=1
-fi
-
-
 DOCKERFILE=$1
-export __SHEPHERD_PUSH_ARG=$2
+
+export __DRYRUN=0
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        push)           export __SHEPHERD_PUSH_ARG=$1;;
+        -dr|--docker-repository) export __DOCKER_REPO="$2"; shift ;;
+        --verbose)      export __SHEPHERD_VERBOSE=1;;
+        --force-build)  export FORCE_REBUILD="true";;
+        --dryrun)       export __DRYRUN=1;;
+        --help)         outputUsage; exit 0;;
+        --version)      outputVersion; exit 0;;
+    esac
+    shift
+done
+
+[[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Verbose output ON."
+
 
 export DOCKERDIR=$(dirname $(echo "$(  cd "$(dirname "${DOCKERFILE}")"
   pwd -P
@@ -229,8 +237,8 @@ if [ -z "$BRANCH_NAME" ]; then
 fi
 
 # echo $(versionist ${DOCKERDIR} --json --docker-registry "${DOCKER_REGISTRY_HOST_ONLY}" --branch-name "${BRANCH_NAME}")
-
-eval "$(versionist ${DOCKERDIR} --bash-export --docker-registry "${DOCKER_REGISTRY_HOST_ONLY}" --branch-name "${BRANCH_NAME}" )"
+# Versionist emits env variables compatible with this script.
+eval "$(versionist ${DOCKERDIR} --bash-export --docker-registry "${DOCKER_REGISTRY_HOST_ONLY}" --branch-name "${BRANCH_NAME}" --docker-organisation "${__DOCKER_REPO}")"
 
 export OLD_IMAGE_URL=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}
 export OLD_DOCKER_IMAGE=${IMAGE_URL}:${SEMANTIC_VERSION}
@@ -242,7 +250,7 @@ function compareValues(){
   V1=${!1}
   V2=${!2}
   if [ ! "$V1" = "$V2" ]; then
-    echo "WARNING Backwards compatibility broken on a docker tag ${1} / ${2}. New tag = ${V1}, Was = ${V2}"
+    echo "WARNING Backwards compatibility broken on a docker tag. New tag ${1} = ${V1}, Was ${V2}"
   fi
 }
 
@@ -303,6 +311,7 @@ if [ -z "${FORCE_REBUILD}" ]; then
     exit 0
   fi
   set -e
+  [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Pull result ${PULLRESULT}."
 fi
 
 set -eao pipefail
@@ -388,6 +397,7 @@ set +eao pipefail
 INSPECTOUT=$(docker inspect ${DOCKER_IMAGE_GITHASH_TAG} 2>&1)
 INSPECTRESULT=$?
 set -eao pipefail
+
 if [[ "${INSPECTRESULT}" == "0" && -z "${FORCE_REBUILD}" ]]; then
   echo "${DOCKER_IMAGE_GITHASH_TAG} is already built, not building again. Use --force-build to force building of image."
 
@@ -414,9 +424,9 @@ else
   fi
 fi
 
-if test ${DRYRUN} -eq 1; then
+if test ${__DRYRUN} -eq 1; then
   if [[ -e ./deploy.json && -e ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ]]; then
-    echo "DRYRUN - Queueing deployment of ${DOCKER_IMAGE_GITHASH_TAG}"
+    echo "__DRYRUN - Queueing deployment of ${DOCKER_IMAGE_GITHASH_TAG}"
     add-to-deployment-queue ${SHEPHERD_DEPLOYMENT_QUEUE_FILE} ./deploy.json "${DOCKER_IMAGE_GITHASH_TAG}" ${BRANCH_NAME}
   fi
 elif [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
@@ -439,13 +449,17 @@ elif [ "${__SHEPHERD_PUSH_ARG}" = "push" ]; then
     fi
   fi
 else
+  echo "Not pushing"
   [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Not pushing ${DOCKER_IMAGE}"
 fi
 
+echo "Popd"
 # TODOLATER Return error if docker image produced is not configured with enough information to deploy
 # Create command shepherd-validate-image
 # TODOLATER Add SHEPHERD_METADATA arg and label to Dockerfile if missing, rather than throwing error
 
 popd >/dev/null
 
-[[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Build exit" $(pwd)
+[[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Shepherd build docker complete" $(pwd)
+
+exit 0

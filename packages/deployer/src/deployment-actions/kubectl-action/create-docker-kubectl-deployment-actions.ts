@@ -15,7 +15,7 @@ import Bluebird = require("bluebird")
 
 export type ICreateDockerImageKubectlDeploymentActions = {
   createKubectlDeploymentActions: (
-    imageInformation: TImageInformation,
+    imageInformation: TImageInformation
   ) => Promise<Array<IDockerImageKubectlDeploymentAction>>
 }
 
@@ -25,14 +25,16 @@ export type TActionFactoryDependencies = {
   logger: ILog
 }
 
-export function createDockerImageKubectlDeploymentActionsFactory(injected: TActionFactoryDependencies): ICreateDockerImageKubectlDeploymentActions {
+export function createDockerImageKubectlDeploymentActionsFactory(
+  injected: TActionFactoryDependencies
+): ICreateDockerImageKubectlDeploymentActions {
   async function createImageBasedFileDeploymentAction(
     deploymentFileContent: TarFile,
     imageInformation: TImageInformation,
     fileName: TFileSystemPath,
     branchModificationParams: TBranchModificationParams,
     env: string,
-    deploymentActionFactory: ICreateKubectlDeploymentAction,
+    deploymentActionFactory: ICreateKubectlDeploymentAction
   ): Promise<IDockerImageKubectlDeploymentAction> {
     let origin =
       imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag + ":tar:" + fileName
@@ -44,13 +46,13 @@ export function createDockerImageKubectlDeploymentActionsFactory(injected: TActi
       deploymentFileContent.content,
       operation,
       fileName,
-      branchModificationParams,
+      branchModificationParams
     )
 
     delete process.env.TPL_DOCKER_IMAGE
 
     // TODOLATER: Consider creating a deployment action for each part of multipart deployment document
-    //   Investigate whether kubernetes does clean up removed deployment sections from document.
+    //   Investigate whether kubernetes does clean up removed deployment sections from document
     //   Only do this if kubernetes in latest incarnations does not clean up.
     return Object.assign(documentDeploymentAction, {
       env: env,
@@ -63,7 +65,7 @@ export function createDockerImageKubectlDeploymentActionsFactory(injected: TActi
   }
 
   function createKubectlDeploymentActions(
-    imageInformation: TImageInformation,
+    imageInformation: TImageInformation
   ): Promise<Array<IDockerImageKubectlDeploymentAction>> {
     const shepherdMetadata: any = imageInformation.shepherdMetadata
     const herdKey: string = imageInformation.imageDeclaration.key
@@ -92,8 +94,7 @@ export function createDockerImageKubectlDeploymentActionsFactory(injected: TActi
     process.env.BRANCH_NAME_POSTFIX = ""
 
     if (branchDeploymentEnabled) {
-      branchModificationParams.ttlHours =
-        imageInformation.imageDeclaration.timeToLiveHours
+      branchModificationParams.ttlHours = imageInformation.imageDeclaration.timeToLiveHours
 
       // Feature deployment specified in herdfile
       branchModificationParams.branchName =
@@ -111,7 +112,7 @@ export function createDockerImageKubectlDeploymentActionsFactory(injected: TActi
       }
       if (!Boolean(branchModificationParams.ttlHours)) {
         throw new Error(
-          `${imageInformation.imageDeclaration.key}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`,
+          `${imageInformation.imageDeclaration.key}: Time to live must be specified either through FEATURE_TTL_HOURS environment variable or be declared using timeToLiveHours property in herd.yaml`
         )
       }
     }
@@ -133,7 +134,6 @@ export function createDockerImageKubectlDeploymentActionsFactory(injected: TActi
 
         try {
           if (archivedFile.content) {
-
             deploymentActions.push(
               createImageBasedFileDeploymentAction(
                 archivedFile,
@@ -141,8 +141,8 @@ export function createDockerImageKubectlDeploymentActionsFactory(injected: TActi
                 fileName,
                 branchModificationParams,
                 injected.environment,
-                injected.deploymentActionFactory,
-              ),
+                injected.deploymentActionFactory
+              )
             )
           }
         } catch (e) {

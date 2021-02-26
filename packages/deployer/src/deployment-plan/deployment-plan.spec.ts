@@ -25,12 +25,11 @@ import * as chalk from "chalk"
 import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 import { createFakeTimeoutWrapper } from "../test-tools/fake-timer"
 
-
 type FFakeLambda = () => Promise<void>
 
 interface IFakeLambdaFactory {
-  succeedingAction: (atext: string) => FFakeLambda,
-  failingAction: (atext: string) => FFakeLambda,
+  succeedingAction: (atext: string) => FFakeLambda
+  failingAction: (atext: string) => FFakeLambda
   fakeActionCalls: String[]
 }
 
@@ -39,10 +38,12 @@ function fakePromiseFactory(): IFakeLambdaFactory {
 
   function resolvingPromise(actionText: string) {
     let fakeLambda = async () => {
-      let promise = new Promise((resolve) => setTimeout(() => {
-        executedActions.push(actionText)
-        resolve()
-      }, 10))
+      let promise = new Promise(resolve =>
+        setTimeout(() => {
+          executedActions.push(actionText)
+          resolve(undefined)
+        }, 10)
+      )
       return promise as Promise<void>
     }
     return fakeLambda
@@ -50,15 +51,16 @@ function fakePromiseFactory(): IFakeLambdaFactory {
 
   function rejectingPromise(actionText: string) {
     let fakeLambda = async () => {
-      let promise = new Promise((resolve, reject) => setTimeout(() => {
-        executedActions.push(actionText)
-        reject(new Error('Failing big time'))
-      }, 10))
+      let promise = new Promise((resolve, reject) =>
+        setTimeout(() => {
+          executedActions.push(actionText)
+          reject(new Error("Failing big time"))
+        }, 10)
+      )
       return promise as Promise<void>
     }
     return fakeLambda
   }
-
 
   return {
     succeedingAction: resolvingPromise,
@@ -67,7 +69,8 @@ function fakePromiseFactory(): IFakeLambdaFactory {
   }
 }
 
-type IFakeExecutableActions = { getInstance: () => IBasicExecutableAction
+type IFakeExecutableActions = {
+  getInstance: () => IBasicExecutableAction
   stateFul(isStateful: boolean): IFakeExecutableActions
   modified(b: boolean): IFakeExecutableActions
 }
@@ -76,8 +79,9 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
   let deploymentState: TDeploymentState | undefined
   let me: IExecutableAction = {
     getActionDeploymentState(): TDeploymentState | undefined {
-      return deploymentState;
-    }, setActionDeploymentState(newState: TDeploymentState | undefined): void {
+      return deploymentState
+    },
+    setActionDeploymentState(newState: TDeploymentState | undefined): void {
       deploymentState = newState
     },
     canRollbackExecution(): boolean {
@@ -92,14 +96,18 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
     },
     planString() {
       return "fake action"
-
-    }
+    },
   }
 
-  function newFakeState() : TDeploymentState {
+  function newFakeState(): TDeploymentState {
     return {
-      env: "unittest", key: "", modified: false, new: false, operation: "fake", signature: "nosignature", version: "fakeVersion"
-
+      env: "unittest",
+      key: "",
+      modified: false,
+      new: false,
+      operation: "fake",
+      signature: "nosignature",
+      version: "fakeVersion",
     }
   }
 
@@ -107,16 +115,16 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
     modified(b: boolean): IFakeExecutableActions {
       let newState = me.getActionDeploymentState() || newFakeState()
       newState.modified = b
-      me.setActionDeploymentState( newState)
-      return factory;
+      me.setActionDeploymentState(newState)
+      return factory
     },
     stateFul(isStateful: boolean): IFakeExecutableActions {
       me.isStateful = isStateful
-      return factory;
+      return factory
     },
-    getInstance:()=>{
+    getInstance: () => {
       return me
-    }
+    },
   }
   return factory
 }
@@ -150,13 +158,25 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   const fakeStateStore = createFakeStateStore()
   fakeStateStore.nextState = { new: false, modified: true }
 
-  let dockerActionFactory = createDockerActionFactory({ logger:fakeLogger, exec: fakeExec, stateStore: fakeStateStore})
-  let deployerActionFactory = createDockerDeployerActionFactory({executionActionFactory: dockerActionFactory, logger: fakeLogger, environment:"deployment-plan-specs"})
-  let kubectlDeploymentActionsFactory = createKubectlDeploymentActionsFactory({ logger:fakeLogger, exec: fakeExec, stateStore: fakeStateStore})
+  let dockerActionFactory = createDockerActionFactory({
+    logger: fakeLogger,
+    exec: fakeExec,
+    stateStore: fakeStateStore,
+  })
+  let deployerActionFactory = createDockerDeployerActionFactory({
+    executionActionFactory: dockerActionFactory,
+    logger: fakeLogger,
+    environment: "deployment-plan-specs",
+  })
+  let kubectlDeploymentActionsFactory = createKubectlDeploymentActionsFactory({
+    logger: fakeLogger,
+    exec: fakeExec,
+    stateStore: fakeStateStore,
+  })
   let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
     logger: fakeLogger,
     deploymentActionFactory: kubectlDeploymentActionsFactory,
-    environment:"fake"
+    environment: "fake",
   })
   let rolloutWaitActionFactory = createRolloutWaitActionFactory({
     exec: fakeExec,
@@ -165,13 +185,21 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   })
   let uiDataPusher = createFakeUIPusher()
 
-  let deploymentTestActionFactory = createDeploymentTestActionFactory({logger: fakeLogger, dockerActionFactory: dockerActionFactory})
+  let deploymentTestActionFactory = createDeploymentTestActionFactory({
+    logger: fakeLogger,
+    dockerActionFactory: dockerActionFactory,
+  })
 
   const fakeTimeoutWrapper = createFakeTimeoutWrapper()
 
   return {
-    deploymentEnvironment:"specEnv",
-    ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec:fakeExec, logger: fakeLogger, systemTime: () => new Date(), timeout: fakeTimeoutWrapper.fakeTimeout}),
+    deploymentEnvironment: "specEnv",
+    ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({
+      exec: fakeExec,
+      logger: fakeLogger,
+      systemTime: () => new Date(),
+      timeout: fakeTimeoutWrapper.fakeTimeout,
+    }),
     logger: fakeLogger,
     exec: fakeExec,
     stateStore: fakeStateStore,
@@ -180,7 +208,7 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
     dockerImageKubectlDeploymentActionFactory: dockerImageKubectlDeploymentActionFactory,
     deployerActionFactory: deployerActionFactory,
     deploymentTestActionFactory: deploymentTestActionFactory,
-    logContextColors: createLogContextColors()
+    logContextColors: createLogContextColors(),
   }
 }
 
@@ -207,7 +235,6 @@ describe("Deployment plan", function() {
 
   after(() => clearEnv(testEnv))
 
-
   // describe("plan for image with migration reference", function() {
   //
   //   beforeEach(async ()=>{
@@ -227,9 +254,7 @@ describe("Deployment plan", function() {
   //
   // })
 
-
   describe("Regular actions", () => {
-
     before(async () => {
       flf = fakePromiseFactory()
       depPlan = depPlanner.createDeploymentPlan({ key: "testKeyOne" })
@@ -244,7 +269,6 @@ describe("Deployment plan", function() {
     })
   })
 
-
   describe("execute", function() {
     before(async () => {
       flf = fakePromiseFactory()
@@ -252,20 +276,24 @@ describe("Deployment plan", function() {
       await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionOne")).getInstance())
       await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionTwo")).getInstance())
       await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionThree")).getInstance())
-      return depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "" , logContext: {}})
+      return depPlan.execute({
+        dryRun: false,
+        waitForRollout: false,
+        pushToUi: false,
+        dryRunOutputDir: "",
+        logContext: {},
+      })
     })
 
     it("should execute all deployment actions in serial", () => {
-      expect(flf.fakeActionCalls).to.eql(["SucceedingActionOne", "SucceedingActionTwo","SucceedingActionThree"])
+      expect(flf.fakeActionCalls).to.eql(["SucceedingActionOne", "SucceedingActionTwo", "SucceedingActionThree"])
     })
-
   })
 
   describe("first action failure should stop subsequent actions", function() {
     let planExecutionResult: IDeploymentPlanExecutionResult
 
     before(async () => {
-
       depPlan = depPlanner.createDeploymentPlan({ key: "testKeyOne" })
       flf = fakePromiseFactory()
 
@@ -273,7 +301,13 @@ describe("Deployment plan", function() {
       await depPlan.addAction(createFakeAction(flf.failingAction("FakeAFailing")).getInstance())
       await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionTwo")).getInstance())
 
-      planExecutionResult = await depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "", logContext: {} })
+      planExecutionResult = await depPlan.execute({
+        dryRun: false,
+        waitForRollout: false,
+        pushToUi: false,
+        dryRunOutputDir: "",
+        logContext: {},
+      })
     })
 
     it("should not execute anything after first failing action", () => {
@@ -281,23 +315,21 @@ describe("Deployment plan", function() {
     })
 
     it("should render error message from failing action in logger", () => {
-      expect((planDependencies.logger as IFakeLogging).log).to.contain('Plan execution error')
-      expect((planDependencies.logger as IFakeLogging).log).to.contain('Failing big time')
+      expect((planDependencies.logger as IFakeLogging).log).to.contain("Plan execution error")
+      expect((planDependencies.logger as IFakeLogging).log).to.contain("Failing big time")
     })
 
     it("should return plan execution result marking it as failed", () => {
-      expect(planExecutionResult.actionExecutionError?.message).to.contain('Failing big time')
+      expect(planExecutionResult.actionExecutionError?.message).to.contain("Failing big time")
     })
 
     it("should print plan with header and one line per action", () => {
       let logger = createFakeLogger()
       depPlan.printPlan(logger)
-      expect(logger.logStatements[0].data[0]).to.contain('Deploying testKeyOne')
+      expect(logger.logStatements[0].data[0]).to.contain("Deploying testKeyOne")
       expect(logger.logStatements.length).to.equal(4)
     })
-
   })
-
 
   describe("plan with no stateful actions", function() {
     let testPlanError: Error
@@ -305,41 +337,54 @@ describe("Deployment plan", function() {
     before(async () => {
       flf = fakePromiseFactory()
       depPlan = depPlanner.createDeploymentPlan({ key: "testKeyOne" })
-      await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionOne")).stateFul(false).modified(true).getInstance())
-      return depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "" , logContext: {}}).catch((planError)=>{
-        testPlanError = planError
-      })
+      await depPlan.addAction(
+        createFakeAction(flf.succeedingAction("SucceedingActionOne"))
+          .stateFul(false)
+          .modified(true)
+          .getInstance()
+      )
+      return depPlan
+        .execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "", logContext: {} })
+        .catch(planError => {
+          testPlanError = planError
+        })
     })
 
-
     it("error message should contain herd key highlighted in red", () => {
-      expect(testPlanError.message).to.contain(`${chalk.red('testKeyOne')}`)
+      expect(testPlanError.message).to.contain(`${chalk.red("testKeyOne")}`)
     })
 
     it("error message should explanation", () => {
       expect(testPlanError.message).to.contain(`has no stateful action!`)
     })
-
   })
 
   describe("plan with no deployment action planned", function() {
-
     before(async () => {
       flf = fakePromiseFactory()
       depPlan = depPlanner.createDeploymentPlan({ key: "testKeyOne" })
-      await depPlan.addAction(createFakeAction(flf.succeedingAction("ThisIsATestAction")).stateFul(false).getInstance())
-      await depPlan.addAction(createFakeAction(flf.succeedingAction("SucceedingActionOne")).stateFul(true).modified(false).getInstance())
-      return depPlan.execute({ dryRun: false, waitForRollout: false, pushToUi: false, dryRunOutputDir: "" , logContext: {}})
+      await depPlan.addAction(
+        createFakeAction(flf.succeedingAction("ThisIsATestAction"))
+          .stateFul(false)
+          .getInstance()
+      )
+      await depPlan.addAction(
+        createFakeAction(flf.succeedingAction("SucceedingActionOne"))
+          .stateFul(true)
+          .modified(false)
+          .getInstance()
+      )
+      return depPlan.execute({
+        dryRun: false,
+        waitForRollout: false,
+        pushToUi: false,
+        dryRunOutputDir: "",
+        logContext: {},
+      })
     })
-
 
     it("should not execute anything", () => {
       expect(flf.fakeActionCalls.length).to.equal(0)
-
     })
-
   })
-
-
-
 })

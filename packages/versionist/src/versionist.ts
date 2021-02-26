@@ -30,19 +30,25 @@ async function main() {
 
   let targetDir = path.resolve(process.argv[2])
 
+  let dockerRegistry = argValue("--docker-registry", 1) || ""
+  let dockerOrganisation = argValue("--docker-organisation", 1) || undefined
+  let branchName = argValue("--branch-name", 1) || ""
+  const dirVersion = await versionInfo(targetDir, {
+    dockerRegistry: dockerRegistry,
+    branchName: branchName,
+    dockerOrganization: dockerOrganisation,
+  })
+
+  if (hasArg("--docker-organisation")) {
+    const bashExports = asBashExports(dirVersion)
+    console.info(bashExports)
+  }
   if (hasArg("--bash-export")) {
-    let dockerRegistry = argValue("--docker-registry", 1) || ""
-    let branchName = argValue("--branch-name", 1) || ""
-    const dirVersion = await versionInfo(targetDir, { dockerRegistry: dockerRegistry, branchName: branchName })
     const bashExports = asBashExports(dirVersion)
     console.info(bashExports)
   }
 
   if (hasArg("--json")) {
-    let dockerRegistry = argValue("--docker-registry", 1) || ""
-    let branchName = argValue("--branch-name", 1) || ""
-    const dirVersion = await versionInfo(targetDir, { dockerRegistry: dockerRegistry, branchName: branchName })
-
     console.info(JSON.stringify(dirVersion))
   }
 }
