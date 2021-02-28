@@ -9,7 +9,7 @@ import { clearEnv, setEnv } from "../deployment-actions/kubectl-action/testdata/
 import { expect } from "chai"
 import { createFakeExec } from "../test-tools/fake-exec"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
-import { IBasicExecutableAction, IExecutableAction, TActionExecutionOptions } from "../deployment-types"
+import { IBasicExecutableAction, IStatefulExecutableAction, TActionExecutionOptions } from "../deployment-types"
 import { emptyArray } from "../helpers/ts-functions"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
@@ -77,7 +77,7 @@ type IFakeExecutableActions = {
 
 function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
   let deploymentState: TDeploymentState | undefined
-  let me: IExecutableAction = {
+  let me: IStatefulExecutableAction = {
     getActionDeploymentState(): TDeploymentState | undefined {
       return deploymentState
     },
@@ -89,7 +89,7 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
     },
     descriptor: "",
     isStateful: true,
-    execute(_deploymentOptions: TActionExecutionOptions): Promise<IExecutableAction> {
+    execute(_deploymentOptions: TActionExecutionOptions): Promise<IStatefulExecutableAction> {
       return fakeLambda().then(() => {
         return me
       })

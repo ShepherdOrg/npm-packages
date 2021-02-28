@@ -11,7 +11,7 @@ import { expandEnv } from "../../template/expandenv"
 import { processLine } from "../../template/base64-env-subst"
 import { expandTemplate } from "@shepherdorg/hbs-template"
 import * as path from "path"
-import { extendedExec, writeFile } from "../../helpers/promisified"
+import { extendedExec, writeFile } from "../../helpers/promisified-exec"
 import { TK8sPartialDescriptor } from "./k8s-document-types"
 import { emptyArray } from "../../helpers/ts-functions"
 import { IExec, TFileSystemPath } from "../../helpers/basic-types"
@@ -19,19 +19,19 @@ import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
 import { ILog } from "../../logging/logger"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
+import { createRolloutUndoActionFactory } from "./rollout-undo-actionfactory"
 
-const chalk = require('chalk');
+const chalk = require("chalk")
 
 const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 
-type IKubectlActionFactoryDependencies = { exec: IExec, logger: ILog, stateStore: IReleaseStateStore }
+type IKubectlActionFactoryDependencies = { exec: IExec; logger: ILog; stateStore: IReleaseStateStore }
 
 export type TDeploymentRollout = {
   namespace: string
   deploymentKind: string
   deploymentName: string
 }
-
 
 function listDeploymentRollouts(descriptorsByKind: TDescriptorsByKind): Array<TDeploymentRollout> {
   return descriptorsByKind["Deployment"].map((deploymentDoc: TK8sPartialDescriptor) => {
@@ -57,21 +57,36 @@ function expandEnvVariables(lines: string[]) {
   return lines.join("\n")
 }
 
-
 export function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: string) {
   return expandTemplate(expandEnvVariables(deploymentFileDescriptorContent.split("\n")))
 }
 
-
 export interface ICreateKubectlDeploymentAction {
-  executeKubectlDeploymentAction: (thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions) => Promise<IKubectlDeployAction>;
-  createKubectlDeployAction: (origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, branchModificationParams?: TBranchModificationParams) => IKubectlDeployAction
+  executeKubectlDeploymentAction: (
+    thisIsMe: IKubectlDeployAction,
+    actionExecutionOptions: TActionExecutionOptions
+  ) => Promise<IKubectlDeployAction>
+  createKubectlDeployAction: (
+    origin: string,
+    deploymentFileDescriptorContent: string,
+    operation: string,
+    fileName: TFileSystemPath,
+    branchModificationParams?: TBranchModificationParams
+  ) => IKubectlDeployAction
 }
 
-export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore }: IKubectlActionFactoryDependencies): ICreateKubectlDeploymentAction {
+export function createKubectlDeploymentActionsFactory({
+  exec,
+  logger,
+  stateStore,
+}: IKubectlActionFactoryDependencies): ICreateKubectlDeploymentAction {
+  /* We might want to inject the rollout undo action factory at some point. Not worth the hassle right now. */
+  let rolloutUndoActionFactory = createRolloutUndoActionFactory({ exec, logger })
 
-  async function executeKubectlDeploymentAction(thisIsMe: IKubectlDeployAction, actionExecutionOptions: TActionExecutionOptions ) {
-
+  async function executeKubectlDeploymentAction(
+    thisIsMe: IKubectlDeployAction,
+    actionExecutionOptions: TActionExecutionOptions
+  ) {
     let deploymentState = thisIsMe.getActionDeploymentState()
     if (!deploymentState) {
       throw newProgrammerOops("Missing state object on deployment action ! " + thisIsMe.origin)
@@ -80,7 +95,7 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
       if (actionExecutionOptions.dryRun && actionExecutionOptions.dryRunOutputDir) {
         const writePath = path.join(
           actionExecutionOptions.dryRunOutputDir,
-          thisIsMe.operation + "-" + thisIsMe.identifier.toLowerCase() + ".yaml",
+          thisIsMe.operation + "-" + thisIsMe.identifier.toLowerCase() + ".yaml"
         )
         logger.info(`Writing deployment file to ${writePath}`, actionExecutionOptions.logContext)
         await writeFile(writePath, thisIsMe.descriptor.trim())
@@ -93,41 +108,39 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
             debug: true,
           })
           logger.info(
-            `kubectl ${thisIsMe.operation} descriptors in ${thisIsMe.origin}/${thisIsMe.identifier}`, actionExecutionOptions.logContext
+            `kubectl ${thisIsMe.operation} descriptors in ${thisIsMe.origin}/${thisIsMe.identifier}`,
+            actionExecutionOptions.logContext
           )
-          logger.info(stdOut as string || "[empty output]", actionExecutionOptions.logContext)
+          logger.info((stdOut as string) || "[empty output]", actionExecutionOptions.logContext)
 
           try {
-            if(thisIsMe.isStateful){
-              if(!deploymentState){
-                throw newProgrammerOops('Attempting to execute a stateful action without a state! ', thisIsMe)
+            if (thisIsMe.isStateful) {
+              if (!deploymentState) {
+                throw newProgrammerOops("Attempting to execute a stateful action without a state! ", thisIsMe)
               }
-              thisIsMe.setActionDeploymentState( await stateStore.saveDeploymentState(deploymentState))
+              thisIsMe.setActionDeploymentState(await stateStore.saveDeploymentState(deploymentState))
             }
 
             return thisIsMe
           } catch (err) {
             throw "Failed to save state after successful kubectl deployment! " +
-            thisIsMe.origin +
-            "/" +
-            thisIsMe.identifier +
-            "\n" +
-            err
+              thisIsMe.origin +
+              "/" +
+              thisIsMe.identifier +
+              "\n" +
+              err
           }
         } catch (error) {
           if (typeof error === "string") throw new Error(error)
           const { errCode, stdOut, message: err } = error
           if (thisIsMe.operation === "delete") {
             logger.info(
-              "kubectl " +
-              thisIsMe.operation +
-              " deployments in " +
-              thisIsMe.origin +
-              "/" +
-              thisIsMe.identifier, actionExecutionOptions.logContext
+              "kubectl " + thisIsMe.operation + " deployments in " + thisIsMe.origin + "/" + thisIsMe.identifier,
+              actionExecutionOptions.logContext
             )
             logger.info(
-              "Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows.", actionExecutionOptions.logContext
+              "Error performing kubectl delete. Continuing anyway and updating deployment state as deleted. kubectl output follows.",
+              actionExecutionOptions.logContext
             )
             if (err) {
               logger.info(err || "[empty error]", actionExecutionOptions.logContext)
@@ -142,14 +155,18 @@ export function createKubectlDeploymentActionsFactory({ exec, logger, stateStore
             try {
               const state = await stateStore.saveDeploymentState(deploymentState)
 
-              thisIsMe.setActionDeploymentState( state )
+              thisIsMe.setActionDeploymentState(state)
               return thisIsMe
             } catch (err) {
-              throw new Error(`Failed to save state after error in deleting deployment! ${chalk.blueBright(`${thisIsMe.origin}/${thisIsMe.identifier}`)}
+              throw new Error(`Failed to save state after error in deleting deployment! ${chalk.blueBright(
+                `${thisIsMe.origin}/${thisIsMe.identifier}`
+              )}
 ${err.message || err}`)
             }
           } else {
-            let message = `Failed to perform ${chalk.blueBright(thisIsMe.operation)} from label for image ${JSON.stringify(thisIsMe, null, 2)}`
+            let message = `Failed to perform ${chalk.blueBright(
+              thisIsMe.operation
+            )} from label for image ${JSON.stringify(thisIsMe, null, 2)}`
             message += "\n" + error.message
             message += "\nCode:" + errCode
             message += "\nStdOut:" + stdOut
@@ -163,10 +180,15 @@ ${err.message || err}`)
     }
   }
 
-  function createKubectlDeployAction(origin: string, deploymentFileDescriptorContent: string, operation: string, fileName: TFileSystemPath, branchModificationParams?: TBranchModificationParams): IKubectlDeployAction {
+  function createKubectlDeployAction(
+    origin: string,
+    deploymentFileDescriptorContent: string,
+    operation: string,
+    fileName: TFileSystemPath,
+    branchModificationParams?: TBranchModificationParams
+  ): IKubectlDeployAction {
     let actionOrigin: string = origin
     try {
-
       let finalDescriptor = deploymentFileDescriptorContent
 
       if (branchModificationParams && branchModificationParams.shouldModify) {
@@ -188,13 +210,13 @@ ${err.message || err}`)
 
       let documentDeploymentAction: IKubectlDeployAction & ICanRollbackActionExecution = {
         getActionDeploymentState(): TDeploymentState | undefined {
-          return deploymentState;
+          return deploymentState
         },
         setActionDeploymentState(newState: TDeploymentState | undefined): void {
           deploymentState = newState
         },
         canRollbackExecution(): boolean {
-          return Boolean(deploymentRollouts.length);
+          return Boolean(deploymentRollouts.length)
         },
         planString() {
           return `kubectl ${operation} ${loadedDescriptor.identifyingString}`
@@ -202,33 +224,17 @@ ${err.message || err}`)
         async execute(deploymentOptions: TActionExecutionOptions) {
           return await executeKubectlDeploymentAction(documentDeploymentAction, deploymentOptions)
         },
-        async rollback(deploymentOptions: TActionExecutionOptions) : Promise<TRollbackResult>{
-          return await Promise.all(deploymentRollouts.map((deploymentRollout)=>{
-            return extendedExec(exec)("kubectl", ["--namespace", deploymentRollout.namespace, "rollout", "undo", `deployment/${deploymentRollout.deploymentName}`], {
-              env: process.env,
-              debug: true,
-            }).then((stdOut) => {
-              logger.info(stdOut as string, deploymentOptions.logContext)
-              logger.info("Rollback complete. Original error follows.", deploymentOptions.logContext)
-              return {
-                stdOut: stdOut
-              }
-            }).catch((execError) => {
-              const { errCode, stdOut, message: err } = execError
-              logger.warn(`Error executing kubectl rollout undo ${deploymentRollout}, code ${errCode}`, deploymentOptions.logContext)
-              logger.warn(err, deploymentOptions.logContext)
-              logger.warn(stdOut, deploymentOptions.logContext)
-              return {
-                code: errCode,
-                stdOut: stdOut,
-                stdErr: err
-              }
+        async rollback(deploymentOptions: TActionExecutionOptions): Promise<TRollbackResult> {
+          /* Rollback actions on rollout wait failure also. */
+          return await Promise.all(
+            deploymentRollouts.map((deploymentRollout: TDeploymentRollout) => {
+              return rolloutUndoActionFactory.createRolloutUndoAction(deploymentRollout).execute(deploymentOptions)
             })
-          })).then((allResults)=>{
-            return {
-
-            }
-
+          ).then(allResults => {
+            let returnCodes = allResults.map(result => {
+              return result.code
+            })
+            return { code: Math.max(...returnCodes) }
           })
         },
         operation: operation,
@@ -239,12 +245,10 @@ ${err.message || err}`)
         fileName,
         identifier: loadedDescriptor.identifyingString,
         descriptorsByKind: loadedDescriptor.descriptorsByKind,
-        type: "kubectl"
+        type: "kubectl",
       }
 
-
       return documentDeploymentAction
-
     } catch (error) {
       let message = `In deployment descriptor, origin: ${chalk.blueBright(actionOrigin)}\n`
       message += error.message
@@ -253,14 +257,8 @@ ${err.message || err}`)
     }
   }
 
-
   return {
     executeKubectlDeploymentAction,
     createKubectlDeployAction,
   }
 }
-
-
-
-
-

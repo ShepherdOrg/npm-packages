@@ -6,7 +6,7 @@ import Bluebird = require("bluebird")
 
 export const writeFile = Bluebird.promisify(fs.writeFile)
 
-export const extendedExec = (cmdExec: any) => (...args: any) =>
+export const extendedExec = (cmdExec: any) => (...args: any): Promise<unknown> =>
   new Promise((resolve: any, reject: any) => {
     return cmdExec.extendedExec(
       ...args,

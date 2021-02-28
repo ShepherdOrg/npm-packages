@@ -1,6 +1,6 @@
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeLogger, IFakeLogging } from "../../../test-tools/fake-logger"
-import { IExecutableAction, TActionExecutionOptions } from "../../../deployment-types"
+import { IStatefulExecutableAction, TActionExecutionOptions } from "../../../deployment-types"
 import { expect } from "chai"
 import { createDeploymentTimeAnnotationActionFactory } from "./create-deployment-time-annotation-action"
 import { defaultTestExecutionOptions } from "../../../test-tools/test-action-execution-options"
@@ -13,8 +13,8 @@ xdescribe("Deployment Time Annotation Action - Integrated - Requires access to a
 
     let fakeStateStore: TFakeStateStore
     let fakeLogger: IFakeLogging
-    let annotationAction: IExecutableAction
-    let execResult: IExecutableAction
+    let annotationAction: IStatefulExecutableAction
+    let execResult: IStatefulExecutableAction
 
     before(async () => {
       fakeStateStore = createFakeStateStore()

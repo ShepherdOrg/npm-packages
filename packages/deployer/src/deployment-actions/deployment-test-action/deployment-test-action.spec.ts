@@ -4,7 +4,7 @@ import {
   IRollbackAction,
   TDeploymentTestActionFactoryDependencies,
 } from "./deployment-test-action"
-import { IExecutableAction, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
+import { IStatefulExecutableAction, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
 import { metadataDsl } from "../../test-tools/metadata-dsl"
 import { expect } from "chai"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
@@ -32,7 +32,7 @@ describe("Deployment test action", function() {
       command: "pretest",
       environment: [{ name: "ENV_ONE", value: "VALUE_ONE" }],
     }
-    let testAction: IExecutableAction
+    let testAction: IStatefulExecutableAction
 
     before(() => {
       const shepherdMetadata: TDeployerMetadata = metadataDsl()
@@ -61,7 +61,7 @@ describe("Deployment test action", function() {
   })
 
   describe("plain test action creation, another image", () => {
-    let testAction: IExecutableAction
+    let testAction: IStatefulExecutableAction
     const testDeclaration: TTestSpecification = {
       command: "pretest",
       dockerImageUrl: "test-specific-image:999",
@@ -86,12 +86,12 @@ describe("Deployment test action", function() {
       command: "pretest this param",
       environment: [{ name: "ENV_ONE", value: "VALUE_ONE" }],
     }
-    let testAction: IExecutableAction
+    let testAction: IStatefulExecutableAction
 
     let fakeStateStore: TFakeStateStore
     let fakeExec: TFakeExec
     let fakeLogger: IFakeLogging
-    let execResult: IExecutableAction
+    let execResult: IStatefulExecutableAction
 
     let deploymentOptions = defaultTestExecutionOptions
 
@@ -159,12 +159,12 @@ describe("Deployment test action", function() {
       command: "postTest",
       environment: [{ name: "ENV_ONE", value: "VALUE_ONE" }],
     }
-    let postDeployTestAction: IExecutableAction
+    let postDeployTestAction: IStatefulExecutableAction
 
     let fakeStateStore: TFakeStateStore
     let fakeExec: TFakeExec
     let fakeLogger: IFakeLogging
-    let execResult: IExecutableAction
+    let execResult: IStatefulExecutableAction
     let testError: Error
 
     let deploymentOptions = defaultTestExecutionOptions
@@ -184,7 +184,7 @@ describe("Deployment test action", function() {
         rollbackCalls: [],
         async rollback(): Promise<TRollbackResult> {
           fakeRollbackAction.rollbackCalls.push(arguments)
-          return {}
+          return { code: 0 }
         },
       }
       postDeployTestAction = createDeploymentTestActionFactory(

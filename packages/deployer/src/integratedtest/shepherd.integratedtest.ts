@@ -233,7 +233,7 @@ describe("running shepherd", function() {
         .stdout()
         .shouldContain("Test run failed, rolling back to last good version.")
         .stdout()
-        .shouldContain("Rollback complete. Original error follows.")
+        .shouldContain("Rollback complete.")
         .stdout()
         .shouldContain("Execution of 1 deployment plan(s) resulted in failure")
         .stdout()

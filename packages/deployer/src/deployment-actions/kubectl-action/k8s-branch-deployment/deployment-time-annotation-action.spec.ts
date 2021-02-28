@@ -1,7 +1,7 @@
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeExec, TFakeExec } from "../../../test-tools/fake-exec"
 import { createFakeLogger, IFakeLogging } from "../../../test-tools/fake-logger"
-import { IExecutableAction } from "../../../deployment-types"
+import { IStatefulExecutableAction } from "../../../deployment-types"
 import { expect } from "chai"
 import { createDeploymentTimeAnnotationActionFactory } from "./create-deployment-time-annotation-action"
 import { createFakeTimeoutWrapper, TFakeTimeoutWrapper } from "../../../test-tools/fake-timer"
@@ -12,7 +12,7 @@ describe("Deployment Time Annotation Action", function() {
     let fakeStateStore: TFakeStateStore
     let fakeExec: TFakeExec
     let fakeLogger: IFakeLogging
-    let annotationAction: IExecutableAction
+    let annotationAction: IStatefulExecutableAction
     let fakeTimeoutWrapper: TFakeTimeoutWrapper
 
     before(() => {
@@ -48,7 +48,7 @@ describe("Deployment Time Annotation Action", function() {
     })
 
     describe("executing annotation action", function() {
-      let execResult: IExecutableAction
+      let execResult: IStatefulExecutableAction
 
       before(async () => {
         fakeLogger.logStatements = []
@@ -69,7 +69,7 @@ describe("Deployment Time Annotation Action", function() {
     })
 
     describe("executing annotation action when resource appears after 4 retries", function() {
-      let execResult: IExecutableAction
+      let execResult: IStatefulExecutableAction
 
       before(async () => {
         let execCount = 0
@@ -97,7 +97,7 @@ describe("Deployment Time Annotation Action", function() {
     })
 
     describe("executing annotation action when resource does not appear", function() {
-      let execResult: IExecutableAction
+      let execResult: IStatefulExecutableAction
 
       before(async () => {
         let execCount = 0

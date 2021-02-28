@@ -1,43 +1,39 @@
 import { emptyArray } from "../helpers/ts-functions"
 import { ILog } from "../logging/logger"
 
-export interface IFakeLogging extends ILog{
-  log: string,
-  logStatements: Array<IFakeLogEntry>,
-  infoLogEntries: Array<IFakeLogEntry>,
+export interface IFakeLogging extends ILog {
+  log: string
+  logStatements: Array<IFakeLogEntry>
+  infoLogEntries: Array<IFakeLogEntry>
 
   printAllStatements(): void
 }
 
 export type IFakeLogEntry = {
-  logLevel:string
+  logLevel: "debug" | "info" | "warn" | "error" | "fatal"
   data: IArguments
 }
 
-export function createFakeLogger() : IFakeLogging {
+export function createFakeLogger(): IFakeLogging {
   let fakeLogger = {
     log: "",
     logStatements: emptyArray<IFakeLogEntry>(),
     infoLogEntries: emptyArray<IFakeLogEntry>(),
     info() {
-      fakeLogger.log +=
-        "info            " + Array.prototype.join.call(arguments, " ") + "\n"
+      fakeLogger.log += "info            " + Array.prototype.join.call(arguments, " ") + "\n"
       fakeLogger.logStatements.push({ logLevel: "info", data: arguments })
       fakeLogger.infoLogEntries.push({ logLevel: "info", data: arguments })
     },
     debug() {
-      fakeLogger.log +=
-        "debug           " + Array.prototype.join.call(arguments, " ") + "\n"
+      fakeLogger.log += "debug           " + Array.prototype.join.call(arguments, " ") + "\n"
       fakeLogger.logStatements.push({ logLevel: "debug", data: arguments })
     },
     warn() {
-      fakeLogger.log +=
-        "warn           " + Array.prototype.join.call(arguments, " ") + "\n"
+      fakeLogger.log += "warn           " + Array.prototype.join.call(arguments, " ") + "\n"
       fakeLogger.logStatements.push({ logLevel: "warn", data: arguments })
     },
     error() {
-      fakeLogger.log +=
-        "error          " + Array.prototype.join.call(arguments, " ") + "\n"
+      fakeLogger.log += "error          " + Array.prototype.join.call(arguments, " ") + "\n"
       fakeLogger.logStatements.push({ logLevel: "error", data: arguments })
     },
     // enterDeployment() {
@@ -51,7 +47,7 @@ export function createFakeLogger() : IFakeLogging {
     // }
     printAllStatements(): void {
       console.info(fakeLogger.log)
-    }
+    },
   }
   return fakeLogger
 }

@@ -1,12 +1,9 @@
-import {
-  IDockerExecutableAction,
-  TActionExecutionOptions,
-} from "../../deployment-types"
+import { IDockerExecutableAction, TActionExecutionOptions } from "../../deployment-types"
 import { expandEnv } from "../../template/expandenv"
 import { expandTemplate } from "@shepherdorg/hbs-template"
 import { TEnvironmentVariables, TImageMetadata } from "@shepherdorg/metadata"
 import * as path from "path"
-import { extendedExec, writeFile } from "../../helpers/promisified"
+import { extendedExec, writeFile } from "../../helpers/promisified-exec"
 import { environmentToEnvSetters } from "./environment-to-env-setters"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
 import { newProgrammerOops } from "oops-error"
@@ -16,38 +13,46 @@ import * as chalk from "chalk"
 import { TDeploymentState } from "@shepherdorg/metadata"
 
 type TDockerActionFactoryDependencies = {
-  exec: any;
-  logger: ILog;
+  exec: any
+  logger: ILog
   stateStore: IReleaseStateStore
 }
 
 export interface ICreateDockerActions {
-  createDockerExecutionAction: (shepherdMetadata: TImageMetadata,
-                                dockerImageUrl: string,
-                                displayName: string,
-                                herdKey: string,
-                                command: string,
-                                environment: TEnvironmentVariables,
-                                environmentVariablesExpansionString?: string) => IDockerExecutableAction;
+  createDockerExecutionAction: (
+    shepherdMetadata: TImageMetadata,
+    dockerImageUrl: string,
+    displayName: string,
+    herdKey: string,
+    command: string,
+    environment: TEnvironmentVariables,
+    environmentVariablesExpansionString?: string
+  ) => IDockerExecutableAction
 
-  executeDockerAction: (executableAction: IDockerExecutableAction, deploymentOptions: TActionExecutionOptions) => Promise<IDockerExecutableAction>
+  executeDockerAction: (
+    executableAction: IDockerExecutableAction,
+    deploymentOptions: TActionExecutionOptions
+  ) => Promise<IDockerExecutableAction>
 }
 
 function removeTagFromImageUrl(dockerImageUrl: string) {
-  const indexOfSlash = Math.max(dockerImageUrl.indexOf('/'), 0)
-  const indexOfColonAfterSlash = dockerImageUrl.slice(indexOfSlash).indexOf(':')
-  if(indexOfColonAfterSlash > 0){
+  const indexOfSlash = Math.max(dockerImageUrl.indexOf("/"), 0)
+  const indexOfColonAfterSlash = dockerImageUrl.slice(indexOfSlash).indexOf(":")
+  if (indexOfColonAfterSlash > 0) {
     let reducedUrl = dockerImageUrl.slice(0, indexOfSlash + indexOfColonAfterSlash)
     return reducedUrl
   }
   return dockerImageUrl
 }
 
-export function createDockerActionFactory({ exec, logger, stateStore }: TDockerActionFactoryDependencies): ICreateDockerActions {
-
+export function createDockerActionFactory({
+  exec,
+  logger,
+  stateStore,
+}: TDockerActionFactoryDependencies): ICreateDockerActions {
   async function executeDockerAction(
     executableAction: IDockerExecutableAction,
-    deploymentOptions: TActionExecutionOptions,
+    deploymentOptions: TActionExecutionOptions
   ) {
     function dockerArguments() {
       return ["run"].concat(executableAction.dockerParameters)
@@ -56,7 +61,7 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
     if (deploymentOptions.dryRun && deploymentOptions.dryRunOutputDir) {
       let writePath = path.join(
         deploymentOptions.dryRunOutputDir,
-        executableAction.imageWithoutTag?.replace(/\//g, "_") + "-deployer.txt",
+        executableAction.imageWithoutTag?.replace(/\//g, "_") + "-deployer.txt"
       )
       let cmdLine = `docker run ${executableAction.forTestParameters?.join(" ")}`
       logger.info(`Writing deployment command to ${writePath}`, deploymentOptions.logContext)
@@ -74,23 +79,25 @@ export function createDockerActionFactory({ exec, logger, stateStore }: TDockerA
         try {
           let deploymentState = executableAction.getActionDeploymentState()
           if (executableAction.isStateful && deploymentState) {
-            executableAction.setActionDeploymentState( await stateStore.saveDeploymentState(deploymentState))
+            executableAction.setActionDeploymentState(await stateStore.saveDeploymentState(deploymentState))
           }
           return executableAction
         } catch (err) {
           // noinspection ExceptionCaughtLocallyJS
           throw new Error(
-            `Failed to save state after successful deployment! ${chalk.blueBright(executableAction.origin)}/${chalk.blueBright(executableAction.identifier)}
-${err.message}`,
+            `Failed to save state after successful deployment! ${chalk.blueBright(
+              executableAction.origin
+            )}/${chalk.blueBright(executableAction.identifier)}
+${err.message}`
           )
         }
       } catch (err) {
         let message = "Failed to run docker " + dockerArguments().join(" ") + ": \n"
         message += "Error message: " + err.message || err
-        if(isOops(err)){
+        if (isOops(err)) {
           throw newProgrammerOops(message, err.context, err)
-        } else{
-          throw newProgrammerOops(message, )
+        } else {
+          throw newProgrammerOops(message)
         }
       }
     }
@@ -103,11 +110,11 @@ ${err.message}`,
     herdKey: string,
     command: string,
     environment: TEnvironmentVariables,
-    environmentVariablesExpansionString?: string,
+    environmentVariablesExpansionString?: string
   ): IDockerExecutableAction {
     let operation = "run"
 
-    let deploymentState:TDeploymentState|undefined = undefined
+    let deploymentState: TDeploymentState | undefined = undefined
 
     const deploymentAction: IDockerExecutableAction = {
       descriptor: "",
@@ -128,14 +135,12 @@ ${err.message}`,
       planString(): string {
         return `docker ${operation} ${dockerImageUrl} ${command}`
       },
-      async execute(
-        actionExecutionOptions: TActionExecutionOptions,
-      ): Promise<IDockerExecutableAction> {
+      async execute(actionExecutionOptions: TActionExecutionOptions): Promise<IDockerExecutableAction> {
         return await executeDockerAction(deploymentAction, actionExecutionOptions)
       },
       canRollbackExecution(): boolean {
         return false
-      }
+      },
     }
 
     function allButImageParameter(params: string[]) {
@@ -164,10 +169,10 @@ ${err.message}`,
 
     if (deploymentAction.command) {
       let commandParts = deploymentAction.command.split(/\s+/)
-      commandParts.forEach((splitPart)=> deploymentAction.dockerParameters.push(splitPart));
-      if(deploymentAction.forTestParameters) {
+      commandParts.forEach(splitPart => deploymentAction.dockerParameters.push(splitPart))
+      if (deploymentAction.forTestParameters) {
         // @ts-ignore
-        commandParts.forEach((splitPart)=> deploymentAction.forTestParameters.push(splitPart));
+        commandParts.forEach(splitPart => deploymentAction.forTestParameters.push(splitPart))
       }
     }
 
@@ -175,11 +180,8 @@ ${err.message}`,
     return deploymentAction
   }
 
-
   return {
     executeDockerAction,
     createDockerExecutionAction,
   }
 }
-
-

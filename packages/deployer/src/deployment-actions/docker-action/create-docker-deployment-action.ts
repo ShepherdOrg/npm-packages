@@ -15,7 +15,10 @@ export type TDockerDeploymentActionFactoryDependencies = {
 }
 
 export type ICreateDockerDeploymentActions = {
-  createDockerDeploymentAction: (imageInformation: TImageInformation, logContext: TLogContext) => Promise<Array<IDockerDeploymentAction>>
+  createDockerDeploymentAction: (
+    imageInformation: TImageInformation,
+    logContext: TLogContext
+  ) => Promise<Array<IDockerDeploymentAction>>
 }
 
 export function createDockerDeployerActionFactory(
@@ -78,7 +81,7 @@ export function createDockerDeployerActionFactory(
             })
             .then(() => {
               injected.logger.info(`Rollback complete. Original error follows.`, logContext)
-              return {}
+              return { code: 0 }
             })
         },
       }

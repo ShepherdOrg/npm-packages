@@ -147,10 +147,6 @@ function main() {
     return loginToRegistryWithPrompt()
   }
 
-  // @ts-ignore
-  global._ = require("lodash")
-  global.Promise = require("bluebird")
-
   flatMapPolyfill()
 
   let defaultLogContext = { color: chalk.gray, prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, ">") }
