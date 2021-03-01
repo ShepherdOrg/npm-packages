@@ -24,6 +24,7 @@ import { TDeploymentState } from "@shepherdorg/metadata"
 import * as chalk from "chalk"
 import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 import { createFakeTimeoutWrapper } from "../test-tools/fake-timer"
+import { initFakeExecution } from "@shepherdorg/ts-exec"
 
 type FFakeLambda = () => Promise<void>
 
@@ -154,6 +155,7 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
 export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   const fakeLogger = createFakeLogger()
   const fakeExec = createFakeExec()
+  const fakeExecution = initFakeExecution()
   fakeExec.nextResponse.success = "exec success"
   const fakeStateStore = createFakeStateStore()
   fakeStateStore.nextState = { new: false, modified: true }
@@ -171,6 +173,7 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   let kubectlDeploymentActionsFactory = createKubectlDeploymentActionsFactory({
     logger: fakeLogger,
     exec: fakeExec,
+    tsexec: fakeExecution.exec,
     stateStore: fakeStateStore,
   })
   let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
@@ -179,7 +182,7 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
     environment: "fake",
   })
   let rolloutWaitActionFactory = createRolloutWaitActionFactory({
-    exec: fakeExec,
+    exec: fakeExecution.exec,
     stateStore: fakeStateStore,
     logger: fakeLogger,
   })

@@ -1,6 +1,6 @@
 import { expect } from "chai"
 
-import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
+import { initFakeExecution, IFakeExecution } from "@shepherdorg/ts-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
 import { IExecutableActionV2, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
@@ -9,7 +9,7 @@ import { createRolloutUndoActionFactory } from "./rollout-undo-actionfactory"
 
 describe("K8S deployment rollout undo factory", function() {
   let fakeStateStore: TFakeStateStore
-  let fakeExec: TFakeExec
+  let fakeExec: IFakeExecution
   let fakeLogger: IFakeLogging
   let undoAction: IExecutableActionV2<TRollbackResult>
 
@@ -17,10 +17,10 @@ describe("K8S deployment rollout undo factory", function() {
     fakeStateStore = createFakeStateStore()
     fakeLogger = createFakeLogger()
 
-    fakeExec = createFakeExec()
+    fakeExec = initFakeExecution()
 
     undoAction = createRolloutUndoActionFactory({
-      exec: fakeExec,
+      exec: fakeExec.exec,
       logger: fakeLogger,
     }).createRolloutUndoAction({
       namespace: "default",
@@ -71,7 +71,7 @@ describe("K8S deployment rollout undo factory", function() {
     before(async () => {
       fakeLogger.logStatements = []
       fakeExec.executedCommands = []
-      fakeExec.setErr("Rollout undo failure", 43)
+      fakeExec.addResponse({ code: 43, stderr: "Rollout undo failure", stdout: "Nothing happening here" })
 
       try {
         return (execResult = await undoAction.execute({

@@ -20,12 +20,13 @@ import { ILog } from "../../logging/logger"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { modifyDeploymentDocument } from "./k8s-branch-deployment/modify-deployment-document"
 import { createRolloutUndoActionFactory } from "./rollout-undo-actionfactory"
+import { FExec } from "@shepherdorg/ts-exec"
 
 const chalk = require("chalk")
 
 const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 
-type IKubectlActionFactoryDependencies = { exec: IExec; logger: ILog; stateStore: IReleaseStateStore }
+type IKubectlActionFactoryDependencies = { exec: IExec; tsexec: FExec; logger: ILog; stateStore: IReleaseStateStore }
 
 export type TDeploymentRollout = {
   namespace: string
@@ -77,11 +78,12 @@ export interface ICreateKubectlDeploymentAction {
 
 export function createKubectlDeploymentActionsFactory({
   exec,
+  tsexec,
   logger,
   stateStore,
 }: IKubectlActionFactoryDependencies): ICreateKubectlDeploymentAction {
   /* We might want to inject the rollout undo action factory at some point. Not worth the hassle right now. */
-  let rolloutUndoActionFactory = createRolloutUndoActionFactory({ exec, logger })
+  let rolloutUndoActionFactory = createRolloutUndoActionFactory({ exec: tsexec, logger })
 
   async function executeKubectlDeploymentAction(
     thisIsMe: IKubectlDeployAction,

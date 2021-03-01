@@ -7,7 +7,8 @@ import {
   IK8sDirDeploymentAction,
   IDockerImageKubectlDeploymentAction,
   IKubectlDeployAction,
-  TActionExecutionOptions, IPushToShepherdUI,
+  TActionExecutionOptions,
+  IPushToShepherdUI,
 } from "../deployment-types"
 import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { emptyArray } from "../helpers/ts-functions"
@@ -23,22 +24,23 @@ import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/
 import { createDeploymentPlanFactory, TDeploymentPlanDependencies } from "../deployment-plan/deployment-plan"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
-import {
-  createDockerDeployerActionFactory
-} from "../deployment-actions/docker-action/create-docker-deployment-action"
+import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
 import { createLogContextColors } from "../logging/log-context-colors"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
+import { IFakeExecution, initFakeExecution } from "@shepherdorg/ts-exec"
 
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
   iFakeLogging: IFakeLogging,
   fakeExec: TFakeExec,
+  tsFakeExec: IFakeExecution,
   stateStore: TFakeStateStore
 ): IDockerImageKubectlDeploymentAction {
   const actionFactory = createKubectlDeploymentActionsFactory({
     exec: fakeExec,
+    tsexec: tsFakeExec.exec,
     logger: iFakeLogging,
     stateStore: stateStore,
   })
@@ -46,8 +48,9 @@ export function createKubectlTestDeployAction(
 
   let testAction: IDockerImageKubectlDeploymentAction & { testInstance: boolean } = {
     getActionDeploymentState(): TDeploymentState | undefined {
-      return deploymentState;
-    }, setActionDeploymentState(newState: TDeploymentState | undefined): void {
+      return deploymentState
+    },
+    setActionDeploymentState(newState: TDeploymentState | undefined): void {
       deploymentState = newState
     },
     planString() {
@@ -63,7 +66,7 @@ export function createKubectlTestDeployAction(
       return false
     },
     testInstance: true,
-    ...serialisedAction
+    ...serialisedAction,
   }
   return testAction
 }
@@ -79,10 +82,10 @@ export function createFakeDockerDeploymentAction(
     logger: iFakeLogging,
     stateStore: stateStore,
   })
-  let deploymentState: TDeploymentState| undefined
+  let deploymentState: TDeploymentState | undefined
   let testAction: IDockerDeploymentAction = {
     getActionDeploymentState(): TDeploymentState | undefined {
-      return deploymentState;
+      return deploymentState
     },
     setActionDeploymentState(newState: TDeploymentState | undefined): void {
       deploymentState = newState
@@ -101,7 +104,7 @@ export function createFakeDockerDeploymentAction(
     canRollbackExecution(): boolean {
       return false
     },
-    ...serialisedAction
+    ...serialisedAction,
   }
   return testAction
 }
@@ -119,12 +122,15 @@ export function createFakeUIPusher() {
   return fakeUiDataPusher
 }
 
-export function createFakeDockerImageKubectlDeploymentFactory() : ICreateDockerImageKubectlDeploymentActions {
+export function createFakeDockerImageKubectlDeploymentFactory(): ICreateDockerImageKubectlDeploymentActions {
   return {
-    async createKubectlDeploymentActions(_imageInfo): Promise<Array<IDockerImageKubectlDeploymentAction>>{
-      console.log(`ATTEMPTING TO CREATE KUBECTL DEPLOYMENT ACTIONS THROUGH FAKE FACTORY!!!`, _imageInfo.imageDeclaration)
+    async createKubectlDeploymentActions(_imageInfo): Promise<Array<IDockerImageKubectlDeploymentAction>> {
+      console.log(
+        `ATTEMPTING TO CREATE KUBECTL DEPLOYMENT ACTIONS THROUGH FAKE FACTORY!!!`,
+        _imageInfo.imageDeclaration
+      )
       return []
-    }
+    },
   }
 }
 
@@ -132,6 +138,7 @@ describe("Deployment orchestration", function() {
   let deploymentOrchestration: IDeploymentOrchestration
   let fakeStateStore: any
   let fakeExec: TFakeExec
+  let tsFakeExec: IFakeExecution
   let fakeLogger: IFakeLogging
   let fakeUiDataPusher: IPushToShepherdUI & { pushedData: Array<any> }
 
@@ -142,17 +149,31 @@ describe("Deployment orchestration", function() {
       stateStore: fakeStateStore,
     })
 
-    let deployerActionFactory = createDockerDeployerActionFactory({logger: fakeLogger, executionActionFactory: executionActionFactory, environment: 'orchestratin-specs'})
-    let deploymentTestActionFactory = createDeploymentTestActionFactory({dockerActionFactory: executionActionFactory, logger: fakeLogger})
+    let deployerActionFactory = createDockerDeployerActionFactory({
+      logger: fakeLogger,
+      executionActionFactory: executionActionFactory,
+      environment: "orchestratin-specs",
+    })
+    let deploymentTestActionFactory = createDeploymentTestActionFactory({
+      dockerActionFactory: executionActionFactory,
+      logger: fakeLogger,
+    })
     let dockerImageKubectlDeploymentActionFactory = createFakeDockerImageKubectlDeploymentFactory()
     let rolloutWaitActionFactory = createRolloutWaitActionFactory({
-      exec: fakeExec,
+      exec: tsFakeExec.exec,
       logger: fakeLogger,
       stateStore: fakeStateStore,
     })
     let fakeDeps: TDeploymentPlanDependencies = {
       deploymentEnvironment: "specenv",
-      ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec: fakeExec, logger: fakeLogger, systemTime: () => {return new Date()}, timeout: setTimeout}),
+      ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({
+        exec: fakeExec,
+        logger: fakeLogger,
+        systemTime: () => {
+          return new Date()
+        },
+        timeout: setTimeout,
+      }),
       exec: fakeExec,
       logger: fakeLogger,
       stateStore: fakeStateStore,
@@ -161,7 +182,7 @@ describe("Deployment orchestration", function() {
       dockerImageKubectlDeploymentActionFactory: dockerImageKubectlDeploymentActionFactory,
       deployerActionFactory: deployerActionFactory,
       deploymentTestActionFactory: deploymentTestActionFactory,
-      logContextColors: createLogContextColors()
+      logContextColors: createLogContextColors(),
     }
     let deploymentPlan = createDeploymentPlanFactory(fakeDeps).createDeploymentPlan({ key: depAction.herdKey })
     await deploymentPlan.addAction(depAction)
@@ -175,6 +196,7 @@ describe("Deployment orchestration", function() {
         TestActions.addedK8sDeployments[deploymentKey] as TK8sDockerImageDeploymentActionStruct,
         fakeLogger,
         fakeExec,
+        tsFakeExec,
         fakeStateStore
       )
     )
@@ -197,6 +219,7 @@ describe("Deployment orchestration", function() {
   }
 
   beforeEach(function() {
+    tsFakeExec = initFakeExecution()
     fakeExec = createFakeExec()
     fakeUiDataPusher = createFakeUIPusher()
     fakeStateStore = createFakeStateStore()
@@ -233,7 +256,7 @@ describe("Deployment orchestration", function() {
                 waitForRollout: false,
                 dryRun: true,
                 dryRunOutputDir: "/tmp/",
-                logContext: {}
+                logContext: {},
               })
               .then(execResults => {
                 // debug('execResults', execResults)
@@ -303,7 +326,7 @@ describe("Deployment orchestration", function() {
               dryRunOutputDir: undefined,
               pushToUi: false,
               waitForRollout: false,
-              logContext: {}
+              logContext: {},
             })
           )
       })
@@ -338,7 +361,7 @@ describe("Deployment orchestration", function() {
               dryRunOutputDir: undefined,
               pushToUi: true,
               waitForRollout: true,
-              logContext: {}
+              logContext: {},
             })
           )
       })

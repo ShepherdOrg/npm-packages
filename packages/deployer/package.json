@@ -16,6 +16,7 @@
     "@shepherdorg/postgres-backend": "^5.0.9",
     "@shepherdorg/state-store": "^5.0.9",
     "@shepherdorg/ui-push": "^5.0.1",
+    "@shepherdorg/ts-exec": "^5.0.0",
     "@types/diff": "^4.0.2",
     "@types/js-yaml": "^3.12.1",
     "array-flat-polyfill": "^1.0.1",

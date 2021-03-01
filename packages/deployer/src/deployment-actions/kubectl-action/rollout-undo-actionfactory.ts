@@ -1,43 +1,43 @@
-import { extendedExec } from "../../helpers/promisified-exec"
 import { TDeploymentRollout } from "./kubectl-deployment-action-factory"
 import { IExecutableActionV2, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
-import { IExec } from "../../helpers/basic-types"
 import { ILog } from "../../logging/logger"
+import { FExec, TExecError } from "@shepherdorg/ts-exec"
 
-export function createRolloutUndoActionFactory({ exec, logger }: { exec: IExec; logger: ILog }) {
+export function createRolloutUndoActionFactory({ exec, logger }: { exec: FExec; logger: ILog }) {
   const createRolloutUndoAction = (rollout: TDeploymentRollout) => {
     let undoAction: IExecutableActionV2<TRollbackResult> = {
       execute(deploymentOptions: TActionExecutionOptions): Promise<TRollbackResult> {
-        return extendedExec(exec)(
+        return exec(
           "kubectl",
           ["--namespace", rollout.namespace, "rollout", "undo", `deployment/${rollout.deploymentName}`],
           {
             env: process.env,
-            debug: true,
+            doNotCollectOutput: false,
           }
         )
-          .then(stdOut => {
-            logger.info(stdOut as string, deploymentOptions.logContext)
+          .then(({ stdout }) => {
+            logger.info(stdout, deploymentOptions.logContext)
             logger.info("Rollback complete.", deploymentOptions.logContext)
             return {
-              stdOut: stdOut as string,
+              stdOut: stdout,
               code: 0,
               stdErr: "",
               executedAction: undoAction,
             }
           })
-          .catch(execError => {
+          .catch(err => {
+            const execError = err as TExecError
             logger.warn(
-              `Error executing kubectl rollout undo ${rollout}, code ${execError.errCode}`,
+              `Error executing kubectl rollout undo ${rollout}, code ${err.errCode}`,
               deploymentOptions.logContext
             )
-            logger.warn(execError.message, deploymentOptions.logContext)
-            logger.warn(execError.stdOut, deploymentOptions.logContext)
+            logger.warn(err.message, deploymentOptions.logContext)
+            logger.warn(err.stdOut, deploymentOptions.logContext)
 
             let rollbackResult: TRollbackResult = {
-              code: execError.context.errCode,
-              stdOut: execError.stdOut as string,
-              stdErr: execError.message,
+              code: execError.code,
+              stdOut: execError.stdout,
+              stdErr: execError.stderr,
               executedAction: undoAction,
             }
 

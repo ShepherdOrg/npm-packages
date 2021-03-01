@@ -1,8 +1,8 @@
 const spawn = require("child_process").execFile
 const _ = require("lodash")
-
 module.exports = {
-  exec(command, params, envMap, err, success, stdoutLineHandler ) {
+  /** Very much deprecated in favor of ts-exec */
+  exec(command, params, envMap, err, success, stdoutLineHandler) {
     envMap = envMap || {}
     let child = spawn(command, params, { env: envMap })
     let stdout = ""
@@ -35,6 +35,7 @@ module.exports = {
       }
     })
   },
+  /** Very much deprecated in favor of ts-exec */
   extendedExec(command, params, options, err, success) {
     let child = spawn(command, params, options)
     let stdout = ""
@@ -51,7 +52,7 @@ module.exports = {
     child.stderr.on("data", data => {
       if (options.stdErrLineHandler) {
         options.stdErrLineHandler(data)
-      } else{
+      } else {
         /*This is a bad design, should get an injected logger interface, which may be console.*/
         console.error(data)
       }

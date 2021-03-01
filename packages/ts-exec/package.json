@@ -1,0 +1,31 @@
+{
+  "name": "@shepherdorg/ts-exec",
+  "version": "5.0.0",
+  "description": "Promise based command execution. With buffer control, fairly good tests and a test double.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
+    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts --watch 'src/**/*.spec.ts'",
+    "build": "tsc && chmod +x dist/cli.js",
+    "prepublishOnly": "yarn build && yarn test"
+  },
+  "keywords": [
+    "exec",
+    "cmd",
+    "typescript",
+    "command"
+  ],
+  "dependencies": {
+  },
+  "author": "Guðlaugur S. Egilsson",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "12.12.6",
+    "@types/chai": "^4.2.15",
+    "chai": "^4.3.0"
+  }
+}

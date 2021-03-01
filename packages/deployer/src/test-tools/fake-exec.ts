@@ -26,8 +26,14 @@ export type TFakeExec = {
     err: FExecutionCallback,
     success: FExecutionCallback
   ) => void
-  executedCommands: any[]
+  executedCommands: TCommandRecording[]
   executedCommandLines: () => Array<string>
+}
+
+export type TCommandRecording = {
+  options: Object
+  params: string[]
+  command: string
 }
 
 export function createFakeExec(): TFakeExec {
@@ -57,13 +63,12 @@ export function createFakeExec(): TFakeExec {
       err: FExecutionCallback,
       success: FExecutionCallback
     ) {
-      fakeExec.executedCommands.push({
+      let commandRecording: TCommandRecording = {
         command: command,
         params: params,
         options: options,
-        err: err,
-        success: success,
-      })
+      }
+      fakeExec.executedCommands.push(commandRecording)
       if (fakeExec && fakeExec.onExec != undefined) {
         // @ts-ignore
         fakeExec.onExec(command, params, options, err, success)

@@ -1,16 +1,16 @@
 import { expect } from "chai"
 import { createRolloutWaitActionFactory } from "./rollout-wait-action-factory"
 
-import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
 import { IStatefulExecutableAction, TActionExecutionOptions } from "../../deployment-types"
 import { defaultTestExecutionOptions } from "../../test-tools/test-action-execution-options"
 import { Oops } from "oops-error"
+import { initFakeExecution, IFakeExecution } from "@shepherdorg/ts-exec"
 
 describe("K8S deployment rollout status wait action factory", function() {
   let fakeStateStore: TFakeStateStore
-  let fakeExec: TFakeExec
+  let fakeTsExec: IFakeExecution
   let fakeLogger: IFakeLogging
   let rolloutAction: IStatefulExecutableAction
 
@@ -18,10 +18,10 @@ describe("K8S deployment rollout status wait action factory", function() {
     fakeStateStore = createFakeStateStore()
     fakeLogger = createFakeLogger()
 
-    fakeExec = createFakeExec()
+    fakeTsExec = initFakeExecution()
 
     rolloutAction = createRolloutWaitActionFactory({
-      exec: fakeExec,
+      exec: fakeTsExec.exec,
       logger: fakeLogger,
       stateStore: fakeStateStore,
     }).createRolloutWaitAction({
@@ -48,7 +48,7 @@ describe("K8S deployment rollout status wait action factory", function() {
 
     before(async () => {
       fakeLogger.logStatements = []
-      fakeExec.executedCommands = []
+      fakeTsExec.executedCommands = []
       return (execResult = await rolloutAction.execute(defaultTestExecutionOptions))
     })
 
@@ -57,7 +57,7 @@ describe("K8S deployment rollout status wait action factory", function() {
     })
 
     it("should execute kubectl rollout status", () => {
-      expect(fakeExec.executedCommandLines()[0]).to.eql(
+      expect(fakeTsExec.executedCommandLines()[0]).to.eql(
         "kubectl --namespace default rollout status Deployment/my-awesome-deployment"
       )
     })
@@ -66,7 +66,7 @@ describe("K8S deployment rollout status wait action factory", function() {
   describe("executing rollout action with waitForRollout false", function() {
     before(async () => {
       fakeLogger.logStatements = []
-      fakeExec.executedCommands = []
+      fakeTsExec.executedCommands = []
       let deploymentOptions: TActionExecutionOptions = {
         pushToUi: false,
         waitForRollout: false,
@@ -78,7 +78,7 @@ describe("K8S deployment rollout status wait action factory", function() {
     })
 
     it("should not execute kubectl rollout status", () => {
-      expect(fakeExec.executedCommandLines().join("")).not.to.contain("rollout status")
+      expect(fakeTsExec.executedCommandLines().join("")).not.to.contain("rollout status")
     })
   })
 
@@ -96,8 +96,9 @@ describe("K8S deployment rollout status wait action factory", function() {
 
     before(async () => {
       fakeLogger.logStatements = []
-      fakeExec.executedCommands = []
-      fakeExec.setErr("Rollout failed", 99) // This causes both status and undo to fail
+      fakeTsExec.executedCommands = []
+      fakeTsExec.addResponse({ code: 99, stderr: "Rollout failed", stdout: "" })
+      fakeTsExec.addResponse({ code: 77, stderr: "Undo failed", stdout: "" })
 
       try {
         return (execResult = await rolloutAction.execute({
@@ -115,12 +116,12 @@ describe("K8S deployment rollout status wait action factory", function() {
 
     it("should encapsulate error from exec", () => {
       expect(caughtErr.message).to.equal(
-        "Error executing kubectl rollout status default Deployment/my-awesome-deployment. Rollout failed (99)"
+        "Error waiting for rollout to finish. kubectl --namespace default rollout status Deployment/my-awesome-deployment exited with error code 99"
       )
     })
 
     it("should execute rollout undo", () => {
-      expect(fakeExec.executedCommandLines()[1]).to.equal(
+      expect(fakeTsExec.executedCommandLines()[1]).to.equal(
         "kubectl --namespace default rollout undo deployment/my-awesome-deployment"
       )
     })

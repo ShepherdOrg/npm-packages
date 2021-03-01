@@ -6,11 +6,13 @@ export interface IFakeLogging extends ILog {
   logStatements: Array<IFakeLogEntry>
   infoLogEntries: Array<IFakeLogEntry>
 
+  logLevelEntries: (level: TLogLevel) => Array<IArguments>
   printAllStatements(): void
 }
 
+export type TLogLevel = "debug" | "info" | "warn" | "error" | "fatal"
 export type IFakeLogEntry = {
-  logLevel: "debug" | "info" | "warn" | "error" | "fatal"
+  logLevel: TLogLevel
   data: IArguments
 }
 
@@ -45,6 +47,15 @@ export function createFakeLogger(): IFakeLogging {
     //     fakeLogger.logStatements.push({logLevel: "exitDeployment", data: arguments})
     //
     // }
+    logLevelEntries: (level: TLogLevel) => {
+      return fakeLogger.logStatements
+        .filter(le => {
+          return le.logLevel === level
+        })
+        .map(le => {
+          return le.data
+        })
+    },
     printAllStatements(): void {
       console.info(fakeLogger.log)
     },

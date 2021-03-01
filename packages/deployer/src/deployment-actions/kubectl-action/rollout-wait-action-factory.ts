@@ -1,16 +1,15 @@
 import { IStatefulExecutableAction, IKubectlAction, TActionExecutionOptions } from "../../deployment-types"
-import { extendedExec } from "../../helpers/promisified-exec"
 import { TDeploymentRollout } from "./kubectl-deployment-action-factory"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
-import { IExec } from "../../helpers/basic-types"
 import { ILog } from "../../logging/logger"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { Oops } from "oops-error"
 import { createRolloutUndoActionFactory } from "./rollout-undo-actionfactory"
+import { FExec, TExecError } from "@shepherdorg/ts-exec"
 
 export type TRolloutWaitActionDependencies = {
   stateStore: IReleaseStateStore
-  exec: IExec
+  exec: FExec
   logger: ILog
 }
 
@@ -19,6 +18,7 @@ export type ICreateRolloutWaitAction = {
 }
 
 export function createRolloutWaitActionFactory(dependencies: TRolloutWaitActionDependencies): ICreateRolloutWaitAction {
+  console.log(`DEBUG TSExec`, dependencies.exec)
   let rolloutUndoActionFactory = createRolloutUndoActionFactory({
     exec: dependencies.exec,
     logger: dependencies.logger,
@@ -49,26 +49,26 @@ export function createRolloutWaitActionFactory(dependencies: TRolloutWaitActionD
       planString: planString,
       execute(deploymentOptions: TActionExecutionOptions): Promise<IStatefulExecutableAction> {
         if (deploymentOptions.waitForRollout) {
-          return extendedExec(exec)(
-            "kubectl",
-            ["--namespace", deploymentRollout.namespace, "rollout", "status", identifier],
-            {
-              env: process.env,
-              debug: true,
-            }
-          )
-            .then(stdOut => {
+          return exec("kubectl", ["--namespace", deploymentRollout.namespace, "rollout", "status", identifier], {
+            env: process.env,
+            doNotCollectOutput: false,
+          })
+            .then(execResult => {
               logger.info(planString(), deploymentOptions.logContext)
-              logger.info(stdOut as string, deploymentOptions.logContext)
+              logger.info(execResult.stdout, deploymentOptions.logContext)
               return waitAction
             })
-            .catch(async (execError: Oops) => {
-              let errorContext = execError.context as { errCode: number }
-              let errorMessage = `Error executing kubectl rollout status ${deploymentRollout.namespace} ${identifier}. ${execError.message} (${errorContext?.errCode})`
+            .catch(async (execError: TExecError) => {
+              let errorMessage = `Error waiting for rollout to finish. ${execError.message}`
               const rollbackResult = rolloutUndoActionFactory
                 .createRolloutUndoAction(deploymentRollout)
                 .execute(deploymentOptions)
-              throw new Oops({ message: errorMessage, category: "OperationalError", cause: execError })
+              throw new Oops({
+                message: errorMessage,
+                category: "OperationalError",
+                cause: execError,
+                context: { identifier, operation: "rollout", planString: planString() },
+              })
             })
         } else {
           return Promise.resolve(waitAction)

@@ -5,15 +5,18 @@ import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/
 import { expect } from "chai"
 import { IKubectlDeployAction, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
 import { createKubectlDeploymentActionsFactory } from "./kubectl-deployment-action-factory"
+import { IFakeExecution, initFakeExecution } from "@shepherdorg/ts-exec"
 
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
   iFakeLogging: IFakeLogging,
   fakeExec: TFakeExec,
+  fakeTsExec: IFakeExecution,
   stateStore: TFakeStateStore
 ): IKubectlDeployAction {
   const actionFactory = createKubectlDeploymentActionsFactory({
     exec: fakeExec,
+    tsexec: fakeTsExec.exec,
     logger: iFakeLogging,
     stateStore: stateStore,
   })
@@ -35,6 +38,8 @@ describe("Kubectl deployment action factory", function() {
   describe("Deployment document with a kube deployment section", function() {
     let fakeStateStore: any
     let fakeExec: TFakeExec
+    let fakeTsExec: IFakeExecution
+
     let fakeLogger: IFakeLogging
 
     let testAction: IKubectlDeployAction
@@ -45,10 +50,12 @@ describe("Kubectl deployment action factory", function() {
       fakeExec = createFakeExec()
       fakeStateStore = createFakeStateStore()
       fakeLogger = createFakeLogger()
+      fakeTsExec = initFakeExecution()
       testAction = createKubectlTestDeployAction(
         TestActions.addedK8sDeployments["Service_www-icelandair-com-internal"] as TK8sDockerImageDeploymentActionStruct,
         fakeLogger,
         fakeExec,
+        fakeTsExec,
         fakeStateStore
       )
     })
@@ -80,8 +87,8 @@ describe("Kubectl deployment action factory", function() {
       })
 
       it("should rollback using kubectl rollout undo", () => {
-        expect(fakeExec.executedCommands[0].command).to.eql("kubectl")
-        expect(fakeExec.executedCommands[0].params).to.eql([
+        expect(fakeTsExec.executedCommands[0].command).to.eql("kubectl")
+        expect(fakeTsExec.executedCommands[0].params).to.eql([
           "--namespace",
           "default",
           "rollout",

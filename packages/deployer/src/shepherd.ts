@@ -16,6 +16,7 @@ import * as chalk from "chalk"
 import { padLeft } from "./logging/padleft"
 import { initRegistryLogin } from "@shepherdorg/docker-image-metadata-loader"
 import { IPushToShepherdUI } from "./deployment-types"
+import { exec as tsexec } from "@shepherdorg/ts-exec"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -212,6 +213,7 @@ function main() {
 
   const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
   const exec = require("@shepherdorg/exec")
+
   const {
     createUpstreamTriggerDeploymentConfig,
   } = require("./triggered-deployment/create-upstream-trigger-deployment-config")
@@ -246,6 +248,8 @@ function main() {
         upgradeOrAddDeploymentInFile(upstreamDeploymentConfig, logger)
       }
 
+      console.log(`DEBUG HAVE tsexec`, tsexec)
+
       let loaderContext = createLoaderContext({
         stateStore: releaseStateStore,
         logger: logger,
@@ -253,6 +257,7 @@ function main() {
         exec: exec,
         uiPusher: uiDataPusher,
         environment: environment,
+        tsexec: tsexec,
       })
 
       logger.info("Calculating deployment of herd from file " + herdFilePath + " for environment " + environment)
