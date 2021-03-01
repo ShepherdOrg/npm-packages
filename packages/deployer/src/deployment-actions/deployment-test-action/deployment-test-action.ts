@@ -44,11 +44,11 @@ export function createDeploymentTestActionFactory({
             logger.info("Test run failed, rolling back to last good version.", executionOptions.logContext)
             await onTestFailureCallMe.rollback(executionOptions)
           }
-          if (isOops(testRunException)) {
+          if (testRunException.stdout) {
             logger.error("vvvvvvvvvvvvvvvv test output vvvvvvvvvvvvvvvv", undefined, executionOptions.logContext)
             logger.error(testRunException.message, testRunException, executionOptions.logContext)
-            // @ts-ignore
-            logger.error(testRunException.context.stdOut, undefined, executionOptions.logContext)
+            logger.error(testRunException.stderr, undefined, executionOptions.logContext)
+            logger.info(testRunException.stdout, executionOptions.logContext)
             logger.error("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^", undefined, executionOptions.logContext)
           }
           throw testRunException

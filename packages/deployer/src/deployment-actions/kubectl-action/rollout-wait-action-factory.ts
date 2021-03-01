@@ -18,7 +18,6 @@ export type ICreateRolloutWaitAction = {
 }
 
 export function createRolloutWaitActionFactory(dependencies: TRolloutWaitActionDependencies): ICreateRolloutWaitAction {
-  console.log(`DEBUG TSExec`, dependencies.exec)
   let rolloutUndoActionFactory = createRolloutUndoActionFactory({
     exec: dependencies.exec,
     logger: dependencies.logger,

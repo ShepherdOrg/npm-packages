@@ -1,7 +1,6 @@
 import {
   IAnyDeploymentAction,
   IBasicExecutableAction,
-  ICanRollbackActionExecution,
   IStatefulExecutableAction,
   IKubectlDeployAction,
   IPushToShepherdUI,
@@ -18,7 +17,7 @@ import { ICreateRolloutWaitAction } from "../deployment-actions/kubectl-action/r
 import { mapUntypedDeploymentData } from "../ui-mapping/map-untyped-deployment-data"
 import { TFileSystemPath } from "../helpers/basic-types"
 import * as path from "path"
-import { writeFile } from "../helpers/promisified-exec"
+import { writeFile } from "../helpers/promisified"
 import {
   ICreateDeploymentTestAction,
   IRollbackAction,
@@ -32,6 +31,7 @@ import * as chalk from "chalk"
 import { padLeft } from "../logging/padleft"
 import { IProvideLogContextColors } from "../logging/log-context-colors"
 import { ICreateDeploymentTimeAnnotationActions } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
+import { FExec } from "@shepherdorg/ts-exec"
 
 export interface IDeploymentPlanExecutionResult {
   actionResults: IStatefulExecutableAction[]
@@ -76,7 +76,7 @@ export interface TDeploymentPlanDependencies {
   ttlAnnotationActionFactory: ICreateDeploymentTimeAnnotationActions
   logContextColors: IProvideLogContextColors
   stateStore: IReleaseStateStore
-  exec: any
+  exec: FExec
   logger: ILog
   uiDataPusher: IPushToShepherdUI
   rolloutWaitActionFactory: ICreateRolloutWaitAction

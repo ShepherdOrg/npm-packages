@@ -1,5 +1,4 @@
 import { TestActions, TK8sDockerImageDeploymentActionStruct } from "../../herd-loading/testdata/testActions"
-import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
 import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { expect } from "chai"
@@ -10,13 +9,11 @@ import { IFakeExecution, initFakeExecution } from "@shepherdorg/ts-exec"
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
   iFakeLogging: IFakeLogging,
-  fakeExec: TFakeExec,
   fakeTsExec: IFakeExecution,
   stateStore: TFakeStateStore
 ): IKubectlDeployAction {
   const actionFactory = createKubectlDeploymentActionsFactory({
-    exec: fakeExec,
-    tsexec: fakeTsExec.exec,
+    exec: fakeTsExec.exec,
     logger: iFakeLogging,
     stateStore: stateStore,
   })
@@ -37,7 +34,6 @@ describe("Kubectl deployment action factory", function() {
 
   describe("Deployment document with a kube deployment section", function() {
     let fakeStateStore: any
-    let fakeExec: TFakeExec
     let fakeTsExec: IFakeExecution
 
     let fakeLogger: IFakeLogging
@@ -47,14 +43,12 @@ describe("Kubectl deployment action factory", function() {
     before(() => {
       process.env.TPL_DOCKER_IMAGE = "does-not-matter"
       process.env.EXPORT1 = "does-not-matter-either"
-      fakeExec = createFakeExec()
       fakeStateStore = createFakeStateStore()
       fakeLogger = createFakeLogger()
       fakeTsExec = initFakeExecution()
       testAction = createKubectlTestDeployAction(
         TestActions.addedK8sDeployments["Service_www-icelandair-com-internal"] as TK8sDockerImageDeploymentActionStruct,
         fakeLogger,
-        fakeExec,
         fakeTsExec,
         fakeStateStore
       )

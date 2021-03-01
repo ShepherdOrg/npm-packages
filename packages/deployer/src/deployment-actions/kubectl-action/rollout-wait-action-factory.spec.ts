@@ -97,8 +97,8 @@ describe("K8S deployment rollout status wait action factory", function() {
     before(async () => {
       fakeLogger.logStatements = []
       fakeTsExec.executedCommands = []
-      fakeTsExec.addResponse({ code: 99, stderr: "Rollout failed", stdout: "" })
-      fakeTsExec.addResponse({ code: 77, stderr: "Undo failed", stdout: "" })
+      fakeTsExec.addResponse({ code: 99, stderr: "Rollout failed" })
+      fakeTsExec.addResponse({ code: 77, stderr: "Undo failed" })
 
       try {
         return (execResult = await rolloutAction.execute({
@@ -116,7 +116,7 @@ describe("K8S deployment rollout status wait action factory", function() {
 
     it("should encapsulate error from exec", () => {
       expect(caughtErr.message).to.equal(
-        "Error waiting for rollout to finish. kubectl --namespace default rollout status Deployment/my-awesome-deployment exited with error code 99"
+        "Error waiting for rollout to finish. kubectl --namespace default rollout status Deployment/my-awesome-deployment. Process exited with error code 99"
       )
     })
 

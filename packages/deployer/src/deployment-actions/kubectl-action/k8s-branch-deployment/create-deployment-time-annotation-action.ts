@@ -1,13 +1,13 @@
 import { TK8sPartialDescriptor } from "../k8s-document-types"
 import { ILog, TLogContext } from "../../../logging/logger"
 import { IStatefulExecutableAction, IKubectlAction, TDeploymentOptions } from "../../../deployment-types"
-import { extendedExec } from "../../../helpers/promisified-exec"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { TDescriptorsByKind } from "../k8s-deployment-document-identifier"
-import { IExec, FProvideTime, FTimer } from "../../../helpers/basic-types"
+import { FProvideTime, FTimer } from "../../../helpers/basic-types"
+import { FExec, TExecError } from "@shepherdorg/ts-exec"
 
 export interface TDeploymentTimeAnnotationActionDependencies {
-  exec: IExec
+  exec: FExec
   logger: ILog
   systemTime: FProvideTime
   timeout: FTimer
@@ -24,13 +24,13 @@ export function createDeploymentTimeAnnotationActionFactory(
   function createDeploymentTimeAnnotationAction(deploymentDoc: TK8sPartialDescriptor): IKubectlAction {
     let identifier = `${deploymentDoc.kind} ${deploymentDoc.metadata.name}`
 
-    let kubeArgs = [
+    let kubeArgs: string[] = [
       "--namespace",
       deploymentDoc.metadata.namespace || "default",
       "annotate",
       "--overwrite",
       deploymentDoc.kind,
-      deploymentDoc.metadata.name,
+      deploymentDoc.metadata.name || "no name!",
       `lastDeploymentTimestamp=${injected.systemTime().toISOString()}`,
     ]
 
@@ -52,14 +52,19 @@ export function createDeploymentTimeAnnotationActionFactory(
         deploymentOptions: TDeploymentOptions & { waitForRollout: boolean; pushToUi: boolean; logContext: TLogContext }
       ): Promise<IStatefulExecutableAction> {
         injected.logger.debug(`Executing ${planString()}`)
-        return extendedExec(injected.exec)("kubectl", kubeArgs, {
-          env: process.env,
-          debug: true,
-        })
-          .then(stdOut => {
+        return injected
+          .exec(
+            "kubectl",
+            kubeArgs,
+            {
+              env: process.env,
+            },
+            injected.logger
+          )
+          .then(execResult => {
             injected.logger.info(planString(), deploymentOptions.logContext)
-            if (stdOut) {
-              injected.logger.info(stdOut as string, deploymentOptions.logContext)
+            if (execResult) {
+              injected.logger.info(execResult.stdout as string, deploymentOptions.logContext)
             }
             return annotationAction
           })
@@ -69,11 +74,11 @@ export function createDeploymentTimeAnnotationActionFactory(
               await injected.timeout(() => {}, 500)
               return annotationAction.execute(deploymentOptions)
             } else {
-              const { errCode, stdOut, message: err } = execError
-              injected.logger.warn(`Error executing ${planString()}, code ${errCode}`, deploymentOptions.logContext)
+              const { code: code, stdout, message: err } = execError as TExecError
+              injected.logger.warn(`Error executing ${planString()}, code ${code}`, deploymentOptions.logContext)
               injected.logger.warn(err, deploymentOptions.logContext)
-              if (stdOut) {
-                injected.logger.warn(stdOut, deploymentOptions.logContext)
+              if (stdout) {
+                injected.logger.warn(stdout, deploymentOptions.logContext)
               }
               return annotationAction
             }

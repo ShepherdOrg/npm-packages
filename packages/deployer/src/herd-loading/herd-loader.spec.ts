@@ -14,7 +14,7 @@ import {
 } from "../deployment-types"
 import { detectRecursion } from "../helpers/obj-functions"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
-import { FTimer, IExec, TFileSystemPath } from "../helpers/basic-types"
+import { TFileSystemPath } from "../helpers/basic-types"
 import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import {
   createDeploymentPlanFactory,
@@ -36,7 +36,7 @@ import { ILog } from "../logging/logger"
 import { createLogContextColors } from "../logging/log-context-colors"
 import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 import { createFakeTimeoutWrapper } from "../test-tools/fake-timer"
-import { initFakeExecution } from "@shepherdorg/ts-exec"
+import { FExec, initFakeExecution } from "@shepherdorg/ts-exec"
 
 /// Inject a mock image metadata loader with fake image information
 
@@ -56,8 +56,8 @@ describe("herd.yaml loading", function() {
   let loader: THerdLoader
   let CreateTestReleasePlan: FCreateTestReleasePlan
   let logger: IFakeLogging
-  let exec: IExec = undefined
 
+  let exec: FExec = initFakeExecution().exec
   let featureDeploymentConfig = CreateFeatureDeploymentConfig()
 
   function createTestHerdLoader(
@@ -84,8 +84,7 @@ describe("herd.yaml loading", function() {
 
     let uiDataPusher = createFakeUIPusher()
     let kubectlDeploymentActionFactory = createKubectlDeploymentActionsFactory({
-      exec,
-      tsexec: initFakeExecution().exec,
+      exec: initFakeExecution().exec,
       logger: logger,
       stateStore: stateStore,
     })

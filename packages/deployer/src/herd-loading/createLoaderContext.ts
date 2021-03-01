@@ -1,6 +1,5 @@
 import { IReleaseStateStore } from "@shepherdorg/state-store"
 import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
-import { IExec } from "../helpers/basic-types"
 import { DeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
 import {
   createDeploymentPlanFactory,
@@ -34,8 +33,7 @@ interface TLoaderContextParams {
   stateStore: IReleaseStateStore
   logger: ILog
   featureDeploymentConfig: IConfigureUpstreamDeployment
-  exec: IExec
-  tsexec: FExec
+  exec: FExec
   uiPusher: IPushToShepherdUI
   environment: string
 }
@@ -45,28 +43,22 @@ export function createLoaderContext({
   logger,
   featureDeploymentConfig,
   exec,
-  tsexec,
   uiPusher,
   environment,
 }: TLoaderContextParams) {
-  const deploymentOrchestration = DeploymentOrchestration({
-    cmd: exec,
-    logger: logger,
-    stateStore: stateStore,
-  })
+  const deploymentOrchestration = DeploymentOrchestration()
 
   let provideSystemTime = () => {
     return new Date()
   }
 
   let deploymentActionFactory: ICreateKubectlDeploymentAction = createKubectlDeploymentActionsFactory({
-    exec,
-    tsexec: tsexec,
+    exec: exec,
     logger,
     stateStore,
   })
   let rolloutWaitActionFactory = createRolloutWaitActionFactory({
-    exec: tsexec,
+    exec: exec,
     logger: logger,
     stateStore: stateStore,
   })
@@ -76,7 +68,7 @@ export function createLoaderContext({
     environment: environment,
   })
   let dockerActionFactory = createDockerActionFactory({
-    exec,
+    exec: exec,
     logger,
     stateStore,
   })

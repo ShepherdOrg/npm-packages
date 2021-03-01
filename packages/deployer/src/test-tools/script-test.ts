@@ -1,12 +1,11 @@
 import { FExecutionCallback, TFileSystemPath } from "../helpers/basic-types"
 import * as fs from "fs"
 import { expect } from "chai"
+import { exec, TExecError } from "@shepherdorg/ts-exec"
 
 const JsDiff = require("diff")
 
 const { extend, sortedUniq } = require("lodash")
-
-const exec = require("@shepherdorg/exec")
 
 declare type TJsDifference = {
   value: string
@@ -14,7 +13,7 @@ declare type TJsDifference = {
   removed: boolean
 }
 
-function relevantDifferences(diffArray:Array<TJsDifference>, ignoreList: string[] = []):Array<TJsDifference> {
+function relevantDifferences(diffArray: Array<TJsDifference>, ignoreList: string[] = []): Array<TJsDifference> {
   let result: Array<TJsDifference> = []
   for (let diffObj of diffArray) {
     if (diffObj.removed || diffObj.added) {
@@ -42,7 +41,11 @@ function renderDifferences(diffArray: Array<TJsDifference>): string {
   return result
 }
 
-function compareActualVsExpected(expectedFileName:TFileSystemPath, actualFileName:TFileSystemPath, ignoreList: string[] = []) {
+function compareActualVsExpected(
+  expectedFileName: TFileSystemPath,
+  actualFileName: TFileSystemPath,
+  ignoreList: string[] = []
+) {
   let expectedFileContents = fs.readFileSync(expectedFileName, "utf-8")
   let actualFileContents = fs.readFileSync(actualFileName, "utf-8")
   let difference = JsDiff.diffTrimmedLines(expectedFileContents.trim(), actualFileContents.trim())
@@ -112,51 +115,48 @@ export type TExecuteOptions = {
 
 export default {
   // Pass in debug=true if you want to see output of subject under test.
-  execute: function(command:string, args:string[], options:TExecuteOptions) {
+  execute: function(command: string, args: string[], options: TExecuteOptions) {
     let logfn = undefined
 
-    options.stdoutLineHandler = options.stdoutLineHandler || function(line:string) {
-      if (options.debug) {
-        process.stdout.write(line)
+    options.stdoutLineHandler =
+      options.stdoutLineHandler ||
+      function(line: string) {
+        if (options.debug) {
+          process.stdout.write(line)
+        }
       }
-    }
     options.env = extend({}, options.env, { PATH: process.env.PATH })
 
-    exec.extendedExec(
-      command,
-      args,
-      options,
-      function(err: string, exitCode: number, stdout: string) {
-        execution.actualExitCode = exitCode
+    exec(command, args, options)
+      .then(execResult => {
+        execution.actualExitCode = 0
+        execution.processOutput = execResult.stdout
+        execution.checkExpectations()
+        execution.callback && execution.callback(execResult.stdout)
+      })
+      .catch((execError: TExecError) => {
+        execution.actualExitCode = execError.code
         if (execution.expectedExitCode) {
-          execution.processOutput = stdout
-          execution.processStderr = err.trim()
+          execution.processOutput = execError.stdout
+          execution.processStderr = execError.stderr.trim()
           execution.checkExpectations()
-          execution.callback && execution.callback(stdout)
+          execution.callback && execution.callback(execError.stdout)
         } else {
-          console.error("Process error in test, error code:", exitCode, " stderr:", err)
+          console.error("Process error in test, error code:", execError.code, " stderr:", execError.stderr)
           expect.fail(
             "Error invoking : " +
               command +
               " with arguments " +
               JSON.stringify(args) +
               "\nStdout: \n" +
-              stdout +
+              execError.stdout +
               "\nError output:\n" +
-              err +
+              execError.stderr +
               "\n. ErrorCode:" +
-              exitCode
+              execError.code
           )
         }
-      },
-      function(output: string) {
-        execution.actualExitCode = 0
-        execution.processOutput = output
-        execution.checkExpectations()
-        execution.callback && execution.callback(output)
-      },
-      logfn
-    )
+      })
 
     let execution: TScriptTestExecution = {
       actualExitCode: 0,
@@ -202,7 +202,7 @@ export default {
           shouldNotContain(partialString: string): TScriptTestExecution {
             execution.notExpectedStdoutPartials.push(partialString)
             return execution
-          }
+          },
         }
       },
       stderr: function() {
@@ -230,20 +230,22 @@ export default {
         return execution
       },
       checkExpectations() {
-
-        if(execution.expectedExitCode){
-          expect(execution.actualExitCode).to.equal(execution.expectedExitCode, 'Process exit code')
+        if (execution.expectedExitCode) {
+          expect(execution.actualExitCode).to.equal(execution.expectedExitCode, "Process exit code")
         }
         execution.expectedStdoutPartials.forEach((partialString: string) => {
-          expect(execution.processOutput.indexOf(partialString)).to.gte(0, partialString )
+          expect(execution.processOutput.indexOf(partialString)).to.gte(0, partialString)
         })
 
         execution.notExpectedStdoutPartials.forEach((partialString: string) => {
-          expect(execution.processOutput.indexOf(partialString)).to.lt(0, `"${partialString}" is not supposed to be in stdout`)
+          expect(execution.processOutput.indexOf(partialString)).to.lt(
+            0,
+            `"${partialString}" is not supposed to be in stdout`
+          )
         })
 
         execution.expectedStderrPartials.forEach((partialString: string) => {
-          if(execution.processStderr){
+          if (execution.processStderr) {
             expect(execution.processStderr.indexOf(partialString)).to.gte(0, partialString)
           } else {
             expect.fail(`Expecting stderr output, and for it to contain ${partialString}`)
@@ -277,7 +279,8 @@ export default {
           if (!execution.expectedOutputFileOrDir && !execution.actualOutputFileOrDir) {
             return
           }
-          let actualIsDir =execution.actualOutputFileOrDir && fs.lstatSync(execution.actualOutputFileOrDir).isDirectory()
+          let actualIsDir =
+            execution.actualOutputFileOrDir && fs.lstatSync(execution.actualOutputFileOrDir).isDirectory()
           if (execution.dirShouldBeEmpty) {
             if (actualIsDir) {
               let actualFiles = sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir as TFileSystemPath))
@@ -329,7 +332,7 @@ export default {
             compareActualVsExpected(expectedFileName, actualFileName, execution.ignoreList)
           }
         }
-      }
+      },
     }
 
     return execution

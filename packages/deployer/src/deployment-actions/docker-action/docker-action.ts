@@ -3,7 +3,7 @@ import { expandEnv } from "../../template/expandenv"
 import { expandTemplate } from "@shepherdorg/hbs-template"
 import { TEnvironmentVariables, TImageMetadata } from "@shepherdorg/metadata"
 import * as path from "path"
-import { extendedExec, writeFile } from "../../helpers/promisified-exec"
+import { writeFile } from "../../helpers/promisified"
 import { environmentToEnvSetters } from "./environment-to-env-setters"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
 import { newProgrammerOops } from "oops-error"
@@ -11,9 +11,10 @@ import { isOops } from "../../helpers/isOops"
 import { ILog } from "../../logging/logger"
 import * as chalk from "chalk"
 import { TDeploymentState } from "@shepherdorg/metadata"
+import { FExec } from "@shepherdorg/ts-exec"
 
 type TDockerActionFactoryDependencies = {
-  exec: any
+  exec: FExec
   logger: ILog
   stateStore: IReleaseStateStore
 }
@@ -68,37 +69,27 @@ export function createDockerActionFactory({
       await writeFile(writePath, cmdLine)
       return executableAction
     } else {
+      const execResult = await exec("docker", dockerArguments(), {
+        env: process.env,
+      })
+      // logger.enterDeployment(plan.origin + '/' + plan.identifier);
+      logger.info(executableAction.planString(), deploymentOptions.logContext)
+      logger.info(execResult.stdout, deploymentOptions.logContext)
+      // logger.exitDeployment(plan.origin + '/' + plan.identifier);
       try {
-        const stdout = await extendedExec(exec)("docker", dockerArguments(), {
-          env: process.env,
-        })
-        // logger.enterDeployment(plan.origin + '/' + plan.identifier);
-        logger.info(executableAction.planString(), deploymentOptions.logContext)
-        logger.info(stdout as string, deploymentOptions.logContext)
-        // logger.exitDeployment(plan.origin + '/' + plan.identifier);
-        try {
-          let deploymentState = executableAction.getActionDeploymentState()
-          if (executableAction.isStateful && deploymentState) {
-            executableAction.setActionDeploymentState(await stateStore.saveDeploymentState(deploymentState))
-          }
-          return executableAction
-        } catch (err) {
-          // noinspection ExceptionCaughtLocallyJS
-          throw new Error(
-            `Failed to save state after successful deployment! ${chalk.blueBright(
-              executableAction.origin
-            )}/${chalk.blueBright(executableAction.identifier)}
-${err.message}`
-          )
+        let deploymentState = executableAction.getActionDeploymentState()
+        if (executableAction.isStateful && deploymentState) {
+          executableAction.setActionDeploymentState(await stateStore.saveDeploymentState(deploymentState))
         }
+        return executableAction
       } catch (err) {
-        let message = "Failed to run docker " + dockerArguments().join(" ") + ": \n"
-        message += "Error message: " + err.message || err
-        if (isOops(err)) {
-          throw newProgrammerOops(message, err.context, err)
-        } else {
-          throw newProgrammerOops(message)
-        }
+        // noinspection ExceptionCaughtLocallyJS
+        throw new Error(
+          `Failed to save state after successful deployment! ${chalk.blueBright(
+            executableAction.origin
+          )}/${chalk.blueBright(executableAction.identifier)}
+${err.message}`
+        )
       }
     }
   }

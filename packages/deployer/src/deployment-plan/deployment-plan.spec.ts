@@ -7,7 +7,6 @@ import {
 } from "./deployment-plan"
 import { clearEnv, setEnv } from "../deployment-actions/kubectl-action/testdata/test-action-factory"
 import { expect } from "chai"
-import { createFakeExec } from "../test-tools/fake-exec"
 import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
 import { IBasicExecutableAction, IStatefulExecutableAction, TActionExecutionOptions } from "../deployment-types"
 import { emptyArray } from "../helpers/ts-functions"
@@ -154,15 +153,13 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
 
 export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   const fakeLogger = createFakeLogger()
-  const fakeExec = createFakeExec()
-  const fakeExecution = initFakeExecution()
-  fakeExec.nextResponse.success = "exec success"
+  const tsFakeExec = initFakeExecution()
   const fakeStateStore = createFakeStateStore()
   fakeStateStore.nextState = { new: false, modified: true }
 
   let dockerActionFactory = createDockerActionFactory({
     logger: fakeLogger,
-    exec: fakeExec,
+    exec: tsFakeExec.exec,
     stateStore: fakeStateStore,
   })
   let deployerActionFactory = createDockerDeployerActionFactory({
@@ -172,8 +169,7 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   })
   let kubectlDeploymentActionsFactory = createKubectlDeploymentActionsFactory({
     logger: fakeLogger,
-    exec: fakeExec,
-    tsexec: fakeExecution.exec,
+    exec: tsFakeExec.exec,
     stateStore: fakeStateStore,
   })
   let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
@@ -182,7 +178,7 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
     environment: "fake",
   })
   let rolloutWaitActionFactory = createRolloutWaitActionFactory({
-    exec: fakeExecution.exec,
+    exec: tsFakeExec.exec,
     stateStore: fakeStateStore,
     logger: fakeLogger,
   })
@@ -198,13 +194,13 @@ export function fakeDeploymentPlanDependencies(): TDeploymentPlanDependencies {
   return {
     deploymentEnvironment: "specEnv",
     ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({
-      exec: fakeExec,
+      exec: tsFakeExec.exec,
       logger: fakeLogger,
       systemTime: () => new Date(),
       timeout: fakeTimeoutWrapper.fakeTimeout,
     }),
     logger: fakeLogger,
-    exec: fakeExec,
+    exec: tsFakeExec.exec,
     stateStore: fakeStateStore,
     uiDataPusher: uiDataPusher,
     rolloutWaitActionFactory: rolloutWaitActionFactory,

@@ -2,7 +2,7 @@ import { exec, TExecResult } from "./exec"
 import { expect } from "chai"
 import { createFakeLogger } from "@shepherdorg/deployer/dist/test-tools/fake-logger"
 
-describe("Command execution", function() {
+describe("Command execution. Tests only work in a posix shell.", function() {
   describe("executing ls, returning output buffers", function() {
     let execResult: TExecResult
     before(async () => {
@@ -64,7 +64,24 @@ describe("Command execution", function() {
     })
 
     it("should specify command and exit code in exception", () => {
-      expect(caughtError.message).to.equal("./src/testscript/fail.sh a b exited with error code 42")
+      expect(caughtError.message).to.equal("./src/testscript/fail.sh a b. Process exited with error code 42")
+    })
+  })
+
+  describe("writing a string to stdin on child process", function() {
+    let execResult: TExecResult
+    let outHandler = createFakeLogger()
+    let caughtError: any
+    before(async () => {
+      try {
+        execResult = await exec("cat", [], { stdin: "This is the input, catted to output" }, outHandler)
+      } catch (err) {
+        caughtError = err
+      }
+    })
+
+    it("should get the input out again through cat", () => {
+      expect(execResult.stdout).to.equal("This is the input, catted to output")
     })
   })
 })

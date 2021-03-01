@@ -4,8 +4,7 @@ import { IStatefulExecutableAction, TActionExecutionOptions } from "../../../dep
 import { expect } from "chai"
 import { createDeploymentTimeAnnotationActionFactory } from "./create-deployment-time-annotation-action"
 import { defaultTestExecutionOptions } from "../../../test-tools/test-action-execution-options"
-
-const exec = require("@shepherdorg/exec")
+import { exec } from "@shepherdorg/ts-exec"
 
 xdescribe("Deployment Time Annotation Action - Integrated - Requires access to a running kube cluster", function() {
   describe("For deployment in unspecified namespace", function() {

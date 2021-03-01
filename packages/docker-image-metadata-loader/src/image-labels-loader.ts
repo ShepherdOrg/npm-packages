@@ -1,15 +1,10 @@
-import {
-  dockerImageMetadata,
-  TDockerImageReference,
-  TDockerInspectMetadata,
-} from "./local-image-metadata"
+import { dockerImageMetadata, TDockerImageReference, TDockerInspectMetadata } from "./local-image-metadata"
 import { TDockerImageLabels } from "./registry-metadata-client"
 
 import * as _ from "lodash"
 import { ILog } from "./index"
 import { TDockerRegistryClientMap } from "./docker-registry-clients-config"
-
-const exec = require("@shepherdorg/exec")
+import { exec } from "@shepherdorg/ts-exec"
 
 export interface TImageLabelsLoaderDependencies {
   dockerRegistries: TDockerRegistryClientMap
@@ -17,18 +12,16 @@ export interface TImageLabelsLoaderDependencies {
 }
 
 export interface ILoadDockerImageLabels {
-  getImageLabels(imageDef: TDockerImageReference):any
+  getImageLabels(imageDef: TDockerImageReference): any
 }
 
-export function imageLabelsLoader(injected:TImageLabelsLoaderDependencies) : ILoadDockerImageLabels {
+export function imageLabelsLoader(injected: TImageLabelsLoaderDependencies): ILoadDockerImageLabels {
   const logger = injected.logger || console
 
-  const localImageLoader = dockerImageMetadata(
-    {
-      logger: logger,
-      exec: exec,
-    }
-  )
+  const localImageLoader = dockerImageMetadata({
+    logger: logger,
+    exec: exec,
+  })
 
   const dockerRegistries = injected.dockerRegistries
 
@@ -38,35 +31,27 @@ export function imageLabelsLoader(injected:TImageLabelsLoaderDependencies) : ILo
     })
   }
 
-  const getImageLabels = function(
-    imageDef: TDockerImageReference
-  ): Promise<TDockerInspectMetadata> {
+  const getImageLabels = function(imageDef: TDockerImageReference): Promise<TDockerInspectMetadata> {
     const matchingRegistry = findMatchingRegistry(imageDef)
 
     if (matchingRegistry) {
       return matchingRegistry
         .getImageManifestLabels(imageDef.image, imageDef.imagetag)
         .then((dockerImageLabels: TDockerImageLabels) => {
-          logger.debug(
-            `${imageDef.image}:${imageDef.imagetag} metadata loaded using registry API`
-          )
+          logger.debug(`${imageDef.image}:${imageDef.imagetag} metadata loaded using registry API`)
           return {
             dockerLabels: dockerImageLabels,
             imageDeclaration: imageDef,
           }
         })
     } else {
-      return localImageLoader
-        .inspectImageLabels(imageDef)
-        .then(dockerImageLabels => {
-          logger.debug(
-            `${imageDef.image}:${imageDef.imagetag} metadata loaded using docker inspect`
-          )
-          return {
-            dockerLabels: dockerImageLabels,
-            imageDeclaration: imageDef,
-          }
-        })
+      return localImageLoader.inspectImageLabels(imageDef).then(dockerImageLabels => {
+        logger.debug(`${imageDef.image}:${imageDef.imagetag} metadata loaded using docker inspect`)
+        return {
+          dockerLabels: dockerImageLabels,
+          imageDeclaration: imageDef,
+        }
+      })
     }
   }
 

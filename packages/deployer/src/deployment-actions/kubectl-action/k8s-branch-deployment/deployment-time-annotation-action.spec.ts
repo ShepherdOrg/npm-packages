@@ -1,16 +1,16 @@
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeExec, TFakeExec } from "../../../test-tools/fake-exec"
 import { createFakeLogger, IFakeLogging } from "../../../test-tools/fake-logger"
 import { IStatefulExecutableAction } from "../../../deployment-types"
 import { expect } from "chai"
 import { createDeploymentTimeAnnotationActionFactory } from "./create-deployment-time-annotation-action"
 import { createFakeTimeoutWrapper, TFakeTimeoutWrapper } from "../../../test-tools/fake-timer"
 import { defaultTestExecutionOptions } from "../../../test-tools/test-action-execution-options"
+import { IFakeExecution, initFakeExecution, TExecError } from "@shepherdorg/ts-exec"
 
 describe("Deployment Time Annotation Action", function() {
   describe("For deployment in unspecified namespace", function() {
     let fakeStateStore: TFakeStateStore
-    let fakeExec: TFakeExec
+    let fakeExec: IFakeExecution
     let fakeLogger: IFakeLogging
     let annotationAction: IStatefulExecutableAction
     let fakeTimeoutWrapper: TFakeTimeoutWrapper
@@ -18,11 +18,11 @@ describe("Deployment Time Annotation Action", function() {
     before(() => {
       fakeStateStore = createFakeStateStore()
       fakeLogger = createFakeLogger()
-      fakeExec = createFakeExec()
+      fakeExec = initFakeExecution()
       fakeTimeoutWrapper = createFakeTimeoutWrapper()
 
       annotationAction = createDeploymentTimeAnnotationActionFactory({
-        exec: fakeExec,
+        exec: fakeExec.exec,
         logger: fakeLogger,
         systemTime: () => {
           return new Date("2020-08-26T13:23:42.376Z")
@@ -75,14 +75,18 @@ describe("Deployment Time Annotation Action", function() {
         let execCount = 0
         fakeLogger.logStatements = []
         fakeExec.executedCommands = []
-        fakeExec.nextResponse = { err: "Big messy failure", success: undefined }
-        fakeExec.onExec = (command, params, options, err, success) => {
+        fakeExec.addResponse({ code: 99, stderr: "Big messy failure" })
+        fakeExec.onExec = async (command, params, options) => {
           if (execCount < 4) {
-            err("Fake this error", -1)
+            throw new TExecError(255, "Fake this error", "Error", "")
           } else {
-            success("Nice, annotation successful")
+            execCount++
+            return {
+              code: 0,
+              stdout: "Nice, annotation successful",
+              stderr: "",
+            }
           }
-          execCount++
         }
         return (execResult = await annotationAction.execute(defaultTestExecutionOptions))
       })
@@ -103,17 +107,17 @@ describe("Deployment Time Annotation Action", function() {
         let execCount = 0
         fakeLogger.logStatements = []
         fakeExec.executedCommands = []
-        fakeExec.nextResponse = { err: "Big messy failure", success: undefined }
-        fakeExec.onExec = (command, params, options, err, success) => {
+        fakeExec.addResponse({ code: 33, stderr: "Big messy failure", stdout: "undefined" })
+        fakeExec.onExec = async (command, params, options) => {
           execCount++
           if (execCount > 100) {
             throw new Error("Heading for stack overflow!")
           }
 
-          err("Fake this error", -1)
+          throw new TExecError(-1, "Fake this error", "", "")
         }
         annotationAction = createDeploymentTimeAnnotationActionFactory({
-          exec: fakeExec,
+          exec: fakeExec.exec,
           logger: fakeLogger,
           systemTime: () => {
             return new Date("2020-08-26T13:23:42.376Z")

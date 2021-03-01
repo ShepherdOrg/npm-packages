@@ -19,6 +19,7 @@ import { IDeploymentOrchestration } from "../deployment-orchestration/deployment
 import { ILog } from "../logging/logger"
 import * as chalk from "chalk"
 import * as yaml from "js-yaml"
+import { FExec } from "@shepherdorg/ts-exec"
 
 flatMapPolyfill()
 
@@ -32,7 +33,7 @@ export type THerdLoaderDependencies = {
   planFactory: IDeploymentPlanFactory
   logger: ILog
   featureDeploymentConfig: IConfigureUpstreamDeployment
-  exec: any
+  exec: FExec
   labelsLoader: TDockerMetadataLoader
   stateStore: IReleaseStateStore
   folderLoader: IPlanFolderDeployments
@@ -65,7 +66,6 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
     imageLabelsLoader,
     planFactory: injected.planFactory,
     stateStore: injected.stateStore,
-    exec: injected.exec,
   })
 
   async function loadHerd(fileName: TFileSystemPath): Promise<IDeploymentOrchestration> {

@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "@shepherdorg/docker-image-metadata-loader": "^5.0.9",
-    "@shepherdorg/exec": "^5.0.9",
     "@shepherdorg/filestore-backend": "^5.0.9",
     "@shepherdorg/hbs-template": "^5.0.0",
     "@shepherdorg/metadata": "^5.0.1",

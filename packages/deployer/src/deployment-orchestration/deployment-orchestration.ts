@@ -1,9 +1,4 @@
-import {
-  IAnyDeploymentAction,
-  IDockerImageKubectlDeploymentAction,
-  TActionExecutionOptions,
-  TDeploymentOrchestrationDependencies,
-} from "../deployment-types"
+import { IAnyDeploymentAction, IDockerImageKubectlDeploymentAction, TActionExecutionOptions } from "../deployment-types"
 import { TFileSystemPath } from "../helpers/basic-types"
 import {
   IDeploymentPlan,
@@ -25,8 +20,7 @@ export interface IDeploymentOrchestration {
   addDeploymentPlan(deploymentPlan: IDeploymentPlan): Promise<IDeploymentPlan>
 }
 
-export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDependencies): IDeploymentOrchestration {
-
+export function DeploymentOrchestration(): IDeploymentOrchestration {
   const deploymentPlans: Array<IDeploymentPlan> = []
 
   const k8sDeploymentPlans: TK8sDeploymentPlansByKey = {}
@@ -34,27 +28,24 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
   const k8sDeploymentsByIdentifier: { [key: string]: IDockerImageKubectlDeploymentAction } = {}
 
   function addActionToCatalog(deploymentAction: IDockerImageKubectlDeploymentAction) {
-    if(!deploymentAction.isStateful) return
+    if (!deploymentAction.isStateful) return
     k8sDeploymentPlans[deploymentAction.origin] =
       k8sDeploymentPlans[deploymentAction.origin] || deploymentAction.herdKey
 
     if (k8sDeploymentsByIdentifier[deploymentAction.identifier]) {
       throw new Error(
         chalk.red(deploymentAction.identifier) +
-        " is already in deployment plan from " +
-        chalk.blueBright(k8sDeploymentsByIdentifier[deploymentAction.identifier].origin )+
-        ". When adding deployment from " +
-        chalk.blueBright(deploymentAction.origin),
+          " is already in deployment plan from " +
+          chalk.blueBright(k8sDeploymentsByIdentifier[deploymentAction.identifier].origin) +
+          ". When adding deployment from " +
+          chalk.blueBright(deploymentAction.origin)
       )
     }
 
     k8sDeploymentsByIdentifier[deploymentAction.identifier] = deploymentAction
   }
 
-
-  function preventDuplicateKubectlDeployment(
-    deploymentAction: IAnyDeploymentAction,
-  ): IAnyDeploymentAction {
+  function preventDuplicateKubectlDeployment(deploymentAction: IAnyDeploymentAction): IAnyDeploymentAction {
     if (deploymentAction.type === "k8s") {
       addActionToCatalog(deploymentAction as IDockerImageKubectlDeploymentAction)
     }
@@ -67,26 +58,29 @@ export function DeploymentOrchestration(_injected: TDeploymentOrchestrationDepen
       dryRunOutputDir: undefined,
       pushToUi: true,
       waitForRollout: false,
-      logContext: {} // This will always be overwritten, probably need a new type here
-    },
-  ) : Promise<IDeploymentPlanExecutionResult[]> {
-    return await Promise.all(deploymentPlans.map((deploymentPlan) => deploymentPlan.execute(runOptions)))
+      logContext: {}, // This will always be overwritten, probably need a new type here
+    }
+  ): Promise<IDeploymentPlanExecutionResult[]> {
+    return await Promise.all(deploymentPlans.map(deploymentPlan => deploymentPlan.execute(runOptions)))
   }
 
   function printPlan(logger: ILog) {
-    let anythingPlanned = deploymentPlans.reduce((anyChanges, deploymentPlan,)=>{
+    let anythingPlanned = deploymentPlans.reduce((anyChanges, deploymentPlan) => {
       const planChanges = deploymentPlan.printPlan(logger)
-      return anyChanges || planChanges}, false)
-    if(!anythingPlanned){
-      logger.info('No plans to do anything this time')
+      return anyChanges || planChanges
+    }, false)
+    if (!anythingPlanned) {
+      logger.info("No plans to do anything this time")
     }
     return anythingPlanned
   }
 
   async function exportDeploymentActions(_exportDirectory: TFileSystemPath): Promise<void> {
-    await Promise.all(deploymentPlans.map(async (deploymentPlan)=>{
-      return deploymentPlan.exportActions(_exportDirectory)
-    }))
+    await Promise.all(
+      deploymentPlans.map(async deploymentPlan => {
+        return deploymentPlan.exportActions(_exportDirectory)
+      })
+    )
   }
 
   return {

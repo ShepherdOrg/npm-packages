@@ -19,7 +19,6 @@ import {
   TK8sDockerImageDeploymentActionStruct,
 } from "../herd-loading/testdata/testActions"
 import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
-import { createFakeExec, TFakeExec } from "../test-tools/fake-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createDeploymentPlanFactory, TDeploymentPlanDependencies } from "../deployment-plan/deployment-plan"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
@@ -34,13 +33,11 @@ import { IFakeExecution, initFakeExecution } from "@shepherdorg/ts-exec"
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
   iFakeLogging: IFakeLogging,
-  fakeExec: TFakeExec,
   tsFakeExec: IFakeExecution,
   stateStore: TFakeStateStore
 ): IDockerImageKubectlDeploymentAction {
   const actionFactory = createKubectlDeploymentActionsFactory({
-    exec: fakeExec,
-    tsexec: tsFakeExec.exec,
+    exec: tsFakeExec.exec,
     logger: iFakeLogging,
     stateStore: stateStore,
   })
@@ -74,11 +71,11 @@ export function createKubectlTestDeployAction(
 export function createFakeDockerDeploymentAction(
   serialisedAction: TDockerDeploymentActionStruct,
   iFakeLogging: IFakeLogging,
-  fakeExec: TFakeExec,
+  fakeExec: IFakeExecution,
   stateStore: TFakeStateStore
 ): IDockerDeploymentAction {
   let dockerActionFactory = createDockerActionFactory({
-    exec: fakeExec,
+    exec: fakeExec.exec,
     logger: iFakeLogging,
     stateStore: stateStore,
   })
@@ -137,14 +134,13 @@ export function createFakeDockerImageKubectlDeploymentFactory(): ICreateDockerIm
 describe("Deployment orchestration", function() {
   let deploymentOrchestration: IDeploymentOrchestration
   let fakeStateStore: any
-  let fakeExec: TFakeExec
   let tsFakeExec: IFakeExecution
   let fakeLogger: IFakeLogging
   let fakeUiDataPusher: IPushToShepherdUI & { pushedData: Array<any> }
 
   async function wrapActionIntoPlan(depAction: IAnyDeploymentAction) {
     let executionActionFactory = createDockerActionFactory({
-      exec: fakeExec,
+      exec: tsFakeExec.exec,
       logger: fakeLogger,
       stateStore: fakeStateStore,
     })
@@ -167,14 +163,14 @@ describe("Deployment orchestration", function() {
     let fakeDeps: TDeploymentPlanDependencies = {
       deploymentEnvironment: "specenv",
       ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({
-        exec: fakeExec,
+        exec: tsFakeExec.exec,
         logger: fakeLogger,
         systemTime: () => {
           return new Date()
         },
         timeout: setTimeout,
       }),
-      exec: fakeExec,
+      exec: tsFakeExec.exec,
       logger: fakeLogger,
       stateStore: fakeStateStore,
       uiDataPusher: fakeUiDataPusher,
@@ -195,7 +191,6 @@ describe("Deployment orchestration", function() {
       createKubectlTestDeployAction(
         TestActions.addedK8sDeployments[deploymentKey] as TK8sDockerImageDeploymentActionStruct,
         fakeLogger,
-        fakeExec,
         tsFakeExec,
         fakeStateStore
       )
@@ -205,7 +200,7 @@ describe("Deployment orchestration", function() {
   async function createDeployerTestPlan(
     deploymentKey: string,
     fakeLogging: IFakeLogging,
-    fakeExec1: TFakeExec,
+    fakeExec1: IFakeExecution,
     stateStore: TFakeStateStore
   ) {
     return await wrapActionIntoPlan(
@@ -220,15 +215,10 @@ describe("Deployment orchestration", function() {
 
   beforeEach(function() {
     tsFakeExec = initFakeExecution()
-    fakeExec = createFakeExec()
     fakeUiDataPusher = createFakeUIPusher()
     fakeStateStore = createFakeStateStore()
     fakeLogger = createFakeLogger()
-    deploymentOrchestration = DeploymentOrchestration({
-      stateStore: fakeStateStore,
-      cmd: fakeExec,
-      logger: fakeLogger,
-    })
+    deploymentOrchestration = DeploymentOrchestration()
   })
 
   describe("-k8s- deployment", function() {
@@ -266,7 +256,7 @@ describe("Deployment orchestration", function() {
       })
 
       it("should not execute plan ", function() {
-        expect(fakeExec.executedCommands.length).to.equal(0)
+        expect(tsFakeExec.executedCommands.length).to.equal(0)
       })
 
       it("should not push any data to UI", () => {
@@ -285,7 +275,7 @@ describe("Deployment orchestration", function() {
       })
 
       it("should not execute anything", function() {
-        expect(fakeExec.executedCommands.length).to.equal(0)
+        expect(tsFakeExec.executedCommands.length).to.equal(0)
       })
 
       it("should not save any state", () => {
@@ -312,7 +302,7 @@ describe("Deployment orchestration", function() {
           saveFailure: false,
           message: "",
         }
-        fakeExec.nextResponse.success = "applied"
+        tsFakeExec.addResponse({ stdout: "applied" })
 
         return deploymentOrchestration
           .addDeploymentPlan(await createK8sTestPlan("ConfigMap_www-icelandair-com-nginx-acls"))
@@ -332,10 +322,10 @@ describe("Deployment orchestration", function() {
       })
 
       it("should execute three commands and no rollout status command", () => {
-        expect(fakeExec.executedCommands.length).to.equal(3)
-        expect(fakeExec.executedCommands[0].params[0]).to.equal("apply", "0")
-        expect(fakeExec.executedCommands[1].params[0]).to.equal("apply", "1")
-        expect(fakeExec.executedCommands[2].params[0]).to.equal("delete", "2")
+        expect(tsFakeExec.executedCommands.length).to.equal(3)
+        expect(tsFakeExec.executedCommands[0].params[0]).to.equal("apply", "0")
+        expect(tsFakeExec.executedCommands[1].params[0]).to.equal("apply", "1")
+        expect(tsFakeExec.executedCommands[2].params[0]).to.equal("delete", "2")
       })
     })
 
@@ -347,7 +337,7 @@ describe("Deployment orchestration", function() {
           message: "",
           modified: false,
         }
-        fakeExec.nextResponse.success = "done"
+        tsFakeExec.addResponse({ stdout: "done" })
 
         return deploymentOrchestration
           .addDeploymentPlan(await createK8sTestPlan("ConfigMap_www-icelandair-com-nginx-acls"))
@@ -369,7 +359,7 @@ describe("Deployment orchestration", function() {
       it("should not execute anything", () => {
         // Uncomment for clearer insight
         // console.log(`fakeExec.executedCommands`, fakeExec.executedCommands.map((ec:any)=> identifyDocument(ec.options.stdin).identifyingString + ' ... ' +  ec.params.join(' ')))
-        expect(fakeExec.executedCommands.length).to.equal(0)
+        expect(tsFakeExec.executedCommands.length).to.equal(0)
       })
     })
 
@@ -381,7 +371,7 @@ describe("Deployment orchestration", function() {
           saveFailure: true,
           message: "State store failure!",
         }
-        fakeExec.nextResponse.success = "applied"
+        tsFakeExec.addResponse({ stdout: "applied" })
         return deploymentOrchestration
           .addDeploymentPlan(await createK8sTestPlan("ConfigMap_www-icelandair-com-nginx-acls"))
           .then(async () =>
@@ -406,7 +396,8 @@ describe("Deployment orchestration", function() {
       let saveError: Error, executedAction: IK8sDirDeploymentAction
 
       beforeEach(async function() {
-        fakeExec.setErr("not found")
+        // fakeExec.setErr("not found")
+        tsFakeExec.addResponse({ code: 99, stderr: "not found" })
         return deploymentOrchestration
           .addDeploymentPlan(await createK8sTestPlan("Namespace_monitors"))
           .then(function() {
@@ -429,7 +420,7 @@ describe("Deployment orchestration", function() {
       })
 
       it("should save call log with state", function() {
-        expect(executedAction?.getActionDeploymentState()?.stdout).to.equal(undefined)
+        expect(executedAction?.getActionDeploymentState()?.stdout).to.equal("")
         expect(executedAction?.getActionDeploymentState()?.stderr).to.equal("not found")
       })
     })
@@ -442,7 +433,7 @@ describe("Deployment orchestration", function() {
           await createDeployerTestPlan(
             "testenvimage-migrations:0.0.0",
             createFakeLogger(),
-            createFakeExec(),
+            initFakeExecution(),
             createFakeStateStore()
           )
         )
@@ -455,10 +446,11 @@ describe("Deployment orchestration", function() {
 
     describe("executing modified parameters", function() {
       beforeEach(async function() {
-        fakeExec.nextResponse.success = "this would be docker run output"
+        tsFakeExec.addResponse({ stdout: "this would be docker run output" })
+        // fakeExec.nextResponse.success = "this would be docker run output"
         fakeStateStore.nextState = { new: false, modified: true }
         await deploymentOrchestration.addDeploymentPlan(
-          await createDeployerTestPlan("testenvimage-migrations:0.0.0", createFakeLogger(), fakeExec, fakeStateStore)
+          await createDeployerTestPlan("testenvimage-migrations:0.0.0", createFakeLogger(), tsFakeExec, fakeStateStore)
         )
         await deploymentOrchestration.addDeploymentPlan(
           await createK8sTestPlan("ConfigMap_www-icelandair-com-nginx-acls")
@@ -468,13 +460,13 @@ describe("Deployment orchestration", function() {
 
       it("should run docker with correct parameters", function() {
         let p = 0
-        expect(fakeExec.executedCommands.length).to.equal(2)
-        expect(fakeExec.executedCommands[0].command).to.equal("docker")
-        expect(fakeExec.executedCommands[0].params[p++]).to.equal("run")
-        expect(fakeExec.executedCommands[0].params[p++]).to.equal("-i")
-        expect(fakeExec.executedCommands[0].params[p++]).to.equal("--rm")
-        expect(fakeExec.executedCommands[0].params[p++]).to.equal("-e")
-        expect(fakeExec.executedCommands[0].params[p++]).to.equal("ENV=testenv")
+        expect(tsFakeExec.executedCommands.length).to.equal(2)
+        expect(tsFakeExec.executedCommands[0].command).to.equal("docker")
+        expect(tsFakeExec.executedCommands[0].params[p++]).to.equal("run")
+        expect(tsFakeExec.executedCommands[0].params[p++]).to.equal("-i")
+        expect(tsFakeExec.executedCommands[0].params[p++]).to.equal("--rm")
+        expect(tsFakeExec.executedCommands[0].params[p++]).to.equal("-e")
+        expect(tsFakeExec.executedCommands[0].params[p++]).to.equal("ENV=testenv")
       })
 
       it("should print plan for modified deployments", function() {
@@ -504,7 +496,7 @@ describe("Deployment orchestration", function() {
 
     describe("execution order", function() {
       beforeEach(async function() {
-        fakeExec.nextResponse.success = "this would be docker run output"
+        tsFakeExec.addResponse({ stdout: "this would be docker run output" })
         fakeStateStore.nextState = { new: false, modified: true }
         return deploymentOrchestration
           .addDeploymentPlan(
@@ -512,7 +504,7 @@ describe("Deployment orchestration", function() {
               createFakeDockerDeploymentAction(
                 TestActions.addedDockerDeployers["testenvimage-migrations:0.0.0"] as IDockerDeploymentAction,
                 createFakeLogger(),
-                createFakeExec(),
+                initFakeExecution(),
                 createFakeStateStore()
               )
             )
@@ -523,7 +515,7 @@ describe("Deployment orchestration", function() {
                 createFakeDockerDeploymentAction(
                   TestActions.addedDockerDeployers["test-infrastructure:1.0.0"] as IDockerDeploymentAction,
                   createFakeLogger(),
-                  createFakeExec(),
+                  initFakeExecution(),
                   createFakeStateStore()
                 )
               )
@@ -535,7 +527,7 @@ describe("Deployment orchestration", function() {
                 createFakeDockerDeploymentAction(
                   TestActions.addedDockerDeployers["test-infrastructure:1.0.0"] as IDockerDeploymentAction,
                   createFakeLogger(),
-                  createFakeExec(),
+                  initFakeExecution(),
                   createFakeStateStore()
                 )
               )

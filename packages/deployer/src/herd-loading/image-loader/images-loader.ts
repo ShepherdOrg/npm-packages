@@ -6,7 +6,7 @@ import {
 } from "../../deployment-types"
 import { TDockerImageReference } from "@shepherdorg/docker-image-metadata-loader/dist/local-image-metadata"
 import { extractShepherdMetadata } from "../add-shepherd-metadata"
-import { IExec, TFileSystemPath } from "../../helpers/basic-types"
+import { TFileSystemPath } from "../../helpers/basic-types"
 import { ILoadDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { parseImageUrl, TDockerImageUrl, TDockerImageUrlStruct } from "../../helpers/parse-image-url"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan"
@@ -19,24 +19,23 @@ export function parseDockerImageUrl(dockerImageUrl: TDockerImageUrl): TDockerIma
 }
 
 interface TImageDeclarationsLoaderDependencies {
-  exec: IExec
   stateStore: IReleaseStateStore
   logger: ILog
   imageLabelsLoader: ILoadDockerImageLabels
-  planFactory : IDeploymentPlanFactory
+  planFactory: IDeploymentPlanFactory
 }
 
-export function createImagesLoader(injected: TImageDeclarationsLoaderDependencies ) {
+export function createImagesLoader(injected: TImageDeclarationsLoaderDependencies) {
   let derivedDeployments: TDockerImageHerdDeclarations = {}
 
   function loadImageDeploymentPlans(images: TDockerImageHerdDeclarations, sectionDeclaration: THerdSectionDeclaration) {
-
     function addMigrationImageToDependenciesPlan(imageMetaData: TImageInformation) {
       if (imageMetaData.shepherdMetadata && imageMetaData.shepherdMetadata.migrationImage) {
-        let dockerImageTag = parseDockerImageUrl(
-          imageMetaData.shepherdMetadata.migrationImage,
-        )
-        derivedDeployments[imageMetaData.shepherdMetadata.migrationImage] = { sectionDeclaration: sectionDeclaration, ...dockerImageTag }
+        let dockerImageTag = parseDockerImageUrl(imageMetaData.shepherdMetadata.migrationImage)
+        derivedDeployments[imageMetaData.shepherdMetadata.migrationImage] = {
+          sectionDeclaration: sectionDeclaration,
+          ...dockerImageTag,
+        }
       }
       return imageMetaData
     }
@@ -65,16 +64,17 @@ export function createImagesLoader(injected: TImageDeclarationsLoaderDependencie
           } else {
             errorMessage = "When processing image " + imgName + "\n" + e.message
           }
-          throw newProgrammerOops(errorMessage,{}, e)
+          throw newProgrammerOops(errorMessage, {}, e)
         })
       return promise
     })
   }
 
-
-  async function imagesLoader(herdSectionSpec: THerdSectionDeclaration,
-                              images: TDockerImageHerdDeclarations,
-                              _herdPath: TFileSystemPath): Promise<Array<IDeploymentPlan>> {
+  async function imagesLoader(
+    herdSectionSpec: THerdSectionDeclaration,
+    images: TDockerImageHerdDeclarations,
+    _herdPath: TFileSystemPath
+  ): Promise<Array<IDeploymentPlan>> {
     let planLoadingPromises: Array<Promise<IDeploymentPlan>> = loadImageDeploymentPlans(images, herdSectionSpec)
     let imageDeploymentPlans: Array<IDeploymentPlan> = await Promise.all(planLoadingPromises)
 
@@ -82,9 +82,11 @@ export function createImagesLoader(injected: TImageDeclarationsLoaderDependencie
     let derivedPlanLoadingPromises = loadImageDeploymentPlans(derivedDeployments, herdSectionSpec)
     imageDeploymentPlans = imageDeploymentPlans.concat(await Promise.all(derivedPlanLoadingPromises))
 
-    return await Promise.all(imageDeploymentPlans.flatMap(async (deploymentPlan) => {
-      return deploymentPlan
-    }))
+    return await Promise.all(
+      imageDeploymentPlans.flatMap(async deploymentPlan => {
+        return deploymentPlan
+      })
+    )
   }
 
   return { imagesLoader }

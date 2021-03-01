@@ -4,7 +4,7 @@ export type TExecResult = { code: number; stdout: string; stderr: string }
 
 const BUFFER_ENCODING: "utf-8" = "utf-8"
 
-export type TExecOptions = ExecFileOptions & { doNotCollectOutput?: boolean }
+export type TExecOptions = ExecFileOptions & { doNotCollectOutput?: boolean; stdin?: string }
 
 export type FExec = (
   command: string,
@@ -26,7 +26,9 @@ export class TExecError extends Error {
 }
 
 export function formatExecErrorMessage(command: string, params: string[] | undefined, code: number) {
-  return `${command}${params && params.length ? " " + params.join(" ") + " " : " "}exited with error code ${code}`
+  return `${command}${
+    params && params.length ? " " + params.join(" ") + ". " : ". "
+  }Process exited with error code ${code}`
 }
 
 export const exec: FExec = async (
@@ -78,6 +80,19 @@ export const exec: FExec = async (
           reject(new TExecError(code, formatExecErrorMessage(command, params, code), errBuffer, outBuffer))
         }
       })
+
+      if (options && options.stdin) {
+        if (!child.stdin) {
+          throw new TExecError(
+            255,
+            `Unable to open stdin for child process ${formatExecErrorMessage(command, params, 255)}`,
+            "",
+            ""
+          )
+        }
+        child.stdin.write(options.stdin, "utf-8")
+        child.stdin.end()
+      }
     } catch (err) {
       reject(err)
     }

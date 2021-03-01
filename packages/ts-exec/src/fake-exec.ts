@@ -1,11 +1,7 @@
 import { TExecError, FExec, formatExecErrorMessage } from "./exec"
 
-function emptyVariable<T>() {
-  return (undefined as unknown) as T
-}
-
 export type IFakeExecution = {
-  addResponse: (response: TExecResponse) => IFakeExecution
+  addResponse: (response: Partial<TExecResponse>) => IFakeExecution
   exec: FExec
   onExec?: FExec
   executedCommands: TCommandRecording[]
@@ -18,7 +14,7 @@ export type TCommandRecording = {
   command: string
 }
 
-type TExecResponse = { code: number; errorMessage?: string; stderr?: string; stdout: string }
+type TExecResponse = { code: number; stderr?: string; stdout: string }
 
 export function initFakeExecution(execResponses?: Array<TExecResponse>): IFakeExecution {
   let executedCommands: Array<TCommandRecording> = []
@@ -30,7 +26,11 @@ export function initFakeExecution(execResponses?: Array<TExecResponse>): IFakeEx
       return fakeExec.executedCommands.map(ec => ec.command + " " + ec.params.join(" "))
     },
     addResponse: response => {
-      responseSequence.push(response)
+      responseSequence.push({
+        stdout: response.stdout || "",
+        stderr: response.stderr,
+        code: response.code || 0,
+      })
       return fakeExec
     },
     executedCommands: executedCommands,

@@ -11,10 +11,10 @@ import { expandEnv } from "../../template/expandenv"
 import { processLine } from "../../template/base64-env-subst"
 import { expandTemplate } from "@shepherdorg/hbs-template"
 import * as path from "path"
-import { extendedExec, writeFile } from "../../helpers/promisified-exec"
+import { writeFile } from "../../helpers/promisified"
 import { TK8sPartialDescriptor } from "./k8s-document-types"
 import { emptyArray } from "../../helpers/ts-functions"
-import { IExec, TFileSystemPath } from "../../helpers/basic-types"
+import { TFileSystemPath } from "../../helpers/basic-types"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
 import { ILog } from "../../logging/logger"
 import { TDeploymentState } from "@shepherdorg/metadata"
@@ -26,7 +26,7 @@ const chalk = require("chalk")
 
 const applyClusterPolicies = require("./apply-k8s-policy").applyPoliciesToDoc
 
-type IKubectlActionFactoryDependencies = { exec: IExec; tsexec: FExec; logger: ILog; stateStore: IReleaseStateStore }
+type IKubectlActionFactoryDependencies = { exec: FExec; logger: ILog; stateStore: IReleaseStateStore }
 
 export type TDeploymentRollout = {
   namespace: string
@@ -78,12 +78,11 @@ export interface ICreateKubectlDeploymentAction {
 
 export function createKubectlDeploymentActionsFactory({
   exec,
-  tsexec,
   logger,
   stateStore,
 }: IKubectlActionFactoryDependencies): ICreateKubectlDeploymentAction {
   /* We might want to inject the rollout undo action factory at some point. Not worth the hassle right now. */
-  let rolloutUndoActionFactory = createRolloutUndoActionFactory({ exec: tsexec, logger })
+  let rolloutUndoActionFactory = createRolloutUndoActionFactory({ exec: exec, logger })
 
   async function executeKubectlDeploymentAction(
     thisIsMe: IKubectlDeployAction,
@@ -104,16 +103,20 @@ export function createKubectlDeploymentActionsFactory({
         return thisIsMe
       } else {
         try {
-          const stdOut = await extendedExec(exec)("kubectl", [thisIsMe.operation, "-f", "-"], {
-            env: process.env,
-            stdin: thisIsMe.descriptor,
-            debug: true,
-          })
+          const execResult = await exec(
+            "kubectl",
+            [thisIsMe.operation, "-f", "-"],
+            {
+              env: process.env,
+              stdin: thisIsMe.descriptor,
+            },
+            logger
+          )
           logger.info(
             `kubectl ${thisIsMe.operation} descriptors in ${thisIsMe.origin}/${thisIsMe.identifier}`,
             actionExecutionOptions.logContext
           )
-          logger.info((stdOut as string) || "[empty output]", actionExecutionOptions.logContext)
+          logger.info((execResult.stdout as string) || "[empty output]", actionExecutionOptions.logContext)
 
           try {
             if (thisIsMe.isStateful) {
@@ -134,7 +137,7 @@ export function createKubectlDeploymentActionsFactory({
           }
         } catch (error) {
           if (typeof error === "string") throw new Error(error)
-          const { errCode, stdOut, message: err } = error
+          const { code, stdout, stderr, message: err } = error
           if (thisIsMe.operation === "delete") {
             logger.info(
               "kubectl " + thisIsMe.operation + " deployments in " + thisIsMe.origin + "/" + thisIsMe.identifier,
@@ -147,12 +150,10 @@ export function createKubectlDeploymentActionsFactory({
             if (err) {
               logger.info(err || "[empty error]", actionExecutionOptions.logContext)
             }
-            logger.info(stdOut || "[empty output]", actionExecutionOptions.logContext)
+            logger.info(stdout || "[empty output]", actionExecutionOptions.logContext)
 
-            // @ts-ignore
-            deploymentState.stdout = stdOut
-            // @ts-ignore
-            deploymentState.stderr = err
+            deploymentState.stdout = stdout
+            deploymentState.stderr = stderr
 
             try {
               const state = await stateStore.saveDeploymentState(deploymentState)
@@ -170,8 +171,8 @@ ${err.message || err}`)
               thisIsMe.operation
             )} from label for image ${JSON.stringify(thisIsMe, null, 2)}`
             message += "\n" + error.message
-            message += "\nCode:" + errCode
-            message += "\nStdOut:" + stdOut
+            message += "\nCode:" + code
+            message += "\nStdOut:" + stdout
             throw new Error(message)
           }
         }
