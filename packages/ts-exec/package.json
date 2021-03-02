@@ -20,6 +20,7 @@
     "command"
   ],
   "dependencies": {
+    "@shepherdorg/logger": "5.0.0"
   },
   "author": "Guðlaugur S. Egilsson",
   "license": "MIT",
