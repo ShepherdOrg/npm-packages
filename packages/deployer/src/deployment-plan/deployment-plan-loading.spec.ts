@@ -18,7 +18,7 @@ import { imageInfoDSL } from "../test-tools/image-info-dsl"
 import { createDeploymentPlanFactory, IDeploymentPlan, IDeploymentPlanFactory } from "./deployment-plan"
 import { fakeDeploymentPlanDependencies } from "./deployment-plan.spec"
 import { TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeLogger } from "../test-tools/fake-logger"
+import { createFakeLogger } from "@shepherdorg/logger"
 
 describe("Docker image plan loader", function() {
   let testEnv = {

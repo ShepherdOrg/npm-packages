@@ -1,6 +1,6 @@
 import { exec, TExecResult } from "./exec"
 import { expect } from "chai"
-import { createFakeLogger } from "@shepherdorg/deployer/dist/test-tools/fake-logger"
+import { createFakeLogger } from "@shepherdorg/logger"
 
 describe("Command execution. Tests only work in a posix shell.", function() {
   describe("executing ls, returning output buffers", function() {

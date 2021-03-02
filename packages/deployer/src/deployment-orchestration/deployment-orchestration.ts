@@ -6,7 +6,7 @@ import {
   TK8sDeploymentPlansByKey,
 } from "../deployment-plan/deployment-plan"
 import { flatMapPolyfill } from "../herd-loading/folder-loader/flatmap-polyfill"
-import { ILog } from "../logging/logger"
+import { ILog } from "@shepherdorg/logger"
 import * as chalk from "chalk"
 
 flatMapPolyfill()

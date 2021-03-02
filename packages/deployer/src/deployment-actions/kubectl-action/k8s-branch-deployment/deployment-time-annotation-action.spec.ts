@@ -1,5 +1,5 @@
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeLogger, IFakeLogging } from "../../../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { IStatefulExecutableAction } from "../../../deployment-types"
 import { expect } from "chai"
 import { createDeploymentTimeAnnotationActionFactory } from "./create-deployment-time-annotation-action"

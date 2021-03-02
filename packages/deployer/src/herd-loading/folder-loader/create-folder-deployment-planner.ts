@@ -11,7 +11,7 @@ import { flatMapPolyfill } from "./flatmap-polyfill"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan"
 import { newProgrammerOops } from "oops-error"
 import Bluebird = require("bluebird")
-import { ILog } from "../../logging/logger"
+import { ILog } from "@shepherdorg/logger"
 import * as chalk from "chalk"
 
 flatMapPolyfill()

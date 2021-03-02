@@ -1,7 +1,7 @@
 import { IStatefulExecutableAction, IKubectlAction, TActionExecutionOptions } from "../../deployment-types"
 import { TDeploymentRollout } from "./kubectl-deployment-action-factory"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
-import { ILog } from "../../logging/logger"
+import { ILog } from "@shepherdorg/logger"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { Oops } from "oops-error"
 import { createRolloutUndoActionFactory } from "./rollout-undo-actionfactory"

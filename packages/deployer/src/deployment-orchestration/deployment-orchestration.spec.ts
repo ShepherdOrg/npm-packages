@@ -12,7 +12,7 @@ import {
 } from "../deployment-types"
 import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { emptyArray } from "../helpers/ts-functions"
-import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import {
   TDockerDeploymentActionStruct,
   TestActions,
@@ -25,7 +25,7 @@ import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-ac
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { createDeploymentTestActionFactory } from "../deployment-actions/deployment-test-action/deployment-test-action"
-import { createLogContextColors } from "../logging/log-context-colors"
+import { createLogContextColors } from "@shepherdorg/logger"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 import { IFakeExecution, initFakeExecution } from "@shepherdorg/ts-exec"

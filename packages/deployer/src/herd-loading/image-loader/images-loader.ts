@@ -12,7 +12,7 @@ import { parseImageUrl, TDockerImageUrl, TDockerImageUrlStruct } from "../../hel
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../../deployment-plan/deployment-plan"
 import { newProgrammerOops } from "oops-error"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
-import { ILog } from "../../logging/logger"
+import { ILog } from "@shepherdorg/logger"
 
 export function parseDockerImageUrl(dockerImageUrl: TDockerImageUrl): TDockerImageUrlStruct {
   return parseImageUrl(dockerImageUrl)

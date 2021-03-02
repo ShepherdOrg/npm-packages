@@ -1,6 +1,6 @@
 import { TDeploymentRollout } from "./kubectl-deployment-action-factory"
 import { IExecutableActionV2, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
-import { ILog } from "../../logging/logger"
+import { ILog } from "@shepherdorg/logger"
 import { FExec, TExecError } from "@shepherdorg/ts-exec"
 
 export function createRolloutUndoActionFactory({ exec, logger }: { exec: FExec; logger: ILog }) {

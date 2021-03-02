@@ -1,5 +1,5 @@
 import { TestActions, TK8sDockerImageDeploymentActionStruct } from "../../herd-loading/testdata/testActions"
-import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { expect } from "chai"
 import { IKubectlDeployAction, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"

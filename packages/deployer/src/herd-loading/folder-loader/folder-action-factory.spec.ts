@@ -9,7 +9,7 @@ const Path = require("path")
 
 import Bluebird = require("bluebird")
 import { createKubectlDeploymentActionsFactory } from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
-import { createFakeLogger } from "../../test-tools/fake-logger"
+import { createFakeLogger } from "@shepherdorg/logger"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { initFakeExecution } from "@shepherdorg/ts-exec"
 

@@ -1,6 +1,6 @@
 import * as yaml from "js-yaml"
 import { TK8sPartialDescriptor } from "./k8s-document-types"
-import { ILog } from "../../logging/logger"
+import { ILog } from "@shepherdorg/logger"
 
 type TK8SClusterPolicy = {
   removePublicServiceIpRestrictions: boolean

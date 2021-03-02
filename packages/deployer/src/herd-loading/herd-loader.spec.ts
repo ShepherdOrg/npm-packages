@@ -13,7 +13,7 @@ import {
   THerdSectionType,
 } from "../deployment-types"
 import { detectRecursion } from "../helpers/obj-functions"
-import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { TFileSystemPath } from "../helpers/basic-types"
 import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import {
@@ -32,8 +32,8 @@ import { createDeploymentTestActionFactory } from "../deployment-actions/deploym
 import { createFolderActionFactory } from "./folder-loader/folder-action-factory"
 import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-deployment-planner"
 import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
-import { ILog } from "../logging/logger"
-import { createLogContextColors } from "../logging/log-context-colors"
+import { ILog } from "@shepherdorg/logger"
+import { createLogContextColors } from "@shepherdorg/logger"
 import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 import { createFakeTimeoutWrapper } from "../test-tools/fake-timer"
 import { FExec, initFakeExecution } from "@shepherdorg/ts-exec"

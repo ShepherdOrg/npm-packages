@@ -1,5 +1,5 @@
 import { TK8sPartialDescriptor } from "../k8s-document-types"
-import { ILog, TLogContext } from "../../../logging/logger"
+import { ILog, TLogContext } from "@shepherdorg/logger"
 import { IStatefulExecutableAction, IKubectlAction, TDeploymentOptions } from "../../../deployment-types"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { TDescriptorsByKind } from "../k8s-deployment-document-identifier"

@@ -2,7 +2,7 @@ import {
   createUpstreamTriggerDeploymentConfig,
   IConfigureUpstreamDeployment,
 } from "./create-upstream-trigger-deployment-config"
-import { createFakeLogger } from "../test-tools/fake-logger"
+import { createFakeLogger } from "@shepherdorg/logger"
 import { OmitKey, THerdDeclaration } from "../deployment-types"
 
 const expect = require("chai").expect
@@ -26,7 +26,7 @@ describe("Upstream triggered deployment config ", function() {
       branchName: "newnamein-alllowercaps",
       ttlHours: 999,
     }
-    let config : IConfigureUpstreamDeployment
+    let config: IConfigureUpstreamDeployment
 
     before(() => {
       config = createUpstreamTriggerDeploymentConfig(createFakeLogger())
@@ -34,7 +34,7 @@ describe("Upstream triggered deployment config ", function() {
     })
 
     it("should load from process.env like config object", () => {
-      const coercedConfig = config as unknown as {[key:string]: any}
+      const coercedConfig = (config as unknown) as { [key: string]: any }
       Object.entries(expectedConfigObject).forEach(([key, value]) => {
         expect(coercedConfig[key]).to.equal(value)
       })
@@ -64,7 +64,7 @@ describe("Upstream triggered deployment config ", function() {
       branchName: "newnamein-alllowercaps",
       ttlHours: 999,
     }
-    let config : IConfigureUpstreamDeployment
+    let config: IConfigureUpstreamDeployment
 
     before(() => {
       config = createUpstreamTriggerDeploymentConfig(createFakeLogger())
@@ -72,7 +72,7 @@ describe("Upstream triggered deployment config ", function() {
     })
 
     it("should load from process.env like config object", () => {
-      const coercedConfig = config as unknown as {[key:string]: any}
+      const coercedConfig = (config as unknown) as { [key: string]: any }
       Object.entries(expectedConfigObject).forEach(([key, value]) => {
         expect(coercedConfig[key]).to.equal(value)
       })
@@ -92,7 +92,7 @@ describe("Upstream triggered deployment config ", function() {
 
     let herdImageDeclaration: OmitKey<THerdDeclaration & { dockerImage?: string; image: string; imagetag: string }>
 
-    let config : IConfigureUpstreamDeployment
+    let config: IConfigureUpstreamDeployment
 
     before(() => {
       config = createUpstreamTriggerDeploymentConfig(createFakeLogger())
@@ -141,7 +141,7 @@ describe("Upstream triggered deployment config ", function() {
 
     it("should generate a herdfile like structure for creating a deployment plan for branch deployment", () => {
       let asHerd = config.asHerd()
-      if(asHerd.images){
+      if (asHerd.images) {
         let image = asHerd.images["thekey"]
         expect(image.image).to.equal("repo/someimage")
         expect(image.imagetag).to.equal("9999")
@@ -159,9 +159,9 @@ describe("Upstream triggered deployment config ", function() {
   describe("default config with no upstream information", function() {
     const config = createUpstreamTriggerDeploymentConfig(console)
 
-    before(()=>{
-      config.loadFromEnvironment('myHerdFile.yaml', {
-      //  No relevant environment variable set in this case.
+    before(() => {
+      config.loadFromEnvironment("myHerdFile.yaml", {
+        //  No relevant environment variable set in this case.
       })
     })
 

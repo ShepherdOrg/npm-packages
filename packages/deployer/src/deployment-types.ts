@@ -11,7 +11,7 @@ import { TDescriptorsByKind } from "./deployment-actions/kubectl-action/k8s-depl
 import { TFileSystemPath, TISODateString } from "./helpers/basic-types"
 import { TDockerImageLabels } from "@shepherdorg/docker-image-metadata-loader"
 import { TDeploymentRollout } from "./deployment-actions/kubectl-action/kubectl-deployment-action-factory"
-import { TLogContext } from "./logging/logger"
+import { TLogContext } from "@shepherdorg/logger"
 
 export enum THerdSectionType {
   infrastructure = "infrastructure",

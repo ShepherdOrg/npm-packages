@@ -22,8 +22,8 @@ import {
 } from "../deployment-actions/deployment-test-action/deployment-test-action"
 import { createFolderActionFactory } from "./folder-loader/folder-action-factory"
 import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-deployment-planner"
-import { ILog } from "../logging/logger"
-import { createLogContextColors } from "../logging/log-context-colors"
+import { ILog } from "@shepherdorg/logger"
+import { createLogContextColors } from "@shepherdorg/logger"
 import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 import { IPushToShepherdUI } from "../deployment-types"
 

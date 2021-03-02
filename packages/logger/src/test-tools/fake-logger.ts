@@ -1,5 +1,4 @@
-import { emptyArray } from "../helpers/ts-functions"
-import { ILog } from "../logging/logger"
+import { ILog } from "../logger"
 
 export interface IFakeLogging extends ILog {
   log: string
@@ -17,10 +16,12 @@ export type IFakeLogEntry = {
 }
 
 export function createFakeLogger(): IFakeLogging {
+  const logStatements: IFakeLogEntry[] = []
+  const infoLogEntries: IFakeLogEntry[] = []
   let fakeLogger = {
     log: "",
-    logStatements: emptyArray<IFakeLogEntry>(),
-    infoLogEntries: emptyArray<IFakeLogEntry>(),
+    logStatements,
+    infoLogEntries,
     info() {
       fakeLogger.log += "info            " + Array.prototype.join.call(arguments, " ") + "\n"
       fakeLogger.logStatements.push({ logLevel: "info", data: arguments })
@@ -38,16 +39,7 @@ export function createFakeLogger(): IFakeLogging {
       fakeLogger.log += "error          " + Array.prototype.join.call(arguments, " ") + "\n"
       fakeLogger.logStatements.push({ logLevel: "error", data: arguments })
     },
-    // enterDeployment() {
-    //     fakeLogger.log += 'enterDeployment' + Array.prototype.join.call(arguments, ' ') + '\n';
-    //     fakeLogger.logStatements.push({logLevel: "enterDeployment", data: arguments})
-    // },
-    // exitDeployment() {
-    //     fakeLogger.log += 'exitDeployment ' + Array.prototype.join.call(arguments, ' ') + '\n';
-    //     fakeLogger.logStatements.push({logLevel: "exitDeployment", data: arguments})
-    //
-    // }
-    logLevelEntries: (level: TLogLevel) => {
+    logLevelEntries: (level: TLogLevel): IArguments[] => {
       return fakeLogger.logStatements
         .filter(le => {
           return le.logLevel === level

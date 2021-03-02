@@ -26,10 +26,10 @@ import { ICreateDockerDeploymentActions } from "../deployment-actions/docker-act
 import { ICreateDockerImageKubectlDeploymentActions } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import { newProgrammerOops } from "oops-error"
 import { renderPlanExecutionError } from "./renderPlanExecutionError"
-import { ILog, LOG_CONTEXT_PREFIX_PADDING, TLogContext } from "../logging/logger"
+import { ILog, LOG_CONTEXT_PREFIX_PADDING, TLogContext } from "@shepherdorg/logger"
 import * as chalk from "chalk"
-import { padLeft } from "../logging/padleft"
-import { IProvideLogContextColors } from "../logging/log-context-colors"
+import { padLeft } from "@shepherdorg/logger"
+import { IProvideLogContextColors } from "@shepherdorg/logger"
 import { ICreateDeploymentTimeAnnotationActions } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 import { FExec } from "@shepherdorg/ts-exec"
 

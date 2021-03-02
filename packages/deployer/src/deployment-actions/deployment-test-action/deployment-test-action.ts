@@ -2,7 +2,7 @@ import { TImageMetadata, TTestSpecification } from "@shepherdorg/metadata"
 import { IStatefulExecutableAction, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
 import { ICreateDockerActions } from "../docker-action/docker-action"
 import { isOops } from "../../helpers/isOops"
-import { ILog, TLogContext } from "../../logging/logger"
+import { ILog, TLogContext } from "@shepherdorg/logger"
 
 export interface ICreateDeploymentTestAction {
   createDeploymentTestAction(

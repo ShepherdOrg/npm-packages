@@ -2,7 +2,7 @@ import { expect } from "chai"
 
 import { initFakeExecution, IFakeExecution } from "@shepherdorg/ts-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { IExecutableActionV2, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
 import { Oops } from "oops-error"
 import { createRolloutUndoActionFactory } from "./rollout-undo-actionfactory"

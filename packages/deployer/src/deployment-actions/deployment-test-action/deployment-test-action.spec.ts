@@ -8,7 +8,7 @@ import { IStatefulExecutableAction, TActionExecutionOptions, TRollbackResult } f
 import { metadataDsl } from "../../test-tools/metadata-dsl"
 import { expect } from "chai"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { createDockerActionFactory } from "../docker-action/docker-action"
 import { defaultTestExecutionOptions } from "../../test-tools/test-action-execution-options"
 import { IFakeExecution, initFakeExecution, TExecError } from "@shepherdorg/ts-exec"

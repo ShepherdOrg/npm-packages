@@ -8,7 +8,7 @@ import { IDockerImageKubectlDeploymentAction, TImageInformation, TK8sDeploymentP
 import { kubeSupportedExtensions } from "./kube-supported-extensions"
 import { TarFile, TK8sMetadata } from "@shepherdorg/metadata"
 import { TFileSystemPath } from "../../helpers/basic-types"
-import { ILog } from "../../logging/logger"
+import { ILog } from "@shepherdorg/logger"
 import * as chalk from "chalk"
 import { expandTemplatesInImageArchiveFiles } from "./expand-templates-in-image-archive-files"
 import Bluebird = require("bluebird")

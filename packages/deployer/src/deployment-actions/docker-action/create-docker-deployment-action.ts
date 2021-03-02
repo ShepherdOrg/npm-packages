@@ -6,7 +6,7 @@ import {
 } from "../../deployment-types"
 import { TDeployerMetadata } from "@shepherdorg/metadata"
 import { ICreateDockerActions } from "./docker-action"
-import { ILog, TLogContext } from "../../logging/logger"
+import { ILog, TLogContext } from "@shepherdorg/logger"
 
 export type TDockerDeploymentActionFactoryDependencies = {
   environment: string
