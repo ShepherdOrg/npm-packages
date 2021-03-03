@@ -1,4 +1,5 @@
 import * as chalk from "chalk"
+import { Chalk } from "chalk"
 
 const COLORS = [
   chalk.rgb(255, 112, 0), // orange
@@ -19,14 +20,14 @@ const COLORS = [
 ]
 
 export interface IProvideLogContextColors {
-  nextLogContextColor(): chalk.Chalk
+  nextLogContextColor(): Chalk
 }
 
-export function createLogContextColors() : IProvideLogContextColors{
+export function createLogContextColors(): IProvideLogContextColors {
   let currentIdx = 0
 
   const nextLogContextColor = () => {
-    if(currentIdx > COLORS.length){
+    if (currentIdx > COLORS.length) {
       let colorFn = COLORS[currentIdx++ % COLORS.length]
       return colorFn.bgRgb(40, 40, 40)
     }
@@ -34,6 +35,6 @@ export function createLogContextColors() : IProvideLogContextColors{
   }
 
   return {
-    nextLogContextColor
+    nextLogContextColor,
   }
 }

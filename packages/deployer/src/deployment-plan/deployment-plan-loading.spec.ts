@@ -1,7 +1,7 @@
 import { expect } from "chai"
 import {
   IDockerDeploymentAction,
-  IExecutableAction,
+  IStatefulExecutableAction,
   IDockerImageKubectlDeploymentAction,
   TImageInformation,
 } from "../deployment-types"
@@ -18,7 +18,7 @@ import { imageInfoDSL } from "../test-tools/image-info-dsl"
 import { createDeploymentPlanFactory, IDeploymentPlan, IDeploymentPlanFactory } from "./deployment-plan"
 import { fakeDeploymentPlanDependencies } from "./deployment-plan.spec"
 import { TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeLogger } from "../test-tools/fake-logger"
+import { createFakeLogger } from "@shepherdorg/logger"
 
 describe("Docker image plan loader", function() {
   let testEnv = {
@@ -30,11 +30,10 @@ describe("Docker image plan loader", function() {
 
   describe("image deployer, old style docker labels", function() {
     let dockerDeployerMetadata: TImageInformation = {
-
       imageDeclaration: {
         key: "testimage",
         image: "testenvimage-migrations",
-        imagetag: "0.0.0"
+        imagetag: "0.0.0",
       },
       dockerLabels: {
         "shepherd.builddate": "Tue 26 Dec 14:52:52 GMT 2017",
@@ -49,18 +48,20 @@ describe("Docker image plan loader", function() {
           "VGh1LCAyMSBEZWMgMjAxNyAxMDo0NTo0NSArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29u\nLiAtLS0gQmV0dGVyIHVzZSByaWdodCBtYWtlIHRhcmdldCBXZWQsIDIwIERlYyAyMDE3IDE4OjE1\nOjUwICswMDAwIGJ5IEd1w7BsYXVndXIgUy4gRWdpbHNzb24uIC0tLSBBIGxpdHRsZSB0cmlja2Vy\neSB0byBtYWtlIGphc21pbmUgcnVubmFibGUgd2l0aCBzcmMgZGlyIG1hcHBlZCBpbiBkb2NrZXIt\nY29tcG9zZS4gV2VkLCAyMCBEZWMgMjAxNyAxNzoxMDozOCArMDAwMCBieSBHdcOwbGF1Z3VyIFMu\nIEVnaWxzc29uLiAtLS0gSmVua2lucyBqb2IgY2Fubm90IHVzZSAtaXQgV2VkLCAyMCBEZWMgMjAx\nNyAxNjo1OToxMyArMDAwMCBieSBHdcOwbGF1Z3VyIFMuIEVnaWxzc29uLiAtLS0gQWxsIHRlc3Rz\nIG5vdyBydW5uaW5nIGluIGRvY2tlciBpbWFnZXMuIEFkZGVkIEplbmtpbnNmaWxlLiBQbHVzIGxv\ndHMgb2Ygc21hbGxlciBpbXByb3ZlbWVudHMvY2hhbmdlcy4gV2VkLCAyMCBEZWMgMjAxNyAwOToz\nMToxMCArMDAwMCBieSBHdcOwbGF1Z3VyIEVnaWxzc29uIEBndWxsaS4gLS0tIFJlc29sdmUgdG9k\nbywgZXhpdCB3aXRoIGVycm9yIGlmIGltYWdlIHNwZWNpZmllZCBpcyBub3QgYWN0aW9uYWJsZS4K",
         "shepherd.name": "Testimage",
         "shepherd.version": "0.0.0",
-      }
+      },
     }
 
     describe("with command specified", function() {
-      let firstAction : IDockerDeploymentAction
+      let firstAction: IDockerDeploymentAction
       let testEnv = {
         EXPORT1: "export1",
         MICRO_SITES_DB_PASSWORD: "pass",
       }
 
       before(async function() {
-        firstAction = await setEnv(testEnv).then(() => loadFirstTestAction(dockerDeployerMetadata)) as IDockerDeploymentAction
+        firstAction = (await setEnv(testEnv).then(() =>
+          loadFirstTestAction(dockerDeployerMetadata)
+        )) as IDockerDeploymentAction
       })
 
       after(() => clearEnv(testEnv))
@@ -117,7 +118,7 @@ describe("Docker image plan loader", function() {
           "shepherd.name": "Testimage",
           "shepherd.version": "0.0.0",
         },
-        env: 'testenv'
+        env: "testenv",
       }
 
       let testEnv = {
@@ -126,7 +127,9 @@ describe("Docker image plan loader", function() {
       }
 
       before(async function() {
-        firstAction = await setEnv(testEnv).then(async () => {return await loadFirstTestAction(dockerDeployerMetadata) as IDockerDeploymentAction} )
+        firstAction = await setEnv(testEnv).then(async () => {
+          return (await loadFirstTestAction(dockerDeployerMetadata)) as IDockerDeploymentAction
+        })
       })
 
       after(() => clearEnv(testEnv))
@@ -160,7 +163,7 @@ describe("Docker image plan loader", function() {
         "shepherd.metadata":
           "H4sIAIvzv10AA+1U0W6bMBTd874C8bqRmCSQgjRpkLYEKYGtyeiWaaqMccCNwZltmqZV/n0mZO06ad3LpmlSjoTsXM65vtfnElHgdYF51rkWrHrxdwAAsAcDrVmHtrVfQa/9vd8C29TMvmUNh0PTNvsaMAfAAi808JfqeYJaSMhVKXlNKXmGp2jL5TPv2160h/U/wb2e1oRmp1Bi3dV7wHQM0zTAYA4cd2C7lvkKABcA/XXLGzMhI1g23KCmsM5rLowpRD5jK+MdZx3KEKSKnTG0wjwsYY7nMFd0iYU0SpJzKAmrDNK8MSq8WTJeQulS2BCeCgMiCyiK34tBB3Rs24BDkJ04Ta05keNW+STmc1ihJlpCITFvgx84VRG1eaueok47iJXu7PBZxDzvVuvSWEO0UmeKjuK0shErS7V3dcc2wcC2rOUQ9WxzOUwhAEuYOelJH5040LGsLBta4ETJqDq21QklDM+jIhtt8inx47T/KZ9ee7fxzLuNTtldPGebaOvx6am3mY58gmf+OEPxJg3OzUU/2Ybn0zo8Syp4eXuHek49IZ6czEB+UdIafoxYOI5MNPZvUPU+X5TONgySOivpNu1ZcnFpgTBwCCyT62zkr1Pi38Eg2ahnuxhZX5t8YbC4QcRfLT76Iu1TiqppPsrfvFFNCFzCShKUYC6UGaqR9vob74hYU7g9DMj0u19aY9/eM+3BM60WpMo1XN0QzqoSV1K7gbTGKssPMd39fK9Xh3RhcOHNwzi6OouSq8S7CD1/cnYVR2dK02pd/f5eCyax702ufk3Xdjt99/p3eeeX8Q95l+QWZ8mhQIERx6o2yWu8+6LaxmvKto2xsMoUmQpF4ozSVE3NYxjBZnSK7RpzSqqV2DcniaTNATNWc4SFpm5HkwVpMtT7wSykXAu3230czq44DCf7aTi7D5u2Isy7uIeby+8+OCC6z39L+mNDjQFzVa0q4ns+fffyX/9hHXHEEUcc8UfwDW0OlrUADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
       },
-      env: 'testenv'
+      env: "testenv",
     }
 
     const testEnv = {
@@ -170,7 +173,9 @@ describe("Docker image plan loader", function() {
     let loadedPlan: IDockerDeploymentAction
 
     before(async () =>
-      setEnv(testEnv).then(async () => (loadedPlan = await loadFirstTestAction(dockerDeployerMetadata) as IDockerDeploymentAction )),
+      setEnv(testEnv).then(
+        async () => (loadedPlan = (await loadFirstTestAction(dockerDeployerMetadata)) as IDockerDeploymentAction)
+      )
     )
     after(() => clearEnv(testEnv))
 
@@ -203,13 +208,13 @@ describe("Docker image plan loader", function() {
         "is.icelandairlabs.name": "TestimageFromIcelandairlabs",
         "is.icelandairlabs.version": "0.1.2",
       },
-      env: 'testenv'
+      env: "testenv",
     }
 
     let firstPlan: IDockerDeploymentAction
 
     before(async function() {
-      return (firstPlan = await loadFirstTestAction(dockerImageMetadata) as IDockerDeploymentAction)
+      return (firstPlan = (await loadFirstTestAction(dockerImageMetadata)) as IDockerDeploymentAction)
     })
 
     it("should rewrite docker labels starting with is.icelandairlabs to labels starting with shepherd", () => {
@@ -219,7 +224,7 @@ describe("Docker image plan loader", function() {
   })
 
   describe("k8s deployment using base64 tar", function() {
-    const dockerImageMetadata : TImageInformation = {
+    const dockerImageMetadata: TImageInformation = {
       imageDeclaration: {
         key: "testimage",
         image: "testenvimage-migrations",
@@ -256,14 +261,16 @@ describe("Docker image plan loader", function() {
             loadedActions = plans as Array<IDockerImageKubectlDeploymentAction>
             // @ts-ignore
             return plans[0] as IDockerImageKubectlDeploymentAction
-          }) ,
+          })
         ))
       })
 
       after(() => clearEnv(testEnv))
 
       it("should list all deployments to wait for completion", () => {
-        expect(loadedActions[2].deploymentRollouts.map((dr)=>`${dr.deploymentKind}/${dr.deploymentName}`).join("")).to.equal("Deployment/www-icelandair-com")
+        expect(
+          loadedActions[2].deploymentRollouts.map(dr => `${dr.deploymentKind}/${dr.deploymentName}`).join("")
+        ).to.equal("Deployment/www-icelandair-com")
       })
 
       it("should expand handlebars template", () => {
@@ -284,7 +291,9 @@ describe("Docker image plan loader", function() {
       })
 
       it("should contain origin in plan", function() {
-        expect(planNumberOne.origin).to.equal("testenvimage-migrations:0.0.0:tar:./deployment/www-icelandair-com-internal.service.yml")
+        expect(planNumberOne.origin).to.equal(
+          "testenvimage-migrations:0.0.0:tar:./deployment/www-icelandair-com-internal.service.yml"
+        )
       })
 
       it("should use apply as default operation", function() {
@@ -327,7 +336,7 @@ describe("Docker image plan loader", function() {
       })
 
       it("should report variable in error", function() {
-        expect(loadError.message).to.contain("\"EXPORT1\" not defined")
+        expect(loadError.message).to.contain('"EXPORT1" not defined')
       })
     })
   })
@@ -354,7 +363,7 @@ describe("Docker image plan loader", function() {
         "shepherd.name": "Testimage",
         "shepherd.version": "0.0.0",
       },
-      env: 'testenv'
+      env: "testenv",
     }
 
     describe("successful load", function() {
@@ -368,8 +377,8 @@ describe("Docker image plan loader", function() {
       }
       before(async function() {
         await setEnv(testEnv)
-        let deploymentPlanDependencies = fakeDeploymentPlanDependencies();
-        (deploymentPlanDependencies.stateStore as TFakeStateStore).nextState = { new: false, modified: true}
+        let deploymentPlanDependencies = fakeDeploymentPlanDependencies()
+        ;(deploymentPlanDependencies.stateStore as TFakeStateStore).nextState = { new: false, modified: true }
         testPlan = await createTestPlan(dockerImageMetadata, deploymentPlanDependencies)
         actionNumberOne = testPlan.deploymentActions[0] as IDockerImageKubectlDeploymentAction
         // return (actionNumberOne = await setEnv(testEnv).then(() => loadFirstTestAction(dockerImageMetadata) as Promise<IDockerImageKubectlDeploymentAction>))
@@ -396,9 +405,8 @@ describe("Docker image plan loader", function() {
       it("should plan rollout wait action", () => {
         const planLogger = createFakeLogger()
         testPlan.printPlan(planLogger)
-        expect(planLogger.log).to.contain('rollout status Deployment')
+        expect(planLogger.log).to.contain("rollout status Deployment")
       })
-
     })
 
     describe("missing env variable", function() {
@@ -458,23 +466,21 @@ describe("Docker image plan loader", function() {
   })
 
   describe("planning actions for deployer with postDeploymentTests", function() {
-
-    let actions: Array<IExecutableAction>
+    let actions: Array<IStatefulExecutableAction>
     let fakeImageInfo: TImageInformation
     let planFactory: IDeploymentPlanFactory
 
-    before(async ()=>{
+    before(async () => {
       let metaDsl = metadataDsl()
-      metaDsl.addPreDeploymentTest('pretestcmd', 'devenv')
-      metaDsl.addPostDeploymentTest('posttestcmd', 'devenv').addEnv('testenv')
+      metaDsl.addPreDeploymentTest("pretestcmd", "devenv")
+      metaDsl.addPostDeploymentTest("posttestcmd", "devenv").addEnv("testenv")
       const shepherdMetadata: TDeployerMetadata = metaDsl.instance()
       fakeImageInfo = imageInfoDSL(shepherdMetadata).instance()
       planFactory = createDeploymentPlanFactory(fakeDeploymentPlanDependencies())
     })
 
     describe("in devenv", function() {
-
-      before(async ()=>{
+      before(async () => {
         actions = await planFactory.createDockerImageDeploymentActions(fakeImageInfo, "devenv")
       })
 
@@ -483,14 +489,15 @@ describe("Docker image plan loader", function() {
       })
 
       it("should create actions for postDeploymentTests and preDeploymentTests", () => {
-        expect(actions[0].planString()).to.equal("docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT pretestcmd")
+        expect(actions[0].planString()).to.equal(
+          "docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT pretestcmd"
+        )
       })
-
     })
 
     describe("in test env", function() {
-      before(async ()=>{
-        actions = await planFactory.createDockerImageDeploymentActions(fakeImageInfo, 'testenv')
+      before(async () => {
+        actions = await planFactory.createDockerImageDeploymentActions(fakeImageInfo, "testenv")
       })
 
       it("should create actions for postDeploymentTests matching the environment", () => {
@@ -498,25 +505,20 @@ describe("Docker image plan loader", function() {
       })
 
       it("should create actions for postDeploymentTests", () => {
-        expect(actions[1].planString()).to.equal("docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT posttestcmd")
+        expect(actions[1].planString()).to.equal(
+          "docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT posttestcmd"
+        )
       })
-
     })
 
     describe("in prod env", function() {
-      before(async ()=>{
-        actions = await planFactory.createDockerImageDeploymentActions(fakeImageInfo, 'prodenv')
+      before(async () => {
+        actions = await planFactory.createDockerImageDeploymentActions(fakeImageInfo, "prodenv")
       })
 
       it("should only create action for deployment", () => {
         expect(actions.length).to.equal(1)
       })
-
     })
-
-
   })
-
-
-
 })

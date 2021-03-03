@@ -13,8 +13,8 @@ import {
   THerdSectionType,
 } from "../deployment-types"
 import { detectRecursion } from "../helpers/obj-functions"
-import { createFakeLogger, IFakeLogging } from "../test-tools/fake-logger"
-import { FTimer, IExec, TFileSystemPath } from "../helpers/basic-types"
+import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
+import { TFileSystemPath } from "../helpers/basic-types"
 import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import {
   createDeploymentPlanFactory,
@@ -22,9 +22,7 @@ import {
   TDeploymentPlanDependencies,
 } from "../deployment-plan/deployment-plan"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import {
-  createFakeUIPusher,
-} from "../deployment-orchestration/deployment-orchestration.spec"
+import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
 import { createRolloutWaitActionFactory } from "../deployment-actions/kubectl-action/rollout-wait-action-factory"
 import { createDockerImageKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/create-docker-kubectl-deployment-actions"
 import { createKubectlDeploymentActionsFactory } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
@@ -34,10 +32,11 @@ import { createDeploymentTestActionFactory } from "../deployment-actions/deploym
 import { createFolderActionFactory } from "./folder-loader/folder-action-factory"
 import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-deployment-planner"
 import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
-import { ILog } from "../logging/logger"
-import { createLogContextColors } from "../logging/log-context-colors"
+import { ILog } from "@shepherdorg/logger"
+import { createLogContextColors } from "@shepherdorg/logger"
 import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 import { createFakeTimeoutWrapper } from "../test-tools/fake-timer"
+import { FExec, initFakeExecution } from "@shepherdorg/ts-exec"
 
 /// Inject a mock image metadata loader with fake image information
 
@@ -57,44 +56,56 @@ describe("herd.yaml loading", function() {
   let loader: THerdLoader
   let CreateTestReleasePlan: FCreateTestReleasePlan
   let logger: IFakeLogging
-  let exec: IExec = undefined
 
+  let exec: FExec = initFakeExecution().exec
   let featureDeploymentConfig = CreateFeatureDeploymentConfig()
 
   function createTestHerdLoader(
     labelsLoader: TDockerMetadataLoader,
-    featureDeploymentConfig: IConfigureUpstreamDeployment,
+    featureDeploymentConfig: IConfigureUpstreamDeployment
   ) {
     let stateStore = createFakeStateStore()
 
     // let newHerdLoader = createLoaderContext({exec: undefined, logger: loaderLogger, stateStore: stateStore, featureDeploymentConfig, uiPusher: createFakeUIPusher()})
     // loader = newHerdLoader;
     let waitActionFactory = createRolloutWaitActionFactory({
-      exec: undefined,
+      exec: initFakeExecution().exec,
       logger: logger,
       stateStore: stateStore,
     })
     let specEnv = "loader-spec-env"
 
-    let dockerActionFactory = createDockerActionFactory({logger, exec, stateStore})
-    let deployerActionFactory = createDockerDeployerActionFactory({executionActionFactory: dockerActionFactory, logger, environment:specEnv})
+    let dockerActionFactory = createDockerActionFactory({ logger, exec, stateStore })
+    let deployerActionFactory = createDockerDeployerActionFactory({
+      executionActionFactory: dockerActionFactory,
+      logger,
+      environment: specEnv,
+    })
 
     let uiDataPusher = createFakeUIPusher()
-    let kubectlDeploymentActionFactory = createKubectlDeploymentActionsFactory({ exec, logger:logger, stateStore: stateStore})
+    let kubectlDeploymentActionFactory = createKubectlDeploymentActionsFactory({
+      exec: initFakeExecution().exec,
+      logger: logger,
+      stateStore: stateStore,
+    })
     let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
       deploymentActionFactory: kubectlDeploymentActionFactory,
       logger: logger,
-      environment: specEnv
+      environment: specEnv,
     })
-    let deploymentTestActionFactory = createDeploymentTestActionFactory({logger, dockerActionFactory})
+    let deploymentTestActionFactory = createDeploymentTestActionFactory({ logger, dockerActionFactory })
 
     const fakeTimeoutWrapper = createFakeTimeoutWrapper()
 
-
-    let ttlAnnotationActionFactory = createDeploymentTimeAnnotationActionFactory({exec: exec, logger: logger, systemTime: () => new Date(), timeout: fakeTimeoutWrapper.fakeTimeout})
+    let ttlAnnotationActionFactory = createDeploymentTimeAnnotationActionFactory({
+      exec: exec,
+      logger: logger,
+      systemTime: () => new Date(),
+      timeout: fakeTimeoutWrapper.fakeTimeout,
+    })
 
     let dependencies: TDeploymentPlanDependencies = {
-      deploymentEnvironment: 'specEnv',
+      deploymentEnvironment: "specEnv",
       ttlAnnotationActionFactory: ttlAnnotationActionFactory,
       exec: exec,
       logger: logger,
@@ -104,7 +115,7 @@ describe("herd.yaml loading", function() {
       dockerImageKubectlDeploymentActionFactory: dockerImageKubectlDeploymentActionFactory,
       deployerActionFactory,
       deploymentTestActionFactory: deploymentTestActionFactory,
-      logContextColors: createLogContextColors()
+      logContextColors: createLogContextColors(),
     }
 
     let planFactory = createDeploymentPlanFactory(dependencies)
@@ -118,7 +129,7 @@ describe("herd.yaml loading", function() {
     const folderLoader = createFolderDeploymentPlanner({
       logger,
       planFactory: planFactory,
-      folderActionFactory: folderActionFactory
+      folderActionFactory: folderActionFactory,
     })
 
     loader = createHerdLoader({
@@ -129,7 +140,7 @@ describe("herd.yaml loading", function() {
       labelsLoader: labelsLoader,
       featureDeploymentConfig,
       planFactory: planFactory,
-      folderLoader: folderLoader
+      folderLoader: folderLoader,
     })
   }
 
@@ -158,13 +169,12 @@ describe("herd.yaml loading", function() {
     process.env.GLOBAL_MIGRATION_ENV_VARIABLE_ONE = "anotherValue"
     process.env.INFRASTRUCTURE_IMPORTED_ENV = "thatsme"
     process.env.ENV = "SPECENV"
-    process.env.SERVICE_HOST_NAME='testhost.44'
+    process.env.SERVICE_HOST_NAME = "testhost.44"
 
     delete process.env.TPL_DOCKER_IMAGE
 
     process.env.EXPORT1 = "NotFromInfrastructureAnyMore"
     process.env.EXPORT2 = "NeitherFromInfrastructure"
-
 
     CreateTestReleasePlan = function() {
       let addedK8sDeployerActions: { [key: string]: IDockerImageKubectlDeploymentAction } = {}
@@ -185,10 +195,12 @@ describe("herd.yaml loading", function() {
             }
             if (deploymentAction.type === "k8s") {
               releasePlan.addedK8sDeploymentActions[
-                deploymentAction.operation + '>' + deploymentAction.identifier
-                ] = deploymentAction as IDockerImageKubectlDeploymentAction
+                deploymentAction.operation + ">" + deploymentAction.identifier
+              ] = deploymentAction as IDockerImageKubectlDeploymentAction
             } else if (deploymentAction.type === "deployer") {
-              releasePlan.addedDockerDeployerActions[deploymentAction.identifier] = deploymentAction as IDockerDeploymentAction
+              releasePlan.addedDockerDeployerActions[
+                deploymentAction.identifier
+              ] = deploymentAction as IDockerDeploymentAction
             }
             if (deploymentAction.isStateful && !deploymentAction.version) {
               expect.fail(`No version in ${deploymentAction.identifier} from ${JSON.stringify(deploymentAction)}`)
@@ -213,9 +225,11 @@ describe("herd.yaml loading", function() {
         addedK8sDeploymentActions: addedK8sDeployerActions,
         addedDeploymentPlans: deploymentPlans,
         async addDeploymentPlan(deploymentPlan: IDeploymentPlan): Promise<IDeploymentPlan> {
-          await Promise.all(deploymentPlan.deploymentActions.map(async (da) => {
-            await addDeploymentAction(da as IAnyDeploymentAction)
-          }))
+          await Promise.all(
+            deploymentPlan.deploymentActions.map(async da => {
+              await addDeploymentAction(da as IAnyDeploymentAction)
+            })
+          )
           deploymentPlans.push(deploymentPlan)
           return deploymentPlan
         },
@@ -236,7 +250,7 @@ describe("herd.yaml loading", function() {
               __dirname,
               "testdata",
               "inspected-dockers",
-              imageDef.image + ".json",
+              imageDef.image + ".json"
             )
             if (fs.existsSync(dockerImageMetadataFile)) {
               const dockerInspection = require(dockerImageMetadataFile)
@@ -248,8 +262,8 @@ describe("herd.yaml loading", function() {
             } else {
               return Promise.reject(
                 new Error(
-                  `dockerImageMetadataFile ${dockerImageMetadataFile} for ${imageDef.image}:${imageDef.imagetag} not found in testdata`,
-                ),
+                  `dockerImageMetadataFile ${dockerImageMetadataFile} for ${imageDef.image}:${imageDef.imagetag} not found in testdata`
+                )
               )
             }
           },
@@ -298,12 +312,14 @@ describe("herd.yaml loading", function() {
 
     it("should add k8s deployment found in scanned directory", function() {
       expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].origin).to.equal(
-        "namespaces/monitors-namespace.yml",
+        "namespaces/monitors-namespace.yml"
       )
     })
 
     it("loaded action should have herd name", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdKey).to.contain("kube-config - namespaces")
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdKey).to.contain(
+        "kube-config - namespaces"
+      )
     })
 
     it("loaded action should have specified environment set", function() {
@@ -311,16 +327,19 @@ describe("herd.yaml loading", function() {
     })
 
     it("should have herdDeclaration", () => {
-      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.key).to.equal("kube-config")
+      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.key).to.equal(
+        "kube-config"
+      )
       expect(
-        (loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration).path,
+        (loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration)
+          .path
       ).to.equal("./")
       expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.description).to.equal(
-        "Kubernetes pull secrets, namespaces, common config",
+        "Kubernetes pull secrets, namespaces, common config"
       )
 
       expect(
-        loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.sectionDeclaration,
+        loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.sectionDeclaration
       ).to.deep.equal({
         herdSectionIndex: 1,
         herdSectionType: "folders" as THerdSectionType,
@@ -381,7 +400,6 @@ describe("herd.yaml loading", function() {
     })
   })
 
-
   describe("k8s branch deployment plan, reproducing hbs template expansion bug", function() {
     let loadedPlan: TTestDeploymentOrchestration
 
@@ -421,7 +439,6 @@ describe("herd.yaml loading", function() {
     })
   })
 
-
   describe("k8s deployment plan", function() {
     let loadedOrchestration: TTestDeploymentOrchestration
 
@@ -444,16 +461,20 @@ describe("herd.yaml loading", function() {
 
     it("should base64decode and untar deployment files under file path", function() {
       expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].origin).to.equal(
-        "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml",
+        "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml"
       )
     })
 
     it("should extract herdKey from herd.yaml", function() {
-      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].herdKey).to.equal("test-image")
+      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].herdKey).to.equal(
+        "test-image"
+      )
     })
 
     it("should set specified environment in action", function() {
-      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].env).to.equal("loader-spec-env")
+      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].env).to.equal(
+        "loader-spec-env"
+      )
     })
 
     it("should include metadata for k8s plan", function() {
@@ -465,15 +486,17 @@ describe("herd.yaml loading", function() {
     })
 
     it("should apply k8s deployment-time cluster policy", function() {
-      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Deployment_www-icelandair-com"].descriptor).to.contain("27m")
+      expect(
+        loadedOrchestration.addedK8sDeploymentActions["apply>Deployment_www-icelandair-com"].descriptor
+      ).to.contain("27m")
     })
 
     it("Should add deployment time annotation actions for all deployment documents", function() {
-      let addedActions = Object.keys( loadedOrchestration.addedK8sDeploymentActions).join('\n')
-      expect(addedActions).to.contain('annotate>deployment timestamp Service www-icelandair-com-internal-test1')
-      expect(addedActions).to.contain('annotate>deployment timestamp ConfigMap www-icelandair-com-nginx-acls-test1')
-      expect(addedActions).to.contain('annotate>deployment timestamp Deployment www-icelandair-com-test1')
-      expect(addedActions).to.contain('annotate>deployment timestamp Service www-icelandair-com-test1')
+      let addedActions = Object.keys(loadedOrchestration.addedK8sDeploymentActions).join("\n")
+      expect(addedActions).to.contain("annotate>deployment timestamp Service www-icelandair-com-internal-test1")
+      expect(addedActions).to.contain("annotate>deployment timestamp ConfigMap www-icelandair-com-nginx-acls-test1")
+      expect(addedActions).to.contain("annotate>deployment timestamp Deployment www-icelandair-com-test1")
+      expect(addedActions).to.contain("annotate>deployment timestamp Service www-icelandair-com-test1")
     })
 
     it("should be serializable", function() {
@@ -499,14 +522,14 @@ describe("herd.yaml loading", function() {
 
     it("should load deployer plan by migration image reference", function() {
       expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].dockerParameters).to.contain(
-        "testenvimage-migrations:0.0.0",
+        "testenvimage-migrations:0.0.0"
       )
       expect(Object.keys(loadedPlan.addedDockerDeployerActions)).to.contain("testenvimage-migrations:0.0.0")
     })
 
     it("should use expanded docker parameter list as deployment descriptor for state checking", function() {
       expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].descriptor).to.equal(
-        "-i --rm -e ENV=SPECENV -e EXPORT1=NotFromInfrastructureAnyMore -e DB_HOST=testing123 -e DB_PASS=testing123 -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0",
+        "-i --rm -e ENV=SPECENV -e EXPORT1=NotFromInfrastructureAnyMore -e DB_HOST=testing123 -e DB_PASS=testing123 -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0"
       )
     })
   })

@@ -1,0 +1,8 @@
+
+function requireVariable(){
+	if [ -z "${!1}" ]; then
+	  echo "$1 not defined or empty, exiting"
+	  exit -1
+	fi
+
+}

@@ -7,7 +7,8 @@ const rl = readline.createInterface({
   terminal: false,
 })
 
-const identifyDocument = require("../dist/k8s-deployment-document-identifier").identifyDocument
+const identifyDocument = require("../dist/deployment-actions/kubectl-action/k8s-deployment-document-identifier")
+  .identifyDocument
 
 let stdin = ""
 
@@ -15,10 +16,7 @@ function identifyStdinDocument(stdincopy) {
   let identifyingString = identifyDocument(stdincopy).identifyingString
 
   if (!identifyingString) {
-    console.error(
-      "No identifying string found for deployment document in STDIN: " +
-        stdincopy
-    )
+    console.error("No identifying string found for deployment document in STDIN: " + stdincopy)
   } else {
     console.info(identifyingString.toLowerCase())
   }

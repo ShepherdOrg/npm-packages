@@ -6,16 +6,17 @@ import * as fs from "fs"
 import { IStorageBackend } from "@shepherdorg/state-store"
 import { TFileSystemPath } from "./helpers/basic-types"
 import { flatMapPolyfill } from "./herd-loading/folder-loader/flatmap-polyfill"
-import { createLogger, LOG_CONTEXT_PREFIX_PADDING, TLogContext } from "./logging/logger"
+import { createLogger, LOG_CONTEXT_PREFIX_PADDING } from "@shepherdorg/logger"
 import { createLoaderContext } from "./herd-loading/createLoaderContext"
 import { renderPlanExecutionError } from "./deployment-plan/renderPlanExecutionError"
 import { IDeploymentOrchestration } from "./deployment-orchestration/deployment-orchestration"
 import { InMemoryStore } from "@shepherdorg/state-store/dist/in-memory-backend"
 import { IDeploymentPlanExecutionResult, renderPlanFailureSummary } from "./deployment-plan/deployment-plan"
 import * as chalk from "chalk"
-import { padLeft } from "./logging/padleft"
+import { padLeft } from "@shepherdorg/logger"
 import { initRegistryLogin } from "@shepherdorg/docker-image-metadata-loader"
 import { IPushToShepherdUI } from "./deployment-types"
+import { exec } from "@shepherdorg/ts-exec"
 
 let CreatePushApi = require("@shepherdorg/ui-push").CreatePushApi
 
@@ -24,7 +25,7 @@ This is the main entry point for shepherd deployer agent
  */
 
 function printUsage() {
-  console.info(`Usage: shepherd /path/to/a/herd.yaml ENVIRONMENT <options>
+  console.info(`Usage: shepherd-deploy /path/to/herd.yaml | /path/to/shepherd.json ENVIRONMENT <options>
 Supported options:
 
     --export             Export deployment documents to outputDir
@@ -48,9 +49,13 @@ Options through environment variables:
 
 Upstream build job input. The first three must be provided together or all skipped.    
     UPSTREAM_HERD_KEY           - Herd key from upstream trigger. Equivalent to key in images section in herd.yaml
-    UPSTREAM_IMAGE_URL          - Docker image url from upstream.  
+    UPSTREAM_IMAGE_URL          - Docker image url from upstream build.  
     UPSTREAM_HERD_DESCRIPTION   - Short description that would otherwise be in the herd.yaml file.
-    UPSTREAM_WAIT_FOR_ROLLOUT   - Upstream build wants rollout to complete before getting control back. Designed for e2e tests.
+    UPSTREAM_WAIT_FOR_ROLLOUT   - Upstream build wants rollout to complete before getting control back. Useful when 
+                                  post-processing in upstream build depends on rollout being complete, such as running e2e tests.
+                                  Kubernetes deployment specific. "true" triggers rollout wait, any other value does not.
+    UPSTREAM_ROLLOUT_TIMEOUT    - Timeout to wait for rollout to complete, in seconds. Option for UPSTREAM_WAIT_FOR_ROLLOUT.
+                                  Zero means default timeout will be used.
 
 Push data to Shepherd UI:
     SHEPHERD_UI_API_ENDPOINT - GraphQL endpoint for shepherd UI API
@@ -74,6 +79,12 @@ Other reserved environment variables:
     BRANCH_NAME_PREFIX       - set to \${FEATURE_NAME}-
     BRANCH_NAME_POSTFIX      - set to -\${FEATURE_NAME}   
 
+Examples
+    Deploy all deployments in a given herd.yaml    
+        shepherd-deploy ./deployments/dev/herd.yaml DEV --dryrun
+    
+    Deploy a single deployment using the shepherd declaration file. Useful for development and when starting with shepherd.
+        shepherd-deploy ./shepherd.json DEV --dryrun
 `)
 }
 
@@ -90,7 +101,6 @@ function printVersions() {
   console.info(`deployer v${require("../package.json").version}`)
   console.info(`metadata v${require("@shepherdorg/metadata/package").version}`)
 }
-
 
 function loginToRegistryWithPrompt() {
   const prompt = require("prompt")
@@ -111,14 +121,18 @@ function loginToRegistryWithPrompt() {
 
   prompt.start()
 
-  prompt.get(properties, function(err: Error, result: { username: string, password: string, host: string }) {
+  prompt.get(properties, function(err: Error, result: { username: string; password: string; host: string }) {
     if (err) {
       return onErr(err)
     }
 
-    initRegistryLogin({ homeDir: require("os").homedir() }).registryLogin(result.host, result.username, result.password).then((loginSuccess) => {
-      loginSuccess ? console.info(chalk.green(result.username) + " logged in to " + chalk.green(result.host)) : console.error(chalk.red("Login failed"))
-    })
+    initRegistryLogin({ homeDir: require("os").homedir() })
+      .registryLogin(result.host, result.username, result.password)
+      .then((loginSuccess: boolean) => {
+        loginSuccess
+          ? console.info(chalk.green(result.username) + " logged in to " + chalk.green(result.host))
+          : console.error(chalk.red("Login failed"))
+      })
   })
 
   function onErr(err: Error) {
@@ -127,25 +141,19 @@ function loginToRegistryWithPrompt() {
   }
 }
 
-function main(){
-
+function main() {
   if (process.argv.indexOf("--version") > 0) {
     printVersions()
     process.exit(0)
   }
 
-  if(hasArg("--registry-login")){
+  if (hasArg("--registry-login")) {
     return loginToRegistryWithPrompt()
   }
 
-// @ts-ignore
-  global._ = require("lodash")
-  global.Promise = require("bluebird")
-
-
   flatMapPolyfill()
 
-  let defaultLogContext = {color: chalk.gray, prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, '>')}
+  let defaultLogContext = { color: chalk.gray, prefix: padLeft(LOG_CONTEXT_PREFIX_PADDING, ">") }
 
   const logger = createLogger(console, { maxWidth: process.stdout.columns, defaultContext: defaultLogContext })
 
@@ -157,18 +165,15 @@ function main(){
   let dryRun = process.argv.indexOf("--dryrun") > 0
   let pushToUi = process.argv.indexOf("--push-to-ui") > 0 || Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)
 
-  let waitForRollout = process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process.argv.indexOf("--wait-for-rollout") > 0
+  let waitForRollout =
+    process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process.argv.indexOf("--wait-for-rollout") > 0
 
+  let rolloutTimeout = (process.env.UPSTREAM_ROLLOUT_TIMEOUT && parseInt(process.env.UPSTREAM_ROLLOUT_TIMEOUT)) || 0
   const exportDocuments = process.argv.indexOf("--export") > 0
 
   let outputDirectory: TFileSystemPath | undefined
 
-  if (process.argv.indexOf("--help") > 0) {
-    printUsage()
-    process.exit(0)
-  }
-
-  if (process.argv.indexOf("--outputDir") > 0) {
+  if (hasArg("--outputDir")) {
     outputDirectory = process.argv[process.argv.indexOf("--outputDir") + 1]
     logger.info("Writing deployment documents to " + outputDirectory)
 
@@ -184,15 +189,14 @@ function main(){
 
   let stateStoreBackend: IStorageBackend
 
-
   let uiDataPusher: IPushToShepherdUI
 
-  if(dryRun){
+  if (dryRun) {
     logger.info(`NOTE: Dryrun does not take deployment state into account and assumes everything needs to be deployed.`)
     stateStoreBackend = InMemoryStore()
   } else {
     if (process.env.SHEPHERD_PG_HOST) {
-      logger.info(`Using postgres state store on ${process.env.SHEPHERD_PG_HOST}` )
+      logger.info(`Using postgres state store on ${process.env.SHEPHERD_PG_HOST}`)
       const pgConfig = require("@shepherdorg/postgres-backend").PgConfig()
       const PostgresStore = require("@shepherdorg/postgres-backend").PostgresStore
       stateStoreBackend = PostgresStore(pgConfig)
@@ -211,9 +215,8 @@ function main(){
     }
   }
 
-
   const ReleaseStateStore = require("@shepherdorg/state-store").ReleaseStateStore
-  const exec = require("@shepherdorg/exec")
+
   const {
     createUpstreamTriggerDeploymentConfig,
   } = require("./triggered-deployment/create-upstream-trigger-deployment-config")
@@ -229,7 +232,7 @@ function main(){
   let herdFilePath = process.argv[2]
   let environment = process.argv[3]
 
-  if(!environment){
+  if (!environment) {
     logger.error("Environment is a mandatory parameter")
     printUsage()
     process.exit(255)
@@ -252,10 +255,10 @@ function main(){
         stateStore: releaseStateStore,
         logger: logger,
         featureDeploymentConfig: upstreamDeploymentConfig,
-        exec: exec,
         uiPusher: uiDataPusher,
-        environment: environment
-      } )
+        environment: environment,
+        exec: exec,
+      })
 
       logger.info("Calculating deployment of herd from file " + herdFilePath + " for environment " + environment)
 
@@ -276,10 +279,9 @@ function main(){
                 terminateProcess(255)
               })
           } else {
-
             // TODOLATER Rollback on kube config
 
-            let dryRunString = `${dryRun ? ' dryrun' : ''}`
+            let dryRunString = `${dryRun ? " dryrun" : ""}`
 
             logger.info(`Executing deployment plan${dryRunString}... `)
             plan
@@ -288,14 +290,15 @@ function main(){
                 dryRunOutputDir: outputDirectory,
                 pushToUi: pushToUi,
                 waitForRollout: waitForRollout,
-                logContext: defaultLogContext
+                rolloutWaitSeconds: rolloutTimeout,
+                logContext: defaultLogContext,
               })
-              .then(function(planResults:IDeploymentPlanExecutionResult[]) {
+              .then(function(planResults: IDeploymentPlanExecutionResult[]) {
                 // Exceptions from plan execution are logged immediately. Here we render only a summary of deployment results.
-                const failedPlans = planResults.filter((planExecutionResult)=>{
+                const failedPlans = planResults.filter(planExecutionResult => {
                   return planExecutionResult.actionExecutionError !== undefined
                 })
-                if(failedPlans.length > 0){
+                if (failedPlans.length > 0) {
                   renderPlanFailureSummary(logger, failedPlans)
                   return terminateProcess(failedPlans.length)
                 }
@@ -313,7 +316,7 @@ function main(){
         .catch(function(loadError) {
           logger.debug(`Plan load error, with stack`, loadError)
           logger.error(`Plan load error. ${loadError.message}`)
-          if(loadError.context){
+          if (loadError.context) {
             logger.error(` ${JSON.stringify(loadError.context)}`)
           }
           stateStoreBackend.disconnect()

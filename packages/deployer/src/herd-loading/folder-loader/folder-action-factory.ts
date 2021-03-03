@@ -14,13 +14,13 @@ import {
 import { TFileSystemPath } from "../../helpers/basic-types"
 import { TDeploymentType } from "@shepherdorg/metadata"
 import { kubeSupportedExtensions } from "../../deployment-actions/kubectl-action/kube-supported-extensions"
-import { ILog } from "../../logging/logger"
+import { ILog } from "@shepherdorg/logger"
 import * as chalk from "chalk"
 
 export interface ICreateKubectlActionsForFolderStructure {
   scanDir: (
     dir: TScanDirStruct | TFileSystemPath,
-    herdSpec: TFolderHerdDeclaration,
+    herdSpec: TFolderHerdDeclaration
   ) => Promise<Array<IK8sDirDeploymentAction>>
 }
 
@@ -48,9 +48,8 @@ function isScanDirStruct(dir: TFileSystemPath | TScanDirStruct): dir is TScanDir
   return Boolean((dir as TScanDirStruct).path)
 }
 
-
 export function createFolderActionFactory(
-  injected: TFolderActionFactoryDependencies,
+  injected: TFolderActionFactoryDependencies
 ): ICreateKubectlActionsForFolderStructure {
   function initDir(dirPath: TFileSystemPath): TScanDirStruct {
     return {
@@ -73,7 +72,7 @@ export function createFolderActionFactory(
   let initialDir: TFileSystemPath
   let scanDir = function(
     dir: TScanDirStruct | TFileSystemPath,
-    herdSpec: TFolderHerdDeclaration,
+    herdSpec: TFolderHerdDeclaration
   ): Promise<Array<IK8sDirDeploymentAction>> {
     return new Promise(function(resolve, reject) {
       let planPromises = emptyArray<any>()
@@ -142,7 +141,7 @@ export function createFolderActionFactory(
                       kubeDeploymentRelativePath,
                       data,
                       dirStruct.forDelete ? "delete" : "apply",
-                      fileName,
+                      fileName
                     )
 
                     if (process.env.hasOwnProperty(imageVariableName)) {
@@ -169,7 +168,6 @@ export function createFolderActionFactory(
                   } catch (err) {
                     return reject(err)
                   }
-
                 })
               })
             }
@@ -186,7 +184,7 @@ export function createFolderActionFactory(
                   })
                   .catch(function(scanErr) {
                     reject(new Error("While scanning " + chalk.blueBright(resolvedPath) + ":" + scanErr.message))
-                  }),
+                  })
               )
             } else {
               let baseName = path.basename(resolvedPath)
@@ -205,9 +203,11 @@ export function createFolderActionFactory(
                       })
                       .catch(function(e) {
                         pending = -1
-                        reject(new Error(`While constructing deployment plan for file ${chalk.blueBright(resolvedPath)}:
-${e.message}`))
-                      }),
+                        reject(
+                          new Error(`While constructing deployment plan for file ${chalk.blueBright(resolvedPath)}:
+${e.message}`)
+                        )
+                      })
                   )
                 } else {
                   if (!--pending) scanCompleted()

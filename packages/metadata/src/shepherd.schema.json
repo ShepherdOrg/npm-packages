@@ -19,6 +19,10 @@
       "type": "string",
       "description": "Command to pass into a deployer for executing deployment script"
     },
+    "removeCommand": {
+      "type": "string",
+      "description": "Command to uninstall, or tear down and completely remove all resources that have been allocated by this deployment or infrastructure"
+    },
     "rollbackCommand": {
       "type": "string",
       "description": "Command to pass into a deployer for executing rollback script"
@@ -34,13 +38,17 @@
       "type": "string",
       "description": "Docker repository part of docker tag, often referred to as image name. Does not include version information."
     },
+    "dockerOrganization": {
+      "type": "string",
+      "description": "Docker organisation owning the image."
+    },
     "dockerRegistry": {
       "type": "string",
       "description": "Docker registry portion of docker image tag. Not used if using dockerhub."
     },
     "dockerImageUrl": {
       "type": "string",
-      "description": "Full docker image url. registry/repository/imageName:tag."
+      "description": "Full docker image url. registry/organisation/repository:tag."
     },
     "preDeploymentTests": {
       "type": "array",

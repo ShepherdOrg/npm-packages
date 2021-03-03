@@ -1,6 +1,5 @@
 import { IReleaseStateStore } from "@shepherdorg/state-store"
 import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
-import { IExec } from "../helpers/basic-types"
 import { DeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
 import {
   createDeploymentPlanFactory,
@@ -17,43 +16,44 @@ import {
 } from "../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import { createDockerDeployerActionFactory } from "../deployment-actions/docker-action/create-docker-deployment-action"
 import { createDockerActionFactory } from "../deployment-actions/docker-action/docker-action"
-import { createDeploymentTestActionFactory, ICreateDeploymentTestAction } from "../deployment-actions/deployment-test-action/deployment-test-action"
+import {
+  createDeploymentTestActionFactory,
+  ICreateDeploymentTestAction,
+} from "../deployment-actions/deployment-test-action/deployment-test-action"
 import { createFolderActionFactory } from "./folder-loader/folder-action-factory"
 import { createFolderDeploymentPlanner } from "./folder-loader/create-folder-deployment-planner"
-import { ILog } from "../logging/logger"
-import { createLogContextColors } from "../logging/log-context-colors"
+import { ILog } from "@shepherdorg/logger"
+import { createLogContextColors } from "@shepherdorg/logger"
 import { createDeploymentTimeAnnotationActionFactory } from "../deployment-actions/kubectl-action/k8s-branch-deployment/create-deployment-time-annotation-action"
 import { IPushToShepherdUI } from "../deployment-types"
+
+import { FExec } from "@shepherdorg/ts-exec"
 
 interface TLoaderContextParams {
   stateStore: IReleaseStateStore
   logger: ILog
   featureDeploymentConfig: IConfigureUpstreamDeployment
-  exec: IExec
+  exec: FExec
   uiPusher: IPushToShepherdUI
   environment: string
 }
 
 export function createLoaderContext({
-                                      stateStore,
-                                      logger,
-                                      featureDeploymentConfig,
-                                      exec,
-                                      uiPusher,
-                                      environment
-                                    }: TLoaderContextParams ) {
-  const deploymentOrchestration = DeploymentOrchestration({
-    cmd: exec,
-    logger: logger,
-    stateStore: stateStore,
-  })
+  stateStore,
+  logger,
+  featureDeploymentConfig,
+  exec,
+  uiPusher,
+  environment,
+}: TLoaderContextParams) {
+  const deploymentOrchestration = DeploymentOrchestration()
 
-  let provideSystemTime = ()=>{
+  let provideSystemTime = () => {
     return new Date()
   }
 
   let deploymentActionFactory: ICreateKubectlDeploymentAction = createKubectlDeploymentActionsFactory({
-    exec,
+    exec: exec,
     logger,
     stateStore,
   })
@@ -65,17 +65,17 @@ export function createLoaderContext({
   let dockerImageKubectlDeploymentActionFactory = createDockerImageKubectlDeploymentActionsFactory({
     deploymentActionFactory,
     logger,
-    environment: environment
+    environment: environment,
   })
   let dockerActionFactory = createDockerActionFactory({
-    exec,
+    exec: exec,
     logger,
     stateStore,
   })
   let deployerActionFactory = createDockerDeployerActionFactory({
     executionActionFactory: dockerActionFactory,
     logger: logger,
-    environment:environment
+    environment: environment,
   })
 
   let deploymentTestActionFactory: ICreateDeploymentTestAction = createDeploymentTestActionFactory({
@@ -85,7 +85,12 @@ export function createLoaderContext({
 
   let planDependencies: TDeploymentPlanDependencies = {
     deploymentEnvironment: environment,
-    ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({exec:exec, logger:logger, systemTime: provideSystemTime, timeout: setTimeout}),
+    ttlAnnotationActionFactory: createDeploymentTimeAnnotationActionFactory({
+      exec: exec,
+      logger: logger,
+      systemTime: provideSystemTime,
+      timeout: setTimeout,
+    }),
     uiDataPusher: uiPusher,
     exec: exec,
     logger: logger,
@@ -94,7 +99,7 @@ export function createLoaderContext({
     dockerImageKubectlDeploymentActionFactory: dockerImageKubectlDeploymentActionFactory,
     deployerActionFactory,
     deploymentTestActionFactory,
-    logContextColors: createLogContextColors()
+    logContextColors: createLogContextColors(),
   }
 
   let planFactory: IDeploymentPlanFactory = createDeploymentPlanFactory(planDependencies)
@@ -105,13 +110,11 @@ export function createLoaderContext({
     kubectlDeploymentActionFactory: deploymentActionFactory,
   })
 
-
   const folderLoader = createFolderDeploymentPlanner({
     logger,
     planFactory: planFactory,
-    folderActionFactory: folderActionFactory
+    folderActionFactory: folderActionFactory,
   })
-
 
   return {
     loader: createHerdLoader({
@@ -126,6 +129,6 @@ export function createLoaderContext({
         imageLabelsLoader: imageLabelsLoader,
         getDockerRegistryClientsFromConfig: getDockerRegistryClientsFromConfig,
       },
-    })
+    }),
   }
 }

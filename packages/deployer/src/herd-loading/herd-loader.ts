@@ -1,6 +1,11 @@
 import * as fs from "fs"
 
-import { THerdFileStructure, THerdSectionDeclaration, THerdSectionType } from "../deployment-types"
+import {
+  TDockerImageHerdDeclarations,
+  THerdFileStructure,
+  THerdSectionDeclaration,
+  THerdSectionType,
+} from "../deployment-types"
 import { getDockerRegistryClientsFromConfig, imageLabelsLoader } from "@shepherdorg/docker-image-metadata-loader"
 import { IConfigureUpstreamDeployment } from "../triggered-deployment/create-upstream-trigger-deployment-config"
 import { TFileSystemPath } from "../helpers/basic-types"
@@ -11,9 +16,10 @@ import { flatMapPolyfill } from "./folder-loader/flatmap-polyfill"
 import { IDeploymentPlan, IDeploymentPlanFactory } from "../deployment-plan/deployment-plan"
 import { IReleaseStateStore } from "@shepherdorg/state-store"
 import { IDeploymentOrchestration } from "../deployment-orchestration/deployment-orchestration"
-import { ILog } from "../logging/logger"
+import { ILog } from "@shepherdorg/logger"
 import * as chalk from "chalk"
 import * as yaml from "js-yaml"
+import { FExec } from "@shepherdorg/ts-exec"
 
 flatMapPolyfill()
 
@@ -27,7 +33,7 @@ export type THerdLoaderDependencies = {
   planFactory: IDeploymentPlanFactory
   logger: ILog
   featureDeploymentConfig: IConfigureUpstreamDeployment
-  exec: any
+  exec: FExec
   labelsLoader: TDockerMetadataLoader
   stateStore: IReleaseStateStore
   folderLoader: IPlanFolderDeployments
@@ -60,7 +66,6 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
     imageLabelsLoader,
     planFactory: injected.planFactory,
     stateStore: injected.stateStore,
-    exec: injected.exec,
   })
 
   async function loadHerd(fileName: TFileSystemPath): Promise<IDeploymentOrchestration> {
@@ -68,7 +73,20 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
       let deploymentOrchestration = injected.deploymentOrchestration
 
       let herd: THerdFileStructure
-      if (featureDeploymentConfig.isUpstreamTriggeredDeployment()) {
+      if (path.basename(fileName) === "shepherd.json") {
+        console.log(
+          `WARNING: Single-deployment deployment is work in progress. Need to finish versionist package for this to work.`
+        )
+        let localImageDef: TDockerImageHerdDeclarations = {
+          localImage: {
+            image: "string",
+            imagetag: "string",
+          },
+        }
+        herd = {
+          images: localImageDef,
+        }
+      } else if (featureDeploymentConfig.isUpstreamTriggeredDeployment()) {
         herd = featureDeploymentConfig.asHerd()
       } else {
         herd = yaml.load(fs.readFileSync(fileName, "utf8"))
@@ -90,11 +108,15 @@ export function createHerdLoader(injected: THerdLoaderDependencies): THerdLoader
           }
           if (loaders[herdDeclarationType]) {
             let loadHerdDeclarations: FHerdDeclarationLoader = loaders[herdDeclarationType] // folders, infrastructure, or images
-            return loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath).then((plans: Array<IDeploymentPlan>) => {
-              return Promise.all(plans.map(deploymentOrchestration.addDeploymentPlan))
-            })
+            return loadHerdDeclarations(herdSectionDeclaration, herdDeclaration, herdFilePath).then(
+              (plans: Array<IDeploymentPlan>) => {
+                return Promise.all(plans.map(deploymentOrchestration.addDeploymentPlan))
+              }
+            )
           } else {
-            throw new Error("No loader registered for type " + chalk.red(herdDeclarationType) + JSON.stringify(herdDeclaration))
+            throw new Error(
+              "No loader registered for type " + chalk.red(herdDeclarationType) + JSON.stringify(herdDeclaration)
+            )
           }
         })
       )

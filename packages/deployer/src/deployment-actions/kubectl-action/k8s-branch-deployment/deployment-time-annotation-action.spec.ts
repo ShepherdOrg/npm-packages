@@ -1,35 +1,37 @@
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { createFakeExec, TFakeExec } from "../../../test-tools/fake-exec"
-import { createFakeLogger, IFakeLogging } from "../../../test-tools/fake-logger"
-import { IExecutableAction } from "../../../deployment-types"
+import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
+import { IStatefulExecutableAction } from "../../../deployment-types"
 import { expect } from "chai"
-import { defaultTestExecutionOptions } from "../../deployment-test-action/deployment-test-action.spec"
 import { createDeploymentTimeAnnotationActionFactory } from "./create-deployment-time-annotation-action"
 import { createFakeTimeoutWrapper, TFakeTimeoutWrapper } from "../../../test-tools/fake-timer"
-
+import { defaultTestExecutionOptions } from "../../../test-tools/test-action-execution-options"
+import { IFakeExecution, initFakeExecution, TExecError } from "@shepherdorg/ts-exec"
 
 describe("Deployment Time Annotation Action", function() {
   describe("For deployment in unspecified namespace", function() {
     let fakeStateStore: TFakeStateStore
-    let fakeExec: TFakeExec
+    let fakeExec: IFakeExecution
     let fakeLogger: IFakeLogging
-    let annotationAction: IExecutableAction
+    let annotationAction: IStatefulExecutableAction
     let fakeTimeoutWrapper: TFakeTimeoutWrapper
 
     before(() => {
       fakeStateStore = createFakeStateStore()
       fakeLogger = createFakeLogger()
-      fakeExec = createFakeExec()
+      fakeExec = initFakeExecution()
       fakeTimeoutWrapper = createFakeTimeoutWrapper()
 
       annotationAction = createDeploymentTimeAnnotationActionFactory({
-        exec: fakeExec,
+        exec: fakeExec.exec,
         logger: fakeLogger,
-        systemTime: ()=>{ return new Date("2020-08-26T13:23:42.376Z")},
-        timeout: fakeTimeoutWrapper.fakeTimeout
+        systemTime: () => {
+          return new Date("2020-08-26T13:23:42.376Z")
+        },
+        timeout: fakeTimeoutWrapper.fakeTimeout,
       }).createDeploymentTimeAnnotationAction({
-        metadata: { name: "test-d-one"}, spec: {},
-        kind:"Deployment"
+        metadata: { name: "test-d-one" },
+        spec: {},
+        kind: "Deployment",
       })
     })
 
@@ -46,7 +48,7 @@ describe("Deployment Time Annotation Action", function() {
     })
 
     describe("executing annotation action", function() {
-      let execResult: IExecutableAction
+      let execResult: IStatefulExecutableAction
 
       before(async () => {
         fakeLogger.logStatements = []
@@ -55,32 +57,36 @@ describe("Deployment Time Annotation Action", function() {
       })
 
       it("should execute kubectl command", () => {
-        expect(fakeExec.executedCommands[0].command).to.equal('kubectl')
-        expect(fakeExec.executedCommands[0].params.join(' ')).to.equal('--namespace default annotate --overwrite Deployment test-d-one lastDeploymentTimestamp=2020-08-26T13:23:42.376Z')
+        expect(fakeExec.executedCommands[0].command).to.equal("kubectl")
+        expect(fakeExec.executedCommands[0].params.join(" ")).to.equal(
+          "--namespace default annotate --overwrite Deployment test-d-one lastDeploymentTimestamp=2020-08-26T13:23:42.376Z"
+        )
       })
 
       it("should execute", () => {
         expect(JSON.stringify(execResult.descriptor)).to.contain("Deployment test-d-one")
       })
-
     })
 
     describe("executing annotation action when resource appears after 4 retries", function() {
-
-      let execResult: IExecutableAction
+      let execResult: IStatefulExecutableAction
 
       before(async () => {
-        let execCount=0
+        let execCount = 0
         fakeLogger.logStatements = []
         fakeExec.executedCommands = []
-        fakeExec.nextResponse = { err: 'Big messy failure', success: undefined}
-        fakeExec.onExec = (command, params, options, err, success)=>{
-          if(execCount<4){
-            err('Fake this error', -1)
+        fakeExec.addResponse({ code: 99, stderr: "Big messy failure" })
+        fakeExec.onExec = async (command, params, options) => {
+          if (execCount < 4) {
+            throw new TExecError(255, "Fake this error", "Error", "")
           } else {
-            success('Nice, annotation successful')
+            execCount++
+            return {
+              code: 0,
+              stdout: "Nice, annotation successful",
+              stderr: "",
+            }
           }
-          execCount++
         }
         return (execResult = await annotationAction.execute(defaultTestExecutionOptions))
       })
@@ -92,34 +98,35 @@ describe("Deployment Time Annotation Action", function() {
       it("should wait 500 ms between retries", () => {
         expect(fakeTimeoutWrapper.lastRequestedTimeoutMillis()).to.equal(500)
       })
-
     })
 
     describe("executing annotation action when resource does not appear", function() {
-
-      let execResult: IExecutableAction
+      let execResult: IStatefulExecutableAction
 
       before(async () => {
-        let execCount=0
+        let execCount = 0
         fakeLogger.logStatements = []
         fakeExec.executedCommands = []
-        fakeExec.nextResponse = { err: 'Big messy failure', success: undefined}
-        fakeExec.onExec = (command, params, options, err, success)=>{
+        fakeExec.addResponse({ code: 33, stderr: "Big messy failure", stdout: "undefined" })
+        fakeExec.onExec = async (command, params, options) => {
           execCount++
-          if(execCount > 100){
-            throw new Error('Heading for stack overflow!')
+          if (execCount > 100) {
+            throw new Error("Heading for stack overflow!")
           }
 
-          err('Fake this error', -1)
+          throw new TExecError(-1, "Fake this error", "", "")
         }
         annotationAction = createDeploymentTimeAnnotationActionFactory({
-          exec: fakeExec,
+          exec: fakeExec.exec,
           logger: fakeLogger,
-          systemTime: ()=>{ return new Date("2020-08-26T13:23:42.376Z")},
-          timeout: fakeTimeoutWrapper.fakeTimeout
+          systemTime: () => {
+            return new Date("2020-08-26T13:23:42.376Z")
+          },
+          timeout: fakeTimeoutWrapper.fakeTimeout,
         }).createDeploymentTimeAnnotationAction({
-          metadata: { name: "test-d-one"}, spec: {},
-          kind:"Deployment"
+          metadata: { name: "test-d-one" },
+          spec: {},
+          kind: "Deployment",
         })
 
         return (execResult = await annotationAction.execute(defaultTestExecutionOptions))
@@ -132,9 +139,6 @@ describe("Deployment Time Annotation Action", function() {
       it("should wait 500 ms between retries", () => {
         expect(fakeTimeoutWrapper.lastRequestedTimeoutMillis()).to.equal(500)
       })
-
     })
   })
-
-
 })

@@ -40,7 +40,7 @@
     "prepublishOnly": "yarn build && yarn test"
   },
   "dependencies": {
-    "@shepherdorg/exec": "^5.0.9",
+    "@shepherdorg/ts-exec": "^5.0.0",
     "lodash": "^4.17.15",
     "request": "^2.88.2",
     "request-promise": "^4.2.5"

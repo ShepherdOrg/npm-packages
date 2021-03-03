@@ -7,7 +7,6 @@ import * as chalk from "chalk"
 
 import * as yaml from "js-yaml"
 
-
 export type THerdImagesSpec = {
   images: { [key: string]: Omit<TDockerImageHerdDeclaration, "key"> }
 }
@@ -53,13 +52,7 @@ export function upgradeOrAddDeployment(
       targetImage.imagetag = upstreamImageTag
     }
     if (targetImage.image !== upstreamImageName) {
-      logger.info(
-        imageFileName + ": Changing",
-        targetImage.image,
-        " image url",
-        "to",
-        upstreamImageName
-      )
+      logger.info(imageFileName + ": Changing", targetImage.image, " image url", "to", upstreamImageName)
       targetImage.image = upstreamImageName
     }
   } else {
@@ -97,7 +90,7 @@ export function upgradeOrAddDeploymentInFile(
     throw new Error(imageFileName + " does not seem to contain a legal herd file")
   }
   herd = upgradeOrAddDeployment(
-    {
+    <TDeploymentUpgradeParams & { herd: THerdImagesSpec }>{
       herd,
       upstreamHerdKey,
       upstreamImageTag,
@@ -113,4 +106,3 @@ export function upgradeOrAddDeploymentInFile(
   fs.writeSync(file, yml)
   fs.closeSync(file)
 }
-

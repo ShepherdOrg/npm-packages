@@ -1,6 +1,7 @@
 import * as chalk from "chalk"
+import { Chalk } from "chalk"
 
-import 'array-flat-polyfill'
+import "array-flat-polyfill"
 
 let initialTime = new Date().getTime()
 
@@ -14,7 +15,7 @@ const defaultOptions: TLoggerOptions = { maxWidth: Number.MAX_VALUE }
 
 export const LOG_CONTEXT_PREFIX_PADDING = "            "
 
-export type TLogContext = { prefix?: string; color?: chalk.ChalkFunction; performanceLog?: boolean }
+export type TLogContext = { prefix?: string; color?: Chalk; performanceLog?: boolean }
 
 export type FLogFunction = (logLine: string | null | undefined, logContext?: TLogContext) => void
 
@@ -48,11 +49,11 @@ function formatLogWithPrefix(
   prefixWithContext: (logLine: string) => string,
   consoleInstance: any
 ) {
-  if(logString===undefined || logString === null){
+  if (logString === undefined || logString === null) {
     return consoleInstance.log(prefixWithContext("undefined or null string in output!"))
   }
 
-  try{
+  try {
     logString
       .toString()
       .split("\n")
@@ -60,8 +61,10 @@ function formatLogWithPrefix(
       .flat(1)
       .map(prefixWithContext)
       .forEach((prefixedLine: string) => consoleInstance.log(prefixedLine))
-  }catch(err){
-    consoleInstance.log('Log formatter encountered an error while formatting a string for output! String follows unformatted, followed by the error.')
+  } catch (err) {
+    consoleInstance.log(
+      "Log formatter encountered an error while formatting a string for output! String follows unformatted, followed by the error."
+    )
     consoleInstance.log(logString)
     consoleInstance.log(err)
   }
@@ -70,7 +73,7 @@ function formatLogWithPrefix(
 function renderLogStringWithColoredPrefix(
   options: TLoggerOptions,
   prefixWithContext: (logLine: string) => string,
-  logPrefixColor: chalk.ChalkFunction | undefined,
+  logPrefixColor: Chalk | undefined,
   logString: string,
   consoleInstance: any,
   prefix: string,

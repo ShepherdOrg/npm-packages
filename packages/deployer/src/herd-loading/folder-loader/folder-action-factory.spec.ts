@@ -9,45 +9,41 @@ const Path = require("path")
 
 import Bluebird = require("bluebird")
 import { createKubectlDeploymentActionsFactory } from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
-import { createFakeExec } from "../../test-tools/fake-exec"
-import { createFakeLogger } from "../../test-tools/fake-logger"
+import { createFakeLogger } from "@shepherdorg/logger"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
+import { initFakeExecution } from "@shepherdorg/ts-exec"
 
 type TTestPlan = {
-  addedK8sDeploymentActions: { [key:string]: IK8sDirDeploymentAction}
-  addDeployment: (deploymentAction: IK8sDirDeploymentAction)=>{}
+  addedK8sDeploymentActions: { [key: string]: IK8sDirDeploymentAction }
+  addDeployment: (deploymentAction: IK8sDirDeploymentAction) => {}
 }
 
 describe("k8s deployment file directory structure release plan loader", function() {
-  let  scanDir: (dir: (TFileSystemPath), herdSpec:TFolderHerdDeclaration) => Promise<Array<IK8sDirDeploymentAction>>
+  let scanDir: (dir: TFileSystemPath, herdSpec: TFolderHerdDeclaration) => Promise<Array<IK8sDirDeploymentAction>>
 
   let plan: TTestPlan = {
     addedK8sDeploymentActions: {},
     async addDeployment(deployment) {
-        plan.addedK8sDeploymentActions[deployment.identifier] = deployment
-        return { fakeState: true }
+      plan.addedK8sDeploymentActions[deployment.identifier] = deployment
+      return { fakeState: true }
     },
   }
 
   beforeEach(function() {
     scanDir = createFolderActionFactory({
-      environment:'factory-spec',
+      environment: "factory-spec",
       logger: {
-        info: () => {
-        },
-        warn: () => {
-        },
-        debug: () => {
-        },
-        error: () => {
-        },
+        info: () => {},
+        warn: () => {},
+        debug: () => {},
+        error: () => {},
       },
       kubectlDeploymentActionFactory: createKubectlDeploymentActionsFactory({
-        exec: createFakeExec(),
+        exec: initFakeExecution().exec,
         logger: createFakeLogger(),
-        stateStore: createFakeStateStore()
-      })
-    } ).scanDir
+        stateStore: createFakeStateStore(),
+      }),
+    }).scanDir
   })
 
   describe("successful load", function() {
@@ -59,13 +55,11 @@ describe("k8s deployment file directory structure release plan loader", function
       process.env.www_icelandair_com_image = "www-icelandair-image:1.0"
       process.env.www_icelandair_com_deleted_image = ""
 
-      let deploymentDirsPath = Path.join(
-        __dirname,
-        "../../testdata/deployment-dirs"
-      )
+      let deploymentDirsPath = Path.join(__dirname, "../../testdata/deployment-dirs")
 
-      let fakeHerdSpec:TFolderHerdDeclaration = {
-        key: "spec", path: deploymentDirsPath
+      let fakeHerdSpec: TFolderHerdDeclaration = {
+        key: "spec",
+        path: deploymentDirsPath,
       }
       return scanDir(deploymentDirsPath, fakeHerdSpec).then(function(plans) {
         return Bluebird.each(plans, function(deploymentPlan) {
@@ -74,32 +68,29 @@ describe("k8s deployment file directory structure release plan loader", function
       })
     })
 
-    afterEach(()=>{
+    afterEach(() => {
       delete process.env.CLUSTER_POLICY_MAX_CPU_REQUEST
     })
 
     it("should expand env variables in deployment file on load", function() {
-      expect(
-        plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"]
-          .descriptor
-      ).not.to.contain("${TPL_DOCKER_IMAGE}")
+      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor).not.to.contain(
+        "${TPL_DOCKER_IMAGE}"
+      )
     })
 
     it("should expand env variables in deployment file on load, using handlebars template format", function() {
-      expect(
-        plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"]
-          .descriptor
-      ).not.to.contain("{{{TPL_DOCKER_IMAGE}}}")
-      expect(
-        plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"]
-          .descriptor
-      ).to.contain("secondaryImage: 'www-icelandair-image:1.0'")
+      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor).not.to.contain(
+        "{{{TPL_DOCKER_IMAGE}}}"
+      )
+      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor).to.contain(
+        "secondaryImage: 'www-icelandair-image:1.0'"
+      )
     })
 
     it("should add origin dir to plan", function() {
-      expect(
-        plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].origin
-      ).to.contain("www-icelandair-com")
+      expect(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].origin).to.contain(
+        "www-icelandair-com"
+      )
     })
 
     it("should result in exactly those plans", function() {
@@ -113,81 +104,60 @@ describe("k8s deployment file directory structure release plan loader", function
     })
 
     it("all versions should be immutable", function() {
-      expect(
-        plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].version
-      ).to.equal("immutable")
+      expect(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].version).to.equal("immutable")
     })
 
     it("default operation should be apply", function() {
-      expect(
-        plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].operation
-      ).to.equal("apply")
+      expect(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].operation).to.equal("apply")
     })
 
     it("operation of file in directory with delete marker should be delete", function() {
-      expect(plan.addedK8sDeploymentActions["Namespace_monitors"].operation).to.equal(
-        "delete"
-      )
+      expect(plan.addedK8sDeploymentActions["Namespace_monitors"].operation).to.equal("delete")
     })
 
     it("should have folder herdspec attached", () => {
-      expect(plan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.path).to.contain(
-        "deployment-dirs"
-      )
+      expect(plan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.path).to.contain("deployment-dirs")
     })
 
-
     it("should apply k8s deployment-time cluster policy", function() {
-      expect(
-        plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"]
-          .descriptor
-      ).to.contain("25m")
+      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor).to.contain("25m")
     })
 
     it("should add k8s deployment to plan for each file under k8s identifier", function() {
-      expect(
-        plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"]
-      ).not.to.equal(undefined)
+      expect(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"]).not.to.equal(undefined)
     })
 
     it("should expand folder_name_image as TPL_DOCKER_IMAGE for variable substitution in deployment files", function() {
-      expect(
-        plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"]
-          .descriptor
-      ).to.contain("www-icelandair-image:1.0")
+      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor).to.contain(
+        "www-icelandair-image:1.0"
+      )
     })
 
     it("should mark deployment for delete if folder_name_image variable is set and empty", function() {
-      expect(
-        plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-deleted"]
-          .operation
-      ).to.equal("delete")
+      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-deleted"].operation).to.equal("delete")
     })
 
     describe("file deployment metadata", function() {
       let metadata: TFolderMetadata
 
-      before(()=>{
+      before(() => {
         metadata = plan.addedK8sDeploymentActions["Namespace_monitors"].metadata
       })
 
       it("should use file modification timestamp as build timestamp (inaccurate test)", () => {
-        expect(new Date(metadata.buildDate)).to.be.gt(new Date("2019-01-01T12:55:01.561Z")
-        )
+        expect(new Date(metadata.buildDate)).to.be.gt(new Date("2019-01-01T12:55:01.561Z"))
       })
 
       it("should use file name as displayname", () => {
-        expect(metadata.displayName).to.contain(
-          "monitors-namespace.yml"
-        )
+        expect(metadata.displayName).to.contain("monitors-namespace.yml")
       })
 
       it("should contain relative path to file", () => {
-        expect(metadata.path).to.equal('namespaces/monitors-namespace.yml')
+        expect(metadata.path).to.equal("namespaces/monitors-namespace.yml")
       })
 
       it("should have no semanticVersion", () => {
-        expect(metadata.semanticVersion).to.equal('none')
+        expect(metadata.semanticVersion).to.equal("none")
       })
 
       it("should have k8s deployment type", () => {
@@ -197,8 +167,6 @@ describe("k8s deployment file directory structure release plan loader", function
       it("should not have any hyperlinks", () => {
         expect(metadata.hyperlinks.length).to.equal(0)
       })
-
     })
-
   })
 })

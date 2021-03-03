@@ -1,5 +1,6 @@
 import { TDockerImageLabels } from "./registry-metadata-client"
-import { ILog } from ".";
+import { ILog } from "."
+import { FExec, TExecError } from "@shepherdorg/ts-exec"
 
 export interface TDockerInspectMetadata {
   dockerLabels: TDockerImageLabels
@@ -11,12 +12,7 @@ export type TDockerImageReference = {
   imagetag: string
 }
 
-function extractImageLabels(
-  dockerImageMetadata: any,
-  imageDef: TDockerImageReference,
-  logger,
-  dockerImageName
-) {
+function extractImageLabels(dockerImageMetadata: any, imageDef: TDockerImageReference, logger, dockerImageName) {
   let ContainerConfig = dockerImageMetadata[0].ContainerConfig
   let Labels = ContainerConfig.Labels
 
@@ -25,94 +21,73 @@ function extractImageLabels(
     dockerLabels: Labels,
   }
   if (Labels) {
-    logger.debug(
-      dockerImageName + " has image metadata with the following Labels",
-      Object.keys(Labels).join(", ")
-    )
+    logger.debug(dockerImageName + " has image metadata with the following Labels", Object.keys(Labels).join(", "))
   }
   return imageMetadata
 }
 
 export type TLocalImageMetadataOptions = {
-  exec: any
+  exec: FExec
   logger: ILog
 }
 
-export function dockerImageMetadata(injected: TLocalImageMetadataOptions) {
-  const logger = injected.logger || console
+export function dockerImageMetadata(inj: TLocalImageMetadataOptions) {
+  const logger = inj.logger || console
 
-  const cmd = injected.exec
+  const exec: FExec = inj.exec
 
-  function inspectImage(
+  async function inspectImage(
     imageDef: TDockerImageReference,
     retryCount: number = 0
   ): Promise<TDockerInspectMetadata> {
-    return new Promise(function(resolve, reject) {
-      let dockerImage = imageDef.image + ":" + imageDef.imagetag
-      logger.debug("Extracting labels from image " + dockerImage)
-      cmd.extendedExec(
-        "docker",
-        ["inspect", dockerImage],
-        { stdErrLineHandler:(_errOutputSuppressedHere)=>{}} ,
-        function(err) {
-          logger.debug("docker inspect error:", err)
-          if (err.indexOf("No such") >= 0) {
-            if (retryCount > 1) {
-              reject(new Error("ERROR:" + dockerImage + ": " + err))
-            }
-            logger.debug("Going to pull ", JSON.stringify(imageDef))
+    let dockerImage = imageDef.image + ":" + imageDef.imagetag
+    logger.debug("Extracting labels from image " + dockerImage)
 
-            cmd.exec(
-              "docker",
-              ["pull", dockerImage],
-              process.env,
-              function(err) {
-                reject(new Error("Error pulling " + dockerImage + "\n" + err))
-              },
-              function(/*stdout*/) {
-                logger.info(
-                  dockerImage + " pulled, retrying inspect to load metadata"
-                )
-                inspectImage(imageDef, 2)
-                  .then(function(result) {
-                    resolve(result)
-                  })
-                  .catch(reject)
-              }
-            )
-          } else {
-            reject(new Error("Error inspecting " + dockerImage + ":\n" + err))
-          }
-        },
-        function(stdout) {
-          let dockerImageMetadata: any
-          try {
-            dockerImageMetadata = JSON.parse(stdout)
-          } catch (e) {
-            return reject("Error parsing docker metadata")
-          }
-
-          try {
-            let imageMetadata = extractImageLabels(
-              dockerImageMetadata,
-              imageDef,
-              logger,
-              dockerImage
-            )
-            resolve(imageMetadata)
-          } catch (e) {
-            reject(
-              "Error processing metadata retrieved from docker inspect of image " +
-                dockerImage +
-                ":\n" +
-                e +
-                "\nMetadata document:\n" +
-                stdout
-            )
-          }
+    return exec("docker", ["inspect", dockerImage], { env: process.env })
+      .then(function(execResult) {
+        let dockerImageMetadata: any
+        try {
+          dockerImageMetadata = JSON.parse(execResult.stdout)
+        } catch (e) {
+          throw new Error(`Error parsing docker metadata ${execResult.stdout}`)
         }
-      )
-    })
+
+        try {
+          let imageMetadata = extractImageLabels(dockerImageMetadata, imageDef, logger, dockerImage)
+          return imageMetadata
+        } catch (e) {
+          throw new Error(
+            "Error processing metadata retrieved from docker inspect of image " +
+              dockerImage +
+              ":\n" +
+              e +
+              "\nMetadata document:\n" +
+              execResult
+          )
+        }
+      })
+      .catch((dockerExecErr: TExecError) => {
+        logger.debug("docker inspect error:", dockerExecErr.stderr)
+        if (dockerExecErr.stderr.indexOf("No such") >= 0) {
+          if (retryCount > 1) {
+            throw new Error("ERROR:" + dockerImage + ": " + dockerExecErr)
+          }
+          logger.debug("Going to pull ", JSON.stringify(imageDef))
+
+          return exec("docker", ["pull", dockerImage], { env: process.env })
+            .then((/*execResult*/) => {
+              logger.info(dockerImage + " pulled, retrying inspect to load metadata")
+              return inspectImage(imageDef, 2).then(function(result) {
+                return result
+              })
+            })
+            .catch((dockerPullErr: TExecError) => {
+              throw new Error(`Unable to get metadata for docker image ${dockerImage}.\n ${dockerPullErr.stderr}`)
+            })
+        } else {
+          throw new Error("Error inspecting " + dockerImage + ":\n" + dockerExecErr)
+        }
+      })
   }
 
   function inspectImageLabels(imageDef): Promise<TDockerImageLabels> {

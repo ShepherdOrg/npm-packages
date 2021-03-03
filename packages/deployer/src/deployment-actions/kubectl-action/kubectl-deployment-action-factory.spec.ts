@@ -1,37 +1,41 @@
 import { TestActions, TK8sDockerImageDeploymentActionStruct } from "../../herd-loading/testdata/testActions"
-import { createFakeExec, TFakeExec } from "../../test-tools/fake-exec"
-import { createFakeLogger, IFakeLogging } from "../../test-tools/fake-logger"
+import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { expect } from "chai"
 import { IKubectlDeployAction, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
 import { createKubectlDeploymentActionsFactory } from "./kubectl-deployment-action-factory"
+import { IFakeExecution, initFakeExecution } from "@shepherdorg/ts-exec"
 
 export function createKubectlTestDeployAction(
   serialisedAction: TK8sDockerImageDeploymentActionStruct,
-  iFakeLogging: IFakeLogging, fakeExec: TFakeExec, stateStore: TFakeStateStore,
+  iFakeLogging: IFakeLogging,
+  fakeTsExec: IFakeExecution,
+  stateStore: TFakeStateStore
 ): IKubectlDeployAction {
-
   const actionFactory = createKubectlDeploymentActionsFactory({
-    exec: fakeExec,
+    exec: fakeTsExec.exec,
     logger: iFakeLogging,
     stateStore: stateStore,
   })
 
-  // @ts-ignore
-  return actionFactory.createKubectlDeployAction("testOrigin", serialisedAction.metadata.kubeDeploymentFiles["./deployment/www-icelandair-com.deployment.yml"].content, "apply", "testDeployment/test", iFakeLogging)
+  return actionFactory.createKubectlDeployAction(
+    "testOrigin",
+    // @ts-ignore
+    serialisedAction.metadata.kubeDeploymentFiles["./deployment/www-icelandair-com.deployment.yml"].content,
+    "apply",
+    "testDeployment/test"
+  )
 }
 
 describe("Kubectl deployment action factory", function() {
-
   describe("Deployment document without a kube deployment section", function() {
-
-    it("should not be able to roll back", () => {
-    })
+    it("should not be able to roll back", () => {})
   })
 
   describe("Deployment document with a kube deployment section", function() {
     let fakeStateStore: any
-    let fakeExec: TFakeExec
+    let fakeTsExec: IFakeExecution
+
     let fakeLogger: IFakeLogging
 
     let testAction: IKubectlDeployAction
@@ -39,10 +43,15 @@ describe("Kubectl deployment action factory", function() {
     before(() => {
       process.env.TPL_DOCKER_IMAGE = "does-not-matter"
       process.env.EXPORT1 = "does-not-matter-either"
-      fakeExec = createFakeExec()
       fakeStateStore = createFakeStateStore()
       fakeLogger = createFakeLogger()
-      testAction = createKubectlTestDeployAction(TestActions.addedK8sDeployments["Service_www-icelandair-com-internal"] as TK8sDockerImageDeploymentActionStruct, fakeLogger, fakeExec, fakeStateStore)
+      fakeTsExec = initFakeExecution()
+      testAction = createKubectlTestDeployAction(
+        TestActions.addedK8sDeployments["Service_www-icelandair-com-internal"] as TK8sDockerImageDeploymentActionStruct,
+        fakeLogger,
+        fakeTsExec,
+        fakeStateStore
+      )
     })
 
     after(() => {
@@ -57,14 +66,14 @@ describe("Kubectl deployment action factory", function() {
     describe("executing rollback", function() {
       let rollbackResult: TRollbackResult
       before(async () => {
-        let execOptions:TActionExecutionOptions = {
+        let execOptions: TActionExecutionOptions = {
           dryRun: false,
           dryRunOutputDir: undefined,
           logContext: {},
           pushToUi: false,
-          waitForRollout: false
+          waitForRollout: false,
         }
-        rollbackResult = (testAction.canRollbackExecution() && await testAction.rollback(execOptions) || {})
+        rollbackResult = (testAction.canRollbackExecution() && (await testAction.rollback(execOptions))) || { code: 0 }
       })
 
       it("should get rollback results", () => {
@@ -72,8 +81,8 @@ describe("Kubectl deployment action factory", function() {
       })
 
       it("should rollback using kubectl rollout undo", () => {
-        expect(fakeExec.executedCommands[0].command).to.eql('kubectl')
-        expect(fakeExec.executedCommands[0].params).to.eql([
+        expect(fakeTsExec.executedCommands[0].command).to.eql("kubectl")
+        expect(fakeTsExec.executedCommands[0].params).to.eql([
           "--namespace",
           "default",
           "rollout",
@@ -85,15 +94,8 @@ describe("Kubectl deployment action factory", function() {
   })
 
   describe("With a previous version and a kube deployment section", function() {
+    it("should be able to roll back by applying previous version again", () => {})
 
-    it("should be able to roll back by applying previous version again", () => {
-
-    })
-
-    it("should not use kubectl rollout undo for rollback", () => {
-
-    })
-
+    it("should not use kubectl rollout undo for rollback", () => {})
   })
-
 })

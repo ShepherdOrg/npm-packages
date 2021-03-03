@@ -1,0 +1,95 @@
+[
+    {
+        "Id": "sha256:3c31bcdb17136b4c78666dc16d8dbb0c1b7026e25fd4df3c8340089641fe54f7",
+        "RepoTags": [
+            "test-migration-image-newformat:0.0.66",
+            "test-migration-image-newformat:55be5298da3bfdd79a99397c89567315a1e63c3d",
+            "test-migration-image-newformat:latest"
+        ],
+        "RepoDigests": [],
+        "Parent": "sha256:ea682b16f0133109e0edef38a818f8f1eb66f2dffea9c3a03be8e022e96c9700",
+        "Comment": "",
+        "Created": "2020-05-22T09:49:23.2675073Z",
+        "Container": "76266cba347d8af885b85983dc90ac90fc3dbbe09a9b88dd51875f97b1c6775c",
+        "ContainerConfig": {
+            "Hostname": "76266cba347d",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "/bin/sh",
+                "-c",
+                "#(nop) ",
+                "ENTRYPOINT [\"./entrypoint.sh\"]"
+            ],
+            "Image": "sha256:ea682b16f0133109e0edef38a818f8f1eb66f2dffea9c3a03be8e022e96c9700",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": [
+                "./entrypoint.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "shepherd.metadata": "H4sIACKgx14AA+1Ua2/aMBTt5/2KKF9XwHEekHwalDaNxmNqGbSdpsrYJnFxEmQ7UIr473MIfU1ap0mrpklcKfIj5x6fm3MdmdBFQgWp38k8O3qfAAB4jmOUY9NzdyOA1Xo3tTzPsGzPs5oQAAcawHKAA44M8E56XkUhFRJaSlxwzt7Aadhs9sb7qhbjafxPYmNOC8ZJFylqBiYEENSAW4NwBPzA8QMIPwIQAGAeV7jzXKoBSktsWBCOirgQstZHuJPn89oXkdd5jhHXcJLjORVRimL6VXCNV1SqWspigRTLsxor39QyuprlIkUqcN0pdaHfIsiezghp+sj3bb+JW77rNW3LRRb1bGyT19QhUwmSyV+lj5k6rzj/LKkjUIbLtBRJRUW1WdWuJ5/0kxTTOs7T4HJ/6YYibmSLtLZAeK7lyrrGVGkneZrqeWA2HQu07NbMs6lDsA0gdhCCRF8ZgCCFzRkk2LMtS6dxfWyVJ3VidDZIyMkq7o+u41Hqw6gbrfqjuV5H3qAbe/27efz5ob3qd9vxdTaPL+yrrgzvEzIhFmadUY91zm4gl9geLKfMiXuXQEWnZ3J60gE3VwOA1501mbgFmrhZFPIiCi84Du+XdDJeR+FZSkI9nl88RKHFcUp4j7U/a5GSpihTDI+pkNonLRTUQd3zSluZXHC03rdX/9FKo3R2Z6fxZKdRSJbFBs2WTORZSjNlLBEvqGZ5sWcG3zZmtqfT+tqjaDi4PR2Mb8fti6jd6Z3eDgenOqfKDczNxgh7w067d/truLHdmtvj3/GOJsMXvDN2T8l4L1BSLKjWpkRBt9912XTB83VpHMqIBnOpQSLnfKq74nkbo7I1kvWCCs6yudwVp5ji5QGXeSEwlYb+OoZKWMlQ7BovUWohg0bjufkact98+U/N13iaVIqoaLBM0dIFSkoPGk9GyMbbt818rqv0YaRFay2PtOb2w7/+6x3iEIc4xCF+AI2jfKgADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+        },
+        "DockerVersion": "19.03.8",
+        "Author": "",
+        "Config": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": null,
+            "Image": "sha256:ea682b16f0133109e0edef38a818f8f1eb66f2dffea9c3a03be8e022e96c9700",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": [
+                "./entrypoint.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "shepherd.metadata": "H4sIACKgx14AA+1Ua2/aMBTt5/2KKF9XwHEekHwalDaNxmNqGbSdpsrYJnFxEmQ7UIr473MIfU1ap0mrpklcKfIj5x6fm3MdmdBFQgWp38k8O3qfAAB4jmOUY9NzdyOA1Xo3tTzPsGzPs5oQAAcawHKAA44M8E56XkUhFRJaSlxwzt7Aadhs9sb7qhbjafxPYmNOC8ZJFylqBiYEENSAW4NwBPzA8QMIPwIQAGAeV7jzXKoBSktsWBCOirgQstZHuJPn89oXkdd5jhHXcJLjORVRimL6VXCNV1SqWspigRTLsxor39QyuprlIkUqcN0pdaHfIsiezghp+sj3bb+JW77rNW3LRRb1bGyT19QhUwmSyV+lj5k6rzj/LKkjUIbLtBRJRUW1WdWuJ5/0kxTTOs7T4HJ/6YYibmSLtLZAeK7lyrrGVGkneZrqeWA2HQu07NbMs6lDsA0gdhCCRF8ZgCCFzRkk2LMtS6dxfWyVJ3VidDZIyMkq7o+u41Hqw6gbrfqjuV5H3qAbe/27efz5ob3qd9vxdTaPL+yrrgzvEzIhFmadUY91zm4gl9geLKfMiXuXQEWnZ3J60gE3VwOA1501mbgFmrhZFPIiCi84Du+XdDJeR+FZSkI9nl88RKHFcUp4j7U/a5GSpihTDI+pkNonLRTUQd3zSluZXHC03rdX/9FKo3R2Z6fxZKdRSJbFBs2WTORZSjNlLBEvqGZ5sWcG3zZmtqfT+tqjaDi4PR2Mb8fti6jd6Z3eDgenOqfKDczNxgh7w067d/truLHdmtvj3/GOJsMXvDN2T8l4L1BSLKjWpkRBt9912XTB83VpHMqIBnOpQSLnfKq74nkbo7I1kvWCCs6yudwVp5ji5QGXeSEwlYb+OoZKWMlQ7BovUWohg0bjufkact98+U/N13iaVIqoaLBM0dIFSkoPGk9GyMbbt818rqv0YaRFay2PtOb2w7/+6x3iEIc4xCF+AI2jfKgADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="
+            }
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 4815293,
+        "VirtualSize": 4815293,
+        "GraphDriver": {
+            "Data": {
+                "LowerDir": "/var/lib/docker/overlay2/4129b7e7ff6c4afea2bd47e98da7675e3640741c93bfbb72a7a5d823a1d0e8ce/diff",
+                "MergedDir": "/var/lib/docker/overlay2/b54796cd5b9bc1509f47bb96f56422c978ac7ce487c02e3e51095b2b777e495f/merged",
+                "UpperDir": "/var/lib/docker/overlay2/b54796cd5b9bc1509f47bb96f56422c978ac7ce487c02e3e51095b2b777e495f/diff",
+                "WorkDir": "/var/lib/docker/overlay2/b54796cd5b9bc1509f47bb96f56422c978ac7ce487c02e3e51095b2b777e495f/work"
+            },
+            "Name": "overlay2"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:23f7bd114e4a0ea39a34e1bd50c2b71fb7d60f89139ca86ee746efb0bb49b4b8",
+                "sha256:70db450ecbdf849f481e2ada77f07c63f45e3b284ab317fd3e065c7320f49a8c"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2020-05-22T09:49:23.373267Z"
+        }
+    }
+]

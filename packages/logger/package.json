@@ -1,0 +1,34 @@
+{
+  "name": "@shepherdorg/logger",
+  "version": "5.0.0",
+  "description": "Logger with a log context concept, nice rendering of error, warn and info logs, with log context on the left. Designed for outputting logs from multiple child processes in parallel. Comes with a test double for easy unit testing of users.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
+    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts --watch 'src/**/*.spec.ts'",
+    "build": "tsc",
+    "prepublishOnly": "yarn build && yarn test"
+  },
+  "keywords": [
+    "exec",
+    "cmd",
+    "typescript",
+    "command"
+  ],
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "array-flat-polyfill": "^1.0.1",
+    "@shepherdorg/logger": "^5.0.0"
+  },
+  "author": "Guðlaugur S. Egilsson",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "12.12.6",
+    "@types/chai": "^4.2.15",
+    "chai": "^4.3.0"
+  }
+}

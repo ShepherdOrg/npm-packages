@@ -1,0 +1,50 @@
+{
+  "dockerRepository": "sample-myip-api",
+  "dockerOrganization": "shepherdorg",
+  "displayName": "Sample AWS Lambda deployer",
+  "deployerRole": "install",
+  "environment": [
+    {
+      "name": "AWS_REGION",
+      "value": "AWS_REGION"
+    },
+    {
+      "name": "AWS_ACCESS_KEY_ID",
+      "value": "AWS_ACCESS_KEY_ID",
+      "secret": true
+    },
+    {
+      "name": "AWS_SECRET_ACCESS_KEY",
+      "value": "AWS_SECRET_ACCESS_KEY",
+      "secret": true
+    },
+    {
+      "name": "",
+      "value": "MYIP_INFRASTRUCTURE_STACK_NAME"
+    },
+    {
+      "name": "BRANCH_NAME",
+      "value": "BRANCH_NAME"
+    }
+  ],
+  "deployCommand": "npm run deploy",
+  "postDeploymentTests": [
+    {
+      "inEnvironments": ["dev"],
+      "command": "npm run e2e-test",
+      "environment": [
+        {
+          "name": "ENV",
+          "value": "{{ENV}}"
+        }
+      ]
+    }
+  ],
+
+  "hyperlinks": [
+    {
+      "title": "TestlinkOne",
+      "url": "https://link.to.nowhere"
+    }
+  ]
+}

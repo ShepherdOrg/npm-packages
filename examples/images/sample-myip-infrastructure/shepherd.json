@@ -1,0 +1,32 @@
+{
+  "dockerOrganization": "shepherdorg",
+  "dockerRepository": "sample-myip-infrastructure",
+  "displayName": "Common AWS infrastructure for myip app, across branches.",
+  "deployerRole": "install",
+  "environment": [
+    {
+      "name": "AWS_REGION",
+      "value": "AWS_REGION"
+    },
+    {
+      "name": "AWS_ACCESS_KEY_ID",
+      "value": "AWS_ACCESS_KEY_ID",
+      "secret": true
+    },
+    {
+      "name": "AWS_SECRET_ACCESS_KEY",
+      "value": "AWS_SECRET_ACCESS_KEY",
+      "secret": true
+    },
+    {
+      "name": "INFRASTRUCTURE_STACK_NAME",
+      "value": "MYIP_INFRASTRUCTURE_STACK_NAME"
+    },
+    {
+      "name": "BRANCH_NAME",
+      "value": "BRANCH_NAME"
+    }
+  ],
+  "deployCommand": "npm run deploy",
+  "rollbackCommand": "npm run delete"
+}
