@@ -27,12 +27,9 @@ export function createRolloutUndoActionFactory({ exec, logger }: { exec: FExec; 
           })
           .catch(err => {
             const execError = err as TExecError
-            logger.warn(
-              `Error executing kubectl rollout undo ${rollout}, code ${err.errCode}`,
-              deploymentOptions.logContext
-            )
             logger.warn(execError.message, deploymentOptions.logContext)
-            logger.warn(execError.stdout, deploymentOptions.logContext)
+            logger.error(execError.stderr, execError, deploymentOptions.logContext)
+            logger.info(execError.stdout, deploymentOptions.logContext)
 
             let rollbackResult: TRollbackResult = {
               code: execError.code,

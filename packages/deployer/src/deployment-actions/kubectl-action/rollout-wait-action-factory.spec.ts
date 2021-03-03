@@ -63,6 +63,31 @@ describe("K8S deployment rollout status wait action factory", function() {
     })
   })
 
+  describe("executing rollout action with waitForRollout true and wait timeout", function() {
+    let execResult: IStatefulExecutableAction
+
+    before(async () => {
+      fakeLogger.logStatements = []
+      fakeTsExec.executedCommands = []
+      let deploymentOptions: TActionExecutionOptions = {
+        pushToUi: false,
+        waitForRollout: true,
+        rolloutWaitSeconds: 44,
+        dryRun: false,
+        dryRunOutputDir: undefined,
+        logContext: {},
+      }
+
+      return (execResult = await rolloutAction.execute(deploymentOptions))
+    })
+
+    it("should execute kubectl rollout status with timeout option", () => {
+      expect(fakeTsExec.executedCommandLines()[0]).to.eql(
+        "kubectl --namespace default rollout status --timeout=44s Deployment/my-awesome-deployment"
+      )
+    })
+  })
+
   describe("executing rollout action with waitForRollout false", function() {
     before(async () => {
       fakeLogger.logStatements = []
@@ -104,7 +129,6 @@ describe("K8S deployment rollout status wait action factory", function() {
         return (execResult = await rolloutAction.execute({
           pushToUi: false,
           waitForRollout: true,
-          rolloutWaitSeconds: 44,
           dryRun: false,
           dryRunOutputDir: undefined,
           logContext: {},
@@ -114,9 +138,9 @@ describe("K8S deployment rollout status wait action factory", function() {
       }
     })
 
-    it("should encapsulate error from exec", () => {
+    it("should throw error with meaningful message", () => {
       expect(caughtErr.message).to.equal(
-        "Error waiting for rollout to finish. kubectl --namespace default rollout status Deployment/my-awesome-deployment. Process exited with error code 99"
+        "Error waiting for rollout to finish. kubectl --namespace default rollout status Deployment/my-awesome-deployment. Process exited with error code 99\nRollback undo was attempted, but failed!"
       )
     })
 
@@ -126,11 +150,14 @@ describe("K8S deployment rollout status wait action factory", function() {
       )
     })
 
-    it("should have warning log lines", () => {
-      let warningLogLines = fakeLogger.logStatements.filter(ls => {
-        return ls.logLevel === "warn"
-      })
-      expect(warningLogLines.length).to.eql(3)
+    it("should log that rollout was undone", () => {
+      expect(fakeLogger.logLevelEntries("warn")[0][0]).to.equal(
+        "kubectl --namespace default rollout undo deployment/my-awesome-deployment. Process exited with error code 77"
+      )
+    })
+
+    it("should log that undo failed on error level", () => {
+      expect(fakeLogger.logLevelEntries("error")[0][0]).to.equal("Undo failed")
     })
   })
 })

@@ -48,7 +48,12 @@ export function createRolloutWaitActionFactory(dependencies: TRolloutWaitActionD
       planString: planString,
       execute(deploymentOptions: TActionExecutionOptions): Promise<IStatefulExecutableAction> {
         if (deploymentOptions.waitForRollout) {
-          return exec("kubectl", ["--namespace", deploymentRollout.namespace, "rollout", "status", identifier], {
+          let params = ["--namespace", deploymentRollout.namespace, "rollout", "status"]
+          if (deploymentOptions.rolloutWaitSeconds && deploymentOptions.rolloutWaitSeconds > 0) {
+            params.push(`--timeout=${deploymentOptions.rolloutWaitSeconds}s`)
+          }
+          params.push(identifier)
+          return exec("kubectl", params, {
             env: process.env,
             doNotCollectOutput: false,
           })
@@ -59,9 +64,15 @@ export function createRolloutWaitActionFactory(dependencies: TRolloutWaitActionD
             })
             .catch(async (execError: TExecError) => {
               let errorMessage = `Error waiting for rollout to finish. ${execError.message}`
-              const rollbackResult = rolloutUndoActionFactory
+
+              /*NOTE: Rollout undo will not throw on failure, it will log the failure. */
+              const undoResult = await rolloutUndoActionFactory
                 .createRolloutUndoAction(deploymentRollout)
                 .execute(deploymentOptions)
+
+              if (undoResult.code !== 0) {
+                errorMessage += "\nRollback undo was attempted, but failed!"
+              }
               throw new Oops({
                 message: errorMessage,
                 category: "OperationalError",

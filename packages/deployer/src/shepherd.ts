@@ -53,6 +53,9 @@ Upstream build job input. The first three must be provided together or all skipp
     UPSTREAM_HERD_DESCRIPTION   - Short description that would otherwise be in the herd.yaml file.
     UPSTREAM_WAIT_FOR_ROLLOUT   - Upstream build wants rollout to complete before getting control back. Useful when 
                                   post-processing in upstream build depends on rollout being complete, such as running e2e tests.
+                                  Kubernetes deployment specific. "true" triggers rollout wait, any other value does not.
+    UPSTREAM_ROLLOUT_TIMEOUT    - Timeout to wait for rollout to complete, in seconds. Option for UPSTREAM_WAIT_FOR_ROLLOUT.
+                                  Zero means default timeout will be used.
 
 Push data to Shepherd UI:
     SHEPHERD_UI_API_ENDPOINT - GraphQL endpoint for shepherd UI API
@@ -165,6 +168,7 @@ function main() {
   let waitForRollout =
     process.env.UPSTREAM_WAIT_FOR_ROLLOUT === "true" || process.argv.indexOf("--wait-for-rollout") > 0
 
+  let rolloutTimeout = (process.env.UPSTREAM_ROLLOUT_TIMEOUT && parseInt(process.env.UPSTREAM_ROLLOUT_TIMEOUT)) || 0
   const exportDocuments = process.argv.indexOf("--export") > 0
 
   let outputDirectory: TFileSystemPath | undefined
@@ -286,6 +290,7 @@ function main() {
                 dryRunOutputDir: outputDirectory,
                 pushToUi: pushToUi,
                 waitForRollout: waitForRollout,
+                rolloutWaitSeconds: rolloutTimeout,
                 logContext: defaultLogContext,
               })
               .then(function(planResults: IDeploymentPlanExecutionResult[]) {

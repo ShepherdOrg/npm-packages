@@ -6,7 +6,7 @@ import { ILog } from "./index"
 
 const exec = require("@shepherdorg/ts-exec").exec
 
-describe.only("Image metadata loading", function() {
+describe("Image metadata loading", function() {
   this.timeout(60000)
 
   let testCaseLogger = getTestCaseLogger({

@@ -95,12 +95,16 @@ describe("K8S deployment rollout undo factory", function() {
       expect(execResult.code).to.equal(43)
     })
 
+    it("should log undo error on error level", () => {
+      expect(fakeLogger.logLevelEntries("error")[0][0]).to.equal("Rollout undo failure")
+    })
+
     it("should warn about undo failure", () => {
       expect(
         fakeLogger.logStatements.filter(ls => {
           return ls.logLevel === "warn"
         }).length
-      ).to.equal(3)
+      ).to.equal(1)
     })
   })
 })
