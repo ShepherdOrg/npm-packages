@@ -15,7 +15,7 @@ How well it scales above that has not been tested at the time of writing this.
   complex plumbing.
 - Combine [any kind of deployment](#any-kind) in a uniform CI/CD and configuration management pipeline. Local and cloud. Custom and standard.
 - Lightweight. No extra services or servers required. A postgres database can be used to optimize deployment state tracking.
-- Opinionated around CI/CD best practices. Discourage integrated tests at build time, support 
+- Opinionated around CI/CD best practices. Discourages integrated tests at build time.
 - Binary promotion, also across branches. Shepherd-build-docker does not build an image twice from the exact
   same sources.
 - Automagic branch deployment in kubernetes. Shepherd knows how to modify kubernetes deployment documents for
@@ -29,6 +29,12 @@ How well it scales above that has not been tested at the time of writing this.
 - Does not rely on plug-ins. Instead it relies on annotated docker images. This means that any custom deployment
   logic you write will work with basically any pipeline that can run docker containers, not only with Shepherd,
   minimising the lock-in risk.
+
+# Why not Shepherd?
+- Mostly security issues 
+  - Shepherd is installable with npm/yarn, which do not use lockfiles in this use-case. Installing using npm and doing npm audit fix after install is recommended.
+  - Too little central control over secret distribution. A concept of access control lists is needed.
+- Depends on git. Will not work with other VCSs.
 
 # Shepherd CLI
 
