@@ -453,7 +453,6 @@ else
   [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Not pushing ${DOCKER_IMAGE}"
 fi
 
-echo "Popd"
 # TODOLATER Return error if docker image produced is not configured with enough information to deploy
 # Create command shepherd-validate-image
 # TODOLATER Add SHEPHERD_METADATA arg and label to Dockerfile if missing, rather than throwing error
