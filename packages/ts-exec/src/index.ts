@@ -1,2 +1,2 @@
 export * from "./exec"
-export * from "./fake-exec"
+export * from "./test-tools/fake-exec"

@@ -5,7 +5,7 @@ import { expect } from "chai"
 import { createDeploymentTimeAnnotationActionFactory } from "./create-deployment-time-annotation-action"
 import { createFakeTimeoutWrapper, TFakeTimeoutWrapper } from "../../../test-tools/fake-timer"
 import { defaultTestExecutionOptions } from "../../../test-tools/test-action-execution-options"
-import { IFakeExecution, initFakeExecution, TExecError } from "@shepherdorg/ts-exec"
+import { formatCommandLine, IFakeExecution, initFakeExecution, TExecError } from "@shepherdorg/ts-exec"
 
 describe("Deployment Time Annotation Action", function() {
   describe("For deployment in unspecified namespace", function() {
@@ -82,6 +82,7 @@ describe("Deployment Time Annotation Action", function() {
           } else {
             execCount++
             return {
+              command: formatCommandLine(command, params),
               code: 0,
               stdout: "Nice, annotation successful",
               stderr: "",

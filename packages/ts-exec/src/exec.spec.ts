@@ -21,6 +21,9 @@ describe("Command execution. Tests only work in a posix shell.", function() {
     it("should return empty string", () => {
       expect(execResult.stdout).to.equal("")
     })
+    it("should return actual command run with result", () => {
+      expect(execResult.command).to.equal("ls -la")
+    })
   })
 
   describe("executing ls, directing output to log", function() {

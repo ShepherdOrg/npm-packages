@@ -1,6 +1,15 @@
 import { execFile, ExecFileOptions } from "child_process"
 
-export type TExecResult = { code: number; stdout: string; stderr: string }
+export type TExecResult = {
+  /** Command that was executed */
+  command: string
+  /** Child process exit code. Usually 0, since non-zero will result in an exception thrown. */
+  code: number
+  /** Accumulated stdout from child process. */
+  stdout: string
+  /** Accumulated stderr from child process. */
+  stderr: string
+}
 
 const BUFFER_ENCODING: "utf-8" = "utf-8"
 
@@ -25,10 +34,12 @@ export class TExecError extends Error {
   }
 }
 
+export function formatCommandLine(command: string, params: string[] | undefined) {
+  return `${command}${params && params.length ? " " + params.join(" ") : ""}`
+}
+
 export function formatExecErrorMessage(command: string, params: string[] | undefined, code: number) {
-  return `${command}${
-    params && params.length ? " " + params.join(" ") + ". " : ". "
-  }Process exited with error code ${code}`
+  return `${formatCommandLine(command, params)}. Process exited with error code ${code}`
 }
 
 export const exec: FExec = async (
@@ -74,7 +85,12 @@ export const exec: FExec = async (
 
       child.on("close", code => {
         if (code === 0) {
-          let execResult: TExecResult = { code: code, stdout: outBuffer.toString(), stderr: errBuffer }
+          let execResult: TExecResult = {
+            command: formatCommandLine(command, params),
+            code: code,
+            stdout: outBuffer.toString(),
+            stderr: errBuffer,
+          }
           resolve(execResult)
         } else {
           reject(new TExecError(code, formatExecErrorMessage(command, params, code), errBuffer, outBuffer))

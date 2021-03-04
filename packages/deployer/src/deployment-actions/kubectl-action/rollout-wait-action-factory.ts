@@ -58,7 +58,7 @@ export function createRolloutWaitActionFactory(dependencies: TRolloutWaitActionD
             doNotCollectOutput: false,
           })
             .then(execResult => {
-              logger.info(planString(), deploymentOptions.logContext)
+              logger.info(execResult.command, deploymentOptions.logContext)
               logger.info(execResult.stdout, deploymentOptions.logContext)
               return waitAction
             })

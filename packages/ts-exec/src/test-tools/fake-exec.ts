@@ -1,4 +1,4 @@
-import { TExecError, FExec, formatExecErrorMessage } from "./exec"
+import { TExecError, FExec, formatExecErrorMessage, formatCommandLine } from "../exec"
 
 export type IFakeExecution = {
   addResponse: (response: Partial<TExecResponse>) => IFakeExecution
@@ -64,6 +64,7 @@ export function initFakeExecution(execResponses?: Array<TExecResponse>): IFakeEx
           )
         } else {
           return {
+            command: formatCommandLine(command, params),
             code: 0,
             stdout: nextResponse.stdout,
             stderr: nextResponse.stderr || "",
