@@ -1,0 +1,19 @@
+{
+  "displayName": "Test image with tests only, no deployment.",
+  "preDeploymentTests": [
+    {
+      "inEnvironments": ["whatIsMyEnv"],
+      "command": "pretest this",
+      "environment": [
+        {
+          "name": "YOU_ARE_IN_PRETEST_MODE",
+          "value": "true"
+        },
+        {
+          "name": "PRETEST_EXITCODE",
+          "value": "{{ PRETEST_EXITCODE }}"
+        }
+      ]
+    }
+  ]
+}

@@ -114,8 +114,12 @@ export type TExecuteOptions = {
 }
 
 export default {
-  // Pass in debug=true if you want to see output of subject under test.
-  execute: function(command: string, args: string[], options: TExecuteOptions) {
+  execute: function(
+    command: string,
+    args: string[],
+    options: TExecuteOptions,
+    stdHandler?: Pick<Console, "info" | "error">
+  ) {
     let logfn = undefined
 
     options.stdoutLineHandler =
@@ -127,7 +131,7 @@ export default {
       }
     options.env = extend({}, options.env, { PATH: process.env.PATH })
 
-    exec(command, args, options)
+    exec(command, args, options, stdHandler)
       .then(execResult => {
         execution.actualExitCode = 0
         execution.processOutput = execResult.stdout

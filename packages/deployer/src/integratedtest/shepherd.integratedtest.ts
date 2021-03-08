@@ -46,14 +46,18 @@ describe("running shepherd", function() {
 
     it("should deploy everything", function(done) {
       script
-        .execute(shepherdTestHarness, ["--dryrun"], {
-          env: _.extend({}, process.env, {
-            SHEPHERD_PG_HOST: "",
-            INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
-            SERVICE_HOST_NAME: "svc.host.somewhere",
-          }),
-          debug: false, // debug:false suppresses stdout of process
-        })
+        .execute(
+          shepherdTestHarness,
+          ["--dryrun"],
+          {
+            env: _.extend({}, process.env, {
+              SHEPHERD_PG_HOST: "",
+              INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
+              SERVICE_HOST_NAME: "svc.host.somewhere",
+            }),
+          }
+          // console // Uncomment to enable output from test run
+        )
         .ignoreLinesWith(["buildDate", "lastCommits", "kubeConfigB64", "gitHash"])
         .output("./.build/.testdata/kubeapply")
         .shouldEqual("./src/integratedtest/expected/all-deployments")
@@ -76,15 +80,19 @@ describe("running shepherd", function() {
 
     it("should add deployment to herd", done => {
       script
-        .execute(shepherdTestHarness, ["--dryrun", tempHerdFilePath], {
-          env: _.extend({}, process.env, {
-            SHEPHERD_PG_HOST: "",
-            UPSTREAM_IMAGE_URL: "testenvimage:0.0.0",
-            UPSTREAM_HERD_KEY: "addedimage",
-            UPSTREAM_HERD_DESCRIPTION: "Just a casual e2e test",
-          }),
-          debug: false, // debug:false suppresses stdout of process
-        })
+        .execute(
+          shepherdTestHarness,
+          ["--dryrun", tempHerdFilePath],
+          {
+            env: _.extend({}, process.env, {
+              SHEPHERD_PG_HOST: "",
+              UPSTREAM_IMAGE_URL: "testenvimage:0.0.0",
+              UPSTREAM_HERD_KEY: "addedimage",
+              UPSTREAM_HERD_DESCRIPTION: "Just a casual e2e test",
+            }),
+          },
+          console // Uncomment to enable output from test run
+        )
         .stdout()
         .shouldContain("Adding addedimage")
         .stdout()
@@ -154,19 +162,27 @@ describe("running shepherd", function() {
 
           let testEnv = { INFRASTRUCTURE_IMPORTED_ENV: "thatsme", SERVICE_HOST_NAME: "svc.host.somewhere" }
           firstRun = script
-            .execute(shepherdTestHarness, [], {
-              env: _.extend(testEnv, process.env),
-              debug: false, // debug:false suppresses stdout of process
-            })
+            .execute(
+              shepherdTestHarness,
+              [],
+              {
+                env: _.extend(testEnv, process.env),
+              }
+              // console // Uncomment to enable output from test run
+            )
             .done(function(_stdout) {
               // console.log(`stdout`, stdout)
               process.env.KUBECTL_OUTPUT_FOLDER = secondRoundFolder
 
               secondRun = script
-                .execute(shepherdTestHarness, [], {
-                  env: _.extend(testEnv, process.env),
-                  debug: false, // debug:false suppresses stdout of process
-                })
+                .execute(
+                  shepherdTestHarness,
+                  [],
+                  {
+                    env: _.extend(testEnv, process.env),
+                  }
+                  // console // Uncomment to enable output from test run
+                )
                 .done(function(_stdout) {
                   done()
                 })
@@ -198,6 +214,7 @@ describe("running shepherd", function() {
   })
 
   describe("postDeployTest support", function() {
+    let testExecution: TScriptTestExecution
     beforeEach(() => {
       const firstRoundFolder = path.join(process.cwd(), "./.build/kubeapply")
       ensureCleanOutputFolder(firstRoundFolder)
@@ -206,19 +223,23 @@ describe("running shepherd", function() {
       delete process.env.SHEPHERD_UI_API_ENDPOINT
       let shepherdStoreDir = "./.build/.shepherdstore"
       cleanDir(shepherdStoreDir)
-    })
-
-    it(" should fail on post tests and attempt to rollback to previous version, independently on deployment plans, and exit with number of failing plans", function(done) {
-      script
-        .execute(shepherdTestHarness, ["--fakerun", "src/herd-loading/testdata/deploytestherd/herd.yaml"], {
+      testExecution = script.execute(
+        shepherdTestHarness,
+        ["--fakerun", "src/herd-loading/testdata/deploytestherd/herd.yaml"],
+        {
           env: _.extend({}, process.env, {
             SHEPHERD_PG_HOST: "",
             FAIL_POSTDEPLOY_TEST: true,
             PRETEST_EXITCODE: "0",
             POSTTEST_EXITCODE: "1",
           }),
-          debug: false, // debug:false suppresses stdout of process
-        })
+        }
+        // console // Uncomment to enable output from test run
+      )
+    })
+
+    it("should fail on post tests and attempt to rollback to previous version, independently on deployment plans, and exit with number of failing plans", function(done) {
+      testExecution
         .expectExitCode(1)
         .stdout()
         .shouldContain("Executing docker command pretest")
@@ -267,16 +288,20 @@ describe("running shepherd", function() {
 
     it("should modify branch deployment", function(done) {
       script
-        .execute(shepherdTestHarness, ["--dryrun"], {
-          env: _.extend(
-            {
-              INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
-              SERVICE_HOST_NAME: "svc.host.somewhere",
-            },
-            process.env
-          ),
-          debug: false, // debug:false suppresses stdout of process
-        })
+        .execute(
+          shepherdTestHarness,
+          ["--dryrun"],
+          {
+            env: _.extend(
+              {
+                INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
+                SERVICE_HOST_NAME: "svc.host.somewhere",
+              },
+              process.env
+            ),
+          },
+          console // Uncomment to enable output from test run
+        )
         .done(function() {
           done()
         })
@@ -327,8 +352,8 @@ describe("running shepherd", function() {
               testEnv,
               process.env
             ),
-            debug: false, // debug:false suppresses stdout of process
           }
+          // console // Uncomment to enable output from test run
         )
         .output(".build/testexport")
         .shouldEqual(expectedOutputFileOrDir)

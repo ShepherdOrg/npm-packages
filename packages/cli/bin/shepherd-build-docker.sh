@@ -250,7 +250,7 @@ function compareValues(){
   V1=${!1}
   V2=${!2}
   if [ ! "$V1" = "$V2" ]; then
-    echo "WARNING Backwards compatibility broken on a docker tag. New tag ${1} = ${V1}, Was ${V2}"
+    echo "WARNING Backwards compatibility broken on a shepherd docker tag. New tag ${1} = ${V1}, Was ${V2}"
   fi
 }
 

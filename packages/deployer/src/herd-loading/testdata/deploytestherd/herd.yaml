@@ -5,3 +5,7 @@ images:
     test-image:
         image: test-deployer-image-with-deployment-tests
         imagetag: 0.7.77
+    test-only-image:
+        image: test-image-with-pre-deployment-tests
+        imagetag: 0.1.1
+
