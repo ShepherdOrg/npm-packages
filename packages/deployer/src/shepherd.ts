@@ -74,10 +74,13 @@ Deployment state store configuration
     SHEPHERD_PG_PASSWORD     - Postgres password
 
 Other reserved environment variables:
-    The following environment variables are used to enable parameterising branch deployments
+    The following environment variables are used to enable parameterising branch deployments.
     BRANCH_NAME              - set to FEATURE_NAME from upstream branch deployment
     BRANCH_NAME_PREFIX       - set to \${FEATURE_NAME}-
     BRANCH_NAME_POSTFIX      - set to -\${FEATURE_NAME}   
+    
+    Note that branch deployments are NOT added to configuration management. That is, changes to configuration values will
+    not trigger redeployment or reconfiguration of active branch deployments.
 
 Examples
     Deploy all deployments in a given herd.yaml    
