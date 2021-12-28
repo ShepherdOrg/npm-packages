@@ -118,7 +118,7 @@ export function createLogger(consoleInstance: typeof console, options: TLoggerOp
     },
     debug() {
       // Disabled by commenting.
-      //            Array.prototype.unshift.call(arguments, 'DEBUG   ');
+      //            Array.prototype.unshift.call(arguments, 'debug   ');
       //            consoleInstance.log.apply(consoleInstance, arguments);
     },
     error(logString: string, error?: Error, logContext: TLogContext = options.defaultContext || DEFAULT_LOG_CONTEXT) {

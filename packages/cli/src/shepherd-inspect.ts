@@ -9,9 +9,7 @@ function shepherdInspect(dockerImageWithTag: string) {
     error: console.error,
   }
   const dockerRegistries = labelsLoader.getDockerRegistryClientsFromConfig()
-  const loader = labelsLoader.imageLabelsLoader(
-    { dockerRegistries: dockerRegistries, logger: logger }
-  )
+  const loader = labelsLoader.imageLabelsLoader({ dockerRegistries: dockerRegistries, logger: logger })
 
   return loader
     .getImageLabels({
@@ -25,6 +23,11 @@ function shepherdInspect(dockerImageWithTag: string) {
 
 export function inspectAndExtractShepherdMetadata(dockerImageWithTag: string) {
   return shepherdInspect(dockerImageWithTag).then(output => {
+    if (!output.dockerLabels) {
+      throw new Error(
+        "Shepherd inspect returned insufficent data for " + dockerImageWithTag + ". No dockerLabels present in output."
+      )
+    }
     return extractShepherdMetadata(output.dockerLabels)
   })
 }

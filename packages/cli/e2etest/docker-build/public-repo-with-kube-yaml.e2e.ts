@@ -30,8 +30,6 @@ describe("Build docker with kube.yaml deployment on branch (Flaky test, succeeds
     }).then(({ code, stdout, stderr }) => {
       if (code) expect.fail(`Exit with error code  ${code}\n${stderr}\n${stdout}`)
 
-      // console.log(`DEBUG ${require("chalk").red(stderr)} \n, ${stdout}`)
-
       shepherdMeta = JSON.parse(fs.readFileSync(dockerDir + "/.build/metadata/shepherd.json", "utf8"))
       buildOutput = stdout
 

@@ -13,15 +13,14 @@ export type TDockerImageReference = {
 }
 
 function extractImageLabels(dockerImageMetadata: any, imageDef: TDockerImageReference, logger, dockerImageName) {
-  let ContainerConfig = dockerImageMetadata[0].ContainerConfig
-  let Labels = ContainerConfig.Labels
+  let imageLabels = dockerImageMetadata[0].Config.Labels || dockerImageMetadata[0].ContainerConfig.Labels
 
   let imageMetadata = {
     imageDeclaration: imageDef,
-    dockerLabels: Labels,
+    dockerLabels: imageLabels,
   }
-  if (Labels) {
-    logger.debug(dockerImageName + " has image metadata with the following Labels", Object.keys(Labels).join(", "))
+  if (imageLabels) {
+    logger.debug(dockerImageName + " has image metadata with the following Labels", Object.keys(imageLabels).join(", "))
   }
   return imageMetadata
 }

@@ -227,7 +227,6 @@ function main() {
   const upgradeOrAddDeploymentInFile = require("./herd-file/herd-edit").upgradeOrAddDeploymentInFile
 
   function terminateProcess(exitCode: number) {
-    console.log(`DEBUG Terminating process with code`, exitCode)
     stateStoreBackend.disconnect()
     process.exit(exitCode)
   }
