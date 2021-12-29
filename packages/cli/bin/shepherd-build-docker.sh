@@ -53,6 +53,13 @@ function verifyInstall(){
     exit 1
   fi
 
+  addToDeploymentQueueExists=$(command -v add-to-deployment-queue)
+  echo "add-to-deployment-queue: $addToDeploymentQueueExists"
+  if [[ ! -x "${addToDeploymentQueueExists}" ]]; then
+    echo "add-to-deployment-queue not found. Should be on path."
+    exit 1
+  fi
+
   echo
   echo "Dependencies are present on path."
   set -e
@@ -157,7 +164,6 @@ export THISDIR=$(installationDir ${BASH_SOURCE[0]})
 . ${THISDIR}/deploy/functions.sh
 
 if [[ "$THISDIR" == *"node_modules"* ]]; then
-  echo "Am in node_modules"
   BINPATH=$(absolutepath "$THISDIR/../../../.bin")
   if [ -d "${BINPATH}" ]; then
     export PATH=${BINPATH}:${PATH}
