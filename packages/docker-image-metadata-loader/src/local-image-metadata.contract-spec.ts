@@ -40,7 +40,7 @@ describe("Image metadata loading", function() {
         expect(imageLabels["shepherd.name"]).to.equal("Shepherd agent")
       })
       .catch(loadFailure => {
-        console.log(`DEBUG loadFailure`, loadFailure)
+        console.log(`loadFailure`, loadFailure)
       })
   })
 })

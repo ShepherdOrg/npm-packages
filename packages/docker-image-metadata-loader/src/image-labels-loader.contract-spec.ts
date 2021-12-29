@@ -14,10 +14,8 @@ describe("Loading image labels", function() {
   const dockerRegistries: TDockerRegistryClientMap = getLocalhostTestingDockerRegistryClients()
 
   beforeEach(function() {
-    testLogger = getTestCaseLogger({ debugOutput: false, infoOutput: false, warnOutput:false })
-    loader = imageLabelsLoader(
-      { logger: testLogger, dockerRegistries: dockerRegistries }
-    )
+    testLogger = getTestCaseLogger({ debugOutput: false, infoOutput: false, warnOutput: false })
+    loader = imageLabelsLoader({ logger: testLogger, dockerRegistries: dockerRegistries })
   })
 
   describe("hub.docker.com registry by pulling and inspecting", function() {
@@ -28,12 +26,8 @@ describe("Loading image labels", function() {
           imagetag: "latest",
         })
         .then((imageLabels: TDockerInspectMetadata) => {
-          expect(imageLabels.dockerLabels["shepherd.name"]).to.eql(
-            "Shepherd agent"
-          )
-          expect(testLogger.debugEntries).to.contain(
-            "shepherdorg/shepherd:latest metadata loaded using docker inspect"
-          )
+          expect(imageLabels.dockerLabels["shepherd.name"]).to.eql("Shepherd agent")
+          expect(testLogger.debugEntries).to.contain("shepherdorg/shepherd:latest metadata loaded using docker inspect")
         })
     })
   })
@@ -45,9 +39,8 @@ describe("Loading image labels", function() {
           image: "bullshitimage/notexisting",
           imagetag: "latest",
         })
-        .catch((imageInspectError) => {
-          expect(imageInspectError.message).to.contain('Error pulling bullshitimage/notexisting:latest')
-          expect(imageInspectError.message).to.contain('repository does not exist')
+        .catch(imageInspectError => {
+          expect(imageInspectError.message).to.contain("bullshitimage/notexisting:latest")
         })
     })
   })
@@ -60,9 +53,7 @@ describe("Loading image labels", function() {
           imagetag: "latest",
         })
         .then((imageLabels: TDockerInspectMetadata) => {
-          expect(imageLabels.dockerLabels["shepherd.name"]).to.eql(
-            "Shepherd agent"
-          )
+          expect(imageLabels.dockerLabels["shepherd.name"]).to.eql("Shepherd agent")
           expect(testLogger.debugEntries).to.contain(
             "localhost:5000/shepherd:latest metadata loaded using registry API"
           )
@@ -82,9 +73,7 @@ describe("Loading image labels", function() {
           imagetag: "latest",
         })
         .then((imageLabels: TDockerInspectMetadata) => {
-          expect(imageLabels.dockerLabels["shepherd.name"]).to.eql(
-            "Shepherd agent"
-          )
+          expect(imageLabels.dockerLabels["shepherd.name"]).to.eql("Shepherd agent")
           expect(testLogger.debugEntries.join("\n")).to.contain(
             "localhost:5500/shepherd:latest metadata loaded using registry API"
           )

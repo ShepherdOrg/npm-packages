@@ -28,7 +28,7 @@ function outputVersion(){
   thisgitinfo=$(cd ${THISDIR} && git rev-parse --abbrev-ref HEAD 2> /dev/null)
   set -e
 
-  if [[ ! thisgitinfo = "master" && ! thisgitinfo = "" ]]; then
+  if [[ ! thisgitinfo = "${TRUNK_BRANCH_NAME}" && ! thisgitinfo = "" ]]; then
     echo "Executing from branch ${thisgitinfo}"
   fi
 }
