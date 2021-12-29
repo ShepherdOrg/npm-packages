@@ -3,6 +3,7 @@
 import * as fs from "fs"
 import { assembleDeploymentQueueEntry } from "./deploymentQueue/assemble-deployment-queue-entry"
 import { inspectAndExtractShepherdMetadata } from "./shepherd-inspect"
+import * as process from "process"
 
 async function main() {
   // Required parameters
@@ -48,4 +49,5 @@ main()
   .catch(err => {
     console.error("Error adding to deployment queue. " + process.argv.join(" "))
     console.error(err)
+    process.exit(255)
   })
