@@ -20,12 +20,17 @@ describe("Build docker with kube.yaml deployment", function() {
 
       let dockerDir = path.join(__dirname, "plain-deployer-repo")
 
+      let cleanPath = process.env?.PATH?.split(":")
+        .filter(pe => !pe.includes("/node_modules/"))
+        .join(":")
       return shellExec(`./bin/shepherd-build-docker.sh ${dockerDir}/Dockerfile --force-build --dryrun`, {
-        env: { ...process.env, ...{ BRANCH_NAME: "master" } },
+        env: { ...process.env, ...{ BRANCH_NAME: "master" }, PATH: cleanPath },
       })
         .then(({ stdout, stderr }) => {
           if (stderr) console.warn("Non-empty output in stderr. Uncomment next line to see it on test output.")
-          // console.log(`DEBUG "\n< STDOUT:\n" + stdout`, +stderr + "\n< STDOUT:\n" + stdout)
+
+          // console.log(`DEBUG STDERR \n>` + stderr + "<\n STDOUT:\n>" + stdout + "<\n")
+
           shepherdMeta = require(dockerDir + "/.build/metadata/shepherd.json")
           buildOutput = stdout
 

@@ -21,9 +21,8 @@ function installationDir() {
 }
 
 function outputVersion(){
-  echo Script located in "${THISDIR}"
   PACKAGE_VERSION=$(node -p -e "require(\"${THISDIR}\" + '/../package.json').version")
-  echo "cli v${PACKAGE_VERSION}"
+  echo "shepherd cli v${PACKAGE_VERSION}"
   set +e
   thisgitinfo=$(cd ${THISDIR} && git rev-parse --abbrev-ref HEAD 2> /dev/null)
   set -e
@@ -31,6 +30,32 @@ function outputVersion(){
   if [[ ! thisgitinfo = "${TRUNK_BRANCH_NAME}" && ! thisgitinfo = "" ]]; then
     echo "Executing from branch ${thisgitinfo}"
   fi
+}
+
+function verifyInstall(){
+  set +e
+  echo Verifying $(basename ${BASH_SOURCE[0]}) install.
+  echo Script located in "${THISDIR}"
+
+
+  versionistExists=$(command -v versionist)
+
+  echo "versionist: ${versionistExists}"
+  if [[ ! -x "${versionistExists}" ]]; then
+    echo "versionist not found. @shepherdorg/versionist is a dependency which should be installed."
+    exit 1
+  fi
+
+  base64encodeExists=$(command -v base64encode)
+  echo "base64encode: ${base64encodeExists}"
+  if [[ ! -x "${base64encodeExists}" ]]; then
+    echo "base64encode not found. Should be on path."
+    exit 1
+  fi
+
+  echo
+  echo "Dependencies are present on path."
+  set -e
 }
 
 function outputUsage() {
@@ -131,6 +156,26 @@ export THISDIR=$(installationDir ${BASH_SOURCE[0]})
 
 . ${THISDIR}/deploy/functions.sh
 
+if [[ "$THISDIR" == *"node_modules"* ]]; then
+  echo "Am in node_modules"
+  BINPATH=$(absolutepath "$THISDIR/../../../.bin")
+  if [ -d "${BINPATH}" ]; then
+    export PATH=${BINPATH}:${PATH}
+  else
+    echo "${BINPATH}" is not a directory, do now know where to locate binaries
+    exit 255
+  fi
+else
+  BINPATH=$(absolutepath "$THISDIR/../node_modules/.bin")
+  if [ -d "${BINPATH}" ]; then
+    export PATH=${BINPATH}:${PATH}
+  else
+    echo "${BINPATH}" is not a directory, do now know where to locate binaries
+    exit 255
+  fi
+fi
+
+
 if [[ "${1}" == "" ]]; then
   outputUsage
   exit 0
@@ -149,6 +194,7 @@ while [[ "$#" -gt 0 ]]; do
         --dryrun)       export __DRYRUN=1;;
         --help)         outputUsage; exit 0;;
         --version)      outputVersion; exit 0;;
+        --verifyInstall)    verifyInstall; exit 0;;
     esac
     shift
 done
