@@ -20,6 +20,8 @@ export DOCKER_IMAGE_BRANCH_HASH_TAG=${imageUrl}:${dirVersion.branchName ? dirVer
 
 type ShellExecResults = { stdout: string; stderr: string; code: number }
 
+export const DEFAULT_SEMANTIC_VERSION = "0.0.0"
+
 export async function gitDirHash(dirname: string) {
   const GIT_DIR_HASH_CMD = "git ls-files -s . | git hash-object --stdin"
   const EMPTY_DIR_HASH = "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
@@ -47,15 +49,42 @@ export function preferredName(dirVersion: TDirVersion) {
 }
 
 export function preferredVersion(dirVersion: TDirVersion): string | undefined {
-  return dirVersion.txtVersion || dirVersion.packageJsonVersion || "0.0.0"
+  return (
+    dirVersion.txtVersion || dirVersion.semanticVersion || dirVersion.packageJsonVersion || DEFAULT_SEMANTIC_VERSION
+  )
 }
 
-export interface TDirVersion {
+export function toVersionistJson(dirVersion: TDirVersion): TVersionistVersion {
+  let result: TVersionistVersion = {
+    semanticVersion: preferredVersion(dirVersion),
+    artifactName: preferredName(dirVersion),
+    artifactHash: dirVersion.dirHash,
+    dockerRepositoryName: dirVersion.dockerRepositoryName,
+    dockerRegistryOrganization: dirVersion.dockerRegistryOrganization,
+    dockerRegistry: dirVersion.dockerRegistry,
+    branchName: dirVersion.branchName,
+  }
+  return { ...result }
+}
+
+export type TDirVersion = {
   txtVersion?: string
+  semanticVersion?: string
   packageJsonVersion?: string
   packageJsonName?: string
   dirHash?: string
   dirName: string
+  dockerRepositoryName?: string
+  dockerRegistryOrganization?: string
+  dockerRegistry?: string
+  branchName?: string
+  preferredVersion?: string
+}
+
+export type TVersionistVersion = {
+  semanticVersion?: string
+  artifactName?: string
+  artifactHash?: string
   dockerRepositoryName?: string
   dockerRegistryOrganization?: string
   dockerRegistry?: string
@@ -115,7 +144,7 @@ async function getShepherdJsonDockerRepoName(dirname: string) {
 
 export async function versionInfo(
   dirname: string,
-  options?: { dockerRegistry?: string; branchName?: string; dockerOrganization?: string }
+  options?: { dockerRegistry?: string; branchName?: string; dockerOrganization?: string; semanticVersion?: string }
 ) {
   let dirHash = await gitDirHash(dirname)
   let packageJsonInfo = await getPackageJsonInfo(dirname)
@@ -129,10 +158,13 @@ export async function versionInfo(
     packageJsonName: packageJsonInfo?.packageJsonName,
     packageJsonVersion: packageJsonInfo?.packageJsonVersion,
     txtVersion: versionTxt,
+    semanticVersion: options?.semanticVersion,
     dockerRepositoryName: shepherdJsonInfo?.dockerRepository,
     dockerRegistryOrganization: shepherdJsonInfo?.dockerOrganization || options?.dockerOrganization,
     dockerRegistry: options?.dockerRegistry,
     branchName: options?.branchName,
   }
+  dirVersion.preferredVersion = preferredVersion(dirVersion)
+
   return dirVersion
 }

@@ -290,7 +290,7 @@ fi
 
 # echo $(versionist ${DOCKERDIR} --json --docker-registry "${DOCKER_REGISTRY_HOST_ONLY}" --branch-name "${BRANCH_NAME}")
 # Versionist emits env variables compatible with this script.
-eval "$(versionist ${DOCKERDIR} --bash-export --docker-registry "${DOCKER_REGISTRY_HOST_ONLY}" --branch-name "${BRANCH_NAME}" --docker-organisation "${__DOCKER_REPO}")"
+eval "$(versionist ${DOCKERDIR} --bash-export --docker-registry "${DOCKER_REGISTRY_HOST_ONLY}" --branch-name "${BRANCH_NAME}" --docker-organisation "${__DOCKER_REPO}" --semantic-version "${SEMANTIC_VERSION}")"
 
 export OLD_IMAGE_URL=${DOCKER_REGISTRY_HOST}${DOCKER_REPOSITORY_ORG}${DOCKER_REPOSITORY_NAME}
 export OLD_DOCKER_IMAGE=${IMAGE_URL}:${SEMANTIC_VERSION}

@@ -7,6 +7,8 @@ import {
   preferredName,
   preferredVersion,
   TDirVersion,
+  toVersionistJson,
+  TVersionistVersion,
   versionInfo,
 } from "./index"
 import * as path from "path"
@@ -62,7 +64,7 @@ describe("Preferred semantic version", function() {
 })
 
 describe("full directory version info for versionist", function() {
-  xit("should extract full version info for self", async () => {
+  it("should extract full version info for self", async () => {
     let dirname = process.cwd()
     const dirVersion = await versionInfo(dirname)
     expect(dirVersion.packageJsonVersion).to.equal("5.1.0")
@@ -84,6 +86,22 @@ describe("full directory version info for versionist", function() {
       expect(dirVersion.dockerRegistryOrganization).to.equal("myorgone")
       expect(dirVersion.dockerRegistry).to.equal(undefined)
       expect(dirVersion.txtVersion).to.equal("0.1")
+    })
+  })
+
+  describe("export versionist JSON format", function() {
+    it("should be correct", async () => {
+      const dirVersion = await versionInfo(path.join(__dirname, "testdata", "shepherd-annotated"))
+
+      expect(toVersionistJson(dirVersion)).to.eql({
+        semanticVersion: "0.1",
+        artifactName: "plain-deployer-image",
+        artifactHash: "c881392e04dd98f9bd5692cc144bd9bdd5726c3d",
+        dockerRepositoryName: "plain-deployer-image",
+        dockerRegistryOrganization: "myorgone",
+        dockerRegistry: undefined,
+        branchName: undefined,
+      })
     })
   })
 
@@ -207,6 +225,48 @@ export DOCKER_IMAGE_LATEST_TAG=public-repo-with-kube-yaml:latest
 export DOCKER_IMAGE_GITHASH_TAG=public-repo-with-kube-yaml:e0a673d6752e16f1179c0654ba1c53e825d57bc6
 export DOCKER_IMAGE_BRANCH_HASH_TAG=public-repo-with-kube-yaml:fakebranch-e0a673d6752e16f1179c0654ba1c53e825d57bc6
 `)
+    })
+  })
+
+  describe("explicit semantic version", function() {
+    let dirInfo: TDirVersion = {
+      dirHash: "e0a673d6752e16f1179c0654ba1c53e825d57bc6",
+      dirName: "public-repo-with-kube-yaml",
+      semanticVersion: "1.2.3",
+    }
+    let bashExports: string
+
+    before(() => {
+      bashExports = asBashExports(dirInfo)
+    })
+
+    it("should be according to design", () => {
+      expect(bashExports).to.equal(`export IMAGE_URL=public-repo-with-kube-yaml
+export DOCKER_IMAGE=public-repo-with-kube-yaml:1.2.3
+export DOCKER_IMAGE_LATEST_TAG=public-repo-with-kube-yaml:latest
+export DOCKER_IMAGE_GITHASH_TAG=public-repo-with-kube-yaml:e0a673d6752e16f1179c0654ba1c53e825d57bc6
+export DOCKER_IMAGE_BRANCH_HASH_TAG=public-repo-with-kube-yaml:e0a673d6752e16f1179c0654ba1c53e825d57bc6
+`)
+    })
+  })
+
+  xdescribe("Semantic version prioritization", function() {
+    describe("when parameter is preferred", function() {
+      let dirInfo: TDirVersion = {
+        dirHash: "e0a673d6752e16f1179c0654ba1c53e825d57bc6",
+        dirName: "public-repo-with-kube-yaml",
+        semanticVersion: "1.2.3",
+        txtVersion: "3.2.1",
+      }
+      let bashExports: string
+
+      before(() => {
+        bashExports = asBashExports(dirInfo)
+      })
+
+      it("should use parameter version", () => {
+        expect(bashExports).to.equal(`something else`)
+      })
     })
   })
 })
