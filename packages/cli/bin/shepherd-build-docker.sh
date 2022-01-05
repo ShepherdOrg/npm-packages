@@ -73,7 +73,8 @@ Usage (bash):
     If push parameter is present, docker push will be performed at end of successful build.
 
 Parameters:
-    --force-rebuild          Force rebuild image. Same as setting FORCE_REBUILD to non-empty value.
+    --force-rebuild
+    --force-build            Force build image. Same as setting FORCE_REBUILD to non-empty value.
     --verbose                More verbose output about decisions being made during build.
     --docker-repository      Specify docker organization for image. Alternative to specifying in dockerOrganization field in shepherd.json.
 
@@ -97,10 +98,8 @@ Environment variable options:
     GIT_COMMIT:              Git commit hash.
     SEMANTIC_VERSION:        Use to construct version tag. If not provided, will attempt to extract tag from the "FROM"
                              statement in the dockerfile.
-
     TRUNK_BRANCH_NAME:       Branch that is considered trunk. Default is "master".
-
-	  SHEPHERD_DEPLOYMENT_QUEUE_FILE:    Deployment queue for monorepo build and deployment support.
+    SHEPHERD_DEPLOYMENT_QUEUE_FILE:    Deployment queue for monorepo build and deployment support.
 
 The following options are obsolete and no longer supported. Use shepherd.json options or program parameters to control organization and repository names instead.
 
@@ -193,14 +192,15 @@ export __DRYRUN=0
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        push)           export __SHEPHERD_PUSH_ARG=$1;;
-        -dr|--docker-repository) export __DOCKER_REPO="$2"; shift ;;
-        --verbose)      export __SHEPHERD_VERBOSE=1;;
-        --force-build)  export FORCE_REBUILD="true";;
-        --dryrun)       export __DRYRUN=1;;
-        --help)         outputUsage; exit 0;;
-        --version)      outputVersion; exit 0;;
-        --verifyInstall)    verifyInstall; exit 0;;
+        push)                       export __SHEPHERD_PUSH_ARG=$1;;
+        -dr|--docker-repository)    export __DOCKER_REPO="$2"; shift ;;
+        --verbose)                  export __SHEPHERD_VERBOSE=1;;
+        --force-build)              export FORCE_REBUILD="true";;
+        --force-rebuild)            export FORCE_REBUILD="true";;
+        --dryrun)                   export __DRYRUN=1;;
+        --help)                     outputUsage; exit 0;;
+        --version)                  outputVersion; exit 0;;
+        --verifyInstall)            verifyInstall; exit 0;;
     esac
     shift
 done
