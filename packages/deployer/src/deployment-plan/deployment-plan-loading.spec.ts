@@ -405,6 +405,7 @@ describe("Docker image plan loader", function() {
       it("should plan rollout wait action", () => {
         const planLogger = createFakeLogger()
         testPlan.printPlan(planLogger)
+
         expect(planLogger.log).to.contain("rollout status Deployment")
       })
     })

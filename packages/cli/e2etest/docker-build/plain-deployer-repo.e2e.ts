@@ -29,7 +29,7 @@ describe("Build docker with kube.yaml deployment", function() {
         .then(({ stdout, stderr }) => {
           if (stderr) console.warn("Non-empty output in stderr. Uncomment next line to see it on test output.")
 
-          // console.log(`DEBUG STDERR \n>` + stderr + "<\n STDOUT:\n>" + stdout + "<\n")
+          // console.debug(`STDERR \n>` + stderr + "<\n STDOUT:\n>" + stdout + "<\n")
 
           shepherdMeta = require(dockerDir + "/.build/metadata/shepherd.json")
           buildOutput = stdout
@@ -103,7 +103,7 @@ describe("Build docker with kube.yaml deployment", function() {
       })
         .then(({ stdout, stderr }) => {
           if (stderr) console.warn("Non-empty output in stderr. Uncomment next line to see it on test output.")
-          // console.log(`DEBUG "\n< STDOUT:\n" + stdout`, +stderr + "\n< STDOUT:\n" + stdout)
+          // console.debug(`"\n< STDOUT:\n" + stdout`, +stderr + "\n< STDOUT:\n" + stdout)
           shepherdMeta = require(dockerDir + "/.build/metadata/shepherd.json")
           buildOutput = stdout
 
@@ -175,7 +175,7 @@ describe("Build docker with kube.yaml deployment", function() {
         env: { ...process.env, ...{ BRANCH_NAME: "specBranch99", BUILD_NUMBER: "specBranch99" } },
       }).then(({ stdout, stderr }) => {
         if (stderr) console.warn("Non-empty output in stderr. Uncomment next line to see it on test output.")
-        // console.log(`DEBUG "\n< STDOUT:\n" + stdout`, +stderr + "\n< STDOUT:\n" + stdout)
+        // console.debug(`"\n< STDOUT:\n" + stdout`, +stderr + "\n< STDOUT:\n" + stdout)
 
         shepherdMeta = require(dockerDir + "/.build/metadata/shepherd.json")
         buildOutput = stdout
