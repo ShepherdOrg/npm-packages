@@ -226,31 +226,18 @@ export function createDeploymentPlanFactory(injected: TDeploymentPlanDependencie
         if (!planInstance.hasModifiedAction()) {
           return false
         }
-        let modified = false
+
+        let printPlanLogContext: TLogContext = { ...planLogContext, ...{ performanceLog: false } }
+        logger.info(`Deploying ${herdDeclaration?.key}`, printPlanLogContext)
 
         deploymentActions.forEach(function(deploymentAction: IStatefulExecutableAction) {
-          let printPlanLogContext: TLogContext = { ...planLogContext, ...{ performanceLog: false } }
-          let deploymentState = deploymentAction.getActionDeploymentState()
-          if (deploymentAction.isStateful && deploymentState) {
-            if (deploymentState.modified) {
-              if (!modified) {
-                if (herdDeclaration) {
-                  logger.info(`Deploying ${herdDeclaration.key}`, printPlanLogContext)
-                } else {
-                  logger.info("Missing herdKey for " + planInstance, printPlanLogContext)
-                }
-              }
-              modified = true
-              logger.info(`  - ${deploymentAction.planString()}`, printPlanLogContext)
-            } else if (modified) {
-              logger.info(`  - ${deploymentAction.planString()}`, printPlanLogContext)
-            } // else stateful and not modified
-          } else if (modified) {
-            // Supporting action such as rollout wait or deployment test
+          if (deploymentAction.isStateful) {
+            logger.info(`  - ${deploymentAction.planString()}`, printPlanLogContext)
+          } else {
             logger.info(`  -  > ${deploymentAction.planString()}`, printPlanLogContext)
-          } // Not stateful and nothing else modified either
+          }
         })
-        return modified
+        return true
       },
       herdKey: herdDeclaration.key,
       herdDeclaration,

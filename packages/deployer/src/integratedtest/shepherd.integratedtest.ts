@@ -52,7 +52,6 @@ describe("running shepherd", function() {
             INFRASTRUCTURE_IMPORTED_ENV: "thatsme",
             SERVICE_HOST_NAME: "svc.host.somewhere",
           }),
-          debug: false, // debug:false suppresses stdout of process
         })
         .ignoreLinesWith(["buildDate", "lastCommits", "kubeConfigB64", "gitHash"])
         .output("./.build/.testdata/kubeapply")
@@ -83,7 +82,6 @@ describe("running shepherd", function() {
             UPSTREAM_HERD_KEY: "addedimage",
             UPSTREAM_HERD_DESCRIPTION: "Just a casual e2e test",
           }),
-          debug: false, // debug:false suppresses stdout of process
         })
         .stdout()
         .shouldContain("Adding addedimage")
@@ -156,7 +154,6 @@ describe("running shepherd", function() {
           firstRun = script
             .execute(shepherdTestHarness, [], {
               env: _.extend(testEnv, process.env),
-              debug: false, // debug:false suppresses stdout of process
             })
             .done(function(_stdout) {
               // console.log(`stdout`, stdout)
@@ -165,7 +162,6 @@ describe("running shepherd", function() {
               secondRun = script
                 .execute(shepherdTestHarness, [], {
                   env: _.extend(testEnv, process.env),
-                  debug: false, // debug:false suppresses stdout of process
                 })
                 .done(function(_stdout) {
                   done()
@@ -217,9 +213,10 @@ describe("running shepherd", function() {
             PRETEST_EXITCODE: "0",
             POSTTEST_EXITCODE: "1",
           }),
-          debug: false, // debug:false suppresses stdout of process
         })
         .expectExitCode(1)
+        .stdout()
+        .shouldContain("Executing docker command pretest")
         .stdout()
         .shouldContain("Executing docker command pretest")
         .stdout()
@@ -238,7 +235,7 @@ describe("running shepherd", function() {
         .shouldContain("Execution of 1 deployment plan(s) resulted in failure")
         .stdout()
         .shouldNotContain("not found")
-        .done(function() {
+        .done(function(_output, _code) {
           done()
         })
     })
@@ -275,7 +272,6 @@ describe("running shepherd", function() {
             },
             process.env
           ),
-          debug: false, // debug:false suppresses stdout of process
         })
         .done(function() {
           done()
@@ -327,7 +323,6 @@ describe("running shepherd", function() {
               testEnv,
               process.env
             ),
-            debug: false, // debug:false suppresses stdout of process
           }
         )
         .output(".build/testexport")
