@@ -109,22 +109,12 @@ function emptyArray<T>(): Array<T> {
 
 export type TExecuteOptions = {
   env: typeof process.env
-  debug?: boolean
   stdoutLineHandler?: (line: string) => void
 }
 
 export default {
   // Pass in debug=true if you want to see output of subject under test.
   execute: function(command: string, args: string[], options: TExecuteOptions) {
-    let logfn = undefined
-
-    options.stdoutLineHandler =
-      options.stdoutLineHandler ||
-      function(line: string) {
-        if (options.debug) {
-          process.stdout.write(line)
-        }
-      }
     options.env = extend({}, options.env, { PATH: process.env.PATH })
 
     exec(command, args, options)
