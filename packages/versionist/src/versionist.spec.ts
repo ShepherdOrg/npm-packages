@@ -67,7 +67,7 @@ describe("full directory version info for versionist", function() {
   it("should extract full version info for self", async () => {
     let dirname = process.cwd()
     const dirVersion = await versionInfo(dirname)
-    expect(dirVersion.packageJsonVersion).to.equal("5.1.0")
+    expect(dirVersion.packageJsonVersion).to.equal(require("../package.json").version)
     expect(dirVersion.dirName).to.equal("versionist")
     expect(dirVersion.packageJsonName).to.equal("@shepherdorg/versionist")
     expect(preferredName(dirVersion)).to.equal("versionist")
