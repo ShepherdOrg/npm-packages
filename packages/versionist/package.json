@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/versionist",
-  "version": "5.1.0",
+  "version": "5.2.0",
   "description": "Creates or prefers version for shepherd docker building",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
