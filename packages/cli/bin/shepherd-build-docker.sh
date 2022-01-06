@@ -206,7 +206,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 [[ ${__SHEPHERD_VERBOSE} = 1 ]] && echo "Verbose output ON."
-
+[[ ${__DRYRUN} = 1 ]] && echo "Dryrun deploy ON."
 
 export DOCKERDIR=$(dirname $(echo "$(  cd "$(dirname "${DOCKERFILE}")"
   pwd -P
