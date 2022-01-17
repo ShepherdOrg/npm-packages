@@ -1,0 +1,8 @@
+# TODO: run images for running integration tests. Postgres and docker-registries.
+
+version: '3.4'
+services:
+  postgres:
+    image: 'redis'
+    ports:
+      - "6379:6379"

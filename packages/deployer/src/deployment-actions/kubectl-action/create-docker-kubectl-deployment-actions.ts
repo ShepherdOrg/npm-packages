@@ -2,7 +2,6 @@ import { emptyArray } from "../../helpers/ts-functions"
 import { addResourceNameChangeIndex, TBranchModificationParams } from "./k8s-branch-deployment/create-name-change-index"
 import * as path from "path"
 
-import { shepherdOptions } from "../../shepherd-options"
 import { ICreateKubectlDeploymentAction } from "./kubectl-deployment-action-factory"
 import { IDockerImageKubectlDeploymentAction, TImageInformation, TK8sDeploymentPlan } from "../../deployment-types"
 import { kubeSupportedExtensions } from "./kube-supported-extensions"

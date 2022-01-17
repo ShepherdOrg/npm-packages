@@ -42,6 +42,7 @@ Supported options:
                          Login to docker registry to enable API usage and avoid docker pulls where possible. Only necessary
                          where docker is using a credentials manager like on OsX. Will prompt for username and password. 
     
+    
 Dryrun will write to directory specified by 
     --outputDir <directory>
  

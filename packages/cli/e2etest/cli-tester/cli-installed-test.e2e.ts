@@ -7,8 +7,8 @@ describe("Verify installation of last published version in a docker, but with la
    *  - It uses shepherd-build-docker to build an image to check shepherd-build-docker inside an image.
    *  - It installs cli from npmjs.com and runs it inside the image, with an overwritten version of shepherd-build-docker.
    *
-   * This means that this is not a good test for developing the cli with large changes. You would want to create
-   * another variant of this test that uses the local code differently
+   * This means that this is not a good test for developing the cli with large changes as it relies on npmjs.org registry to install to the docker image.
+   *  You would want to create another variant of this test that uses the local code differently
    *  */
 
   this.timeout(10000)

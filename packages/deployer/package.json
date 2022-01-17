@@ -2,7 +2,7 @@
   "name": "@shepherdorg/deployer",
   "version": "5.2.0",
   "description": "Deployer application",
-  "main": "dist/shepherd.js",
+  "main": "dist/index.js",
   "engines": {
     "node": ">=8"
   },

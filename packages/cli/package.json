@@ -23,7 +23,7 @@
     "add-to-deployment-queue": "dist/add-to-deployment-queue.js",
     "join-metadata-files": "dist/join-metadata-files.js",
     "base64encode": "dist/base64/base64encode.js",
-    "shepherdjs": "dist/shepherd.js"
+    "shepherdjs": "dist/shepherdjs.js"
   },
   "scripts": {
     "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
@@ -33,7 +33,8 @@
     "test": "yarn specs && yarn e2etest",
     "build-in-background": "tsc -w > /dev/null &",
     "build": "tsc && chmod +x ./dist/shepherd-inspect-cmd.js ./dist/add-to-deployment-queue.js",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@shepherdorg/deployer": "^5.2.0",
