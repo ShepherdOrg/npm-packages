@@ -163,11 +163,12 @@ export THISDIR=$(installationDir ${BASH_SOURCE[0]})
 . ${THISDIR}/deploy/functions.sh
 
 if [[ "$THISDIR" == *"node_modules"* ]]; then
-  BINPATH=$(absolutepath "$THISDIR/../../../.bin")
+  BINPATH=$(node -e "console.log(process.env.THISDIR &&  process.env.THISDIR.slice(0, process.env.THISDIR.indexOf('node_modules')) + 'node_modules/.bin')")
+
   if [ -d "${BINPATH}" ]; then
     export PATH=${BINPATH}:${PATH}
   else
-    echo "${BINPATH}" is not a directory, do now know where to locate binaries
+    echo "${BINPATH} is not a directory, do now know where to locate binaries"
     exit 255
   fi
 else
@@ -175,7 +176,7 @@ else
   if [ -d "${BINPATH}" ]; then
     export PATH=${BINPATH}:${PATH}
   else
-    echo "${BINPATH}" is not a directory, do now know where to locate binaries
+    echo "${BINPATH} is not a directory, do now know where to locate binaries( development mode )"
     exit 255
   fi
 fi
