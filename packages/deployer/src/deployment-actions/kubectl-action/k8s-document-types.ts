@@ -1,6 +1,8 @@
 type TK8sHttpBackend = {
-  serviceName: string
-
+  serviceName?: string
+  service?: {
+    name?: string
+  }
 }
 
 export type TK8sHttpPath = {
@@ -39,13 +41,13 @@ export type TK8sPartialSpec = {
   rules?: Array<TK8sPartialRule>
 }
 
-type TK8sPartialLabels = {[index: string] : string | undefined }
+type TK8sPartialLabels = { [index: string]: string | undefined }
 
 type TK8sPartialMetadata = {
   labels?: TK8sPartialLabels
-  name?: string,
+  name?: string
   namespace?: string
-  annotations?: {[key:string] : string}
+  annotations?: { [key: string]: string }
 }
 
 export type TK8sPartialDescriptor = {
@@ -54,6 +56,7 @@ export type TK8sPartialDescriptor = {
       cpu: string
     }
   }
+  matchLabels?: TK8sPartialLabels
   origin?: string
   app?: string
   name?: string
@@ -63,7 +66,6 @@ export type TK8sPartialDescriptor = {
 }
 
 export type TK8sIngressDoc = TK8sPartialDescriptor & {}
-
 
 export type TK8sPartialContainer = TK8sPartialDescriptor & {
   env: Array<{
