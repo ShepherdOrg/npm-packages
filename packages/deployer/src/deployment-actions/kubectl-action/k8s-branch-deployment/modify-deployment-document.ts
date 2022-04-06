@@ -6,8 +6,7 @@ import * as chalk from "chalk"
 
 const { indexNameReferenceChange } = require("./create-name-change-index")
 
-
-export function modifyDeploymentDocument(fileContents:string, branchModificationParams: TBranchModificationParams) {
+export function modifyDeploymentDocument(fileContents: string, branchModificationParams: TBranchModificationParams) {
   let cleanedName = branchModificationParams.branchName?.replace(/\//g, "-").toLowerCase()
 
   if (!Boolean(cleanedName)) {
@@ -16,7 +15,7 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
 
   let needToIndexChanges = Boolean(!branchModificationParams?.nameChangeIndex)
 
-  function addTimeToLive(deploymentDoc:TK8sPartialDescriptor) {
+  function addTimeToLive(deploymentDoc: TK8sPartialDescriptor) {
     if (!deploymentDoc.metadata) {
       deploymentDoc.metadata = {}
     }
@@ -24,12 +23,12 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
       deploymentDoc.metadata.labels = {}
     }
     if (!branchModificationParams.ttlHours) {
-      throw new Error(`${chalk.blueBright('ttlHours')} is a required parameter!`)
+      throw new Error(`${chalk.blueBright("ttlHours")} is a required parameter!`)
     }
     deploymentDoc.metadata.labels["ttl-hours"] = `${branchModificationParams.ttlHours}`
   }
 
-  function adjustEnvironment(container:TK8sPartialContainer) {
+  function adjustEnvironment(container: TK8sPartialContainer) {
     if (container.env && container.env) {
       for (let env of container.env) {
         if (
@@ -95,6 +94,9 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
             }
           }
         }
+        if (deploymentSection.spec.selector?.matchLabels?.app) {
+          deploymentSection.spec.selector.matchLabels.app += "-" + cleanedName
+        }
       }
 
       if (deploymentSection.spec.selector) {
@@ -143,6 +145,8 @@ export function modifyDeploymentDocument(fileContents:string, branchModification
           http.paths.forEach((path: TK8sHttpPath) => {
             if (path && path.backend && path.backend.serviceName) {
               path.backend.serviceName += `-${cleanedName}`
+            } else if (path?.backend?.service?.name) {
+              path.backend.service.name += `-${cleanedName}`
             }
           })
         }
