@@ -33,7 +33,6 @@ Supported options:
                          and configuration, pretends that everything needs to be deployed.
                          Loads environment variables from dryrun.env, where you can place variables that would otherwise 
                          come from a secret store.
-    --force-push         Force push of deployment data to consumers during --dryrun (this is not git push)
     --wait-for-rollout   Wait for any kubernetes deployment rollouts to complete before determining successful deployment. 
                          Shepherd does not wait for rollouts by default.
     --push-to-ui         Push data to shepherd UI. See SHEPHERD_UI_API_ENDPOINT below.
