@@ -6,6 +6,7 @@ export default (backendName: string, createBackend: () => IStorageBackend) => {
   describe(`${backendName} store backend`, function() {
     let store
 
+    this.timeout(70000)
     beforeEach(function() {
       store = createBackend()
     })

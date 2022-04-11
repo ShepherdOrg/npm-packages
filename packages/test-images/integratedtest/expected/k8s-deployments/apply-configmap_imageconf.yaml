@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: imageconf
-  labels:
-    team: one
-data:
-  somedata: svc.host.somewhere

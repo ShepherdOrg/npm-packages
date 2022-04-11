@@ -154,6 +154,9 @@ describe("running shepherd", function() {
           firstRun = script
             .execute(shepherdTestHarness, [], {
               env: _.extend(testEnv, process.env),
+              // stdoutLineHandler: (line: string) => {
+              //   console.log(`DEBUG ${line}`)
+              // },
             })
             .done(function(_stdout) {
               // console.log(`stdout`, stdout)

@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: www-icelandair-com-nginx-acls-test1
-  labels:
-    team: flip
-    ttl-hours: '48'
-data:
-  whitelist: teststring

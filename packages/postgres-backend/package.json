@@ -10,7 +10,7 @@
   "dependencies": {
     "bluebird": "^3.7.0",
     "lodash": "^4.17.15",
-    "pg": "^7.12.1"
+    "pg": "^8.7.3"
   },
   "peerDependencies": {
     "@shepherdorg/metadata": "^5.0.0",

@@ -12,6 +12,7 @@ export PATH=$(pwd)/testbin:$(pwd)/bin:${PATH}
 if [ -z "${HERDFILE}" ]; then
 	export HERDFILE="$(pwd)/src/herd-loading/testdata/happypath/herd.yaml"
 fi
+  echo Using HERDFILE: ${HERDFILE}
 
 
 if [ -z "${DRYRUN_OUTPUT_FOLDER}" ]; then

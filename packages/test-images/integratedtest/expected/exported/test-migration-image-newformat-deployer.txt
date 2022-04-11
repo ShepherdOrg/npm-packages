@@ -1,1 +1,0 @@
-docker run -i --rm -e ENV=testit -e MIGRATION_ENV_VARIABLE_ONE=justAValue -e MIGRATION_ENV_VARIABLE_TWO=fixedValue test-migration-image-newformat:[image_version] ls
