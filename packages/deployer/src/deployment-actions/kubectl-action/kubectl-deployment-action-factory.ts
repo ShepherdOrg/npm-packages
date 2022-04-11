@@ -59,7 +59,7 @@ function expandEnvVariables(lines: string[]) {
 }
 
 export function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: string) {
-  return expandTemplate(expandEnvVariables(deploymentFileDescriptorContent.split("\n")))
+  return expandTemplate(deploymentFileDescriptorContent)
 }
 
 export interface ICreateKubectlDeploymentAction {

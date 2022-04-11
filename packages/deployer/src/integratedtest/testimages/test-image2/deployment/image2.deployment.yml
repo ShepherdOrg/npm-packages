@@ -16,7 +16,7 @@ spec:
       imagePullSecrets:
         - name: registry-pull-secret
       containers:
-        - image: ${TPL_DOCKER_IMAGE}
+        - image: {{TPL_DOCKER_IMAGE}}
           name: image2
           resources:
             limits:
@@ -43,7 +43,7 @@ spec:
             - name: RUNTIME_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
-                  name: ${EXPORT1}
+                  name: {{EXPORT1}}
                   key: ENV
         - image: DOCKER_IMAGE_SSR
           name: image2-ssr

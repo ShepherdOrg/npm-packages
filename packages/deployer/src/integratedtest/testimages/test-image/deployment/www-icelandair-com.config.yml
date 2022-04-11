@@ -6,4 +6,4 @@ metadata:
     team: flip
 data:
   whitelist: |-
-    ${Base64Decode:WWW_ICELANDAIR_IP_WHITELIST}
+    {{Base64Encode:WWW_ICELANDAIR_IP_WHITELIST}}
