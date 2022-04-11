@@ -1,10 +1,8 @@
 import * as fs from "fs"
 import * as path from "path"
 import { emptyArray } from "../../helpers/ts-functions"
-import {
-  expandEnvAndMustacheVariablesInFile,
-  ICreateKubectlDeploymentAction,
-} from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
+import { expandTemplate } from "@shepherdorg/hbs-template"
+import { ICreateKubectlDeploymentAction } from "../../deployment-actions/kubectl-action/kubectl-deployment-action-factory"
 import {
   IK8sDirDeploymentAction,
   IKubectlDeployAction,
@@ -136,7 +134,7 @@ export function createFolderActionFactory(
                   const kubeDeploymentRelativePath = path.relative(initialDir, resolvedPath)
 
                   try {
-                    data = expandEnvAndMustacheVariablesInFile(data)
+                    data = expandTemplate(data)
                     const deploymentAction: IKubectlDeployAction = injected.kubectlDeploymentActionFactory.createKubectlDeployAction(
                       kubeDeploymentRelativePath,
                       data,

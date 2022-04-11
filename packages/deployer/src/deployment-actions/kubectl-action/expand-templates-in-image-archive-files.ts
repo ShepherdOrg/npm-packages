@@ -2,16 +2,18 @@ import { TK8sDeploymentPlan, TShepherdMetadata } from "../../deployment-types"
 import { shepherdOptions } from "../../shepherd-options"
 import { kubeSupportedExtensions } from "./kube-supported-extensions"
 import * as path from "path"
-import { expandEnvAndMustacheVariablesInFile } from "./kubectl-deployment-action-factory"
+import { expandTemplate } from "@shepherdorg/hbs-template"
 import * as chalk from "chalk"
 
-export function expandTemplatesInImageArchiveFiles(imageInformation: TShepherdMetadata & { dockerLabels: { [p: string]: any } }, plan: TK8sDeploymentPlan) {
+export function expandTemplatesInImageArchiveFiles(
+  imageInformation: TShepherdMetadata & { dockerLabels: { [p: string]: any } },
+  plan: TK8sDeploymentPlan
+) {
   if (shepherdOptions.testRunMode()) {
     process.env.TPL_DOCKER_IMAGE = "fixed-for-testing-purposes"
   } else {
     process.env.TPL_DOCKER_IMAGE =
       imageInformation.imageDeclaration.image + ":" + imageInformation.imageDeclaration.imagetag
-
   }
 
   if (!plan.files) {
@@ -26,10 +28,12 @@ export function expandTemplatesInImageArchiveFiles(imageInformation: TShepherdMe
 
     try {
       if (archivedFile.content) {
-        archivedFile.content = expandEnvAndMustacheVariablesInFile(archivedFile.content)
+        archivedFile.content = expandTemplate(archivedFile.content)
       }
     } catch (e) {
-      let message = `When expanding templates in ${chalk.blueBright(imageInformation.imageDeclaration.image)} ${chalk.red(fileName)}:\n${e.message}`
+      let message = `When expanding templates in ${chalk.blueBright(
+        imageInformation.imageDeclaration.image
+      )} ${chalk.red(fileName)}:\n${e.message}`
       throw new Error(message)
     }
   })
