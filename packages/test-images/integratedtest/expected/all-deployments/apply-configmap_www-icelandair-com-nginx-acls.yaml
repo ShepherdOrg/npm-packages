@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: www-icelandair-com-nginx-acls
+  labels:
+    team: flip
+data:
+  whitelist: |-
+    teststring

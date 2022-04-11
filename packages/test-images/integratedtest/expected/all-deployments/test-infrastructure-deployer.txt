@@ -1,0 +1,1 @@
+docker run -i --rm -e ENV=testit -e INFRASTRUCTURE_IMPORTED_ENV=thatsme test-infrastructure:[image_version] deploy
