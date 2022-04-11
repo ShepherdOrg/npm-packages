@@ -12,7 +12,7 @@
     "url": "https://github.com/ShepherdOrg/npm-packages"
   },
   "scripts": {
-    "build-test-images": "cd integratedtest/testimages && ./build-test-images.sh",
+    "build-test-images": "cd integratedtest/testimages && ./build-test-images.sh"
   },
   "dependencies": {
     "@shepherdorg/cli": "^5.2.3"
