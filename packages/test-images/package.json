@@ -1,0 +1,29 @@
+{
+  "name": "@shepherdorg/test-images",
+  "version": "5.2.3",
+  "private": true,
+  "description": "Test images for deployer integrated tests.",
+  "keywords": [],
+  "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
+  "homepage": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShepherdOrg/npm-packages"
+  },
+  "scripts": {
+    "build-test-images": "cd integratedtest/testimages && ./build-test-images.sh",
+  },
+  "dependencies": {
+    "@shepherdorg/cli": "^5.2.3"
+  },
+  "devDependencies": {
+    "@types/chai": "4.2.11",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "12.12.6",
+    "chai": "^4.2.0",
+    "mocha": "^6.2.1",
+    "ts-node": "^8.5.2",
+    "typescript": "^3.7.2"
+  }
+}

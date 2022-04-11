@@ -309,7 +309,7 @@ describe("Docker image plan loader", function() {
       })
     })
 
-    describe("missing env variable", function() {
+    describe("missing env variable, #2", function() {
       let loadError: Error
       before(function() {
         delete process.env.EXPORT1
@@ -410,7 +410,7 @@ describe("Docker image plan loader", function() {
       })
     })
 
-    describe("missing env variable", function() {
+    xdescribe("missing env variable, $ is now obsolete", function() {
       let loadError: Error
       before(async function() {
         delete process.env.EXPORT1
@@ -436,7 +436,7 @@ describe("Docker image plan loader", function() {
       })
     })
 
-    describe("missing env variable for base64 decoding", function() {
+    xdescribe("missing env variable for base64 decoding, $ variable is obsolete, redesign this test", function() {
       let loadError: Error
       before(async function() {
         process.env.EXPORT1 = "qwerty"
