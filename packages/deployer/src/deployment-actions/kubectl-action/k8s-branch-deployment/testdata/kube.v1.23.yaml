@@ -159,7 +159,7 @@ spec:
     - host: api.dev.domain.com
       http:
         paths:
-          - path: /myservice
+          - path: /myservice(/|$)(.*)
             backend:
               service:
                 name: myservice
