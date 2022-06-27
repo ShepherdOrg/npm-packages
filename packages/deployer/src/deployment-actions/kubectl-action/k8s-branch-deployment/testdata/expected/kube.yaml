@@ -160,7 +160,32 @@ spec:
     - host: api.dev.domain.com
       http:
         paths:
-          - path: /myservice-new-branch
+          - path: /new-branch-myservice
+            backend:
+              serviceName: myservice-new-branch
+              servicePort: 80
+  tls:
+    - hosts:
+        - api.dev.domain.com
+      secretName: services-cert
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: myservice-path-ingress-2-new-branch
+  namespace: default
+  labels:
+    app: myservice-new-branch
+    ttl-hours: '66'
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+spec:
+  rules:
+    - host: api.dev.domain.com
+      http:
+        paths:
+          - path: new-branch-myservice/test
             backend:
               serviceName: myservice-new-branch
               servicePort: 80

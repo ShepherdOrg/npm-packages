@@ -135,7 +135,12 @@ export function modifyDeploymentDocument(fileContents: string, branchModificatio
           deploymentDoc.metadata.annotations["nginx.ingress.kubernetes.io/rewrite-target"] &&
           deploymentDoc?.spec?.rules[0]?.http?.paths[0]?.path
         ) {
-          deploymentDoc.spec.rules[0].http.paths[0].path += `-${cleanedName}`
+          const path = deploymentDoc.spec.rules[0].http.paths[0].path
+          if (path.startsWith("/")) {
+            deploymentDoc.spec.rules[0].http.paths[0].path = `/${cleanedName}-${path.substring(1)}`
+          } else {
+            deploymentDoc.spec.rules[0].http.paths[0].path = `${cleanedName}-${path}`
+          }
         } else {
           deploymentDoc.spec.rules[0].host = `${cleanedName}-${deploymentDoc.spec.rules[0].host}`
         }
