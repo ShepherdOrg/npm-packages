@@ -160,7 +160,7 @@ spec:
     - host: api.dev.domain.com
       http:
         paths:
-          - path: /new-branch-myservice
+          - path: /myservice-new-branch
             backend:
               serviceName: myservice-new-branch
               servicePort: 80
@@ -185,7 +185,7 @@ spec:
     - host: api.dev.domain.com
       http:
         paths:
-          - path: new-branch-myservice/test
+          - path: myservice/test-new-branch
             backend:
               serviceName: myservice-new-branch
               servicePort: 80
