@@ -136,10 +136,10 @@ export function modifyDeploymentDocument(fileContents: string, branchModificatio
           deploymentDoc?.spec?.rules[0]?.http?.paths[0]?.path
         ) {
           const path = deploymentDoc.spec.rules[0].http.paths[0].path
-          if (path.startsWith("/")) {
-            deploymentDoc.spec.rules[0].http.paths[0].path = `/${cleanedName}-${path.substring(1)}`
+          if (path.includes("(")) {
+            deploymentDoc.spec.rules[0].http.paths[0].path = `${path.slice(0, path.indexOf('('))}-${cleanedName}${path.slice(path.indexOf('('))}`
           } else {
-            deploymentDoc.spec.rules[0].http.paths[0].path = `${cleanedName}-${path}`
+            deploymentDoc.spec.rules[0].http.paths[0].path = `${path}-${cleanedName}`
           }
         } else {
           deploymentDoc.spec.rules[0].host = `${cleanedName}-${deploymentDoc.spec.rules[0].host}`

@@ -171,7 +171,7 @@ spec:
     - host: api.dev.domain.com
       http:
         paths:
-          - path: /new-branch-myservice(/|$)(.*)
+          - path: /myservice-new-branch(/|$)(.*)
             backend:
               service:
                 name: myservice-new-branch
