@@ -42,7 +42,7 @@
     "@shepherdorg/versionist": "^5.2.1",
     "js-yaml": "^3.13.1",
     "shell-exec": "^1.0.2",
-    "simple-git": "^1.126.0"
+    "simple-git": "^3.15.0"
   },
   "devDependencies": {
     "@types/chai": "4.2.11",
