@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 THISDIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
+
 set -eao pipefail
 unset DOCKER_REGISTRY_HOST
-export PATH=$PATH:${THISDIR}/node_modules/.bin
 export FORCE_REBUILD=true
+
 
 echo "Rebuilding test images"
 (cd ${THISDIR}/test-migration-image/ && ./build-docker.sh)

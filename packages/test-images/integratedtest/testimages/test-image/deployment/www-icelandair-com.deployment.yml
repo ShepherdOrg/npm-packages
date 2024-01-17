@@ -1,23 +1,23 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: image2
+  name: www-icelandair-com
   labels:
-    name: image2
+    name: www-icelandair-com
     tier: frontend
 spec:
   replicas: 2
   template:
     metadata:
       labels:
-        name: image2
+        name: www-icelandair-com
         tier: frontend
     spec:
       imagePullSecrets:
         - name: registry-pull-secret
       containers:
-        - image: ${TPL_DOCKER_IMAGE}
-          name: image2
+        - image: {{TPL_DOCKER_IMAGE}}
+          name: www-icelandair-com
           resources:
             limits:
               cpu: 0.8
@@ -43,10 +43,10 @@ spec:
             - name: RUNTIME_ENVIRONMENT
               valueFrom:
                 configMapKeyRef:
-                  name: ${EXPORT1}
+                  name: {{EXPORT1}}
                   key: ENV
         - image: DOCKER_IMAGE_SSR
-          name: image2-ssr
+          name: www-icelandair-com-ssr
           resources:
             limits:
               cpu: 0.6
@@ -60,7 +60,7 @@ spec:
             secretName: star-cert-secret
         - name: nginx-acls
           configMap:
-            name: image2-nginx-acls
+            name: www-icelandair-com-nginx-acls
             items:
               - key: whitelist
                 path: whitelist.conf

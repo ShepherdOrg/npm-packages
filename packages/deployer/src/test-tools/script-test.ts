@@ -101,6 +101,7 @@ export interface TScriptTestExecution {
   expectExitCode: (expectedExitCode: number) => TScriptTestExecution
   done: (callback: FExecutionCallback) => TScriptTestExecution
   checkExpectations: () => void
+  unexpectedError?: string
 }
 
 function emptyArray<T>(): Array<T> {
@@ -113,7 +114,6 @@ export type TExecuteOptions = {
 }
 
 export default {
-  // Pass in debug=true if you want to see output of subject under test.
   execute: function(command: string, args: string[], options: TExecuteOptions) {
     options.env = extend({}, options.env, { PATH: process.env.PATH })
 
@@ -132,19 +132,18 @@ export default {
           execution.checkExpectations()
           execution.callback && execution.callback(execError.stdout)
         } else {
-          console.error("Process error in test, error code:", execError.code, " stderr:", execError.stderr)
-          expect.fail(
+          console.error("Process error in test", execError)
+          execution.unexpectedError =
             "Error invoking : " +
-              command +
-              " with arguments " +
-              JSON.stringify(args) +
-              "\nStdout: \n" +
-              execError.stdout +
-              "\nError output:\n" +
-              execError.stderr +
-              "\n. ErrorCode:" +
-              execError.code
-          )
+            command +
+            " with arguments " +
+            JSON.stringify(args) +
+            "\nStdout: \n" +
+            execError.stdout +
+            "\nError output:\n" +
+            execError.stderr +
+            "\n. ErrorCode:" +
+            execError.code
         }
       })
 
@@ -220,6 +219,9 @@ export default {
         return execution
       },
       checkExpectations() {
+        if (execution.unexpectedError) {
+          expect.fail(execution.unexpectedError)
+        }
         if (execution.expectedExitCode) {
           expect(execution.actualExitCode).to.equal(execution.expectedExitCode, "Process exit code")
         }

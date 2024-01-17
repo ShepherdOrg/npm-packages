@@ -49,13 +49,12 @@
     "typescript": "^3.7.3"
   },
   "scripts": {
-    "build-test-images": "cd src/integratedtest/testimages && ./build-test-images.sh",
     "start-postgres": "docker run --rm --name postgres -e POSTGRES_PASSWORD=mysecretpassword -d -p 5432:5432 postgres",
     "kill-postgres": "docker stop postgres",
     "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
     "coverage": "TS_NODE_COMPILER_OPTIONS='{\"removeComments\":false}' nyc mocha --require ts-node/register --require source-map-support/register --recursive 'src/**/*.spec.ts'",
     "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts --watch 'src/**/*.spec.ts'",
-    "integratedtest": "yarn build && yarn build-test-images && mocha --exit --recursive 'dist/integratedtest/**/*.integratedtest.js'",
+    "integratedtest": "yarn build && mocha --exit --recursive 'dist/integratedtest/**/*.integratedtest.js'",
     "compile-in-background": "tsc -w > /dev/null &",
     "itdd": "npm run compile-in-background && mocha --exit --require ts-node/register --recursive --watch-extensions ts,js,sh --watch 'src/**/*.integratedtest.ts'",
     "test": "yarn specs",

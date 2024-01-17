@@ -9,7 +9,6 @@ import {
 import { newProgrammerOops, Oops } from "oops-error"
 import { expandEnv } from "../../template/expandenv"
 import { processLine } from "../../template/base64-env-subst"
-import { expandTemplate } from "@shepherdorg/hbs-template"
 import * as path from "path"
 import { writeFile } from "../../helpers/promisified"
 import { TK8sPartialDescriptor } from "./k8s-document-types"
@@ -56,10 +55,6 @@ function expandEnvVariables(lines: string[]) {
     }
   })
   return lines.join("\n")
-}
-
-export function expandEnvAndMustacheVariablesInFile(deploymentFileDescriptorContent: string) {
-  return expandTemplate(expandEnvVariables(deploymentFileDescriptorContent.split("\n")))
 }
 
 export interface ICreateKubectlDeploymentAction {

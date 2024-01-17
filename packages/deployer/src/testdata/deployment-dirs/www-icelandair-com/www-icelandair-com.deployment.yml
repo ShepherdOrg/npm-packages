@@ -16,7 +16,7 @@ spec:
       imagePullSecrets:
         - name: registry-pull-secret
       containers:
-        - image: ${TPL_DOCKER_IMAGE}
+        - image: {{TPL_DOCKER_IMAGE}}
           secondaryImage: {{{ TPL_DOCKER_IMAGE }}}
           name: www-icelandair-com
           resources:
@@ -44,7 +44,7 @@ spec:
             - name: RUNTIME_ENV2
               valueFrom:
                 configMapKeyRef:
-                  name: ${EXPORT2}
+                  name: {{EXPORT2}}
                   key: ENV
             - name: RUNTIME_ENV_3
               value: {{BRANCH_NAME}}

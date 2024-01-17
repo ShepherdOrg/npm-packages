@@ -6,8 +6,8 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
   labels:
     name: www-icelandair-com
-    subdomain: '${SUB_DOMAIN_PREFIX}beta'
-    topdomain: ${PREFIXED_TOP_DOMAIN_NAME}
+    subdomain: '{{SUB_DOMAIN_PREFIX}}beta'
+    topdomain: {{PREFIXED_TOP_DOMAIN_NAME}}
     team: flip
 spec:
   type: LoadBalancer
@@ -30,8 +30,8 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
   labels:
     name: www-icelandair-com
-    subdomain: ${SUB_DOMAIN_PREFIX}beta
-    topdomain: ${PREFIXED_TOP_DOMAIN_NAME}
+    subdomain: {{SUB_DOMAIN_PREFIX}}beta
+    topdomain: {{PREFIXED_TOP_DOMAIN_NAME}}
     team: flip
 spec:
   type: LoadBalancer
