@@ -36,7 +36,7 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@shepherdorg/deployer": "^5.2.5",
+    "@shepherdorg/deployer": "^5.2.6",
     "@shepherdorg/docker-image-metadata-loader": "^5.2.0",
     "@shepherdorg/metadata": "^5.2.0",
     "@shepherdorg/versionist": "^5.2.1",
