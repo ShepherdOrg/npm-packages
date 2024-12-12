@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/postgres-backend",
-  "version": "5.2.0",
+  "version": "5.2.6",
   "description": "Postgres backend for shepherd state store",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,7 @@
   "dependencies": {
     "bluebird": "^3.7.0",
     "lodash": "^4.17.15",
-    "pg": "^7.12.1"
+    "pg": "^8.13.1"
   },
   "peerDependencies": {
     "@shepherdorg/metadata": "^5.0.0",

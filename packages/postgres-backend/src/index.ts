@@ -3,7 +3,7 @@ import { PGConnectionConfig } from "./pg-config"
 
 export { PgConfig } from "./pg-config"
 
-import {Client} from "pg"
+import { Client } from "pg"
 
 export interface IPostgresStorageBackend extends IStorageBackend {
   resetAllDeploymentStates()
@@ -11,7 +11,7 @@ export interface IPostgresStorageBackend extends IStorageBackend {
 
 const StoreClient = (client: Client) => ({
   connect() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       client.connect(function(err) {
         if (err) reject(err)
         else resolve()
@@ -31,14 +31,14 @@ const StoreClient = (client: Client) => ({
 export function PostgresStore(config: PGConnectionConfig): IPostgresStorageBackend {
   let client
 
-  const ensureDeploymentsTable= async function() {
+  const ensureDeploymentsTable = async function() {
     await client.query(
-      "CREATE TABLE IF NOT EXISTS deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL)",
+      "CREATE TABLE IF NOT EXISTS deployments (identifier TEXT PRIMARY KEY, data JSONB, lastdeployment TIMESTAMP NOT NULL)"
     )
   }
 
   return {
-     async connect() {
+    async connect() {
       client = StoreClient(new Client(config))
       await client.connect()
       if (config.schema) {
