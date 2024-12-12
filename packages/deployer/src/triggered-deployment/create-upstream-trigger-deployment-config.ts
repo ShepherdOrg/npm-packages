@@ -74,12 +74,16 @@ export function createUpstreamTriggerDeploymentConfig(logger: ILog): IConfigureU
     },
     loadFromEnvironment(herdFilePath: TFileSystemPath, environment: typeof process.env = process.env): void {
       let upstreamImageUrl: string = ""
-
       if (environment.UPSTREAM_IMAGE_NAME && environment.UPSTREAM_IMAGE_TAG) {
         upstreamImageUrl = environment.UPSTREAM_IMAGE_NAME + ":" + environment.UPSTREAM_IMAGE_TAG
       } else if (environment.UPSTREAM_IMAGE_URL) {
         upstreamImageUrl = environment.UPSTREAM_IMAGE_URL
       }
+      logger.info(
+        `Look for the herd up stream. upstreamImageUrl: ${
+          environment.UPSTREAM_IMAGE_URL
+        }, hasUpstreamHerdKey: ${Boolean(environment.UPSTREAM_HERD_KEY)}`
+      )
       if (Boolean(upstreamImageUrl) && environment.UPSTREAM_HERD_KEY) {
         logger.info("Upstream information available, using to modify deployment.")
         const dockerUrl = parseImageUrl(upstreamImageUrl)

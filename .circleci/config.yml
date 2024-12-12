@@ -2,7 +2,7 @@ version: 2
 jobs:
   lerna_publish:
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:20
     working_directory: ~/repo
     steps:
       - checkout
@@ -56,7 +56,7 @@ jobs:
 #            - /tmp/layercache.tar
   build_and_test:
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:20
     working_directory: ~/repo
     steps:
       - checkout
