@@ -190,8 +190,13 @@ async function main() {
   }
 
   let stateStoreBackend: IStorageBackend
-
-  let uiDataPusher: IPushToShepherdUI
+  const mockUiPusher = {
+    pushDeploymentStateToUI: async () => {
+      logger.info("Would have pushed to ui, were it not a dryrun")
+      return undefined
+    },
+  }
+  let uiDataPusher: IPushToShepherdUI = mockUiPusher
 
   if (dryRun) {
     logger.info(`NOTE: Dryrun does not take deployment state into account and assumes everything needs to be deployed.`)
