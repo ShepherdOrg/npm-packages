@@ -329,5 +329,9 @@ function main() {
       process.exit(255)
     })
 }
-
-main()
+try {
+  main()
+} catch (mainErr) {
+  console.error("Main error", mainErr)
+  process.exit(255)
+}
