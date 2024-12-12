@@ -193,14 +193,15 @@ async function main() {
   const mockUiPusher = {
     pushDeploymentStateToUI: async () => {
       logger.info("Would have pushed to ui, were it not a dryrun")
-      return undefined
+      return
     },
   }
-  let uiDataPusher: IPushToShepherdUI = mockUiPusher
+  let uiDataPusher: IPushToShepherdUI
 
   if (dryRun) {
     logger.info(`NOTE: Dryrun does not take deployment state into account and assumes everything needs to be deployed.`)
     stateStoreBackend = InMemoryStore()
+    uiDataPusher = mockUiPusher
   } else {
     if (process.env.SHEPHERD_PG_HOST) {
       logger.info(`Using postgres state store on ${process.env.SHEPHERD_PG_HOST}`)
@@ -219,6 +220,8 @@ async function main() {
     if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
       logger.info(`Shepherd UI API endpoint configured ${process.env.SHEPHERD_UI_API_ENDPOINT}`)
       uiDataPusher = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT, console)
+    } else {
+      uiDataPusher = mockUiPusher
     }
   }
 
