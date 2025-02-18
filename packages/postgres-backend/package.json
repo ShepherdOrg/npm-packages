@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/postgres-backend",
-  "version": "5.2.6",
+  "version": "5.3.0",
   "description": "Postgres backend for shepherd state store",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
