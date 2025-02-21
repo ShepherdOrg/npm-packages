@@ -5,7 +5,7 @@ export interface PGConnectionConfig {
   password: string
   port: number
   idleTimeoutMillis?: number
-  ssl?: { crt?: string; rejectUnauthorized?: boolean }
+  ssl?: { ca?: string; rejectUnauthorized?: boolean; requestCert: boolean }
   schema?: string
 }
 
@@ -17,9 +17,9 @@ export function PgConfig(): PGConnectionConfig {
     password: process.env.SHEPHERD_PG_PASSWORD || "mysecretpassword",
     port: Number(process.env.SHEPHERD_PG_PORT) || 5432,
     idleTimeoutMillis: 30000,
-    ssl: process.env.SHEPHERD_PG_ROOT_SSL_CRT
-      ? { rejectUnauthorized: false, crt: process.env.SHEPHERD_PG_ROOT_SSL_CRT }
+    ssl: process.env.PG_ROOT_SSL_CRT
+      ? { requestCert: true, rejectUnauthorized: true, ca: process.env.SHEPHERD_PG_ROOT_SSL_CRT }
       : undefined,
-    schema: process.env.SHEPHERD_PG_SCHEMA || "shepherd",
+    schema: process.env.SHEPHERD_PG_SCHEMA || "shepherdeploy",
   }
 }
