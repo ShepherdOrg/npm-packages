@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "5.3.0",
+  "version": "5.3.1",
   "description": "Deployer application",
   "main": "dist/shepherd.js",
   "engines": {
@@ -12,7 +12,7 @@
     "@shepherdorg/hbs-template": "^5.1.0",
     "@shepherdorg/metadata": "^5.2.0",
     "@shepherdorg/nano-inject": "^5.1.0",
-    "@shepherdorg/postgres-backend": "^5.3.0",
+    "@shepherdorg/postgres-backend": "^5.3.1",
     "@shepherdorg/state-store": "^5.2.0",
     "@shepherdorg/ts-exec": "^5.2.0",
     "@shepherdorg/ui-push": "^5.2.0",
