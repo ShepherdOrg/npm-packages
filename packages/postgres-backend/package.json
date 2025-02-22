@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/postgres-backend",
-  "version": "5.3.2",
+  "version": "5.3.1",
   "description": "Postgres backend for shepherd state store",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,7 +35,7 @@
     "pretest": "yarn start-postgres",
     "test": "yarn integrationtest",
     "posttest": "yarn kill-postgres",
-    "integrationtest": "source .env && mocha --exit --require ts-node/register --recursive './**/*.integrationtest.ts'",
+    "integrationtest": "SHEPHERD_PG_PORT=54321 mocha --exit --require ts-node/register --recursive './**/*.integrationtest.ts'",
     "itdd": "SHEPHERD_PG_PORT=54321 mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,json --watch './**/*.integrationtest.ts'",
     "prepublishOnly": "yarn build",
     "start-postgres": "docker run --rm --name postgres-it -e POSTGRES_PASSWORD=mysecretpassword -d -p 54321:5432 postgres && sleep 1",
