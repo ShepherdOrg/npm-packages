@@ -143,7 +143,7 @@ function loginToRegistryWithPrompt() {
   }
 }
 
-function main() {
+async function main() {
   if (process.argv.indexOf("--version") > 0) {
     printVersions()
     process.exit(0)
@@ -190,12 +190,18 @@ function main() {
   }
 
   let stateStoreBackend: IStorageBackend
-
+  const mockUiPusher = {
+    pushDeploymentStateToUI: async () => {
+      logger.info("Would have pushed to ui, were it not a dryrun")
+      return
+    },
+  }
   let uiDataPusher: IPushToShepherdUI
 
   if (dryRun) {
     logger.info(`NOTE: Dryrun does not take deployment state into account and assumes everything needs to be deployed.`)
     stateStoreBackend = InMemoryStore()
+    uiDataPusher = mockUiPusher
   } else {
     if (process.env.SHEPHERD_PG_HOST) {
       logger.info(`Using postgres state store on ${process.env.SHEPHERD_PG_HOST}`)
@@ -214,6 +220,8 @@ function main() {
     if (Boolean(process.env.SHEPHERD_UI_API_ENDPOINT)) {
       logger.info(`Shepherd UI API endpoint configured ${process.env.SHEPHERD_UI_API_ENDPOINT}`)
       uiDataPusher = CreatePushApi(process.env.SHEPHERD_UI_API_ENDPOINT, console)
+    } else {
+      uiDataPusher = mockUiPusher
     }
   }
 
@@ -238,96 +246,89 @@ function main() {
     printUsage()
     process.exit(255)
   }
+  try {
+    await stateStoreBackend.connect()
+    let releaseStateStore = ReleaseStateStore({
+      storageBackend: stateStoreBackend,
+    })
+    let upstreamDeploymentConfig = createUpstreamTriggerDeploymentConfig(logger)
+    upstreamDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
 
-  stateStoreBackend
-    .connect()
-    .then(function() {
-      let releaseStateStore = ReleaseStateStore({
-        storageBackend: stateStoreBackend,
-      })
-      let upstreamDeploymentConfig = createUpstreamTriggerDeploymentConfig(logger)
-      upstreamDeploymentConfig.loadFromEnvironment(herdFilePath, process.env)
+    if (upstreamDeploymentConfig.herdFileEditNeeded()) {
+      upgradeOrAddDeploymentInFile(upstreamDeploymentConfig, logger)
+    }
 
-      if (upstreamDeploymentConfig.herdFileEditNeeded()) {
-        upgradeOrAddDeploymentInFile(upstreamDeploymentConfig, logger)
+    let loaderContext = createLoaderContext({
+      stateStore: releaseStateStore,
+      logger: logger,
+      featureDeploymentConfig: upstreamDeploymentConfig,
+      uiPusher: uiDataPusher,
+      environment: environment,
+      exec: exec,
+    })
+    logger.info("Calculating deployment of herd from file " + herdFilePath + " for environment " + environment)
+
+    try {
+      const plan: IDeploymentOrchestration = await loaderContext.loader.loadHerd(herdFilePath)
+
+      plan.printPlan(logger)
+      if (exportDocuments) {
+        logger.info("Testrun mode set - exporting all deployment documents to " + outputDirectory)
+        logger.info("Testrun mode set - no deployments will be performed")
+        plan
+          .exportDeploymentActions(outputDirectory as TFileSystemPath)
+          .then(function() {
+            terminateProcess(0)
+          })
+          .catch(function(writeError: Error) {
+            logger.error("Error exporting deployment document! ", writeError)
+            terminateProcess(255)
+          })
+      } else {
+        // TODOLATER Rollback on kube config
+
+        let dryRunString = `${dryRun ? " dryrun" : ""}`
+
+        logger.info(`Executing deployment plan${dryRunString}... `)
+        try {
+          const planResults: IDeploymentPlanExecutionResult[] = await plan.executePlans({
+            dryRun: dryRun,
+            dryRunOutputDir: outputDirectory,
+            pushToUi: pushToUi,
+            waitForRollout: waitForRollout,
+            rolloutWaitSeconds: rolloutTimeout,
+            logContext: defaultLogContext,
+          })
+          // Exceptions from plan execution are logged immediately. Here we render only a summary of deployment results.
+          const failedPlans = planResults.filter(planExecutionResult => {
+            return planExecutionResult.actionExecutionError !== undefined
+          })
+          if (failedPlans.length > 0) {
+            renderPlanFailureSummary(logger, failedPlans)
+            return terminateProcess(failedPlans.length)
+          }
+          logger.info(`...plan${dryRunString} execution complete. Exiting shepherd.`)
+          setTimeout(() => {
+            terminateProcess(0)
+          }, 1000)
+        } catch (execError) {
+          renderPlanExecutionError(logger, execError, defaultLogContext)
+          terminateProcess(255)
+        }
       }
-
-      let loaderContext = createLoaderContext({
-        stateStore: releaseStateStore,
-        logger: logger,
-        featureDeploymentConfig: upstreamDeploymentConfig,
-        uiPusher: uiDataPusher,
-        environment: environment,
-        exec: exec,
-      })
-
-      logger.info("Calculating deployment of herd from file " + herdFilePath + " for environment " + environment)
-
-      loaderContext.loader
-        .loadHerd(herdFilePath)
-        .then(function(plan: IDeploymentOrchestration) {
-          plan.printPlan(logger)
-          if (exportDocuments) {
-            logger.info("Testrun mode set - exporting all deployment documents to " + outputDirectory)
-            logger.info("Testrun mode set - no deployments will be performed")
-            plan
-              .exportDeploymentActions(outputDirectory as TFileSystemPath)
-              .then(function() {
-                terminateProcess(0)
-              })
-              .catch(function(writeError: Error) {
-                logger.error("Error exporting deployment document! ", writeError)
-                terminateProcess(255)
-              })
-          } else {
-            // TODOLATER Rollback on kube config
-
-            let dryRunString = `${dryRun ? " dryrun" : ""}`
-
-            logger.info(`Executing deployment plan${dryRunString}... `)
-            plan
-              .executePlans({
-                dryRun: dryRun,
-                dryRunOutputDir: outputDirectory,
-                pushToUi: pushToUi,
-                waitForRollout: waitForRollout,
-                rolloutWaitSeconds: rolloutTimeout,
-                logContext: defaultLogContext,
-              })
-              .then(function(planResults: IDeploymentPlanExecutionResult[]) {
-                // Exceptions from plan execution are logged immediately. Here we render only a summary of deployment results.
-                const failedPlans = planResults.filter(planExecutionResult => {
-                  return planExecutionResult.actionExecutionError !== undefined
-                })
-                if (failedPlans.length > 0) {
-                  renderPlanFailureSummary(logger, failedPlans)
-                  return terminateProcess(failedPlans.length)
-                }
-                logger.info(`...plan${dryRunString} execution complete. Exiting shepherd.`)
-                setTimeout(() => {
-                  terminateProcess(0)
-                }, 1000)
-              })
-              .catch(function(err: Error) {
-                renderPlanExecutionError(logger, err, defaultLogContext)
-                terminateProcess(255)
-              })
-          }
-        })
-        .catch(function(loadError) {
-          logger.debug(`Plan load error, with stack`, loadError)
-          logger.error(`Plan load error. ${loadError.message}`)
-          if (loadError.context) {
-            logger.error(` ${JSON.stringify(loadError.context)}`)
-          }
-          stateStoreBackend.disconnect()
-          process.exit(255)
-        })
-    })
-    .catch(function(err: Error) {
-      console.error("Connection/migration error", err)
+    } catch (loadError) {
+      logger.debug(`Plan load error, with stack`, loadError)
+      logger.error(`Plan load error. ${loadError.message}`)
+      if (loadError.context) {
+        logger.error(` ${JSON.stringify(loadError.context)}`)
+      }
+      stateStoreBackend.disconnect()
       process.exit(255)
-    })
+    }
+  } catch (connError) {
+    console.error("Connection/migration error", connError)
+    process.exit(255)
+  }
 }
 
 main()
