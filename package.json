@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "bootstrap": "lerna bootstrap",
+    "bootstrap": "yarn install",
     "test": "lerna run prepublishOnly",
     "build": "lerna run build",
     "buildChanged": "lerna run build --since $(./scripts/base-commit.sh) --include-dependencies --stream"
@@ -23,8 +23,8 @@
   },
   "homepage": "https://github.com/ShepherdOrg/shepherd#readme",
   "devDependencies": {
-    "lerna": "^3.18.5",
-    "lerna-update-wizard": "^0.17.8",
+    "lerna": "^8.2.4",
+    "lerna-update-wizard": "^1.1.2",
     "prettier": "^1.18.2"
   }
 }

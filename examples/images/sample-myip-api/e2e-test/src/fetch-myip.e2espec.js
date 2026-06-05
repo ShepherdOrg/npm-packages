@@ -1,4 +1,3 @@
-const fetch = require('node-fetch').default;
 const expect = require('chai').expect;
 const execa = require('execa');
 

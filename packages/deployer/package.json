@@ -1,13 +1,13 @@
 {
   "name": "@shepherdorg/deployer",
-  "version": "5.3.2",
+  "version": "5.3.3",
   "description": "Deployer application",
   "main": "dist/shepherd.js",
   "engines": {
     "node": ">=8"
   },
   "dependencies": {
-    "@shepherdorg/docker-image-metadata-loader": "^5.2.0",
+    "@shepherdorg/docker-image-metadata-loader": "^6.0.0",
     "@shepherdorg/filestore-backend": "^5.2.0",
     "@shepherdorg/hbs-template": "^5.1.0",
     "@shepherdorg/metadata": "^5.2.0",
@@ -15,7 +15,7 @@
     "@shepherdorg/postgres-backend": "^5.3.2",
     "@shepherdorg/state-store": "^5.2.0",
     "@shepherdorg/ts-exec": "^5.2.0",
-    "@shepherdorg/ui-push": "^5.2.0",
+    "@shepherdorg/ui-push": "^6.0.0",
     "@types/diff": "^4.0.2",
     "@types/js-yaml": "^3.12.1",
     "array-flat-polyfill": "^1.0.1",

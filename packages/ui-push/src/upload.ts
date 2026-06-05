@@ -1,4 +1,4 @@
-import { createClient } from "@shepherdorg/ui-graphql-client"
+import { createClient } from "./ui-graphql-client"
 import { THerdDeployerMetadata } from "./temptypes"
 import { mapToUiVersion } from "./mapDeploymentInfoToUI"
 

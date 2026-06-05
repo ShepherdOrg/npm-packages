@@ -1,6 +1,6 @@
 {
   "name": "myip-web-api",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "CICD sample app API on AWS Lambda",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,6 @@
     "chai": "^4.2.0",
     "lambda-local": "^1.6.3",
     "mocha": "^6.2.0",
-    "execa": "^2.0.4",
-    "node-fetch": "^2.6.0"
+    "execa": "^2.0.4"
   }
 }

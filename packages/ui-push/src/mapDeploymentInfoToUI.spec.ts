@@ -1,7 +1,7 @@
 import { expect } from "chai"
 import { getValidHerdDeployerMetadata, getValidHerdK8sMetadata } from "./testdata/testdata"
 import { DeploymentUIInfo, mapToUiVersion } from "./mapDeploymentInfoToUI"
-import { Deployment, DeploymentVersion } from "@shepherdorg/ui-graphql-client"
+import { Deployment, DeploymentVersion } from "./ui-graphql-client"
 
 
 describe("mapping", function() {
