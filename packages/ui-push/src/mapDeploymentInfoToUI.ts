@@ -1,6 +1,6 @@
 import { isHerdDeployerMetadata, isHerdK8sMetadata, THerdDeployerMetadata, THerdK8sMetadata } from "./temptypes"
 import { TDeployerRole, TDeploymentType } from "@shepherdorg/metadata"
-import { DeploymentVersion, Deployment } from "@shepherdorg/ui-graphql-client"
+import { DeploymentVersion, Deployment } from "./ui-graphql-client"
 
 import * as yaml from "js-yaml"
 import path from "path"

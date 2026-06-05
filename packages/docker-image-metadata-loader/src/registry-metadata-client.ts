@@ -1,4 +1,6 @@
-import * as request from "request-promise"
+import * as https from "https"
+import * as http from "http"
+import { URL } from "url"
 
 export type TImageWithTags = {
   name: string
@@ -40,8 +42,21 @@ export interface IRetrieveDockerImageLabels {
 
 }
 
+export type THttpResponse = {
+  status: number
+  body: string
+}
+
+export type THttpGetOptions = {
+  url: string
+  headers?: { [key: string]: string }
+  ca?: string
+}
+
+export type THttpGet = (options: THttpGetOptions) => Promise<THttpResponse>
+
 export type TRegistryClientDependencies = {
-  request: any
+  httpGet: THttpGet
 }
 
 export type TRegistryClientOptions = {
@@ -54,8 +69,50 @@ export type TRegistryClientOptions = {
   ca?: string
 }
 
+const defaultHttpGet: THttpGet = ({ url, headers, ca }) => {
+  const parsed = new URL(url)
+  const isHttps = parsed.protocol === "https:"
+  const lib = isHttps ? https : http
+  const requestOptions: https.RequestOptions = {
+    method: "GET",
+    hostname: parsed.hostname,
+    port: parsed.port || (isHttps ? 443 : 80),
+    path: `${parsed.pathname}${parsed.search}`,
+    headers,
+  }
+  if (isHttps && ca) {
+    requestOptions.ca = ca
+  }
+  return new Promise((resolve, reject) => {
+    const req = lib.request(requestOptions, res => {
+      const chunks: Buffer[] = []
+      res.on("data", chunk => chunks.push(Buffer.from(chunk)))
+      res.on("end", () => {
+        resolve({
+          status: res.statusCode || 0,
+          body: Buffer.concat(chunks).toString("utf8"),
+        })
+      })
+      res.on("error", reject)
+    })
+    req.on("error", reject)
+    req.end()
+  })
+}
+
 const defaultDependencies: TRegistryClientDependencies = {
-  request: request,
+  httpGet: defaultHttpGet,
+}
+
+class RegistryRequestError extends Error {
+  statusCode: number
+  error: string
+
+  constructor(statusCode: number, body: string) {
+    super(`${statusCode}: ${body}`)
+    this.statusCode = statusCode
+    this.error = body
+  }
 }
 
 
@@ -68,38 +125,25 @@ export function createDockerRegistryClient(
     return image.slice(len, image.length)
   }
 
-  function addCertificateOptions(requestOptions) {
-    if (options.ca) {
-      return {
-        ...requestOptions,
-        ca: options.ca,
-      }
-    } else {
-      return requestOptions
+  function buildHeaders(): { [key: string]: string } | undefined {
+    if (!options.authorization) {
+      return undefined
+    }
+    return {
+      Authorization: `${options.authorization.type} ${options.authorization.token}`,
     }
   }
 
-  function addAuthorization(request: any) {
-    if (options.authorization) {
-      return {
-        ...request,
-        headers: {
-          "Authorization":
-            `${options.authorization.type} ${options.authorization.token}`,
-        },
-      }
-    } else{
-      return request
+  async function getFromDockerRegistry(apiUrl: string): Promise<string> {
+    const response = await injected.httpGet({
+      url: apiUrl,
+      headers: buildHeaders(),
+      ca: options.ca,
+    })
+    if (response.status < 200 || response.status >= 300) {
+      throw new RegistryRequestError(response.status, response.body)
     }
-  }
-
-  function getFromDockerRegistry(ApiUrl: string) {
-    let requestOptions = addCertificateOptions(addAuthorization({
-        method: "GET",
-        url: ApiUrl,
-      },
-    ))
-    return injected.request(requestOptions)
+    return response.body
   }
 
   function getImageManifest(
