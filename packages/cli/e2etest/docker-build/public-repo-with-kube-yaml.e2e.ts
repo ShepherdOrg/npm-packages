@@ -1,11 +1,11 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import * as fs from "fs"
 import * as path from "path"
 import { execCmd } from "../../src/exec/exec-cmd"
 import { getDockerTags } from "./get-docker.tags"
 
 describe("Build docker with kube.yaml deployment on branch (Flaky test, succeeds alone, fails with others. Some race condidions or interaction in place)", function() {
-  this.timeout(10000)
   let shepherdMeta, buildOutput
   let dockerMeta: any
 
@@ -28,7 +28,7 @@ describe("Build docker with kube.yaml deployment on branch (Flaky test, succeeds
     return execCmd(`./bin/shepherd-build-docker.sh`, [`${dockerDir}/Dockerfile`, "--force-build", "--verbose"], {
       env: { ...process.env, ...{ BRANCH_NAME: "fakebranch" } },
     }).then(({ code, stdout, stderr }) => {
-      if (code) expect.fail(`Exit with error code  ${code}\n${stderr}\n${stdout}`)
+      if (code) assert.fail(`Exit with error code  ${code}\n${stderr}\n${stdout}`)
 
       shepherdMeta = JSON.parse(fs.readFileSync(dockerDir + "/.build/metadata/shepherd.json", "utf8"))
       buildOutput = stdout
@@ -50,23 +50,23 @@ describe("Build docker with kube.yaml deployment on branch (Flaky test, succeeds
   }
 
   it("should have kubeConfigB64", () => {
-    expect(shepherdMeta.kubeConfigB64.length).to.be.gt(500)
+    assert.ok(shepherdMeta.kubeConfigB64.length > 500)
   })
 
   it("should have last 5 commits base64 encoded", () => {
-    expect(base64decode(shepherdMeta.lastCommits)).to.be.contain("by")
+    assert.ok(base64decode(shepherdMeta.lastCommits).includes("by"))
   })
 
   it("should have a branch tag", () => {
-    expect(findRepoTag("public-repo-with-kube-yaml:fakebranch-[a-z1-9]")).to.be.ok
+    assert.ok(findRepoTag("public-repo-with-kube-yaml:fakebranch-[a-z1-9]"))
   })
 
   it("should have a latest tag", () => {
-    expect(findRepoTag("public-repo-with-kube-yaml:latest")).to.be.ok
+    assert.ok(findRepoTag("public-repo-with-kube-yaml:latest"))
   })
 
   it("should have plain hash tag", () => {
-    expect(findRepoTag("public-repo-with-kube-yaml:[a-z1-9]")).to.be.ok
+    assert.ok(findRepoTag("public-repo-with-kube-yaml:[a-z1-9]"))
   })
 
   describe("build again on master", function() {
@@ -82,7 +82,7 @@ describe("Build docker with kube.yaml deployment on branch (Flaky test, succeeds
           ...{ BRANCH_NAME: "master", SHEPHERD_DEPLOYMENT_QUEUE_FILE: shepherdDeployFile, FORCE_PUSH: "true" },
         },
       }).then(({ code, stdout, stderr }) => {
-        if (code) expect.fail(`Exit with error code  ${code}\n${stderr}\n${stdout}`)
+        if (code) assert.fail(`Exit with error code  ${code}\n${stderr}\n${stdout}`)
 
         masterStdout = stdout
         shepherdMeta = JSON.parse(fs.readFileSync(dockerDir + "/.build/metadata/shepherd.json", "utf8"))
@@ -96,23 +96,23 @@ describe("Build docker with kube.yaml deployment on branch (Flaky test, succeeds
     })
 
     it("should have master tag", () => {
-      expect(findRepoTag("public-repo-with-kube-yaml:master-[a-z1-9]")).to.be.ok
+      assert.ok(findRepoTag("public-repo-with-kube-yaml:master-[a-z1-9]"))
     })
 
     it("should not build again, only tag", () => {
-      expect(masterStdout.indexOf("is already built, not building again")).to.be.gte(0)
+      assert.ok(masterStdout.indexOf("is already built, not building again") >= 0)
     })
 
     it("should add one entry to deployment Q", () => {
-      expect(queueEntry.dockerImageUrl).to.match(/public-repo-with-kube-yaml:[a-z1-9]*/)
+      assert.match(queueEntry.dockerImageUrl, /public-repo-with-kube-yaml:[a-z1-9]*/)
     })
 
     it("should have deployment key correct", () => {
-      expect(queueEntry.deploymentKey).to.equal(testImageName)
+      assert.strictEqual(queueEntry.deploymentKey, testImageName)
     })
   })
 
-  xit("should suppress tslint warnings", () => {
+  it.skip("should suppress tslint warnings", () => {
     console.info(shepherdMeta)
     console.info(buildOutput)
     console.info(dockerMeta)

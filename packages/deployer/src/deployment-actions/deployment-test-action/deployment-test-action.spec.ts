@@ -6,7 +6,8 @@ import {
 } from "./deployment-test-action"
 import { IStatefulExecutableAction, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
 import { metadataDsl } from "../../test-tools/metadata-dsl"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { createDockerActionFactory } from "../docker-action/docker-action"
@@ -44,19 +45,19 @@ describe("Deployment test action", function() {
     })
 
     it("should plan docker run on image with specified test command", () => {
-      expect(testAction.planString()).to.contain("pretest")
+      assert.ok(testAction.planString().includes("pretest"))
     })
 
     it("should generate environment parameters for docker run", () => {
-      expect(testAction.descriptor).to.contain("-e ENV_ONE=VALUE_ONE")
+      assert.ok(testAction.descriptor.includes("-e ENV_ONE=VALUE_ONE"))
     })
 
     it("should default to dockerImageUrl from shepherdMetadata", () => {
-      expect(testAction.planString()).to.contain("unittest-image:9.9.99")
+      assert.ok(testAction.planString().includes("unittest-image:9.9.99"))
     })
 
     it("should be stateless", () => {
-      expect(testAction.isStateful).to.equal(false)
+      assert.strictEqual(testAction.isStateful, false)
     })
   })
 
@@ -76,7 +77,7 @@ describe("Deployment test action", function() {
     })
 
     it("should ", () => {
-      expect(testAction.planString()).to.contain("test-specific-image:999")
+      assert.ok(testAction.planString().includes("test-specific-image:999"))
     })
   })
 
@@ -114,27 +115,25 @@ describe("Deployment test action", function() {
     })
 
     it("should execute docker run once", () => {
-      expect(fakeExec.executedCommands.length).to.equal(1)
+      assert.strictEqual(fakeExec.executedCommands.length, 1)
     })
 
     it("should execute with correct parameters", () => {
-      expect(fakeExec.executedCommands[0].params.join(" ")).to.equal(
-        "run -i --rm -e ENV=testenv -e ENV_ONE=VALUE_ONE unittest-image:9.9.99 pretest this param"
-      )
+      assert.strictEqual(fakeExec.executedCommands[0].params.join(" "), "run -i --rm -e ENV=testenv -e ENV_ONE=VALUE_ONE unittest-image:9.9.99 pretest this param")
     })
 
     it("should split command into parameters and not pass as a single string", () => {
-      expect(fakeExec.executedCommands[0].params[8]).to.equal("pretest")
-      expect(fakeExec.executedCommands[0].params[9]).to.equal("this")
-      expect(fakeExec.executedCommands[0].params[10]).to.equal("param")
+      assert.strictEqual(fakeExec.executedCommands[0].params[8], "pretest")
+      assert.strictEqual(fakeExec.executedCommands[0].params[9], "this")
+      assert.strictEqual(fakeExec.executedCommands[0].params[10], "param")
     })
 
     it("should execute docker", () => {
-      expect(fakeExec.executedCommands[0].command).to.equal("docker")
+      assert.strictEqual(fakeExec.executedCommands[0].command, "docker")
     })
 
     it("should output stdout to logger", () => {
-      expect(fakeLogger.log).to.contain("Yeah")
+      assert.ok(fakeLogger.log.includes("Yeah"))
     })
 
     describe("Failing test run", function() {
@@ -148,10 +147,8 @@ describe("Deployment test action", function() {
       })
 
       it("should fail nicely", () => {
-        expect(testFailError.message).to.contain(
-          "docker run -i --rm -e ENV=testenv -e ENV_ONE=VALUE_ONE unittest-image:9.9.99 pretest this param. Process exited with error code 666"
-        )
-        expect(testFailError.stderr).to.contain("This did not go well")
+        assert.ok(testFailError.message.includes("docker run -i --rm -e ENV=testenv -e ENV_ONE=VALUE_ONE unittest-image:9.9.99 pretest this param. Process exited with error code 666"))
+        assert.ok(testFailError.stderr.includes("This did not go well"))
       })
     })
   })
@@ -205,21 +202,19 @@ describe("Deployment test action", function() {
     })
 
     it("should invoke rollback on test failure", () => {
-      expect(fakeRollbackAction.rollbackCalls.length).to.equal(1)
+      assert.strictEqual(fakeRollbackAction.rollbackCalls.length, 1)
     })
 
     it("should log fact that test failure resulted in rollback being called", () => {
-      expect(fakeLogger.log).to.contain("Test run failed, rolling back to last good version.")
+      assert.ok(fakeLogger.log.includes("Test run failed, rolling back to last good version."))
     })
 
     it("should throw error stating testExecution command", () => {
-      expect(testError.message).to.contain(
-        "docker run -i --rm -e ENV=testenv -e ENV_ONE=VALUE_ONE unittest-image:10.11.12 postTest. Process exited with error code 33"
-      )
+      assert.ok(testError.message.includes("docker run -i --rm -e ENV=testenv -e ENV_ONE=VALUE_ONE unittest-image:10.11.12 postTest. Process exited with error code 33"))
     })
 
     it("should throw error stating testExecution failure", () => {
-      expect(testError.stderr).to.contain("This is a failing test result")
+      assert.ok(testError.stderr.includes("This is a failing test result"))
     })
   })
 })

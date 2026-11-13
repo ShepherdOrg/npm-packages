@@ -1,5 +1,6 @@
 import { dockerImageMetadata, TDockerInspectMetadata } from "./local-image-metadata"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it } from "node:test"
 import { TDockerImageLabels } from "./registry-metadata-client"
 import { getTestCaseLogger } from "./testcase-logger"
 import { ILog } from "./index"
@@ -7,7 +8,6 @@ import { ILog } from "./index"
 const exec = require("@shepherdorg/ts-exec").exec
 
 describe("Image metadata loading", function() {
-  this.timeout(60000)
 
   let testCaseLogger = getTestCaseLogger({
     debugOutput: false,
@@ -21,7 +21,7 @@ describe("Image metadata loading", function() {
     return imageMetadataLoader
       .inspectImage({ image: "shepherdorg/shepherd", imagetag: "latest" })
       .then((imageMetadata: TDockerInspectMetadata) => {
-        expect(imageMetadata.dockerLabels["shepherd.name"]).to.equal("Shepherd agent")
+        assert.strictEqual(imageMetadata.dockerLabels["shepherd.name"], "Shepherd agent")
       })
   })
 
@@ -29,15 +29,15 @@ describe("Image metadata loading", function() {
     return imageMetadataLoader
       .inspectImageLabels({ image: "shepherdorg/shepherd", imagetag: "latest" })
       .then((imageLabels: TDockerImageLabels) => {
-        expect(imageLabels["shepherd.name"]).to.equal("Shepherd agent")
+        assert.strictEqual(imageLabels["shepherd.name"], "Shepherd agent")
       })
   })
 
-  xit("should retry once to get bullshit image", () => {
+  it.skip("should retry once to get bullshit image", () => {
     return imageMetadataLoader
       .inspectImageLabels({ image: "thisisatest/foobartwice", imagetag: "latest" })
       .then((imageLabels: TDockerImageLabels) => {
-        expect(imageLabels["shepherd.name"]).to.equal("Shepherd agent")
+        assert.strictEqual(imageLabels["shepherd.name"], "Shepherd agent")
       })
       .catch(loadFailure => {
         console.log(`loadFailure`, loadFailure)

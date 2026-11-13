@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, beforeEach, afterEach } from "node:test"
 
 import { expandEnv } from "./expandenv"
 import * as chalk from "chalk"
@@ -17,7 +18,7 @@ describe("expand environment vars in string", function() {
 
     let expandedText = expandEnv(rawText)
 
-    expect(expandedText).to.equal("TESTVALUE")
+    assert.strictEqual(expandedText, "TESTVALUE")
   })
 
   it("should throw on missing variable", function() {
@@ -26,7 +27,7 @@ describe("expand environment vars in string", function() {
     try {
       expandEnv(rawText)
     } catch (e) {
-      expect(escape(e.message)).to.equal(escape(`Reference to environment variable \${${chalk.red("ENVVAR_MISSING")}} could not be resolved: \${ENVVAR_MISSING}`)      )
+      assert.strictEqual(escape(e.message), escape(`Reference to environment variable \${${chalk.red("ENVVAR_MISSING")}} could not be resolved: \${ENVVAR_MISSING}`))
     }
   })
 })

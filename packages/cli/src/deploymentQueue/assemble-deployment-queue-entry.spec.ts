@@ -1,7 +1,8 @@
 import { assembleDeploymentQueueEntry } from "./assemble-deployment-queue-entry"
 import * as path from "path"
 import * as fs from "fs"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 
 describe("assembling deployment queue entry", function() {
   function readJsonFile(path: string) {
@@ -22,11 +23,11 @@ describe("assembling deployment queue entry", function() {
     })
 
     it("should use branch deploy environments", () => {
-      expect(queueEntry.environments.length).to.equal(1)
+      assert.strictEqual(queueEntry.environments.length, 1)
     })
 
     it("should use branch deploy environments", () => {
-      expect(queueEntry.dockerImageUrl).to.equal("docker/image:branch-url")
+      assert.strictEqual(queueEntry.dockerImageUrl, "docker/image:branch-url")
     })
   })
 
@@ -44,15 +45,15 @@ describe("assembling deployment queue entry", function() {
     })
 
     it("should use master deploy environments", () => {
-      expect(queueEntry.environments.length).to.equal(2)
+      assert.strictEqual(queueEntry.environments.length, 2)
     })
 
     it("should remove branchDeployToEnvironments", () => {
-      expect(queueEntry.branchDeployToEnvironments).to.equal(undefined)
+      assert.strictEqual(queueEntry.branchDeployToEnvironments, undefined)
     })
 
     it("should use image url from shepherd.json", () => {
-      expect(queueEntry.dockerImageUrl).to.equal("docker/image:master-url")
+      assert.strictEqual(queueEntry.dockerImageUrl, "docker/image:master-url")
     })
   })
 
@@ -70,7 +71,7 @@ describe("assembling deployment queue entry", function() {
     })
 
     it("should use empty environments list", () => {
-      expect(queueEntry.environments.length).to.equal(0)
+      assert.strictEqual(queueEntry.environments.length, 0)
     })
   })
 })

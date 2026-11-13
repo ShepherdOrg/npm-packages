@@ -1,5 +1,6 @@
 import * as fs from "fs"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import { identifyDocument, TDescriptorsByKind } from "./k8s-deployment-document-identifier"
 
 describe("k8s deployment document identifier", function() {
@@ -19,11 +20,11 @@ describe("k8s deployment document identifier", function() {
   })
 
   it("should be ok with multipart document using LF separator", function() {
-    expect(fileIdentity).to.equal("kube-system_ServiceAccount_fluentd")
+    assert.strictEqual(fileIdentity, "kube-system_ServiceAccount_fluentd")
   })
 
   it("should identify all deployments in document", () => {
-    expect(descriptorsInDoc['Deployment'].length).to.equal(2)
+    assert.strictEqual(descriptorsInDoc['Deployment'].length, 2)
   })
 
 

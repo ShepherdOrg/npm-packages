@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, after, beforeEach, afterEach } from "node:test"
 import { expandTemplate } from "./expandtemplate"
 
 
@@ -16,7 +17,7 @@ describe("expand environment vars using handlebars template syntax", function() 
 
     let expandedText = expandTemplate(rawText, process.env)
 
-    expect(expandedText).to.equal("TESTVALUE")
+    assert.strictEqual(expandedText, "TESTVALUE")
   })
 
   it("should expand simple variable with enclosing spaces", function() {
@@ -24,14 +25,14 @@ describe("expand environment vars using handlebars template syntax", function() 
 
     let expandedText = expandTemplate(rawText, process.env)
 
-    expect(expandedText).to.equal("TESTVALUE")
+    assert.strictEqual(expandedText, "TESTVALUE")
   })
 
   it("should throw on missing variable", () => {
     try {
       expandTemplate("{{ENVVAR_MISSING}}", process.env)
     } catch (err) {
-      expect(err.message).to.contain("Available properties:")
+      assert.ok(err.message.includes("Available properties:"))
     }
   })
 
@@ -39,8 +40,8 @@ describe("expand environment vars using handlebars template syntax", function() 
     try {
       expandTemplate("{{ENVVAR_MISSING}}", process.env)
     } catch (err) {
-      expect(err.message).to.contain("Available properties:")
-      expect(err.message).to.contain("ENVVAR_ONE")
+      assert.ok(err.message.includes("Available properties:"))
+      assert.ok(err.message.includes("ENVVAR_ONE"))
     }
   })
 
@@ -50,7 +51,7 @@ describe("expand environment vars using handlebars template syntax", function() 
 
       let expandedText = expandTemplate(rawText, process.env)
 
-      expect(expandedText).to.equal("ENCODED: VEVTVFZBTFVF")
+      assert.strictEqual(expandedText, "ENCODED: VEVTVFZBTFVF")
     })
 
     it("Should support base64 encode with newline appended", () => {
@@ -58,7 +59,7 @@ describe("expand environment vars using handlebars template syntax", function() 
 
       let expandedText = expandTemplate(rawText, process.env)
 
-      expect(expandedText).to.equal("ENCODED: VEVTVFZBTFVFCg==")
+      assert.strictEqual(expandedText, "ENCODED: VEVTVFZBTFVFCg==")
     })
 
     it("should throw meaningful error if variable not set", () => {
@@ -66,7 +67,7 @@ describe("expand environment vars using handlebars template syntax", function() 
       try{
         expandTemplate(rawText, process.env)
       }catch(err){
-        expect(err.message).to.equal("Error expanding template block: {{{ Base64Encode SOME_BULLSHIT }}}. Variable not set, in line# 1")
+        assert.strictEqual(err.message, "Error expanding template block: {{{ Base64Encode SOME_BULLSHIT }}}. Variable not set, in line# 1")
       }
     })
   })
@@ -87,13 +88,13 @@ describe("expand environment vars using handlebars template syntax", function() 
     it("Should support base64 encode", () => {
       let rawText = "ENCODED: {{Base64EncodeFile ENVVAR_ONE_FILE }}"
       let expandedText = expandTemplate(rawText, process.env)
-      expect(expandedText).to.equal("ENCODED: dGhpcy10ZXh0LXdpbGwtYmUtZW5jb2RlZC1pbi1hLXRlc3QK")
+      assert.strictEqual(expandedText, "ENCODED: dGhpcy10ZXh0LXdpbGwtYmUtZW5jb2RlZC1pbi1hLXRlc3QK")
     })
 
     it("Should support base64 encode binary file", () => {
       let rawText = "ENCODED FILE: {{ Base64EncodeFile ENVVAR_BINARY_FILE }}"
       let expandedText = expandTemplate(rawText, process.env)
-      expect(expandedText).to.equal("ENCODED FILE: R0lGODlhMgAyAPcAAJaMc2ZeRca7n3tyWkdHR4qBZcrBpsnBrO7q3cjFvIw=")
+      assert.strictEqual(expandedText, "ENCODED FILE: R0lGODlhMgAyAPcAAJaMc2ZeRca7n3tyWkdHR4qBZcrBpsnBrO7q3cjFvIw=")
     })
 
     it("Should throw meaningful error if file does not exist", () => {
@@ -101,7 +102,7 @@ describe("expand environment vars using handlebars template syntax", function() 
       try{
         expandTemplate(rawText, process.env)
       }catch(err){
-        expect(err.message).to.contain("/testdata/does-not-exist.txt")
+        assert.ok(err.message.includes("/testdata/does-not-exist.txt"))
       }
     })
 
@@ -110,7 +111,7 @@ describe("expand environment vars using handlebars template syntax", function() 
       try{
         expandTemplate(rawText)
       }catch(err){
-        expect(err.message).to.equal("Error expanding template block: {{ Base64EncodeFile ENVVAR_ONE_FILE_NOT_SET }}. Variable pointing to file to base64 encode is not set, in line# 3")
+        assert.strictEqual(err.message, "Error expanding template block: {{ Base64EncodeFile ENVVAR_ONE_FILE_NOT_SET }}. Variable pointing to file to base64 encode is not set, in line# 3")
       }
     })
   })

@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it } from "node:test"
 import { inject } from "./inject"
 
 describe("inject dependency injection", function() {
@@ -6,7 +7,7 @@ describe("inject dependency injection", function() {
     var deps = inject({
       foo: "bar",
     })
-    expect(deps("foo")).to.equal("bar")
+    assert.strictEqual(deps("foo"), "bar")
   })
 
   it("should fail on missing dependency", function() {
@@ -16,7 +17,7 @@ describe("inject dependency injection", function() {
       })
       deps("baz")
     } catch (e) {
-      expect(e.message).to.eql("Required dependency <baz> is not provided.")
+      assert.deepStrictEqual(e.message, "Required dependency <baz> is not provided.")
     }
   })
 
@@ -24,6 +25,6 @@ describe("inject dependency injection", function() {
     var deps = inject({
       x: "bar",
     })
-    expect(deps("foo", true)).to.equal(undefined)
+    assert.strictEqual(deps("foo", true), undefined)
   })
 })

@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it } from "node:test"
 import { parseImageUrl } from "./parse-image-url"
 
 describe("docker image url parsing", function() {
@@ -7,12 +8,12 @@ describe("docker image url parsing", function() {
 
     let parsed = parseImageUrl('isrvkbuild02:5000/image-one:1.1-9999')
     if(parsed){
-      expect(parsed.image).to.equal('image-one')
-      expect(parsed.imagetag).to.equal('1.1-9999')
-      expect(parsed.dockerTag).to.equal('1.1-9999')
-      expect(parsed.dockerRegistry).to.equal('isrvkbuild02:5000')
-      expect(parsed.dockerRepository).to.equal('image-one')
-      expect(parsed.dockerNamespace).to.equal('')
+      assert.strictEqual(parsed.image, 'image-one')
+      assert.strictEqual(parsed.imagetag, '1.1-9999')
+      assert.strictEqual(parsed.dockerTag, '1.1-9999')
+      assert.strictEqual(parsed.dockerRegistry, 'isrvkbuild02:5000')
+      assert.strictEqual(parsed.dockerRepository, 'image-one')
+      assert.strictEqual(parsed.dockerNamespace, '')
     }
   })
 
@@ -20,12 +21,12 @@ describe("docker image url parsing", function() {
 
     let parsed = parseImageUrl('image-one:1.1-9999')
     if(parsed){
-      expect(parsed.image).to.equal('image-one')
-      expect(parsed.imagetag).to.equal('1.1-9999')
-      expect(parsed.dockerTag).to.equal('1.1-9999')
-      expect(parsed.dockerRegistry).to.equal('')
-      expect(parsed.dockerRepository).to.equal('image-one')
-      expect(parsed.dockerNamespace).to.equal('')
+      assert.strictEqual(parsed.image, 'image-one')
+      assert.strictEqual(parsed.imagetag, '1.1-9999')
+      assert.strictEqual(parsed.dockerTag, '1.1-9999')
+      assert.strictEqual(parsed.dockerRegistry, '')
+      assert.strictEqual(parsed.dockerRepository, 'image-one')
+      assert.strictEqual(parsed.dockerNamespace, '')
     }
   })
 
@@ -34,12 +35,12 @@ describe("docker image url parsing", function() {
 
     let parsed = parseImageUrl('image-one')
     if(parsed){
-      expect(parsed.image).to.equal('image-one')
-      expect(parsed.imagetag).to.equal('latest')
-      expect(parsed.dockerTag).to.equal('latest')
-      expect(parsed.dockerRegistry).to.equal('')
-      expect(parsed.dockerRepository).to.equal('image-one')
-      expect(parsed.dockerNamespace).to.equal('')
+      assert.strictEqual(parsed.image, 'image-one')
+      assert.strictEqual(parsed.imagetag, 'latest')
+      assert.strictEqual(parsed.dockerTag, 'latest')
+      assert.strictEqual(parsed.dockerRegistry, '')
+      assert.strictEqual(parsed.dockerRepository, 'image-one')
+      assert.strictEqual(parsed.dockerNamespace, '')
     }
   })
 
@@ -47,12 +48,12 @@ describe("docker image url parsing", function() {
 
     let parsed = parseImageUrl('registry.com/ubuntu:14.04')
     if(parsed){
-      expect(parsed.image).to.equal('ubuntu')
-      expect(parsed.imagetag).to.equal('14.04')
-      expect(parsed.dockerTag).to.equal('14.04')
-      expect(parsed.dockerRegistry).to.equal('registry.com')
-      expect(parsed.dockerRepository).to.equal('ubuntu')
-      expect(parsed.dockerNamespace).to.equal('')
+      assert.strictEqual(parsed.image, 'ubuntu')
+      assert.strictEqual(parsed.imagetag, '14.04')
+      assert.strictEqual(parsed.dockerTag, '14.04')
+      assert.strictEqual(parsed.dockerRegistry, 'registry.com')
+      assert.strictEqual(parsed.dockerRepository, 'ubuntu')
+      assert.strictEqual(parsed.dockerNamespace, '')
     }
   })
 

@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, beforeEach } from "node:test"
 
 describe("Herd editing", function() {
 
@@ -23,8 +24,8 @@ describe("Herd editing", function() {
       upstreamImageName: "test88image",
       imageFileName: 'na'
     }, logger)
-    expect(editedHerd.images.test88.image).to.equal("test88image")
-    expect(editedHerd.images.test88.imagetag).to.equal("99")
+    assert.strictEqual(editedHerd.images.test88.image, "test88image")
+    assert.strictEqual(editedHerd.images.test88.imagetag, "99")
   })
 
   it("should edit herd entry", () => {
@@ -39,8 +40,8 @@ describe("Herd editing", function() {
       upstreamImageName: "test99image",
       imageFileName: 'na'
     }, logger)
-    expect(editedHerd.images.test88.imagetag).to.equal("100")
-    expect(editedHerd.images.test88.image).to.equal("test99image")
+    assert.strictEqual(editedHerd.images.test88.imagetag, "100")
+    assert.strictEqual(editedHerd.images.test88.image, "test99image")
   })
 
   it("should edit description", () => {
@@ -56,6 +57,6 @@ describe("Herd editing", function() {
       imageFileName: 'na',
       upstreamHerdDescription: 'New description'
     }, logger)
-    expect(editedHerd.images.test88.description).to.equal("New description")
+    assert.strictEqual(editedHerd.images.test88.description, "New description")
   })
 })

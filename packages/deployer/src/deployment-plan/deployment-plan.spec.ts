@@ -6,7 +6,8 @@ import {
   TDeploymentPlanDependencies,
 } from "./deployment-plan"
 import { clearEnv, setEnv } from "../deployment-actions/kubectl-action/testdata/test-action-factory"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, after } from "node:test"
 import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { IBasicExecutableAction, ICanRollbackActionExecution, IStatefulExecutableAction, TActionExecutionOptions } from "../deployment-types"
 import { emptyArray } from "../helpers/ts-functions"
@@ -264,7 +265,7 @@ describe("Deployment plan", function() {
     })
 
     it("should retrieve action state from state store", async () => {
-      expect(depPlan.deploymentActions[0].getActionDeploymentState()).not.to.equal(undefined)
+      assert.notStrictEqual(depPlan.deploymentActions[0].getActionDeploymentState(), undefined)
     })
   })
 
@@ -285,7 +286,7 @@ describe("Deployment plan", function() {
     })
 
     it("should execute all deployment actions in serial", () => {
-      expect(flf.fakeActionCalls).to.eql(["SucceedingActionOne", "SucceedingActionTwo", "SucceedingActionThree"])
+      assert.deepStrictEqual(flf.fakeActionCalls, ["SucceedingActionOne", "SucceedingActionTwo", "SucceedingActionThree"])
     })
   })
 
@@ -310,23 +311,23 @@ describe("Deployment plan", function() {
     })
 
     it("should not execute anything after first failing action", () => {
-      expect(flf.fakeActionCalls.length).to.equal(2)
+      assert.strictEqual(flf.fakeActionCalls.length, 2)
     })
 
     it("should render error message from failing action in logger", () => {
-      expect((planDependencies.logger as IFakeLogging).log).to.contain("Plan execution error")
-      expect((planDependencies.logger as IFakeLogging).log).to.contain("Failing big time")
+      assert.ok((planDependencies.logger as IFakeLogging).log.includes("Plan execution error"))
+      assert.ok((planDependencies.logger as IFakeLogging).log.includes("Failing big time"))
     })
 
     it("should return plan execution result marking it as failed", () => {
-      expect(planExecutionResult.actionExecutionError?.message).to.contain("Failing big time")
+      assert.ok(planExecutionResult.actionExecutionError?.message.includes("Failing big time"))
     })
 
     it("should print plan with header and one line per action", () => {
       let logger = createFakeLogger()
       depPlan.printPlan(logger)
-      expect(logger.logStatements[0].data[0]).to.contain("Deploying testKeyOne")
-      expect(logger.logStatements.length).to.equal(4)
+      assert.ok(logger.logStatements[0].data[0].includes("Deploying testKeyOne"))
+      assert.strictEqual(logger.logStatements.length, 4)
     })
   })
 
@@ -350,11 +351,11 @@ describe("Deployment plan", function() {
     })
 
     it("error message should contain herd key highlighted in red", () => {
-      expect(testPlanError.message).to.contain(`${chalk.red("testKeyOne")}`)
+      assert.ok(testPlanError.message.includes(`${chalk.red("testKeyOne")}`))
     })
 
     it("error message should explanation", () => {
-      expect(testPlanError.message).to.contain(`has no stateful action!`)
+      assert.ok(testPlanError.message.includes(`has no stateful action!`))
     })
   })
 
@@ -383,7 +384,7 @@ describe("Deployment plan", function() {
     })
 
     it("should not execute anything", () => {
-      expect(flf.fakeActionCalls.length).to.equal(0)
+      assert.strictEqual(flf.fakeActionCalls.length, 0)
     })
   })
 })

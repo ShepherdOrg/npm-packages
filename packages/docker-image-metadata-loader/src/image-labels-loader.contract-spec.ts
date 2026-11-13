@@ -1,12 +1,12 @@
 import { getTestCaseLogger, ITestLog } from "./testcase-logger"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, beforeEach } from "node:test"
 import { ILoadDockerImageLabels, imageLabelsLoader } from "./image-labels-loader"
 import { TDockerRegistryClientMap } from "./docker-registry-clients-config"
 import { TDockerInspectMetadata } from "./local-image-metadata"
 import { getLocalhostTestingDockerRegistryClients } from "./local-testing-docker-registry-clients-config"
 
 describe("Loading image labels", function() {
-  this.timeout(60000)
   let testLogger: ITestLog
   let loader: ILoadDockerImageLabels
 
@@ -26,8 +26,8 @@ describe("Loading image labels", function() {
           imagetag: "latest",
         })
         .then((imageLabels: TDockerInspectMetadata) => {
-          expect(imageLabels.dockerLabels["shepherd.name"]).to.eql("Shepherd agent")
-          expect(testLogger.debugEntries).to.contain("shepherdorg/shepherd:latest metadata loaded using docker inspect")
+          assert.deepStrictEqual(imageLabels.dockerLabels["shepherd.name"], "Shepherd agent")
+          assert.ok(testLogger.debugEntries.includes("shepherdorg/shepherd:latest metadata loaded using docker inspect"))
         })
     })
   })
@@ -40,7 +40,7 @@ describe("Loading image labels", function() {
           imagetag: "latest",
         })
         .catch(imageInspectError => {
-          expect(imageInspectError.message).to.contain("bullshitimage/notexisting:latest")
+          assert.ok(imageInspectError.message.includes("bullshitimage/notexisting:latest"))
         })
     })
   })
@@ -53,10 +53,8 @@ describe("Loading image labels", function() {
           imagetag: "latest",
         })
         .then((imageLabels: TDockerInspectMetadata) => {
-          expect(imageLabels.dockerLabels["shepherd.name"]).to.eql("Shepherd agent")
-          expect(testLogger.debugEntries).to.contain(
-            "localhost:5000/shepherd:latest metadata loaded using registry API"
-          )
+          assert.deepStrictEqual(imageLabels.dockerLabels["shepherd.name"], "Shepherd agent")
+          assert.ok(testLogger.debugEntries.includes("localhost:5000/shepherd:latest metadata loaded using registry API"))
         })
     })
   })
@@ -73,10 +71,8 @@ describe("Loading image labels", function() {
           imagetag: "latest",
         })
         .then((imageLabels: TDockerInspectMetadata) => {
-          expect(imageLabels.dockerLabels["shepherd.name"]).to.eql("Shepherd agent")
-          expect(testLogger.debugEntries.join("\n")).to.contain(
-            "localhost:5500/shepherd:latest metadata loaded using registry API"
-          )
+          assert.deepStrictEqual(imageLabels.dockerLabels["shepherd.name"], "Shepherd agent")
+          assert.ok(testLogger.debugEntries.join("\n").includes("localhost:5500/shepherd:latest metadata loaded using registry API"))
         })
     })
   })

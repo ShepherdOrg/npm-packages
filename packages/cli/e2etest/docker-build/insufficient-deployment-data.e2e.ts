@@ -1,10 +1,10 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import { promisify } from "util"
 import { exec as execCb } from "child_process"
 const exec = promisify(execCb)
 
 describe("Build docker with insufficient deployment information", function() {
-  this.timeout(10000)
   let shepherdMeta, buildOutput, buildExitCode
   let dockerMeta: any
 
@@ -17,12 +17,12 @@ describe("Build docker with insufficient deployment information", function() {
   })
 
   it("Implement should exit with error indicating problem", () => {
-    expect(buildOutput).to.contain('Missing SHEPHERD_METADATA label')
-    expect(buildOutput).to.contain('${SHEPHERD_METADATA}')
-    expect(buildExitCode).to.equal(255)
+    assert.ok(buildOutput.includes('Missing SHEPHERD_METADATA label'))
+    assert.ok(buildOutput.includes('${SHEPHERD_METADATA}'))
+    assert.strictEqual(buildExitCode, 255)
   })
 
-  xit("should suppress tslint warnings", () => {
+  it.skip("should suppress tslint warnings", () => {
     console.info(shepherdMeta)
     console.info(buildOutput)
     console.info(dockerMeta)

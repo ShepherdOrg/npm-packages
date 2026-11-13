@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, after } from "node:test"
 import {
   IDockerDeploymentAction,
   IStatefulExecutableAction,
@@ -67,32 +68,32 @@ describe("Docker image plan loader", function() {
       after(() => clearEnv(testEnv))
 
       it("should extract wanted environment variables from image metadata", function() {
-        expect(firstAction).not.to.equal(undefined)
+        assert.notStrictEqual(firstAction, undefined)
       })
 
       it("should have image", function() {
-        expect(firstAction.dockerParameters).to.contain("testenvimage-migrations:0.0.0")
+        assert.ok(firstAction.dockerParameters.includes("testenvimage-migrations:0.0.0"))
       })
 
       it("should extract shepherd.deployer.command and use as plan command", function() {
-        expect(firstAction.command).to.equal("ls")
+        assert.strictEqual(firstAction.command, "ls")
       })
 
       it("should add plan command as last parameter", function() {
-        expect(firstAction.dockerParameters[firstAction.dockerParameters.length - 1]).to.equal("ls")
+        assert.strictEqual(firstAction.dockerParameters[firstAction.dockerParameters.length - 1], "ls")
       })
 
       it("should have herdKey", function() {
-        expect(firstAction.herdKey).to.equal("testimage")
+        assert.strictEqual(firstAction.herdKey, "testimage")
       })
 
       it("should have metadata", () => {
-        expect(firstAction.metadata).not.to.equal(undefined)
-        expect(firstAction.metadata.displayName).to.equal("Testimage")
+        assert.notStrictEqual(firstAction.metadata, undefined)
+        assert.strictEqual(firstAction.metadata.displayName, "Testimage")
       })
 
       it("should have herdspec", () => {
-        expect(firstAction.herdDeclaration.key).to.equal("testimage")
+        assert.strictEqual(firstAction.herdDeclaration.key, "testimage")
       })
     })
 
@@ -135,7 +136,7 @@ describe("Docker image plan loader", function() {
       after(() => clearEnv(testEnv))
 
       it("should use deploy as default command", function() {
-        expect(firstAction.dockerParameters[firstAction.dockerParameters.length - 1]).to.equal("deploy")
+        assert.strictEqual(firstAction.dockerParameters[firstAction.dockerParameters.length - 1], "deploy")
       })
     })
 
@@ -143,10 +144,10 @@ describe("Docker image plan loader", function() {
       it("should fail with message indicating label containing problematic env reference.", function() {
         return createTestActions(dockerDeployerMetadata)
           .then(function() {
-            expect.fail("Not expecting to load plan successfully")
+            assert.fail("Not expecting to load plan successfully")
           })
           .catch(function(err) {
-            expect(err.toString()).to.contain("Reference to environment variable")
+            assert.ok(err.toString().includes("Reference to environment variable"))
           })
       })
     })
@@ -180,11 +181,11 @@ describe("Docker image plan loader", function() {
     after(() => clearEnv(testEnv))
 
     it("should specify -e parameter", () => {
-      expect(loadedPlan.dockerParameters[4]).to.equal("-e")
+      assert.strictEqual(loadedPlan.dockerParameters[4], "-e")
     })
 
     it("should expand env variable in call do docker", () => {
-      expect(loadedPlan.dockerParameters[5]).to.equal("MIGRATION_ENV_VARIABLE_ONE=global_migration_env_value_one")
+      assert.strictEqual(loadedPlan.dockerParameters[5], "MIGRATION_ENV_VARIABLE_ONE=global_migration_env_value_one")
     })
   })
 
@@ -218,8 +219,8 @@ describe("Docker image plan loader", function() {
     })
 
     it("should rewrite docker labels starting with is.icelandairlabs to labels starting with shepherd", () => {
-      expect(firstPlan.displayName).to.equal("TestimageFromIcelandairlabs")
-      expect(firstPlan.command).to.equal("deploy")
+      assert.strictEqual(firstPlan.displayName, "TestimageFromIcelandairlabs")
+      assert.strictEqual(firstPlan.command, "deploy")
     })
   })
 
@@ -268,9 +269,7 @@ describe("Docker image plan loader", function() {
       after(() => clearEnv(testEnv))
 
       it("should list all deployments to wait for completion", () => {
-        expect(
-          loadedActions[2].deploymentRollouts.map(dr => `${dr.deploymentKind}/${dr.deploymentName}`).join("")
-        ).to.equal("Deployment/www-icelandair-com")
+        assert.strictEqual(loadedActions[2].deploymentRollouts.map(dr => `${dr.deploymentKind}/${dr.deploymentName}`).join(""), "Deployment/www-icelandair-com")
       })
 
       it("should expand handlebars template", () => {
@@ -278,34 +277,32 @@ describe("Docker image plan loader", function() {
           return plan.identifier === "ConfigMap_www-icelandair-com-nginx-acls"
         })
 
-        expect(configMapPlan?.descriptor).not.to.contain("WWW_ICELANDAIR_IP_WHITELIST")
-        expect(configMapPlan?.descriptor).to.contain("bullshitlist")
+        assert.ok(!configMapPlan?.descriptor.includes("WWW_ICELANDAIR_IP_WHITELIST"))
+        assert.ok(configMapPlan?.descriptor.includes("bullshitlist"))
       })
 
       it("should have loaded plan", function() {
-        expect(planNumberOne).not.to.equal(undefined)
+        assert.notStrictEqual(planNumberOne, undefined)
       })
 
       it("should have version", function() {
-        expect(planNumberOne.version).to.equal("0.0.0")
+        assert.strictEqual(planNumberOne.version, "0.0.0")
       })
 
       it("should contain origin in plan", function() {
-        expect(planNumberOne.origin).to.equal(
-          "testenvimage-migrations:0.0.0:tar:./deployment/www-icelandair-com-internal.service.yml"
-        )
+        assert.strictEqual(planNumberOne.origin, "testenvimage-migrations:0.0.0:tar:./deployment/www-icelandair-com-internal.service.yml")
       })
 
       it("should use apply as default operation", function() {
-        expect(planNumberOne.operation).to.equal("apply")
+        assert.strictEqual(planNumberOne.operation, "apply")
       })
 
       it("should return one action per deployment file, plus rollout wait", function() {
-        expect(loadedActions.length).to.equal(5)
+        assert.strictEqual(loadedActions.length, 5)
       })
 
       it("should be of type k8s", function() {
-        expect(planNumberOne.type).to.equal("k8s")
+        assert.strictEqual(planNumberOne.type, "k8s")
       })
     })
 
@@ -315,7 +312,7 @@ describe("Docker image plan loader", function() {
         delete process.env.EXPORT1
         return createTestActions(dockerImageMetadata)
           .then(function() {
-            expect.fail("Not expected to succeed!")
+            assert.fail("Not expected to succeed!")
           })
           .catch(function(error) {
             loadError = error
@@ -323,20 +320,20 @@ describe("Docker image plan loader", function() {
       })
 
       it("should report filename in error", function() {
-        expect(loadError.message).to.contain("./deployment/www-icelandair-com.deployment.yml")
+        assert.ok(loadError.message.includes("./deployment/www-icelandair-com.deployment.yml"))
       })
 
       it("should report origin in error", function() {
-        expect(loadError.message).to.contain("testenvimage-migrations")
+        assert.ok(loadError.message.includes("testenvimage-migrations"))
       })
 
       it("should report start of file in error", function() {
-        expect(loadError.message).to.contain("name: www-icelandair-com")
-        expect(loadError.message).to.contain("file starting with")
+        assert.ok(loadError.message.includes("name: www-icelandair-com"))
+        assert.ok(loadError.message.includes("file starting with"))
       })
 
       it("should report variable in error", function() {
-        expect(loadError.message).to.contain('"EXPORT1" not defined')
+        assert.ok(loadError.message.includes('"EXPORT1" not defined'))
       })
     })
   })
@@ -387,26 +384,26 @@ describe("Docker image plan loader", function() {
       after(() => clearEnv(testEnv))
 
       it("should have feature deployment in origin", function() {
-        expect(actionNumberOne.origin).to.contain("thisIsFeatureDeploymentOne")
+        assert.ok(actionNumberOne.origin.includes("thisIsFeatureDeploymentOne"))
       })
 
       it("should modify deployment descriptor", function() {
-        expect(actionNumberOne.descriptor).to.contain("thisisfeaturedeploymentone")
+        assert.ok(actionNumberOne.descriptor.includes("thisisfeaturedeploymentone"))
       })
 
       it("should modify deployment identifier ", function() {
-        expect(actionNumberOne.identifier).to.equal("Deployment_www-icelandair-com-thisisfeaturedeploymentone")
+        assert.strictEqual(actionNumberOne.identifier, "Deployment_www-icelandair-com-thisisfeaturedeploymentone")
       })
 
       it("should have rollout wait action for deployment", () => {
-        expect(actionNumberOne.deploymentRollouts.length).to.equal(1)
+        assert.strictEqual(actionNumberOne.deploymentRollouts.length, 1)
       })
 
       it("should plan rollout wait action", () => {
         const planLogger = createFakeLogger()
         testPlan.printPlan(planLogger)
 
-        expect(planLogger.log).to.contain("rollout status Deployment")
+        assert.ok(planLogger.log.includes("rollout status Deployment"))
       })
     })
 
@@ -420,19 +417,19 @@ describe("Docker image plan loader", function() {
       })
 
       it("should report filename in error", function() {
-        expect(loadError.message).to.contain("./deployment/www-icelandair-com.deployment.yml")
+        assert.ok(loadError.message.includes("./deployment/www-icelandair-com.deployment.yml"))
       })
 
       it("should report origin in error", function() {
-        expect(loadError.message).to.contain("testenvimage-migrations")
+        assert.ok(loadError.message.includes("testenvimage-migrations"))
       })
 
       it("should report line in error", function() {
-        expect(loadError.message).to.contain("line ")
+        assert.ok(loadError.message.includes("line "))
       })
 
       it("should report variable in error", function() {
-        expect(loadError.message).to.contain("${EXPORT1}")
+        assert.ok(loadError.message.includes("${EXPORT1}"))
       })
     })
 
@@ -449,19 +446,19 @@ describe("Docker image plan loader", function() {
       })
 
       it("should report filename in error", function() {
-        expect(loadError.message).to.contain("/deployment/www-icelandair-com.config.yml")
+        assert.ok(loadError.message.includes("/deployment/www-icelandair-com.config.yml"))
       })
 
       it("should report origin in error", function() {
-        expect(loadError.message).to.contain("testenvimage")
+        assert.ok(loadError.message.includes("testenvimage"))
       })
 
       it("should report line number in error", function() {
-        expect(loadError.message).to.contain("line #8")
+        assert.ok(loadError.message.includes("line #8"))
       })
 
       it("should report missing base64 encoded variable in error", function() {
-        expect(loadError.message).to.contain("WWW_ICELANDAIR_IP_WHITELIST")
+        assert.ok(loadError.message.includes("WWW_ICELANDAIR_IP_WHITELIST"))
       })
     })
   })
@@ -486,13 +483,11 @@ describe("Docker image plan loader", function() {
       })
 
       it("should create actions for postDeploymentTests and preDeploymentTests", () => {
-        expect(actions.length).to.equal(3)
+        assert.strictEqual(actions.length, 3)
       })
 
       it("should create actions for postDeploymentTests and preDeploymentTests", () => {
-        expect(actions[0].planString()).to.equal(
-          "docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT pretestcmd"
-        )
+        assert.strictEqual(actions[0].planString(), "docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT pretestcmd")
       })
     })
 
@@ -502,13 +497,11 @@ describe("Docker image plan loader", function() {
       })
 
       it("should create actions for postDeploymentTests matching the environment", () => {
-        expect(actions.length).to.equal(2)
+        assert.strictEqual(actions.length, 2)
       })
 
       it("should create actions for postDeploymentTests", () => {
-        expect(actions[1].planString()).to.equal(
-          "docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT posttestcmd"
-        )
+        assert.strictEqual(actions[1].planString(), "docker run test-deployer-image-with-deployment-tests:0.7.77-NOT_IN_GIT posttestcmd")
       })
     })
 
@@ -518,7 +511,7 @@ describe("Docker image plan loader", function() {
       })
 
       it("should only create action for deployment", () => {
-        expect(actions.length).to.equal(1)
+        assert.strictEqual(actions.length, 1)
       })
     })
   })

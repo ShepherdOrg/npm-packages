@@ -6,8 +6,7 @@
     ],
     "alwaysStrict": true,
     "types": [
-      "node",
-      "mocha"
+      "node"
     ],
     "declaration": true,
     "module": "commonjs",
@@ -26,8 +25,6 @@
     "dist"
   ],
   "types": [
-    "@types/node",
-    "@types/mocha",
-    "@types/chai"
+    "@types/node"
   ]
 }

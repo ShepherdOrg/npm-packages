@@ -3,7 +3,7 @@
   "compilerOptions": {
     "lib": ["es6"],
     "alwaysStrict": true,
-    "types": ["node", "mocha"],
+    "types": ["node"],
     "strict": true,
     "declaration": true,
     "module": "commonjs",
@@ -19,5 +19,5 @@
     "esModuleInterop": true
   },
   "exclude": ["node_modules", "dist"],
-  "types": ["@types/node", "@types/mocha", "@types/chai"]
+  "types": ["@types/node"]
 }

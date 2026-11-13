@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/versionist",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Creates or prefers version for shepherd docker building",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,20 +15,16 @@
     "shell-exec": "~1.1.2"
   },
   "devDependencies": {
-    "@types/chai": "4.3.20",
-    "@types/mocha": "^5.2.7",
     "@types/node": "^22.10.0",
-    "chai": "^4.5.0",
-    "mocha": "^12.0.3",
     "nyc": "^18.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "scripts": {
-    "specs": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
-    "coverage": "TS_NODE_COMPILER_OPTIONS='{\"removeComments\":false}' nyc mocha --require ts-node/register --require source-map-support/register --recursive 'src/**/*.spec.ts'",
-    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts --watch 'src/**/*.spec.ts'",
-    "integratedtest": "yarn build && yarn build-test-images && mocha --exit --recursive 'dist/integratedtest/**/*.integratedtest.js'",
+    "specs": "node --require ts-node/register --test \"src/**/*.spec.ts\"",
+    "coverage": "TS_NODE_COMPILER_OPTIONS='{\"removeComments\":false}' nyc node --require ts-node/register --require source-map-support/register --test \"src/**/*.spec.ts\"",
+    "tdd": "node --require ts-node/register --watch --test \"src/**/*.spec.ts\"",
+    "integratedtest": "yarn build && yarn build-test-images && node --require ts-node/register --test \"dist/integratedtest/**/*.integratedtest.js\"",
     "compile-in-background": "tsc -w > /dev/null &",
     "test": "yarn specs",
     "build": "tsc && chmod +x dist/versionist.js",

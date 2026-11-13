@@ -1,6 +1,6 @@
 import { FExecutionCallback, TFileSystemPath } from "../helpers/basic-types"
 import * as fs from "fs"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
 import { exec, TExecError } from "@shepherdorg/ts-exec"
 
 const JsDiff = require("diff")
@@ -51,7 +51,7 @@ function compareActualVsExpected(
   let difference = JsDiff.diffTrimmedLines(expectedFileContents.trim(), actualFileContents.trim())
   let relevantDiff = relevantDifferences(difference, ignoreList)
   if (relevantDiff.length) {
-    expect.fail(
+    assert.fail(
       "Expected file xxxxxx " +
         expectedFileName +
         " differs from actual file " +
@@ -133,7 +133,7 @@ export default {
           execution.callback && execution.callback(execError.stdout)
         } else {
           console.error("Process error in test, error code:", execError.code, " stderr:", execError.stderr)
-          expect.fail(
+          assert.fail(
             "Error invoking : " +
               command +
               " with arguments " +
@@ -221,24 +221,21 @@ export default {
       },
       checkExpectations() {
         if (execution.expectedExitCode) {
-          expect(execution.actualExitCode).to.equal(execution.expectedExitCode, "Process exit code")
+          assert.strictEqual(execution.actualExitCode, execution.expectedExitCode, "Process exit code")
         }
         execution.expectedStdoutPartials.forEach((partialString: string) => {
-          expect(execution.processOutput.indexOf(partialString)).to.gte(0, partialString)
+          assert.ok(execution.processOutput.indexOf(partialString) >= 0)
         })
 
         execution.notExpectedStdoutPartials.forEach((partialString: string) => {
-          expect(execution.processOutput.indexOf(partialString)).to.lt(
-            0,
-            `"${partialString}" is not supposed to be in stdout`
-          )
+          assert.ok(execution.processOutput.indexOf(partialString) < 0)
         })
 
         execution.expectedStderrPartials.forEach((partialString: string) => {
           if (execution.processStderr) {
-            expect(execution.processStderr.indexOf(partialString)).to.gte(0, partialString)
+            assert.ok(execution.processStderr.indexOf(partialString) >= 0)
           } else {
-            expect.fail(`Expecting stderr output, and for it to contain ${partialString}`)
+            assert.fail(`Expecting stderr output, and for it to contain ${partialString}`)
           }
         })
 
@@ -255,7 +252,7 @@ export default {
             let relevant = relevantDifferences(difference, execution.ignoreList)
             if (relevant.length) {
               fs.writeFileSync("./integratedtest/expected/actualoutput.log", execution.processOutput)
-              expect.fail(
+              assert.fail(
                 "Expected stdout \n" +
                   expectedOutput +
                   "\n differs from actual stdout \n" +
@@ -275,21 +272,21 @@ export default {
             if (actualIsDir) {
               let actualFiles = sortedUniq(fs.readdirSync(execution.actualOutputFileOrDir as TFileSystemPath))
               if (actualFiles.length > 0) {
-                expect.fail(
+                assert.fail(
                   `Directory ${
                     execution.actualOutputFileOrDir
                   } is not empty, contains following files: ${actualFiles.join(", ")}`
                 )
               }
             } else {
-              expect.fail("Actual is not a directory!")
+              assert.fail("Actual is not a directory!")
             }
             return
           }
           let expectedIsDir =
             execution.expectedOutputFileOrDir && fs.lstatSync(execution.expectedOutputFileOrDir).isDirectory()
           if ((expectedIsDir || actualIsDir) && !(expectedIsDir && actualIsDir)) {
-            expect.fail("Both expected and actual must be a directory or a file")
+            assert.fail("Both expected and actual must be a directory or a file")
           }
           if (expectedIsDir && execution.expectedOutputFileOrDir && execution.actualOutputFileOrDir) {
             let expectedFiles = sortedUniq(fs.readdirSync(execution.expectedOutputFileOrDir))
@@ -300,7 +297,7 @@ export default {
             let difference = JsDiff.diffTrimmedLines(expectedFilesString, actualFilesString)
             let relevantDiff = relevantDifferences(difference, execution.ignoreList)
             if (relevantDiff.length) {
-              expect.fail(
+              assert.fail(
                 "Expected directory contents " +
                   execution.expectedOutputFileOrDir +
                   " differs from actual dir contents " +

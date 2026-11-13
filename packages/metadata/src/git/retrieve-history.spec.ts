@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it } from "node:test"
 import { extractLastFiveChangesText } from "./retrieve-history"
 
 describe("retrieve git history", function() {
@@ -73,7 +74,7 @@ describe("retrieve git history", function() {
 2019-04-19 10:09:17 +0000 by Guðlaugur S. Egilsson. --- Moving published library to separate repo
 
 `
-     expect(extractLastFiveChangesText(lastChangesFromSimpleGit)).to.equal(expectedText)
+     assert.strictEqual(extractLastFiveChangesText(lastChangesFromSimpleGit), expectedText)
   })
 })
 

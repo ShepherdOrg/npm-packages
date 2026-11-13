@@ -1,5 +1,6 @@
 import { exec, TExecResult } from "./exec"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import { createFakeLogger } from "@shepherdorg/logger"
 
 describe("Command execution. Tests only work in a posix shell.", function() {
@@ -9,7 +10,7 @@ describe("Command execution. Tests only work in a posix shell.", function() {
       execResult = await exec("ls", ["-la"])
     })
     it("should execute ls", () => {
-      expect(execResult.stdout).to.include("package.json")
+      assert.ok(execResult.stdout.includes("package.json"))
     })
   })
 
@@ -19,10 +20,10 @@ describe("Command execution. Tests only work in a posix shell.", function() {
       execResult = await exec("ls", ["-la"], { doNotCollectOutput: true })
     })
     it("should return empty string", () => {
-      expect(execResult.stdout).to.equal("")
+      assert.strictEqual(execResult.stdout, "")
     })
     it("should return actual command run with result", () => {
-      expect(execResult.command).to.equal("ls -la")
+      assert.strictEqual(execResult.command, "ls -la")
     })
   })
 
@@ -34,7 +35,7 @@ describe("Command execution. Tests only work in a posix shell.", function() {
     })
 
     it("should direct stdout to logger info method", () => {
-      expect(outHandler.logLevelEntries("info")[0][0]).to.contain("package.json")
+      assert.ok(outHandler.logLevelEntries("info")[0][0].includes("package.json"))
     })
   })
 
@@ -51,23 +52,23 @@ describe("Command execution. Tests only work in a posix shell.", function() {
     })
 
     it("should throw exception on process close with error", () => {
-      expect(caughtError.code).to.equal(42)
+      assert.strictEqual(caughtError.code, 42)
     })
 
     it("should direct stdout to logger error method", () => {
-      expect(outHandler.logLevelEntries("error")[0][0]).to.contain("must go to stderr")
+      assert.ok(outHandler.logLevelEntries("error")[0][0].includes("must go to stderr"))
     })
 
     it("should have error output in error", () => {
-      expect(caughtError.stderr).to.contain("must go to stderr")
+      assert.ok(caughtError.stderr.includes("must go to stderr"))
     })
 
     it("should have stdoutput in error", () => {
-      expect(caughtError.stdout).to.contain("must go to stdout\n")
+      assert.ok(caughtError.stdout.includes("must go to stdout\n"))
     })
 
     it("should specify command and exit code in exception", () => {
-      expect(caughtError.message).to.equal("./src/testscript/fail.sh a b. Process exited with error code 42")
+      assert.strictEqual(caughtError.message, "./src/testscript/fail.sh a b. Process exited with error code 42")
     })
   })
 
@@ -84,7 +85,7 @@ describe("Command execution. Tests only work in a posix shell.", function() {
     })
 
     it("should get the input out again through cat", () => {
-      expect(execResult.stdout).to.equal("This is the input, catted to output")
+      assert.strictEqual(execResult.stdout, "This is the input, catted to output")
     })
   })
 })

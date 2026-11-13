@@ -1,6 +1,7 @@
 import { initRegistryLogin } from "./registry-login"
 import { getDockerRegistryClientsFromConfig, TDockerRegistryClientMap } from "./docker-registry-clients-config"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 
 
 if(Boolean(process.env.DOCKER_REGISTRY_USERNAME)){
@@ -8,7 +9,7 @@ if(Boolean(process.env.DOCKER_REGISTRY_USERNAME)){
 
     const registryLogin = initRegistryLogin({homeDir: './build'})
 
-    xit("should try first on http and then on https", async () => {
+    it.skip("should try first on http and then on https", async () => {
       let userName = process.env.DOCKER_REGISTRY_USERNAME || ''
       let password = process.env.DOCKER_REGISTRY_PASSWORD || ''
       let registryHost = process.env.DOCKER_REGISTRY_HOST || ''
@@ -30,7 +31,7 @@ describe("saving credentials", function() {
   })
 
   it("should have registry clients for credentials saved", () => {
-    expect(Object.keys(registryClients).length).to.equal(2)
+    assert.strictEqual(Object.keys(registryClients).length, 2)
   })
 
 })

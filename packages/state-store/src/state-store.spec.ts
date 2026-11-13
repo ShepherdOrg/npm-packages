@@ -1,5 +1,6 @@
 import { InMemoryStore } from "./in-memory-backend"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, beforeEach } from "node:test"
 
 import { DeploymentDir, IReleaseStateStore, ReleaseStateStore } from "./state-store"
 import { TDeploymentState } from "@shepherdorg/metadata"
@@ -8,22 +9,18 @@ describe("deployment dir", function() {
   it("should give an error if not a directory", function() {
     try {
       DeploymentDir("apply", __dirname + "/testdata/deployment1/monitors-namespace.yml")
-      expect.fail("Error expected")
+      assert.fail("Error expected")
     } catch (e) {
-      expect(e.message).to.equal(__dirname + "/testdata/deployment1/monitors-namespace.yml is not a directory")
+      assert.strictEqual(e.message, __dirname + "/testdata/deployment1/monitors-namespace.yml is not a directory")
     }
   })
 
   it("should calculate signature for directory contents", function() {
-    expect(DeploymentDir("apply", __dirname + "/testdata/deployment1").signature()).to.equal(
-      "676f174330907be1b69b114992a0e3df"
-    )
+    assert.strictEqual(DeploymentDir("apply", __dirname + "/testdata/deployment1").signature(), "676f174330907be1b69b114992a0e3df")
   })
 
   it("two dirs with identical contents should yield same signature", function() {
-    expect(DeploymentDir("apply", __dirname + "/testdata/deployment1").signature()).to.equal(
-      DeploymentDir("apply", __dirname + "/testdata/deployment2").signature()
-    )
+    assert.strictEqual(DeploymentDir("apply", __dirname + "/testdata/deployment1").signature(), DeploymentDir("apply", __dirname + "/testdata/deployment2").signature())
   })
 })
 
@@ -34,7 +31,7 @@ describe("deployment state store", function() {
     let storageBackend
 
     describe("unmodified", function() {
-      beforeEach(function(done) {
+      beforeEach(function(_t, done) {
         storageBackend = InMemoryStore()
         releaseStateStore = ReleaseStateStore({ storageBackend })
 
@@ -68,15 +65,15 @@ describe("deployment state store", function() {
       })
 
       it("second state should not report new", function() {
-        expect(secondState.new).to.equal(false)
+        assert.strictEqual(secondState.new, false)
       })
 
       it("second should not have state modified ", function() {
-        expect(secondState.modified).to.equal(false)
+        assert.strictEqual(secondState.modified, false)
       })
 
       it("second state last version should be original version", function() {
-        expect(secondState.lastVersion).to.equal("deployment.version")
+        assert.strictEqual(secondState.lastVersion, "deployment.version")
       })
     })
 
@@ -105,7 +102,7 @@ describe("deployment state store", function() {
         })
 
         it("should warn me that env must be set", () => {
-          expect(caughtError.message).to.equal("Env must be set and be longer than zero")
+          assert.strictEqual(caughtError.message, "Env must be set and be longer than zero")
         })
       })
 
@@ -122,13 +119,13 @@ describe("deployment state store", function() {
         })
 
         it("should warn me that identifier must be set", () => {
-          expect(caughtError.message).to.equal("Deployment identifier must be set and be longer than zero")
+          assert.strictEqual(caughtError.message, "Deployment identifier must be set and be longer than zero")
         })
       })
     })
 
     describe("changed deployment descriptor", function() {
-      beforeEach(function(done) {
+      beforeEach(function(_t, done) {
         storageBackend = InMemoryStore()
         releaseStateStore = ReleaseStateStore({ storageBackend })
 
@@ -161,20 +158,20 @@ describe("deployment state store", function() {
       })
 
       it("second state should not report new", function() {
-        expect(secondState.new).to.equal(false)
+        assert.strictEqual(secondState.new, false)
       })
 
       it("second should have state modified ", function() {
-        expect(secondState.modified).to.equal(true)
+        assert.strictEqual(secondState.modified, true)
       })
 
       it("second state last version should be original version", function() {
-        expect(secondState.lastVersion).to.equal("deployment.version")
+        assert.strictEqual(secondState.lastVersion, "deployment.version")
       })
     })
 
     describe("changed deployment version", function() {
-      beforeEach(function(done) {
+      beforeEach(function(_t, done) {
         storageBackend = InMemoryStore()
         releaseStateStore = ReleaseStateStore({ storageBackend })
 
@@ -207,15 +204,15 @@ describe("deployment state store", function() {
       })
 
       it("second state should not report new", function() {
-        expect(secondState.new).to.equal(false)
+        assert.strictEqual(secondState.new, false)
       })
 
       it("second should have state modified ", function() {
-        expect(secondState.modified).to.equal(true)
+        assert.strictEqual(secondState.modified, true)
       })
 
       it("second state last version should be original version", function() {
-        expect(secondState.lastVersion).to.equal("deployment.version")
+        assert.strictEqual(secondState.lastVersion, "deployment.version")
       })
     })
   })

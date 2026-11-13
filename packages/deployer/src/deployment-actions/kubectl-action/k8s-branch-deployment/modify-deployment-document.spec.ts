@@ -6,9 +6,10 @@ import { modifyDeploymentDocument } from "./modify-deployment-document"
 import * as yaml from "js-yaml"
 import { expandTemplate } from "@shepherdorg/hbs-template"
 
-const expect = require("expect.js")
 const CreateUpstreamTriggerDeploymentConfig = require("../../../triggered-deployment/create-upstream-trigger-deployment-config")
   .createUpstreamTriggerDeploymentConfig
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 
 function containsDifference(differences: Change[]) {
   for (let diffObj of differences) {
@@ -37,7 +38,7 @@ function compareActualVsExpected(expectedFileName: string, actualFileName: strin
   let actualFileContents = fs.readFileSync(actualFileName, "utf-8")
   let differences = JsDiff.diffTrimmedLines(expectedFileContents.trim(), actualFileContents.trim())
   if (containsDifference(differences)) {
-    expect().fail(
+    assert.fail(
       "Expected file " +
         expectedFileName +
         " differs from actual file " +
@@ -102,7 +103,7 @@ values:
     try {
       yaml.safeLoad(yamlDoc)
     } catch (err) {
-      expect(err.message).to.contain("implicit mapping pair")
+      assert.ok(err.message.includes("implicit mapping pair"))
     }
   })
 

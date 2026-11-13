@@ -5,7 +5,8 @@ import {
 import { createFakeLogger } from "@shepherdorg/logger"
 import { OmitKey, THerdDeclaration } from "../deployment-types"
 
-const expect = require("chai").expect
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 
 describe("Upstream triggered deployment config ", function() {
   describe("loading from process.env like config object, using image_url", function() {
@@ -36,12 +37,12 @@ describe("Upstream triggered deployment config ", function() {
     it("should load from process.env like config object", () => {
       const coercedConfig = (config as unknown) as { [key: string]: any }
       Object.entries(expectedConfigObject).forEach(([key, value]) => {
-        expect(coercedConfig[key]).to.equal(value)
+        assert.strictEqual(coercedConfig[key], value)
       })
     })
 
     it("should be an upstream feature deployment", () => {
-      expect(config.isUpstreamBranchDeployment()).to.equal(true)
+      assert.strictEqual(config.isUpstreamBranchDeployment(), true)
     })
   })
 
@@ -74,12 +75,12 @@ describe("Upstream triggered deployment config ", function() {
     it("should load from process.env like config object", () => {
       const coercedConfig = (config as unknown) as { [key: string]: any }
       Object.entries(expectedConfigObject).forEach(([key, value]) => {
-        expect(coercedConfig[key]).to.equal(value)
+        assert.strictEqual(coercedConfig[key], value)
       })
     })
 
     it("should be an upstream branch deployment", () => {
-      expect(config.isUpstreamBranchDeployment()).to.equal(true)
+      assert.strictEqual(config.isUpstreamBranchDeployment(), true)
     })
   })
 
@@ -102,27 +103,27 @@ describe("Upstream triggered deployment config ", function() {
     })
 
     it("should require herd file edit", () => {
-      expect(config.herdFileEditNeeded()).to.equal(true)
+      assert.strictEqual(config.herdFileEditNeeded(), true)
     })
 
     it("should not be marked as branch deployment", () => {
-      expect(config.isUpstreamBranchDeployment()).to.equal(false)
+      assert.strictEqual(config.isUpstreamBranchDeployment(), false)
     })
 
     it("should generate herd structure", () => {
-      expect(herdImageDeclaration.image).to.equal("envimagename")
+      assert.strictEqual(herdImageDeclaration.image, "envimagename")
     })
 
     it("should extract description", () => {
-      expect(herdImageDeclaration.description).to.equal("env description")
+      assert.strictEqual(herdImageDeclaration.description, "env description")
     })
 
     it("should extract imagetag", () => {
-      expect(herdImageDeclaration.imagetag).to.equal("envtag")
+      assert.strictEqual(herdImageDeclaration.imagetag, "envtag")
     })
 
     it("should not be marked as branch deployment", () => {
-      expect(herdImageDeclaration.featureDeployment).to.equal(undefined)
+      assert.strictEqual(herdImageDeclaration.featureDeployment, undefined)
     })
   })
 
@@ -143,16 +144,16 @@ describe("Upstream triggered deployment config ", function() {
       let asHerd = config.asHerd()
       if (asHerd.images) {
         let image = asHerd.images["thekey"]
-        expect(image.image).to.equal("repo/someimage")
-        expect(image.imagetag).to.equal("9999")
-        expect(image.description).to.equal("yet another test")
-        expect(image.timeToLiveHours).to.equal(676)
-        expect(image.featureDeployment).to.equal(true)
+        assert.strictEqual(image.image, "repo/someimage")
+        assert.strictEqual(image.imagetag, "9999")
+        assert.strictEqual(image.description, "yet another test")
+        assert.strictEqual(image.timeToLiveHours, 676)
+        assert.strictEqual(image.featureDeployment, true)
       }
     })
 
     it("should not indicate herdfile modification", () => {
-      expect(config.herdFileEditNeeded()).to.equal(false)
+      assert.strictEqual(config.herdFileEditNeeded(), false)
     })
   })
 
@@ -166,21 +167,19 @@ describe("Upstream triggered deployment config ", function() {
     })
 
     it("should not indicate herdfile modification", () => {
-      expect(config.herdFileEditNeeded()).to.equal(false)
+      assert.strictEqual(config.herdFileEditNeeded(), false)
     })
 
     it("should not be UpstreamFeatureDeployment by default", () => {
-      expect(config.isUpstreamBranchDeployment()).to.equal(false)
+      assert.strictEqual(config.isUpstreamBranchDeployment(), false)
     })
 
     it("should refuse to generate a herd structure without an upstream herd key", () => {
       try {
         config.asHerd()
-        expect.fail("Should throw an error, asdf")
+        assert.fail("Should throw an error, asdf")
       } catch (err) {
-        expect(err.message).to.equal(
-          "Cannot construct a herd declaration from upstream config without an upstreamHerdKey"
-        )
+        assert.strictEqual(err.message, "Cannot construct a herd declaration from upstream config without an upstreamHerdKey")
       }
     })
   })

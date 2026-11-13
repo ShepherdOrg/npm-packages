@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/storage-backend-tester",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Test shepherd storage backend",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,16 +9,14 @@
     "dist/"
   ],
   "devDependencies": {
-    "@shepherdorg/metadata": "^6.0.0",
-    "@shepherdorg/state-store": "^6.0.0",
-    "@types/chai": "4.3.20",
-    "@types/mocha": "^5.2.7",
+    "@shepherdorg/metadata": "^6.0.1",
+    "@shepherdorg/state-store": "^6.0.1",
     "@types/node": "^22.10.0",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@shepherdorg/metadata": "^6.0.0",
-    "@shepherdorg/state-store": "^6.0.0"
+    "@shepherdorg/metadata": "^6.0.1",
+    "@shepherdorg/state-store": "^6.0.1"
   },
   "scripts": {
     "build": "tsc",

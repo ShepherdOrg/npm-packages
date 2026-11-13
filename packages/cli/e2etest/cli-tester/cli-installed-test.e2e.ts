@@ -1,19 +1,11 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, after } from "node:test"
 import { promisify } from "util"
 import { exec as execCb } from "child_process"
 const exec = promisify(execCb)
 import { promises as fs } from "fs"
 
 describe("Verify installation of last published version in a docker, but with latest version of shepherd-build-docker ", function() {
-  /* This test has a double chicken-and-egg factor
-   *  - It uses shepherd-build-docker to build an image to check shepherd-build-docker inside an image.
-   *  - It installs cli from npmjs.com and runs it inside the image, with an overwritten version of shepherd-build-docker.
-   *
-   * This means that this is not a good test for developing the cli with large changes. You would want to create
-   * another variant of this test that uses the local code differently
-   *  */
-
-  this.timeout(10000)
   let buildExitCode
 
   before(async () => {
@@ -46,6 +38,6 @@ describe("Verify installation of last published version in a docker, but with la
   })
 
   it("Should simply exit without error", () => {
-    expect(buildExitCode).to.equal(0)
+    assert.strictEqual(buildExitCode, 0)
   })
 })

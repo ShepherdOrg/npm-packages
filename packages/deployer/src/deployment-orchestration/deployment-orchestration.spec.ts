@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, beforeEach } from "node:test"
 import { DeploymentOrchestration, IDeploymentOrchestration } from "./deployment-orchestration"
 import {
   IAnyDeploymentAction,
@@ -231,7 +232,7 @@ describe("Deployment orchestration", function() {
       })
 
       it("should check state exactly once", () => {
-        expect(fakeStateStore.checkedStates.length).to.equal(1)
+        assert.strictEqual(fakeStateStore.checkedStates.length, 1)
       })
     })
 
@@ -257,11 +258,11 @@ describe("Deployment orchestration", function() {
       })
 
       it("should not execute plan ", function() {
-        expect(tsFakeExec.executedCommands.length).to.equal(0)
+        assert.strictEqual(tsFakeExec.executedCommands.length, 0)
       })
 
       it("should not push any data to UI", () => {
-        expect(fakeUiDataPusher.pushedData.length).to.equal(0)
+        assert.strictEqual(fakeUiDataPusher.pushedData.length, 0)
       })
     })
 
@@ -276,23 +277,23 @@ describe("Deployment orchestration", function() {
       })
 
       it("should not execute anything", function() {
-        expect(tsFakeExec.executedCommands.length).to.equal(0)
+        assert.strictEqual(tsFakeExec.executedCommands.length, 0)
       })
 
       it("should not save any state", () => {
-        expect(fakeStateStore.savedStates.length).to.equal(0)
+        assert.strictEqual(fakeStateStore.savedStates.length, 0)
       })
 
       it("should not push unmodified data to UI", () => {
-        expect(fakeUiDataPusher.pushedData.length).to.equal(0)
+        assert.strictEqual(fakeUiDataPusher.pushedData.length, 0)
       })
 
       it("should print plan stating no changes", function() {
         let outputLogger = createFakeLogger()
         deploymentOrchestration.printPlan(outputLogger)
         // outputLogger.printAllStatements()
-        expect(outputLogger.logStatements.length).to.equal(1)
-        expect(outputLogger.logStatements[0].data[0]).to.contain("No plans to do anything this time")
+        assert.strictEqual(outputLogger.logStatements.length, 1)
+        assert.ok(outputLogger.logStatements[0].data[0].includes("No plans to do anything this time"))
       })
     })
 
@@ -323,10 +324,10 @@ describe("Deployment orchestration", function() {
       })
 
       it("should execute three commands and no rollout status command", () => {
-        expect(tsFakeExec.executedCommands.length).to.equal(3)
-        expect(tsFakeExec.executedCommands[0].params[0]).to.equal("apply", "0")
-        expect(tsFakeExec.executedCommands[1].params[0]).to.equal("apply", "1")
-        expect(tsFakeExec.executedCommands[2].params[0]).to.equal("delete", "2")
+        assert.strictEqual(tsFakeExec.executedCommands.length, 3)
+        assert.strictEqual(tsFakeExec.executedCommands[0].params[0], "apply", "0")
+        assert.strictEqual(tsFakeExec.executedCommands[1].params[0], "apply", "1")
+        assert.strictEqual(tsFakeExec.executedCommands[2].params[0], "delete", "2")
       })
     })
 
@@ -360,7 +361,7 @@ describe("Deployment orchestration", function() {
       it("should not execute anything", () => {
         // Uncomment for clearer insight
         // console.log(`fakeExec.executedCommands`, fakeExec.executedCommands.map((ec:any)=> identifyDocument(ec.options.stdin).identifyingString + ' ... ' +  ec.params.join(' ')))
-        expect(tsFakeExec.executedCommands.length).to.equal(0)
+        assert.strictEqual(tsFakeExec.executedCommands.length, 0)
       })
     })
 
@@ -387,9 +388,7 @@ describe("Deployment orchestration", function() {
       })
 
       it("should render errors", function() {
-        expect(fakeLogger.log).to.contain(
-          "Failed to save state after successful kubectl deployment! testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls\nError: State store failure!"
-        )
+        assert.ok(fakeLogger.log.includes("Failed to save state after successful kubectl deployment! testenvimage:0.0.0:kube.config.tar.base64/ConfigMap_www-icelandair-com-nginx-acls\nError: State store failure!"))
       })
     })
 
@@ -417,12 +416,12 @@ describe("Deployment orchestration", function() {
         // if (saveError) {
         //   console.error('Unexpected error in test!', saveError)
         // }
-        expect(saveError).to.equal(undefined)
+        assert.strictEqual(saveError, undefined)
       })
 
       it("should save call log with state", function() {
-        expect(executedAction?.getActionDeploymentState()?.stdout).to.equal("")
-        expect(executedAction?.getActionDeploymentState()?.stderr).to.equal("not found")
+        assert.strictEqual(executedAction?.getActionDeploymentState()?.stdout, "")
+        assert.strictEqual(executedAction?.getActionDeploymentState()?.stderr, "not found")
       })
     })
   })
@@ -441,7 +440,7 @@ describe("Deployment orchestration", function() {
       })
 
       it("should check state for each added docker deployer", function() {
-        expect(fakeStateStore.checkedStates.length).to.equal(1)
+        assert.strictEqual(fakeStateStore.checkedStates.length, 1)
       })
     })
 
@@ -461,13 +460,13 @@ describe("Deployment orchestration", function() {
 
       it("should run docker with correct parameters", function() {
         let p = 0
-        expect(tsFakeExec.executedCommands.length).to.equal(2)
-        expect(tsFakeExec.executedCommands[0].command).to.equal("docker")
-        expect(tsFakeExec.executedCommands[0].params[p++]).to.equal("run")
-        expect(tsFakeExec.executedCommands[0].params[p++]).to.equal("-i")
-        expect(tsFakeExec.executedCommands[0].params[p++]).to.equal("--rm")
-        expect(tsFakeExec.executedCommands[0].params[p++]).to.equal("-e")
-        expect(tsFakeExec.executedCommands[0].params[p++]).to.equal("ENV=testenv")
+        assert.strictEqual(tsFakeExec.executedCommands.length, 2)
+        assert.strictEqual(tsFakeExec.executedCommands[0].command, "docker")
+        assert.strictEqual(tsFakeExec.executedCommands[0].params[p++], "run")
+        assert.strictEqual(tsFakeExec.executedCommands[0].params[p++], "-i")
+        assert.strictEqual(tsFakeExec.executedCommands[0].params[p++], "--rm")
+        assert.strictEqual(tsFakeExec.executedCommands[0].params[p++], "-e")
+        assert.strictEqual(tsFakeExec.executedCommands[0].params[p++], "ENV=testenv")
       })
 
       it("should print plan for modified deployments", function() {
@@ -475,15 +474,11 @@ describe("Deployment orchestration", function() {
         outputLogger = createFakeLogger()
         deploymentOrchestration.printPlan(outputLogger)
 
-        expect(outputLogger.logStatements.length).to.equal(4)
-        expect(outputLogger.logStatements[0].data[0]).to.equal("Deploying testenvimage-migrations:0.0.0")
-        expect(outputLogger.logStatements[1].data[0]).to.equal(
-          "  - test action docker run testenvimage-migrations:0.0.0 ls"
-        )
-        expect(outputLogger.logStatements[2].data[0]).to.equal("Deploying test-image")
-        expect(outputLogger.logStatements[3].data[0]).to.equal(
-          "  - kubectl apply ConfigMap_www-icelandair-com-nginx-acls"
-        )
+        assert.strictEqual(outputLogger.logStatements.length, 4)
+        assert.strictEqual(outputLogger.logStatements[0].data[0], "Deploying testenvimage-migrations:0.0.0")
+        assert.strictEqual(outputLogger.logStatements[1].data[0], "  - test action docker run testenvimage-migrations:0.0.0 ls")
+        assert.strictEqual(outputLogger.logStatements[2].data[0], "Deploying test-image")
+        assert.strictEqual(outputLogger.logStatements[3].data[0], "  - kubectl apply ConfigMap_www-icelandair-com-nginx-acls")
       })
     })
 
@@ -491,7 +486,7 @@ describe("Deployment orchestration", function() {
       it("should print meaningful message", () => {
         let outputLogger = createFakeLogger()
         deploymentOrchestration.printPlan(outputLogger)
-        expect(outputLogger.log).to.contain("No plans to do anything this time")
+        assert.ok(outputLogger.log.includes("No plans to do anything this time"))
       })
     })
 
@@ -542,9 +537,9 @@ describe("Deployment orchestration", function() {
           })
       })
 
-      xit("should execute each section to completion before starting next", () => {
+      it.skip("should execute each section to completion before starting next", () => {
         // releasePlan.printPlan(console)
-        // expect.fail('IMplement test')
+        // assert.fail('IMplement test')
       })
     })
   })

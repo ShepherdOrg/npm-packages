@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import { createRolloutWaitActionFactory } from "./rollout-wait-action-factory"
 
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
@@ -32,15 +33,11 @@ describe("K8S deployment rollout status wait action factory", function() {
   })
 
   it("should remember descriptor", function() {
-    expect(rolloutAction.descriptor).to.equal(
-      "kubectl --namespace default rollout status Deployment/my-awesome-deployment"
-    )
+    assert.strictEqual(rolloutAction.descriptor, "kubectl --namespace default rollout status Deployment/my-awesome-deployment")
   })
 
   it("should remember descriptor", function() {
-    expect(rolloutAction.planString && rolloutAction.planString()).to.equal(
-      "kubectl --namespace default rollout status Deployment/my-awesome-deployment"
-    )
+    assert.strictEqual(rolloutAction.planString && rolloutAction.planString(), "kubectl --namespace default rollout status Deployment/my-awesome-deployment")
   })
 
   describe("executing rollout action with waitForRollout true", function() {
@@ -53,13 +50,11 @@ describe("K8S deployment rollout status wait action factory", function() {
     })
 
     it("should execute if action execution options state that we want to wait for rollout", () => {
-      expect(JSON.stringify(execResult.descriptor)).to.contain("Deployment/my-awesome-deployment")
+      assert.ok(JSON.stringify(execResult.descriptor).includes("Deployment/my-awesome-deployment"))
     })
 
     it("should execute kubectl rollout status", () => {
-      expect(fakeTsExec.executedCommandLines()[0]).to.eql(
-        "kubectl --namespace default rollout status Deployment/my-awesome-deployment"
-      )
+      assert.deepStrictEqual(fakeTsExec.executedCommandLines()[0], "kubectl --namespace default rollout status Deployment/my-awesome-deployment")
     })
   })
 
@@ -82,9 +77,7 @@ describe("K8S deployment rollout status wait action factory", function() {
     })
 
     it("should execute kubectl rollout status with timeout option", () => {
-      expect(fakeTsExec.executedCommandLines()[0]).to.eql(
-        "kubectl --namespace default rollout status --timeout=44s Deployment/my-awesome-deployment"
-      )
+      assert.deepStrictEqual(fakeTsExec.executedCommandLines()[0], "kubectl --namespace default rollout status --timeout=44s Deployment/my-awesome-deployment")
     })
   })
 
@@ -103,7 +96,7 @@ describe("K8S deployment rollout status wait action factory", function() {
     })
 
     it("should not execute kubectl rollout status", () => {
-      expect(fakeTsExec.executedCommandLines().join("")).not.to.contain("rollout status")
+      assert.ok(!fakeTsExec.executedCommandLines().join("").includes("rollout status"))
     })
   })
 
@@ -139,25 +132,19 @@ describe("K8S deployment rollout status wait action factory", function() {
     })
 
     it("should throw error with meaningful message", () => {
-      expect(caughtErr.message).to.equal(
-        "Error waiting for rollout to finish. kubectl --namespace default rollout status Deployment/my-awesome-deployment. Process exited with error code 99\nRollback undo was attempted, but failed!"
-      )
+      assert.strictEqual(caughtErr.message, "Error waiting for rollout to finish. kubectl --namespace default rollout status Deployment/my-awesome-deployment. Process exited with error code 99\nRollback undo was attempted, but failed!")
     })
 
     it("should execute rollout undo", () => {
-      expect(fakeTsExec.executedCommandLines()[1]).to.equal(
-        "kubectl --namespace default rollout undo deployment/my-awesome-deployment"
-      )
+      assert.strictEqual(fakeTsExec.executedCommandLines()[1], "kubectl --namespace default rollout undo deployment/my-awesome-deployment")
     })
 
     it("should log that rollout was undone", () => {
-      expect(fakeLogger.logLevelEntries("warn")[0][0]).to.equal(
-        "kubectl --namespace default rollout undo deployment/my-awesome-deployment. Process exited with error code 77"
-      )
+      assert.strictEqual(fakeLogger.logLevelEntries("warn")[0][0], "kubectl --namespace default rollout undo deployment/my-awesome-deployment. Process exited with error code 77")
     })
 
     it("should log that undo failed on error level", () => {
-      expect(fakeLogger.logLevelEntries("error")[0][0]).to.equal("Undo failed")
+      assert.strictEqual(fakeLogger.logLevelEntries("error")[0][0], "Undo failed")
     })
   })
 })

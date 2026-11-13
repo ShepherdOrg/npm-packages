@@ -1,7 +1,8 @@
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { IStatefulExecutableAction } from "../../../deployment-types"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import { createDeploymentTimeAnnotationActionFactory } from "./create-deployment-time-annotation-action"
 import { createFakeTimeoutWrapper, TFakeTimeoutWrapper } from "../../../test-tools/fake-timer"
 import { defaultTestExecutionOptions } from "../../../test-tools/test-action-execution-options"
@@ -36,15 +37,11 @@ describe("Deployment Time Annotation Action", function() {
     })
 
     it("should create annotation action for deployment", function() {
-      expect(annotationAction.descriptor).to.equal(
-        "kubectl --namespace default annotate --overwrite Deployment test-d-one lastDeploymentTimestamp=2020-08-26T13:23:42.376Z"
-      )
+      assert.strictEqual(annotationAction.descriptor, "kubectl --namespace default annotate --overwrite Deployment test-d-one lastDeploymentTimestamp=2020-08-26T13:23:42.376Z")
     })
 
     it("should provide descriptor", function() {
-      expect(annotationAction.planString && annotationAction.planString()).to.equal(
-        "kubectl --namespace default annotate --overwrite Deployment test-d-one lastDeploymentTimestamp=2020-08-26T13:23:42.376Z"
-      )
+      assert.strictEqual(annotationAction.planString && annotationAction.planString(), "kubectl --namespace default annotate --overwrite Deployment test-d-one lastDeploymentTimestamp=2020-08-26T13:23:42.376Z")
     })
 
     describe("executing annotation action", function() {
@@ -57,14 +54,12 @@ describe("Deployment Time Annotation Action", function() {
       })
 
       it("should execute kubectl command", () => {
-        expect(fakeExec.executedCommands[0].command).to.equal("kubectl")
-        expect(fakeExec.executedCommands[0].params.join(" ")).to.equal(
-          "--namespace default annotate --overwrite Deployment test-d-one lastDeploymentTimestamp=2020-08-26T13:23:42.376Z"
-        )
+        assert.strictEqual(fakeExec.executedCommands[0].command, "kubectl")
+        assert.strictEqual(fakeExec.executedCommands[0].params.join(" "), "--namespace default annotate --overwrite Deployment test-d-one lastDeploymentTimestamp=2020-08-26T13:23:42.376Z")
       })
 
       it("should execute", () => {
-        expect(JSON.stringify(execResult.descriptor)).to.contain("Deployment test-d-one")
+        assert.ok(JSON.stringify(execResult.descriptor).includes("Deployment test-d-one"))
       })
     })
 
@@ -93,11 +88,11 @@ describe("Deployment Time Annotation Action", function() {
       })
 
       it("should retry until successful", () => {
-        expect(fakeExec.executedCommands.length).to.equal(5)
+        assert.strictEqual(fakeExec.executedCommands.length, 5)
       })
 
       it("should wait 500 ms between retries", () => {
-        expect(fakeTimeoutWrapper.lastRequestedTimeoutMillis()).to.equal(500)
+        assert.strictEqual(fakeTimeoutWrapper.lastRequestedTimeoutMillis(), 500)
       })
     })
 
@@ -134,11 +129,11 @@ describe("Deployment Time Annotation Action", function() {
       })
 
       it("should retry until max retries reached", () => {
-        expect(fakeExec.executedCommands.length).to.equal(5)
+        assert.strictEqual(fakeExec.executedCommands.length, 5)
       })
 
       it("should wait 500 ms between retries", () => {
-        expect(fakeTimeoutWrapper.lastRequestedTimeoutMillis()).to.equal(500)
+        assert.strictEqual(fakeTimeoutWrapper.lastRequestedTimeoutMillis(), 500)
       })
     })
   })

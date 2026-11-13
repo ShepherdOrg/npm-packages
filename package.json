@@ -25,5 +25,10 @@
     "lerna": "^10.1.1",
     "prettier": "^1.19.1",
     "typescript": "^5.9.3"
+  },
+  "resolutions": {
+    "minimatch": "^11.0.8",
+    "glob": "^14.0.6",
+    "prompt": "^1.3.0"
   }
 }

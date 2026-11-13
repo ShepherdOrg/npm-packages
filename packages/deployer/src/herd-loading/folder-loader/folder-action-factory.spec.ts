@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, beforeEach, afterEach } from "node:test"
 
 import { createFolderActionFactory } from "./folder-action-factory"
 import { IK8sDirDeploymentAction, TFolderHerdDeclaration, TFolderMetadata } from "../../deployment-types"
@@ -48,6 +49,9 @@ describe("k8s deployment file directory structure release plan loader", function
 
   describe("successful load", function() {
     beforeEach(function() {
+      process.env.BRANCH_NAME = "testing-branch"
+      process.env.BRANCH_NAME_PREFIX = "testing-prefix."
+      process.env.BRANCH_NAME_POSTFIX = "-testing-postfix"
       process.env.SUB_DOMAIN_PREFIX = "testing1234"
       process.env.PREFIXED_TOP_DOMAIN_NAME = "testing12345"
       process.env.EXPORT2 = "testing123"
@@ -69,72 +73,61 @@ describe("k8s deployment file directory structure release plan loader", function
     })
 
     afterEach(() => {
+      delete process.env.BRANCH_NAME
+      delete process.env.BRANCH_NAME_PREFIX
+      delete process.env.BRANCH_NAME_POSTFIX
       delete process.env.CLUSTER_POLICY_MAX_CPU_REQUEST
     })
 
     it("should expand env variables in deployment file on load", function() {
-      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor).not.to.contain(
-        "${TPL_DOCKER_IMAGE}"
-      )
+      assert.ok(!plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor.includes("${TPL_DOCKER_IMAGE}"))
     })
 
     it("should expand env variables in deployment file on load, using handlebars template format", function() {
-      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor).not.to.contain(
-        "{{{TPL_DOCKER_IMAGE}}}"
-      )
-      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor).to.contain(
-        "secondaryImage: 'www-icelandair-image:1.0'"
-      )
+      assert.ok(!plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor.includes("{{{TPL_DOCKER_IMAGE}}}"))
+      assert.ok(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor.includes("secondaryImage: 'www-icelandair-image:1.0'"))
     })
 
     it("should add origin dir to plan", function() {
-      expect(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].origin).to.contain(
-        "www-icelandair-com"
-      )
+      assert.ok(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].origin.includes("www-icelandair-com"))
     })
 
     it("should result in exactly those plans", function() {
-      expect(
-        Object.keys(plan.addedK8sDeploymentActions)
+      assert.strictEqual(Object.keys(plan.addedK8sDeploymentActions)
           .sort()
-          .join(",")
-      ).to.equal(
-        "Deployment_www-icelandair-com-deleted,Deployment_www-icelandair-com-fromdir,Namespace_monitors,Service_www-icelandair-com-fromdir,Service_www-icelandair-com-internal-fromdir"
-      )
+          .join(","), "Deployment_www-icelandair-com-deleted,Deployment_www-icelandair-com-fromdir,Namespace_monitors,Service_www-icelandair-com-fromdir,Service_www-icelandair-com-internal-fromdir")
     })
 
     it("all versions should be immutable", function() {
-      expect(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].version).to.equal("immutable")
+      assert.strictEqual(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].version, "immutable")
     })
 
     it("default operation should be apply", function() {
-      expect(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].operation).to.equal("apply")
+      assert.strictEqual(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"].operation, "apply")
     })
 
     it("operation of file in directory with delete marker should be delete", function() {
-      expect(plan.addedK8sDeploymentActions["Namespace_monitors"].operation).to.equal("delete")
+      assert.strictEqual(plan.addedK8sDeploymentActions["Namespace_monitors"].operation, "delete")
     })
 
     it("should have folder herdspec attached", () => {
-      expect(plan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.path).to.contain("deployment-dirs")
+      assert.ok(plan.addedK8sDeploymentActions["Namespace_monitors"].herdDeclaration.path.includes("deployment-dirs"))
     })
 
     it("should apply k8s deployment-time cluster policy", function() {
-      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor).to.contain("25m")
+      assert.ok(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor.includes("25m"))
     })
 
     it("should add k8s deployment to plan for each file under k8s identifier", function() {
-      expect(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"]).not.to.equal(undefined)
+      assert.notStrictEqual(plan.addedK8sDeploymentActions["Service_www-icelandair-com-fromdir"], undefined)
     })
 
     it("should expand folder_name_image as TPL_DOCKER_IMAGE for variable substitution in deployment files", function() {
-      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor).to.contain(
-        "www-icelandair-image:1.0"
-      )
+      assert.ok(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-fromdir"].descriptor.includes("www-icelandair-image:1.0"))
     })
 
     it("should mark deployment for delete if folder_name_image variable is set and empty", function() {
-      expect(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-deleted"].operation).to.equal("delete")
+      assert.strictEqual(plan.addedK8sDeploymentActions["Deployment_www-icelandair-com-deleted"].operation, "delete")
     })
 
     describe("file deployment metadata", function() {
@@ -145,27 +138,27 @@ describe("k8s deployment file directory structure release plan loader", function
       })
 
       it("should use file modification timestamp as build timestamp (inaccurate test)", () => {
-        expect(new Date(metadata.buildDate)).to.be.gt(new Date("2019-01-01T12:55:01.561Z"))
+        assert.ok((new Date(metadata.buildDate)) > (new Date("2019-01-01T12:55:01.561Z")))
       })
 
       it("should use file name as displayname", () => {
-        expect(metadata.displayName).to.contain("monitors-namespace.yml")
+        assert.ok(metadata.displayName.includes("monitors-namespace.yml"))
       })
 
       it("should contain relative path to file", () => {
-        expect(metadata.path).to.equal("namespaces/monitors-namespace.yml")
+        assert.strictEqual(metadata.path, "namespaces/monitors-namespace.yml")
       })
 
       it("should have no semanticVersion", () => {
-        expect(metadata.semanticVersion).to.equal("none")
+        assert.strictEqual(metadata.semanticVersion, "none")
       })
 
       it("should have k8s deployment type", () => {
-        expect(metadata.deploymentType).to.equal(TDeploymentType.Kubernetes)
+        assert.strictEqual(metadata.deploymentType, TDeploymentType.Kubernetes)
       })
 
       it("should not have any hyperlinks", () => {
-        expect(metadata.hyperlinks.length).to.equal(0)
+        assert.strictEqual(metadata.hyperlinks.length, 0)
       })
     })
   })

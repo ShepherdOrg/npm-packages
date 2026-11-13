@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it } from "node:test"
 import { mapUntypedDeploymentData } from "./map-untyped-deployment-data"
 import { deploymentData0, deploymentData1 } from "./testdata/shepherd-deployment-data"
 import { expectedK8sDeployment0, expectedK8sDeployment1 } from "../testdata/deployment-json/expected"
@@ -9,8 +10,8 @@ import { IDockerImageKubectlDeploymentAction } from "../deployment-types"
 function expectMappedToMatchExpectedData(deploymentInfo: IDockerImageKubectlDeploymentAction, expectedData:THerdK8sMetadata | THerdDeployerMetadata, deploymentType: TDeploymentType) {
   let mappedData = mapUntypedDeploymentData(deploymentInfo)
 
-  expect(deploymentType).to.equal(mappedData?.deploymentType)
-  expect(expectedData).to.deep.equal(mappedData)
+  assert.strictEqual(deploymentType, mappedData?.deploymentType)
+  assert.deepStrictEqual(expectedData, mappedData)
 
 }
 
@@ -31,7 +32,7 @@ describe("raw deployment data mapping", function() {
       mapUntypedDeploymentData(deploymentInfo as IDockerImageKubectlDeploymentAction)
 
     }catch(err){
-      expect(err.message).to.contain('Missing herdSpec key. In deployment info object: ')
+      assert.ok(err.message.includes('Missing herdSpec key. In deployment info object: '))
     }
   })
 })

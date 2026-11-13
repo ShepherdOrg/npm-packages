@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, beforeEach } from "node:test"
 import { getDockerRegistryClientsFromConfig, TDockerRegistryClientMap } from "./docker-registry-clients-config"
 import { getTestCaseLogger, ITestLog } from "./testcase-logger"
 
@@ -20,15 +21,15 @@ describe("Registry clients config loading", function() {
     })
 
     it("loads specified config file", () => {
-      expect(Object.getOwnPropertyNames(config).length).to.be.gt(2, Object.getOwnPropertyNames(config).join(", "))
+      assert.ok(Object.getOwnPropertyNames(config).length > 2)
     })
 
     it("should load certificates found in .shepherd/certs.d", () => {
-      expect(config["localhost:4400"].getCertificate()).not.to.equal(undefined)
+      assert.notStrictEqual(config["localhost:4400"].getCertificate(), undefined)
     })
 
     it("should add certificates found in .shepherd/certs.d to config.json definitions", () => {
-      expect(config["localhost:5500"].getCertificate()).not.to.equal(undefined)
+      assert.notStrictEqual(config["localhost:5500"].getCertificate(), undefined)
     })
 
 
@@ -40,7 +41,7 @@ describe("Registry clients config loading", function() {
       })
 
       it("should return empty config", () => {
-        expect(Object.getOwnPropertyNames(config).length).to.be.equal(0)
+        assert.strictEqual(Object.getOwnPropertyNames(config).length, 0)
       })
     })
   })

@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, beforeEach } from "node:test"
 import {
   asBashExports,
   extractVersionFromPackageJson,
@@ -36,7 +37,7 @@ describe("Preferred semantic version", function() {
     })
 
     it("should use trimmed text contents for semantic version", () => {
-      expect(versionTxtVersion).to.equal("99.9")
+      assert.strictEqual(versionTxtVersion, "99.9")
     })
   })
 
@@ -47,7 +48,7 @@ describe("Preferred semantic version", function() {
       })
 
       it("should return undefined semantic version", () => {
-        expect(packageVersion).to.equal(undefined)
+        assert.strictEqual(packageVersion, undefined)
       })
     })
 
@@ -57,7 +58,7 @@ describe("Preferred semantic version", function() {
       })
 
       it("should use version field", () => {
-        expect(packageVersion).to.equal("42.4.5")
+        assert.strictEqual(packageVersion, "42.4.5")
       })
     })
   })
@@ -67,25 +68,25 @@ describe("full directory version info for versionist", function() {
   it("should extract full version info for self", async () => {
     let dirname = process.cwd()
     const dirVersion = await versionInfo(dirname)
-    expect(dirVersion.packageJsonVersion).to.equal(require("../package.json").version)
-    expect(dirVersion.dirName).to.equal("versionist")
-    expect(dirVersion.packageJsonName).to.equal("@shepherdorg/versionist")
-    expect(preferredName(dirVersion)).to.equal("versionist")
-    expect(dirVersion.dockerRepositoryName).to.equal(undefined)
+    assert.strictEqual(dirVersion.packageJsonVersion, require("../package.json").version)
+    assert.strictEqual(dirVersion.dirName, "versionist")
+    assert.strictEqual(dirVersion.packageJsonName, "@shepherdorg/versionist")
+    assert.strictEqual(preferredName(dirVersion), "versionist")
+    assert.strictEqual(dirVersion.dockerRepositoryName, undefined)
   })
 
   describe("shepherd annotated repo", function() {
     it("should extract full version info for deployer repo", async () => {
       const dirVersion = await versionInfo(path.join(__dirname, "testdata", "shepherd-annotated"))
-      expect(dirVersion.packageJsonName).to.equal(undefined)
-      expect(dirVersion.packageJsonVersion).to.equal(undefined)
-      expect(dirVersion.dirName).to.equal("shepherd-annotated")
-      expect(preferredName(dirVersion)).to.equal("plain-deployer-image")
-      expect(preferredVersion(dirVersion)).to.equal("0.1")
-      expect(dirVersion.dockerRepositoryName).to.equal("plain-deployer-image")
-      expect(dirVersion.dockerRegistryOrganization).to.equal("myorgone")
-      expect(dirVersion.dockerRegistry).to.equal(undefined)
-      expect(dirVersion.txtVersion).to.equal("0.1")
+      assert.strictEqual(dirVersion.packageJsonName, undefined)
+      assert.strictEqual(dirVersion.packageJsonVersion, undefined)
+      assert.strictEqual(dirVersion.dirName, "shepherd-annotated")
+      assert.strictEqual(preferredName(dirVersion), "plain-deployer-image")
+      assert.strictEqual(preferredVersion(dirVersion), "0.1")
+      assert.strictEqual(dirVersion.dockerRepositoryName, "plain-deployer-image")
+      assert.strictEqual(dirVersion.dockerRegistryOrganization, "myorgone")
+      assert.strictEqual(dirVersion.dockerRegistry, undefined)
+      assert.strictEqual(dirVersion.txtVersion, "0.1")
     })
   })
 
@@ -93,7 +94,7 @@ describe("full directory version info for versionist", function() {
     it("should be correct", async () => {
       const dirVersion = await versionInfo(path.join(__dirname, "testdata", "shepherd-annotated"))
 
-      expect(toVersionistJson(dirVersion)).to.eql({
+      assert.deepStrictEqual(toVersionistJson(dirVersion), {
         semanticVersion: "0.1",
         artifactName: "plain-deployer-image",
         artifactHash: "c881392e04dd98f9bd5692cc144bd9bdd5726c3d",
@@ -115,7 +116,7 @@ describe("full directory version info for versionist", function() {
     })
 
     it("should use provided organisation", async () => {
-      expect(dirVersion.dockerRegistryOrganization).to.equal("fakeOrgOne")
+      assert.strictEqual(dirVersion.dockerRegistryOrganization, "fakeOrgOne")
     })
   })
 })
@@ -140,13 +141,11 @@ describe("output as bash exports", function() {
     })
 
     it("should generate full version strings", async () => {
-      expect(bashExports).to.equal(
-        "export IMAGE_URL=myregistry.local/myorgone/plain-deployer-image\n" +
+      assert.strictEqual(bashExports, "export IMAGE_URL=myregistry.local/myorgone/plain-deployer-image\n" +
           "export DOCKER_IMAGE=myregistry.local/myorgone/plain-deployer-image:0.1\n" +
           "export DOCKER_IMAGE_LATEST_TAG=myregistry.local/myorgone/plain-deployer-image:latest\n" +
           "export DOCKER_IMAGE_GITHASH_TAG=myregistry.local/myorgone/plain-deployer-image:c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n" +
-          "export DOCKER_IMAGE_BRANCH_HASH_TAG=myregistry.local/myorgone/plain-deployer-image:unittest-c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n"
-      )
+          "export DOCKER_IMAGE_BRANCH_HASH_TAG=myregistry.local/myorgone/plain-deployer-image:unittest-c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n")
     })
   })
 
@@ -157,13 +156,11 @@ describe("output as bash exports", function() {
     })
 
     it("should skip registry host", () => {
-      expect(bashExports).to.equal(
-        "export IMAGE_URL=myorgone/plain-deployer-image\n" +
+      assert.strictEqual(bashExports, "export IMAGE_URL=myorgone/plain-deployer-image\n" +
           "export DOCKER_IMAGE=myorgone/plain-deployer-image:0.1\n" +
           "export DOCKER_IMAGE_LATEST_TAG=myorgone/plain-deployer-image:latest\n" +
           "export DOCKER_IMAGE_GITHASH_TAG=myorgone/plain-deployer-image:c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n" +
-          "export DOCKER_IMAGE_BRANCH_HASH_TAG=myorgone/plain-deployer-image:unittest-c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n"
-      )
+          "export DOCKER_IMAGE_BRANCH_HASH_TAG=myorgone/plain-deployer-image:unittest-c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n")
     })
   })
 
@@ -174,13 +171,11 @@ describe("output as bash exports", function() {
     })
 
     it("should skip registry organisation", () => {
-      expect(bashExports).to.equal(
-        "export IMAGE_URL=myregistry.local/plain-deployer-image\n" +
+      assert.strictEqual(bashExports, "export IMAGE_URL=myregistry.local/plain-deployer-image\n" +
           "export DOCKER_IMAGE=myregistry.local/plain-deployer-image:0.1\n" +
           "export DOCKER_IMAGE_LATEST_TAG=myregistry.local/plain-deployer-image:latest\n" +
           "export DOCKER_IMAGE_GITHASH_TAG=myregistry.local/plain-deployer-image:c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n" +
-          "export DOCKER_IMAGE_BRANCH_HASH_TAG=myregistry.local/plain-deployer-image:unittest-c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n"
-      )
+          "export DOCKER_IMAGE_BRANCH_HASH_TAG=myregistry.local/plain-deployer-image:unittest-c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n")
     })
   })
 
@@ -195,13 +190,11 @@ describe("output as bash exports", function() {
     })
 
     it("should include registry organisation", () => {
-      expect(bashExports).to.equal(
-        "export IMAGE_URL=private.reg/someOrg/plain-deployer-image\n" +
+      assert.strictEqual(bashExports, "export IMAGE_URL=private.reg/someOrg/plain-deployer-image\n" +
           "export DOCKER_IMAGE=private.reg/someOrg/plain-deployer-image:0.1\n" +
           "export DOCKER_IMAGE_LATEST_TAG=private.reg/someOrg/plain-deployer-image:latest\n" +
           "export DOCKER_IMAGE_GITHASH_TAG=private.reg/someOrg/plain-deployer-image:c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n" +
-          "export DOCKER_IMAGE_BRANCH_HASH_TAG=private.reg/someOrg/plain-deployer-image:unittest-c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n"
-      )
+          "export DOCKER_IMAGE_BRANCH_HASH_TAG=private.reg/someOrg/plain-deployer-image:unittest-c881392e04dd98f9bd5692cc144bd9bdd5726c3d\n")
     })
   })
 
@@ -219,7 +212,7 @@ describe("output as bash exports", function() {
     })
 
     it("should be according to design", () => {
-      expect(bashExports).to.equal(`export IMAGE_URL=public-repo-with-kube-yaml
+      assert.strictEqual(bashExports, `export IMAGE_URL=public-repo-with-kube-yaml
 export DOCKER_IMAGE=public-repo-with-kube-yaml:0.0.0
 export DOCKER_IMAGE_LATEST_TAG=public-repo-with-kube-yaml:latest
 export DOCKER_IMAGE_GITHASH_TAG=public-repo-with-kube-yaml:e0a673d6752e16f1179c0654ba1c53e825d57bc6
@@ -241,7 +234,7 @@ export DOCKER_IMAGE_BRANCH_HASH_TAG=public-repo-with-kube-yaml:fakebranch-e0a673
     })
 
     it("should be according to design", () => {
-      expect(bashExports).to.equal(`export IMAGE_URL=public-repo-with-kube-yaml
+      assert.strictEqual(bashExports, `export IMAGE_URL=public-repo-with-kube-yaml
 export DOCKER_IMAGE=public-repo-with-kube-yaml:1.2.3
 export DOCKER_IMAGE_LATEST_TAG=public-repo-with-kube-yaml:latest
 export DOCKER_IMAGE_GITHASH_TAG=public-repo-with-kube-yaml:e0a673d6752e16f1179c0654ba1c53e825d57bc6
@@ -250,7 +243,7 @@ export DOCKER_IMAGE_BRANCH_HASH_TAG=public-repo-with-kube-yaml:e0a673d6752e16f11
     })
   })
 
-  xdescribe("Semantic version prioritization", function() {
+  describe.skip("Semantic version prioritization", function() {
     describe("when parameter is preferred", function() {
       let dirInfo: TDirVersion = {
         dirHash: "e0a673d6752e16f1179c0654ba1c53e825d57bc6",
@@ -265,7 +258,7 @@ export DOCKER_IMAGE_BRANCH_HASH_TAG=public-repo-with-kube-yaml:e0a673d6752e16f11
       })
 
       it("should use parameter version", () => {
-        expect(bashExports).to.equal(`something else`)
+        assert.strictEqual(bashExports, `something else`)
       })
     })
   })
@@ -280,7 +273,7 @@ describe("Git dir hash", function() {
     })
 
     it("should be a hash", () => {
-      expect(dirHash.length).to.equal("b89e57d488a04de2ddfd9a43620b59e6b28ec98c".length)
+      assert.strictEqual(dirHash.length, "b89e57d488a04de2ddfd9a43620b59e6b28ec98c".length)
     })
   })
 
@@ -290,7 +283,7 @@ describe("Git dir hash", function() {
     })
 
     it("should return empty string as hash", () => {
-      expect(dirHash).to.equal("")
+      assert.strictEqual(dirHash, "")
     })
   })
 })

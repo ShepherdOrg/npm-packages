@@ -1,5 +1,6 @@
 import * as fs from "fs"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import * as path from "path"
 import { execCmd } from "../../src/exec/exec-cmd"
 import { getDockerTags } from "./get-docker.tags"
@@ -8,7 +9,6 @@ const shellExec = require("shell-exec").default
 
 describe("Build docker with kube.yaml deployment", function() {
   describe("build on master", function() {
-    this.timeout(10000)
     let shepherdMeta, buildOutput
     let dockerMeta: any
     let queuedDeployment: any
@@ -42,43 +42,43 @@ describe("Build docker with kube.yaml deployment", function() {
         })
         .catch(err => {
           console.log(err)
-          expect.fail("GOT ERROR> " + err)
+          assert.fail("GOT ERROR> " + err)
         })
     })
 
     it("should not have kubeConfigB64", () => {
-      expect(shepherdMeta.kubeConfigB64).to.equal(undefined)
+      assert.strictEqual(shepherdMeta.kubeConfigB64, undefined)
     })
 
     it("should have metadata for deploy command", () => {
-      expect(shepherdMeta.deployCommand).to.equal("ls")
+      assert.strictEqual(shepherdMeta.deployCommand, "ls")
     })
 
     it("should have metadata for rollback command", () => {
-      expect(shepherdMeta.rollbackCommand).to.equal("cat")
+      assert.strictEqual(shepherdMeta.rollbackCommand, "cat")
     })
 
     it("should have docker metadata", () => {
-      expect(dockerMeta[0].Id).not.to.equal(undefined)
+      assert.notStrictEqual(dockerMeta[0].Id, undefined)
     })
 
     it("should append to deploymentq.jsonl", () => {
-      expect(queuedDeployment.semanticVersion).not.to.equal("latest")
+      assert.notStrictEqual(queuedDeployment.semanticVersion, "latest")
     })
 
     it("should have correct deploymentKey", () => {
-      expect(queuedDeployment.deploymentKey).to.equal("plain-deployer-repo")
+      assert.strictEqual(queuedDeployment.deploymentKey, "plain-deployer-repo")
     })
 
     it("should have correct dockerImageTag", () => {
-      expect(queuedDeployment.dockerImageUrl).to.match(/mylocalregistry:5000\/plain-deployer-image:[a-z1-9]*/)
+      assert.match(queuedDeployment.dockerImageUrl, /mylocalregistry:5000\/plain-deployer-image:[a-z1-9]*/)
     })
 
     it("should log adding to deployment queue", () => {
-      expect(buildOutput).to.contain("Queueing deployment of mylocalregistry:5000/plain-deployer-image")
+      assert.ok(buildOutput.includes("Queueing deployment of mylocalregistry:5000/plain-deployer-image"))
     })
 
-    xit("should suppress tslint warnings", () => {
+    it.skip("should suppress tslint warnings", () => {
       console.info(shepherdMeta)
       console.info(buildOutput)
       console.info(dockerMeta)
@@ -86,7 +86,6 @@ describe("Build docker with kube.yaml deployment", function() {
   })
 
   describe("build on alternative default branch - main", function() {
-    this.timeout(10000)
     let shepherdMeta, buildOutput
     let dockerMeta: any
     let queuedDeployment: any
@@ -115,27 +114,27 @@ describe("Build docker with kube.yaml deployment", function() {
         })
         .catch(err => {
           console.log(err)
-          expect.fail("GOT ERROR> " + err)
+          assert.fail("GOT ERROR> " + err)
         })
     })
 
     it("should append to deploymentq.jsonl", () => {
-      expect(queuedDeployment.semanticVersion).not.to.equal("latest")
+      assert.notStrictEqual(queuedDeployment.semanticVersion, "latest")
     })
 
     it("should have correct deploymentKey", () => {
-      expect(queuedDeployment.deploymentKey).to.equal("plain-deployer-repo")
+      assert.strictEqual(queuedDeployment.deploymentKey, "plain-deployer-repo")
     })
 
     it("should have correct dockerImageTag", () => {
-      expect(queuedDeployment.dockerImageUrl).to.match(/mylocalregistry:5000\/plain-deployer-image:[a-z1-9]*/)
+      assert.match(queuedDeployment.dockerImageUrl, /mylocalregistry:5000\/plain-deployer-image:[a-z1-9]*/)
     })
 
     it("should log adding to deployment queue", () => {
-      expect(buildOutput).to.contain("Queueing deployment of mylocalregistry:5000/plain-deployer-image")
+      assert.ok(buildOutput.includes("Queueing deployment of mylocalregistry:5000/plain-deployer-image"))
     })
 
-    xit("should suppress tslint warnings", () => {
+    it.skip("should suppress tslint warnings", () => {
       console.info(shepherdMeta)
       console.info(buildOutput)
       console.info(dockerMeta)
@@ -143,7 +142,6 @@ describe("Build docker with kube.yaml deployment", function() {
   })
 
   describe("build on a branch", function() {
-    this.timeout(10000)
     let shepherdMeta, buildOutput
     let dockerMeta: any
     let queuedDeploymentFileContents: string
@@ -188,16 +186,14 @@ describe("Build docker with kube.yaml deployment", function() {
     })
 
     it("should log info about missing branch deployment environment targets", () => {
-      expect(buildOutput).to.contain(
-        "No deployment environments targeted for plain-deployer-repo, not queuing for deployment"
-      )
+      assert.ok(buildOutput.includes("No deployment environments targeted for plain-deployer-repo, not queuing for deployment"))
     })
 
     it("should not queue anything", () => {
-      expect(queuedDeploymentFileContents).to.equal("")
+      assert.strictEqual(queuedDeploymentFileContents, "")
     })
 
-    xit("should suppress tslint warnings", () => {
+    it.skip("should suppress tslint warnings", () => {
       console.info(shepherdMeta)
       console.info(buildOutput)
       console.info(dockerMeta)

@@ -11,7 +11,8 @@ import {
   extractShepherdMetadata,
 } from "./dockerLabelParser"
 
-const expect = require("chai").expect
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 
 describe("Shepherd metadata reading", function() {
   describe("from image with no shepherd labels", function() {
@@ -29,9 +30,7 @@ describe("Shepherd metadata reading", function() {
     })
 
     it("should throw an error", () => {
-      expect(loadError.message).to.contain(
-        "No shepherd labels present in docker image Labels {}"
-      )
+      assert.ok(loadError.message.includes("No shepherd labels present in docker image Labels {}"))
     })
   })
 
@@ -46,11 +45,11 @@ describe("Shepherd metadata reading", function() {
 
     it("should contain buildHostName", () => {
       // noinspection BadExpressionStatementJS
-      expect(metaData.buildHostName).to.be.ok
+      assert.ok(metaData.buildHostName)
     })
 
     it("should contain dockerImageTag", () => {
-      expect(metaData.dockerImageTag).to.be.a("string")
+      assert.strictEqual(typeof metaData.dockerImageTag, "string")
     })
 
     // it('should contain gitHash', () => {
@@ -58,34 +57,28 @@ describe("Shepherd metadata reading", function() {
     // });
 
     it("should contain gitUrl", () => {
-      expect(metaData.gitUrl).to.equal(
-        "git@github.com:ShepherdOrg/npm-packages.git"
-      )
+      assert.strictEqual(metaData.gitUrl, "git@github.com:ShepherdOrg/npm-packages.git")
     })
 
     it("should contain gitCommit", () => {
-      expect(metaData.gitCommit).to.be.a("string")
+      assert.strictEqual(typeof metaData.gitCommit, "string")
     })
 
     it("should contain lastCommits", () => {
-      expect(metaData.lastCommits).to.be.a("string")
+      assert.strictEqual(typeof metaData.lastCommits, "string")
     })
 
     it("should decode lastCommits base64 string", () => {
-      expect(metaData.lastCommits).to.contain(
-        "Metadata updates and a few more fixes"
-      )
+      assert.ok(metaData.lastCommits.includes("Metadata updates and a few more fixes"))
     })
 
     it("should contain kubeConfigB64", () => {
-      expect(metaData.kubeConfigB64).to.be.a("string")
+      assert.strictEqual(typeof metaData.kubeConfigB64, "string")
     })
 
     it("should uncompress string in kubeConfigB64", () => {
-      expect(
-        // @ts-ignore
-        metaData.kubeDeploymentFiles["./deployment/kube.yaml"].content
-      ).to.be.a("string")
+      // @ts-ignore
+      assert.strictEqual(typeof metaData.kubeDeploymentFiles["./deployment/kube.yaml"].content, "string")
     })
   })
 
@@ -99,31 +92,29 @@ describe("Shepherd metadata reading", function() {
     })
 
     it("should read shepherd.dbmigration", () => {
-      expect(metaData.migrationImage).to.equal("testenvimage-migrations:0.0.0")
+      assert.strictEqual(metaData.migrationImage, "testenvimage-migrations:0.0.0")
     })
 
     it("should read shepherd.kube.config.tar.base64", () => {
-      expect(metaData.kubeConfigB64).to.be.a("string")
+      assert.strictEqual(typeof metaData.kubeConfigB64, "string")
     })
 
     it("should uncompress kubeConfiB64Files", () => {
-      expect(metaData.kubeDeploymentFiles).to.be.a("object")
+      assert.strictEqual(typeof metaData.kubeDeploymentFiles, "object")
       // @ts-ignore
-      expect(metaData.kubeDeploymentFiles["./deployment/"]).to.be.a("object")
+      assert.strictEqual(typeof metaData.kubeDeploymentFiles["./deployment/"], "object")
     })
 
     it("should read shepherd.deployer", () => {
-      expect(metaData.deploymentType).to.equal(TDeploymentType.Kubernetes)
+      assert.strictEqual(metaData.deploymentType, TDeploymentType.Kubernetes)
     })
 
     it("should decode shepherd.lastcommits", () => {
-      expect(metaData.lastCommits).to.include(
-        "Fix base64 encode on last five commits"
-      )
+      assert.ok(metaData.lastCommits.includes("Fix base64 encode on last five commits"))
     })
 
     it("should read shepherd.name", () => {
-      expect(metaData.displayName).to.equal("Testimage")
+      assert.strictEqual(metaData.displayName, "Testimage")
     })
   })
 
@@ -139,25 +130,23 @@ describe("Shepherd metadata reading", function() {
     })
 
     it("should read shepherd.deployer.command", () => {
-      expect(metaData.deployCommand).to.equal("ls")
+      assert.strictEqual(metaData.deployCommand, "ls")
     })
 
     it("should default to install role", () => {
-      expect(metaData.deployerRole).to.equal("install")
+      assert.strictEqual(metaData.deployerRole, "install")
     })
 
     it("should read shepherd.rollback.command", () => {
-      expect(metaData.rollbackCommand).to.equal("cat")
+      assert.strictEqual(metaData.rollbackCommand, "cat")
     })
 
     it("should read environment variables expansion string", () => {
-      expect(metaData.environmentVariablesExpansionString).to.contain(
-        "MICROSERVICES_POSTGRES_RDS_HOST"
-      )
+      assert.ok(metaData.environmentVariablesExpansionString.includes("MICROSERVICES_POSTGRES_RDS_HOST"))
     })
 
     it("should set deployer role to install", () => {
-      expect(metaData.deployerRole).to.equal(TDeployerRole.Install)
+      assert.strictEqual(metaData.deployerRole, TDeployerRole.Install)
     })
   })
 
@@ -217,8 +206,8 @@ describe("Load all inspected docker files", function() {
     it(`should load ${fileName} without error`, async () => {
       const metaData = (await loadMetadata(fileName)) as TDeployerMetadata
 
-      expect(metaData.deployerRole).to.equal("install")
-      expect(Boolean(!!metaData.deployerRole)).to.equal(true)
+      assert.strictEqual(metaData.deployerRole, "install")
+      assert.strictEqual(Boolean(!!metaData.deployerRole), true)
     })
   })
 
@@ -226,7 +215,7 @@ describe("Load all inspected docker files", function() {
     it(`should load ${fileName} without error`, async () => {
       const metaData = (await loadMetadata(fileName)) as TK8sMetadata
 
-      expect(Boolean(metaData.kubeDeploymentFiles)).to.equal(true)
+      assert.strictEqual(Boolean(metaData.kubeDeploymentFiles), true)
     })
   })
 
@@ -235,9 +224,9 @@ describe("Load all inspected docker files", function() {
       try {
         const metaData = (await loadMetadata(fileName)) as TK8sMetadata
 
-        expect(Boolean(metaData.kubeDeploymentFiles)).to.equal(true)
+        assert.strictEqual(Boolean(metaData.kubeDeploymentFiles), true)
       } catch (e) {
-        expect(e.message).to.contain("No shepherd labels present")
+        assert.ok(e.message.includes("No shepherd labels present"))
       }
     })
   })

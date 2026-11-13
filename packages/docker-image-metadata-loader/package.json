@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/docker-image-metadata-loader",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Retrieve docker image metadata efficiently from (private) docker registry, or alternatively by using docker pull and inspect",
   "keywords": [
     "docker",
@@ -24,11 +24,11 @@
     "build": "yarn clean && tsc",
     "clean": "rm -rf dist && echo Dist cleaned",
     "ci-task": "yarn clean && yarn test && yarn test && yarn build && yarn format-verify",
-    "contract-test": "mocha -R dot --exit --require ts-node/register --recursive './src/**/*.contract-spec.ts'",
-    "contract-tdd": "mocha --exit --require ts-node/register --recursive  --watch-extensions ts,js --watch  './src/**/*.contract-spec.ts'",
-    "test-disabled": "mocha --exit --require ts-node/register --recursive ./**/*.spec.ts",
-    "tdd": "mocha -R spec --require ts-node/register --recursive --watch-extensions ts,js --watch './**/*.spec.ts'",
-    "test": "mocha --require ts-node/register --recursive ./**/*.spec.ts",
+    "contract-test": "node --require ts-node/register --test \"src/**/*.contract-spec.ts\"",
+    "contract-tdd": "node --require ts-node/register --watch --test \"src/**/*.contract-spec.ts\"",
+    "test-disabled": "node --require ts-node/register --test \"**/*.spec.ts\"",
+    "tdd": "node --require ts-node/register --watch --test \"**/*.spec.ts\"",
+    "test": "node --require ts-node/register --test \"**/*.spec.ts\"",
     "prepush": "yarn ci",
     "format": "prettier --ignore-path ../../.prettierignore --write 'lib/**/*.{ts,js}'",
     "format-verify": "prettier  --ignore-path ../../.prettierignore -l 'lib/**/*.{ts,js}'",
@@ -40,16 +40,12 @@
     "prepublishOnly": "yarn build && yarn test"
   },
   "dependencies": {
-    "@shepherdorg/ts-exec": "^6.0.0",
+    "@shepherdorg/ts-exec": "^6.0.1",
     "lodash": "^4.18.1"
   },
   "devDependencies": {
-    "@types/chai": "4.3.20",
     "@types/lodash": "^4.17.0",
-    "@types/mocha": "^5.2.7",
     "@types/node": "^22.10.0",
-    "chai": "^4.5.0",
-    "mocha": "^12.0.3",
     "prettier": "^1.19.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"

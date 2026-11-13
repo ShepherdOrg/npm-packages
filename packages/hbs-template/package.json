@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/hbs-template",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Handlebars templating designed for kubernetes config files",
   "main": "dist/expandtemplate.js",
   "types": "dist/expandtemplate.d.ts",
@@ -11,8 +11,8 @@
     "hbs-template": "dist/cli.js"
   },
   "scripts": {
-    "test": "mocha --exit --require ts-node/register --recursive 'src/**/*.spec.ts'",
-    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts --watch 'src/**/*.spec.ts'",
+    "test": "node --require ts-node/register --test \"src/**/*.spec.ts\"",
+    "tdd": "node --require ts-node/register --watch --test \"src/**/*.spec.ts\"",
     "build": "tsc && chmod +x dist/cli.js",
     "prepublishOnly": "yarn build && yarn test"
   },

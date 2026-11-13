@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import { createLogger, ILog, TLogContext } from "./logger"
 import * as chalk from "chalk"
 
@@ -23,8 +24,8 @@ describe("logger", function() {
 
     it("should forward log directly", function() {
       logger.info("TestLogLine")
-      expect(logLines.length).to.equal(1)
-      expect(logLines).to.contain("TestLogLine")
+      assert.strictEqual(logLines.length, 1)
+      assert.ok(logLines.includes("TestLogLine"))
     })
   })
 
@@ -38,7 +39,7 @@ describe("logger", function() {
     it("should add color and prefix from default context", () => {
       logger.info("Dude")
       // console.debug(`logLines \n${logLines.join('\n')}`)
-      expect(escape(logLines[0])).to.equal(escape(`${chalk.bgBlackBright(">         |")} Dude`))
+      assert.strictEqual(escape(logLines[0]), escape(`${chalk.bgBlackBright(">         |")} Dude`))
     })
   })
 
@@ -52,9 +53,9 @@ describe("logger", function() {
     it("should add elapsed milliseconds entry after each log", function() {
       logger.info("TestLogLine", { performanceLog: true })
 
-      expect(logLines.length).to.equal(2)
-      expect(logLines[0]).to.equal("TestLogLine")
-      expect(logLines[1]).to.contain("ms elapsed")
+      assert.strictEqual(logLines.length, 2)
+      assert.strictEqual(logLines[0], "TestLogLine")
+      assert.ok(logLines[1].includes("ms elapsed"))
     })
   })
 
@@ -69,8 +70,8 @@ describe("logger", function() {
       logger.info("TestLogLine \nTestLogLineTwo", { color: chalk.green, performanceLog: false, prefix: "MyPrefix " })
 
       let escapedLines = logLines.map(line => escape(line))
-      expect(logLines.length).to.equal(2)
-      expect(escapedLines[0]).to.equal(escape(`${chalk.green("MyPrefix  |")} TestLogLine `))
+      assert.strictEqual(logLines.length, 2)
+      assert.strictEqual(escapedLines[0], escape(`${chalk.green("MyPrefix  |")} TestLogLine `))
     })
   })
 
@@ -84,11 +85,11 @@ describe("logger", function() {
     })
 
     it("should log undefined if input is undefined", () => {
-      expect(logLines[0]).to.contain("undefined")
+      assert.ok(logLines[0].includes("undefined"))
     })
 
     it("should log null if input is null", () => {
-      expect(logLines[1]).to.contain("null")
+      assert.ok(logLines[1].includes("null"))
     })
   })
 
@@ -109,8 +110,8 @@ describe("logger", function() {
       let escapedLines = logLines.map(line => escape(line))
       // Uncomment to see how this looks like
       // console.debug(`logLines \n${logLines.join('\n')}`)
-      expect(logLines.length).to.equal(9)
-      expect(escapedLines[0]).to.equal(escape(`${chalk.green("MyPrefix  |")} TestLONGLogLineTes`))
+      assert.strictEqual(logLines.length, 9)
+      assert.strictEqual(escapedLines[0], escape(`${chalk.green("MyPrefix  |")} TestLONGLogLineTes`))
     })
   })
 })

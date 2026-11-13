@@ -1,5 +1,6 @@
 import { kubeDeleteExpiredResources } from "./delete-expired-resources"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it } from "node:test"
 
 
 describe("resource filtering", function() {
@@ -86,8 +87,8 @@ describe("resource filtering", function() {
       },
     }
     kubeDeleteExpiredResources(testData, logger, true, new Date("2019-11-06T13:29:56Z").getTime())
-    expect(logentries.length).to.equal(1)
-    expect(logentries[0]).to.equal("echo DRYRUN kubectl delete service myservice-internal-expired-service")
+    assert.strictEqual(logentries.length, 1)
+    assert.strictEqual(logentries[0], "echo DRYRUN kubectl delete service myservice-internal-expired-service")
   })
 
   it("should create delete commands testService", () => {
@@ -98,8 +99,8 @@ describe("resource filtering", function() {
       },
     }
     kubeDeleteExpiredResources(testData, logger, false, new Date("2019-11-06T13:29:56Z").getTime())
-    expect(deleteCommands.length).to.equal(1)
-    expect(deleteCommands[0]).to.equal("kubectl delete service myservice-internal-expired-service")
+    assert.strictEqual(deleteCommands.length, 1)
+    assert.strictEqual(deleteCommands[0], "kubectl delete service myservice-internal-expired-service")
   })
 
   it("should create delete command based on lastDeploymentStamp", () => {
@@ -134,13 +135,13 @@ describe("resource filtering", function() {
     }
     kubeDeleteExpiredResources(localTestData, logger, false, new Date("2020-08-30T13:29:56Z").getTime())
 
-    expect(deleteCommands[0]).to.equal("kubectl delete ingress internal-ingress")
+    assert.strictEqual(deleteCommands[0], "kubectl delete ingress internal-ingress")
 
     deleteCommands.length = 0
 
     kubeDeleteExpiredResources(localTestData, logger, false, new Date("2020-08-26T13:29:56Z").getTime())
 
-    expect(deleteCommands.length).to.equal(0)
+    assert.strictEqual(deleteCommands.length, 0)
   })
 
 

@@ -2,10 +2,10 @@ import {
   createDockerRegistryClient,
   TDockerImageLabels,
 } from "./registry-metadata-client"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it } from "node:test"
 
 describe("Registry metadata API against localhost on http", function() {
-  this.timeout(60000)
 
   const api = createDockerRegistryClient({
     httpProtocol: "http",
@@ -14,8 +14,8 @@ describe("Registry metadata API against localhost on http", function() {
 
   it("should retrieve image tags", () => {
     return api.getImageTags("localhost:5000/shepherd").then(imageWithTags => {
-      expect(imageWithTags.name).to.equal("shepherd")
-      expect(imageWithTags.tags.length).to.be.gte(1)
+      assert.strictEqual(imageWithTags.name, "shepherd")
+      assert.ok(imageWithTags.tags.length >= 1)
     })
   })
 
@@ -32,7 +32,7 @@ describe("Registry metadata API against localhost on http", function() {
           "history",
           "signatures",
         ]
-        expect(Object.getOwnPropertyNames(manifest)).to.eql(expectedPropNames)
+        assert.deepStrictEqual(Object.getOwnPropertyNames(manifest), expectedPropNames)
       })
   })
 
@@ -40,7 +40,7 @@ describe("Registry metadata API against localhost on http", function() {
     return api
       .getImageManifestLabels("localhost:5000/shepherd", "latest")
       .then((dockerTags: TDockerImageLabels) => {
-        expect(dockerTags["shepherd.name"]).to.equal("Shepherd agent")
+        assert.strictEqual(dockerTags["shepherd.name"], "Shepherd agent")
       })
   })
 
@@ -48,23 +48,20 @@ describe("Registry metadata API against localhost on http", function() {
     return api
       .getImageManifestLabels("localhost:5000/alpine", "3.4")
       .then((dockerTags: TDockerImageLabels) => {
-        expect(dockerTags).to.eql({})
+        assert.deepStrictEqual(dockerTags, {})
       })
   })
 
-  it("should give meaningful error on non-existing image", () => {
-    return api
+  it("should give meaningful error on non-existing image", async () => {
+    await api
       .getImageManifestLabels("localhost:5000/nowayjose", "latest")
       .catch(err => {
-        expect(err.message.trim()).to.equal(
-          'localhost:5000/nowayjose:latest 404: {"errors":[{"code":"MANIFEST_UNKNOWN","message":"manifest unknown","detail":{"Tag":"latest"}}]}'
-        )
+        assert.strictEqual(err.message.trim(), 'localhost:5000/nowayjose:latest 404: {"errors":[{"code":"MANIFEST_UNKNOWN","message":"manifest unknown","detail":{"Tag":"latest"}}]}')
       })
   })
 })
 
 describe("Registry metadata API against localhost with basicauth on https", function() {
-  this.timeout(60000)
   const dockerHost = "localhost:5500"
 
   const httpsApi = createDockerRegistryClient({
@@ -78,8 +75,8 @@ describe("Registry metadata API against localhost with basicauth on https", func
 
   it("should retrieve image tags", () => {
     return httpsApi.getImageTags("localhost:5500/shepherd").then(imageWithTags => {
-      expect(imageWithTags.name).to.equal("shepherd")
-      expect(imageWithTags.tags.length).to.be.gte(1)
+      assert.strictEqual(imageWithTags.name, "shepherd")
+      assert.ok(imageWithTags.tags.length >= 1)
     })
   })
 
@@ -96,7 +93,7 @@ describe("Registry metadata API against localhost with basicauth on https", func
           "history",
           "signatures",
         ]
-        expect(Object.getOwnPropertyNames(manifest)).to.eql(expectedPropNames)
+        assert.deepStrictEqual(Object.getOwnPropertyNames(manifest), expectedPropNames)
       })
   })
 
@@ -104,7 +101,7 @@ describe("Registry metadata API against localhost with basicauth on https", func
     return httpsApi
       .getImageManifestLabels(`${dockerHost}/shepherd`, "latest")
       .then((dockerTags: TDockerImageLabels) => {
-        expect(dockerTags["shepherd.name"]).to.equal("Shepherd agent")
+        assert.strictEqual(dockerTags["shepherd.name"], "Shepherd agent")
       })
   })
 })

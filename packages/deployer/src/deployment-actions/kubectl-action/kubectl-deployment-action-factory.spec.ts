@@ -1,7 +1,8 @@
 import { TestActions, TK8sDockerImageDeploymentActionStruct } from "../../herd-loading/testdata/testActions"
 import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, after } from "node:test"
 import { IKubectlDeployAction, TActionExecutionOptions, TRollbackResult } from "../../deployment-types"
 import { createKubectlDeploymentActionsFactory } from "./kubectl-deployment-action-factory"
 import { IFakeExecution, initFakeExecution } from "@shepherdorg/ts-exec"
@@ -60,7 +61,7 @@ describe("Kubectl deployment action factory", function() {
     })
 
     it("should be able to roll back", () => {
-      expect(testAction.canRollbackExecution()).to.be.equal(true)
+      assert.strictEqual(testAction.canRollbackExecution(), true)
     })
 
     describe("executing rollback", function() {
@@ -77,12 +78,12 @@ describe("Kubectl deployment action factory", function() {
       })
 
       it("should get rollback results", () => {
-        expect(rollbackResult).not.to.equal(undefined)
+        assert.notStrictEqual(rollbackResult, undefined)
       })
 
       it("should rollback using kubectl rollout undo", () => {
-        expect(fakeTsExec.executedCommands[0].command).to.eql("kubectl")
-        expect(fakeTsExec.executedCommands[0].params).to.eql([
+        assert.deepStrictEqual(fakeTsExec.executedCommands[0].command, "kubectl")
+        assert.deepStrictEqual(fakeTsExec.executedCommands[0].params, [
           "--namespace",
           "default",
           "rollout",

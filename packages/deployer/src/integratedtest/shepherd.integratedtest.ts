@@ -6,7 +6,8 @@ import script, { TScriptTestExecution } from "../test-tools/script-test"
 import { TFileSystemPath } from "../helpers/basic-types"
 import { base64Encode } from "../template/base64-env-subst"
 import { IPostgresStorageBackend } from "@shepherdorg/postgres-backend"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, beforeEach } from "node:test"
 
 const fs = require("fs")
 const path = require("path")
@@ -21,8 +22,6 @@ function ensureCleanOutputFolder(firstRoundFolder: TFileSystemPath) {
 
 describe("running shepherd", function() {
   let shepherdTestHarness = path.join(process.cwd(), "testbin/test-shepherd.sh")
-
-  this.timeout(40000)
 
   beforeEach(function() {
     if (!fs.existsSync("./.build/.testdata")) {
@@ -44,7 +43,7 @@ describe("running shepherd", function() {
       cleanDir(shepherdStoreDir)
     })
 
-    it("should deploy everything", function(done) {
+    it("should deploy everything", function(_t, done) {
       script
         .execute(shepherdTestHarness, ["--dryrun"], {
           env: _.extend({}, process.env, {
@@ -73,7 +72,7 @@ describe("running shepherd", function() {
       fs.copyFileSync("./src/herd-loading/testdata/herd-editing/herd.yaml", tempHerdFilePath)
     })
 
-    it("should add deployment to herd", done => {
+    it("should add deployment to herd", (_t, done) => {
       script
         .execute(shepherdTestHarness, ["--dryrun", tempHerdFilePath], {
           env: _.extend({}, process.env, {
@@ -123,7 +122,7 @@ describe("running shepherd", function() {
     let firstRun: TScriptTestExecution
     let secondRun: TScriptTestExecution
 
-    before(function(done) {
+    before(function(_t, done) {
       if (!process.env.SHEPHERD_PG_HOST) {
         process.env.SHEPHERD_PG_HOST = "localhost"
       }
@@ -187,7 +186,7 @@ describe("running shepherd", function() {
     EXPECTED_STATE_STORE_KEYS.forEach(expectedKey => {
       it(`should store ${expectedKey} in backend`, () => {
         return pgBackend.get(expectedKey).then(resultingState => {
-          expect(resultingState.value).not.to.equal(undefined)
+          assert.notStrictEqual(resultingState.value, undefined)
         })
       })
     })
@@ -204,7 +203,7 @@ describe("running shepherd", function() {
       cleanDir(shepherdStoreDir)
     })
 
-    it(" should fail on post tests and attempt to rollback to previous version, independently on deployment plans, and exit with number of failing plans", function(done) {
+    it(" should fail on post tests and attempt to rollback to previous version, independently on deployment plans, and exit with number of failing plans", function(_t, done) {
       script
         .execute(shepherdTestHarness, ["--fakerun", "src/herd-loading/testdata/deploytestherd/herd.yaml"], {
           env: _.extend({}, process.env, {
@@ -241,7 +240,7 @@ describe("running shepherd", function() {
     })
   })
 
-  xit("should execute infrastructure deployers first to completion", () => {})
+  it.skip("should execute infrastructure deployers first to completion", () => {})
 
   describe("with state storage", function() {
     beforeEach(function() {
@@ -262,7 +261,7 @@ describe("running shepherd", function() {
         })
     })
 
-    it("should modify branch deployment", function(done) {
+    it("should modify branch deployment", function(_t, done) {
       script
         .execute(shepherdTestHarness, ["--dryrun"], {
           env: _.extend(
@@ -302,7 +301,7 @@ describe("running shepherd", function() {
       cleanDir(".build/testexport", false)
     })
 
-    it("should export deployment documents directly", function(done) {
+    it("should export deployment documents directly", function(_t, done) {
       let expectedOutputFileOrDir = process.cwd() + "/src/integratedtest/expected/exported"
       script
         .execute(

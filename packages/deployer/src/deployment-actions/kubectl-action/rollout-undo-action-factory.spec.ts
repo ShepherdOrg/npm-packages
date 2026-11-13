@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 
 import { initFakeExecution, IFakeExecution } from "@shepherdorg/ts-exec"
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
@@ -30,9 +31,7 @@ describe("K8S deployment rollout undo factory", function() {
   })
 
   it("should plan rollout undo", function() {
-    expect(undoAction.planString()).to.equal(
-      "kubectl --namespace default rollout undo deployment/my-awesome-deployment"
-    )
+    assert.strictEqual(undoAction.planString(), "kubectl --namespace default rollout undo deployment/my-awesome-deployment")
   })
 
   describe("executing rollout undo", function() {
@@ -50,9 +49,7 @@ describe("K8S deployment rollout undo factory", function() {
     })
 
     it("should not execute kubectl rollout status", () => {
-      expect(fakeExec.executedCommands.map(ec => ec.command + " " + ec.params.join(" ")).join("")).not.to.contain(
-        "rollout status"
-      )
+      assert.ok(!fakeExec.executedCommands.map(ec => ec.command + " " + ec.params.join(" ")).join("").includes("rollout status"))
     })
   })
 
@@ -88,23 +85,21 @@ describe("K8S deployment rollout undo factory", function() {
     })
 
     it("should not throw error (we are not doing undo without another error present, which will be rethrown)", () => {
-      expect(caughtErr).to.equal(undefined)
+      assert.strictEqual(caughtErr, undefined)
     })
 
     it("should have return code in result", () => {
-      expect(execResult.code).to.equal(43)
+      assert.strictEqual(execResult.code, 43)
     })
 
     it("should log undo error on error level", () => {
-      expect(fakeLogger.logLevelEntries("error")[0][0]).to.equal("Rollout undo failure")
+      assert.strictEqual(fakeLogger.logLevelEntries("error")[0][0], "Rollout undo failure")
     })
 
     it("should warn about undo failure", () => {
-      expect(
-        fakeLogger.logStatements.filter(ls => {
+      assert.strictEqual(fakeLogger.logStatements.filter(ls => {
           return ls.logLevel === "warn"
-        }).length
-      ).to.equal(1)
+        }).length, 1)
     })
   })
 })

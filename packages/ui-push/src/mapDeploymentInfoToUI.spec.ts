@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it } from "node:test"
 import { getValidHerdDeployerMetadata, getValidHerdK8sMetadata } from "./testdata/testdata"
 import { DeploymentUIInfo, mapToUiVersion } from "./mapDeploymentInfoToUI"
 import { Deployment, DeploymentVersion } from "@shepherdorg/ui-graphql-client"
@@ -56,17 +57,17 @@ describe("mapping", function() {
     }
 
     let deploymentUIInfo = mapToUiVersion(input)
-    expect(Boolean(deploymentUIInfo)).to.equal(true)
+    assert.strictEqual(Boolean(deploymentUIInfo), true)
     if( deploymentUIInfo){
-      expect(deploymentUIInfo.versionInfo).to.deep.equal(expectedVersionInfo)
-      expect(deploymentUIInfo.deploymentInfo).to.deep.equal(expectedDeploymentInfo)
+      assert.deepStrictEqual(deploymentUIInfo.versionInfo, expectedVersionInfo)
+      assert.deepStrictEqual(deploymentUIInfo.deploymentInfo, expectedDeploymentInfo)
     }
   })
 
   it("should return undefined if not modified", () => {
     const input = getValidHerdDeployerMetadata()
     input.deploymentState.modified = false
-    expect(mapToUiVersion(input)).to.equal(undefined)
+    assert.strictEqual(mapToUiVersion(input), undefined)
   })
 
   it("should map k8s deployment data", () => {
@@ -75,20 +76,20 @@ describe("mapping", function() {
 
     let deploymentUIInfo = mapToUiVersion(input) as DeploymentUIInfo
 
-    expect(deploymentUIInfo.versionInfo.time_to_live).to.equal(45)
-    expect(deploymentUIInfo.deploymentInfo.deployer_role).to.equal('Install')
-    expect(deploymentUIInfo.deploymentInfo.id).to.equal('devshepherd-ui-api')
-    expect(deploymentUIInfo.versionInfo.deployment_id).to.equal('devshepherd-ui-api')
+    assert.strictEqual(deploymentUIInfo.versionInfo.time_to_live, 45)
+    assert.strictEqual(deploymentUIInfo.deploymentInfo.deployer_role, 'Install')
+    assert.strictEqual(deploymentUIInfo.deploymentInfo.id, 'devshepherd-ui-api')
+    assert.strictEqual(deploymentUIInfo.versionInfo.deployment_id, 'devshepherd-ui-api')
 
 
 
     const versionInfoLinks = deploymentUIInfo?.versionInfo?.hyperlinks
     if(versionInfoLinks){
-      expect(versionInfoLinks.length).to.equal(4)
-      expect(versionInfoLinks[0].url).to.equal('http://iapi.dev.it.tm.is/shepherd-ui-api')
-      expect(versionInfoLinks[1].url).to.equal('https://iapi.dev.it.tm.is/shepherd-ui-api')
-      expect(versionInfoLinks[2].url).to.equal('https://github.com/shepherdorg/shepherd-ui/')
-      expect(versionInfoLinks[3].url).to.equal('https://circleci.com/gh/ShepherdOrg/shepherd-ui/')
+      assert.strictEqual(versionInfoLinks.length, 4)
+      assert.strictEqual(versionInfoLinks[0].url, 'http://iapi.dev.it.tm.is/shepherd-ui-api')
+      assert.strictEqual(versionInfoLinks[1].url, 'https://iapi.dev.it.tm.is/shepherd-ui-api')
+      assert.strictEqual(versionInfoLinks[2].url, 'https://github.com/shepherdorg/shepherd-ui/')
+      assert.strictEqual(versionInfoLinks[3].url, 'https://circleci.com/gh/ShepherdOrg/shepherd-ui/')
 
     }
 

@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import {
   compileFullDockerMetadataSchema,
   compileUserPropertiesSchema,
@@ -19,10 +20,7 @@ describe("shepherd json load and validation", function() {
 
       if (validate.errors) {
         if (!valid) console.error("Not valid!", validate.errors)
-        expect(validate.errors.length).to.equal(
-          0,
-          renderValidationMessage(validate as TValidationErrors),
-        )
+        assert.strictEqual(validate.errors.length, 0, renderValidationMessage(validate as TValidationErrors))
       }
     })
 
@@ -41,7 +39,7 @@ describe("shepherd json load and validation", function() {
  .environment['DB_PASS'] : Incorrect value, should match some schema in anyOf
  .hyperlinks[0].url : Incorrect pattern, should match pattern "^https?://"`
 
-        expect(renderValidationMessage(validate as TValidationErrors)).to.equal(expectedError)
+        assert.strictEqual(renderValidationMessage(validate as TValidationErrors), expectedError)
       }
     })
   })
@@ -55,8 +53,8 @@ describe("shepherd json load and validation", function() {
       )
 
       if (!isValid && validate.errors) {
-        expect(renderValidationMessage(validate as TValidationErrors)).to.equal("")
-        expect(validate.errors.length).to.equal(0)
+        assert.strictEqual(renderValidationMessage(validate as TValidationErrors), "")
+        assert.strictEqual(validate.errors.length, 0)
       }
     })
   })
@@ -74,8 +72,8 @@ describe("shepherd json load and validation", function() {
         generatedProps,
       )
 
-      expect(combinedProps.semanticVersion).to.equal("1.1.1")
-      expect(combinedProps.gitBranch).to.equal("master")
+      assert.strictEqual(combinedProps.semanticVersion, "1.1.1")
+      assert.strictEqual(combinedProps.gitBranch, "master")
     })
 
     it("should throw an error if one document is invalid", () => {
@@ -87,9 +85,9 @@ describe("shepherd json load and validation", function() {
 
       try {
         validateAndCombineFullProps(userProps, generatedProps)
-        expect.fail("Should have thrown an error")
+        assert.fail("Should have thrown an error")
       } catch (err) {
-        expect(err.message).to.contain("someAdditionalField")
+        assert.ok(err.message.includes("someAdditionalField"))
       }
     })
 
@@ -105,18 +103,18 @@ describe("shepherd json load and validation", function() {
         generatedProps,
       ) as TK8sMetadata
 
-      expect(combinedProps.semanticVersion).to.equal("1.1.1")
-      expect(combinedProps.gitBranch).to.equal("master")
-      expect(combinedProps.deploymentType).to.equal(TDeploymentType.Deployer)
+      assert.strictEqual(combinedProps.semanticVersion, "1.1.1")
+      assert.strictEqual(combinedProps.gitBranch, "master")
+      assert.strictEqual(combinedProps.deploymentType, TDeploymentType.Deployer)
     })
 
     it("should throw error if no environments in inEnvironments array", () => {
       const userProps = readJsonFileRelative("./testdata/shepherd-json/invalid/missing-preDeploymentTests-inEnvironments.json")
       try {
         validateUserShepherdJson(userProps)
-        expect.fail("Should have thrown a validation error")
+        assert.fail("Should have thrown a validation error")
       } catch (err) {
-        expect(err.message).to.contain(".inEnvironments")
+        assert.ok(err.message.includes(".inEnvironments"))
       }
     })
 
@@ -124,10 +122,10 @@ describe("shepherd json load and validation", function() {
       const userProps = readJsonFileRelative("./testdata/shepherd-json/invalid/old-deployment-test-specs-obsolete-shepherd.json")
       try {
         validateUserShepherdJson(userProps)
-        expect.fail("Should have thrown a validation error")
+        assert.fail("Should have thrown a validation error")
       } catch (err) {
-        expect(err.message).to.contain("preDeployTest is no longer supported and has been replaced by preDeploymentTests")
-        expect(err.message).to.contain("postDeployTest is no longer supported and has been replaced by postDeploymentTests")
+        assert.ok(err.message.includes("preDeployTest is no longer supported and has been replaced by preDeploymentTests"))
+        assert.ok(err.message.includes("postDeployTest is no longer supported and has been replaced by postDeploymentTests"))
       }
 
     })
@@ -152,64 +150,64 @@ describe("shepherd json load and validation", function() {
     })
 
     it("should parse buildDate from json", () => {
-      expect(combinedProps.buildDate).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.buildDate, "string")
     })
 
     it("should parse buildHostName from json", () => {
-      expect(combinedProps.buildHostName).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.buildHostName, "string")
     })
     it("should parse deploymentType from json", () => {
-      expect(combinedProps.deploymentType).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.deploymentType, "string")
     })
     it("should parse displayName from json", () => {
-      expect(combinedProps.displayName).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.displayName, "string")
     })
     it("should parse dockerImageTag from json", () => {
-      expect(combinedProps.dockerImageTag).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.dockerImageTag, "string")
     })
     it("should parse end2endTestCommand from json", () => {
-      expect(combinedProps.end2endTestCommand).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.end2endTestCommand, "string")
     })
     it("should parse gitBranch from json", () => {
-      expect(combinedProps.gitBranch).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.gitBranch, "string")
     })
     it("should parse gitCommit from json", () => {
-      expect(combinedProps.gitCommit).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.gitCommit, "string")
     })
     it("should parse gitHash from json", () => {
-      expect(combinedProps.gitHash).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.gitHash, "string")
     })
     it("should parse gitUrl from json", () => {
-      expect(combinedProps.gitUrl).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.gitUrl, "string")
     })
     it("should parse hyperlinks from json", () => {
-      expect(combinedProps.hyperlinks).to.be.a("Array")
+      assert.ok(Array.isArray(combinedProps.hyperlinks))
     })
     it("should parse lastCommits from json", () => {
-      expect(combinedProps.lastCommits).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.lastCommits, "string")
     })
     it("should parse migrationImage from json", () => {
-      expect(combinedProps.migrationImage).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.migrationImage, "string")
     })
 
     it("should parse semanticVersion from json", () => {
-      expect(combinedProps.semanticVersion).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.semanticVersion, "string")
     })
 
     it("should parse dockerRegistry from json", () => {
-      expect(combinedProps.dockerRegistry).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.dockerRegistry, "string")
     })
 
     it("should parse dockerRepository from json", () => {
-      expect(combinedProps.dockerRepository).to.be.a("string")
+      assert.strictEqual(typeof combinedProps.dockerRepository, "string")
     })
 
     it("should parse preDeploymentTests", () => {
-      expect(combinedProps.preDeploymentTests).to.be.an("Array")
+      assert.ok(Array.isArray(combinedProps.preDeploymentTests))
     })
 
     it("should parse postDeploymentTests", () => {
-      expect(combinedProps.preDeploymentTests).to.be.an("Array")
+      assert.ok(Array.isArray(combinedProps.preDeploymentTests))
     })
 
   })

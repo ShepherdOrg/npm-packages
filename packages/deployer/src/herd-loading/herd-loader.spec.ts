@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, after, beforeEach, afterEach } from "node:test"
 
 import { createHerdLoader, TDockerMetadataLoader, THerdLoader } from "./herd-loader"
 import * as path from "path"
@@ -203,7 +204,7 @@ describe("herd.yaml loading", function() {
               ] = deploymentAction as IDockerDeploymentAction
             }
             if (deploymentAction.isStateful && !deploymentAction.version) {
-              expect.fail(`No version in ${deploymentAction.identifier} from ${JSON.stringify(deploymentAction)}`)
+              assert.fail(`No version in ${deploymentAction.identifier} from ${JSON.stringify(deploymentAction)}`)
             }
             resolve(deploymentAction)
           }, 1)
@@ -276,7 +277,7 @@ describe("herd.yaml loading", function() {
 
   it("should load herd.yaml", function() {
     return loader.loadHerd(__dirname + "/testdata/happypath/herd.yaml").then(function(plan) {
-      expect(plan).not.to.equal(undefined)
+      assert.notStrictEqual(plan, undefined)
     })
   })
 
@@ -284,11 +285,11 @@ describe("herd.yaml loading", function() {
     return loader
       .loadHerd(__dirname + "/testdata/does-not-exist.yaml")
       .then(function() {
-        expect.fail("Should not finish!")
+        assert.fail("Should not finish!")
       })
       .catch(function(error) {
-        expect(error.message).to.contain("/testdata/does-not-exist.yaml")
-        expect(error.message).to.contain(" does not exist!")
+        assert.ok(error.message.includes("/testdata/does-not-exist.yaml"))
+        assert.ok(error.message.includes(" does not exist!"))
       })
   })
 
@@ -311,36 +312,24 @@ describe("herd.yaml loading", function() {
     })
 
     it("should add k8s deployment found in scanned directory", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].origin).to.equal(
-        "namespaces/monitors-namespace.yml"
-      )
+      assert.strictEqual(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].origin, "namespaces/monitors-namespace.yml")
     })
 
     it("loaded action should have herd name", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdKey).to.contain(
-        "kube-config - namespaces"
-      )
+      assert.ok(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdKey.includes("kube-config - namespaces"))
     })
 
     it("loaded action should have specified environment set", function() {
-      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].env).to.equal("loader-spec-env")
+      assert.strictEqual(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].env, "loader-spec-env")
     })
 
     it("should have herdDeclaration", () => {
-      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.key).to.equal(
-        "kube-config"
-      )
-      expect(
-        (loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration)
-          .path
-      ).to.equal("./")
-      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.description).to.equal(
-        "Kubernetes pull secrets, namespaces, common config"
-      )
+      assert.strictEqual(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.key, "kube-config")
+      assert.strictEqual((loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration as TFolderHerdDeclaration)
+          .path, "./")
+      assert.strictEqual(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.description, "Kubernetes pull secrets, namespaces, common config")
 
-      expect(
-        loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.sectionDeclaration
-      ).to.deep.equal({
+      assert.deepStrictEqual(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].herdDeclaration.sectionDeclaration, {
         herdSectionIndex: 1,
         herdSectionType: "folders" as THerdSectionType,
       })
@@ -355,7 +344,7 @@ describe("herd.yaml loading", function() {
         buildDate: loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].metadata.buildDate,
         hyperlinks: [],
       }
-      expect(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].metadata).to.deep.equal(expectedMetadata)
+      assert.deepStrictEqual(loadedPlan.addedK8sDeploymentActions["delete>Namespace_monitors"].metadata, expectedMetadata)
     })
   })
 
@@ -395,8 +384,8 @@ describe("herd.yaml loading", function() {
       let addedK8sDeploymentActions = Object.keys(loadedPlan.addedK8sDeploymentActions)
       let addedDockerDeployerActions = Object.keys(loadedPlan.addedDockerDeployerActions)
 
-      expect(addedK8sDeploymentActions.join(", ")).to.contain("feature-xyz")
-      expect(addedDockerDeployerActions.join(", ")).to.contain("testenvimage-migrations:0.0.0") // Referred migration image
+      assert.ok(addedK8sDeploymentActions.join(", ").includes("feature-xyz"))
+      assert.ok(addedDockerDeployerActions.join(", ").includes("testenvimage-migrations:0.0.0")) // Referred migration image
     })
   })
 
@@ -435,7 +424,7 @@ describe("herd.yaml loading", function() {
     it("should create plan without error", () => {
       let addedK8sDeploymentActions = Object.keys(loadedPlan.addedK8sDeploymentActions)
 
-      expect(addedK8sDeploymentActions.join(", ")).to.contain("branch99")
+      assert.ok(addedK8sDeploymentActions.join(", ").includes("branch99"))
     })
   })
 
@@ -460,49 +449,41 @@ describe("herd.yaml loading", function() {
     })
 
     it("should base64decode and untar deployment files under file path", function() {
-      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].origin).to.equal(
-        "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml"
-      )
+      assert.strictEqual(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].origin, "testenvimage:0.0.0:tar:./deployment/www-icelandair-com.service.yml")
     })
 
     it("should extract herdKey from herd.yaml", function() {
-      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].herdKey).to.equal(
-        "test-image"
-      )
+      assert.strictEqual(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].herdKey, "test-image")
     })
 
     it("should set specified environment in action", function() {
-      expect(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].env).to.equal(
-        "loader-spec-env"
-      )
+      assert.strictEqual(loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"].env, "loader-spec-env")
     })
 
     it("should include metadata for k8s plan", function() {
       let addedK8sDeployment = loadedOrchestration.addedK8sDeploymentActions["apply>Service_www-icelandair-com"]
-      expect(addedK8sDeployment.metadata).not.to.equal(undefined)
+      assert.notStrictEqual(addedK8sDeployment.metadata, undefined)
 
-      expect(addedK8sDeployment.metadata.displayName).to.equal("Testimage")
-      expect(addedK8sDeployment.herdDeclaration.key).to.equal("test-image", "key")
+      assert.strictEqual(addedK8sDeployment.metadata.displayName, "Testimage")
+      assert.strictEqual(addedK8sDeployment.herdDeclaration.key, "test-image", "key")
     })
 
     it("should apply k8s deployment-time cluster policy", function() {
-      expect(
-        loadedOrchestration.addedK8sDeploymentActions["apply>Deployment_www-icelandair-com"].descriptor
-      ).to.contain("27m")
+      assert.ok(loadedOrchestration.addedK8sDeploymentActions["apply>Deployment_www-icelandair-com"].descriptor.includes("27m"))
     })
 
     it("Should add deployment time annotation actions for all deployment documents", function() {
       let addedActions = Object.keys(loadedOrchestration.addedK8sDeploymentActions).join("\n")
-      expect(addedActions).to.contain("annotate>deployment timestamp Service www-icelandair-com-internal-test1")
-      expect(addedActions).to.contain("annotate>deployment timestamp ConfigMap www-icelandair-com-nginx-acls-test1")
-      expect(addedActions).to.contain("annotate>deployment timestamp Deployment www-icelandair-com-test1")
-      expect(addedActions).to.contain("annotate>deployment timestamp Service www-icelandair-com-test1")
+      assert.ok(addedActions.includes("annotate>deployment timestamp Service www-icelandair-com-internal-test1"))
+      assert.ok(addedActions.includes("annotate>deployment timestamp ConfigMap www-icelandair-com-nginx-acls-test1"))
+      assert.ok(addedActions.includes("annotate>deployment timestamp Deployment www-icelandair-com-test1"))
+      assert.ok(addedActions.includes("annotate>deployment timestamp Service www-icelandair-com-test1"))
     })
 
     it("should be serializable", function() {
       let serializable = detectRecursion(loadedOrchestration)
-      expect(serializable.join(".")).to.equal("")
-      expect(serializable.length).to.equal(0)
+      assert.strictEqual(serializable.join("."), "")
+      assert.strictEqual(serializable.length, 0)
     })
   })
 
@@ -521,16 +502,12 @@ describe("herd.yaml loading", function() {
     })
 
     it("should load deployer plan by migration image reference", function() {
-      expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].dockerParameters).to.contain(
-        "testenvimage-migrations:0.0.0"
-      )
-      expect(Object.keys(loadedPlan.addedDockerDeployerActions)).to.contain("testenvimage-migrations:0.0.0")
+      assert.ok(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].dockerParameters.includes("testenvimage-migrations:0.0.0"))
+      assert.ok(Object.keys(loadedPlan.addedDockerDeployerActions).includes("testenvimage-migrations:0.0.0"))
     })
 
     it("should use expanded docker parameter list as deployment descriptor for state checking", function() {
-      expect(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].descriptor).to.equal(
-        "-i --rm -e ENV=SPECENV -e EXPORT1=NotFromInfrastructureAnyMore -e DB_HOST=testing123 -e DB_PASS=testing123 -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0"
-      )
+      assert.strictEqual(loadedPlan.addedDockerDeployerActions["testenvimage-migrations:0.0.0"].descriptor, "-i --rm -e ENV=SPECENV -e EXPORT1=NotFromInfrastructureAnyMore -e DB_HOST=testing123 -e DB_PASS=testing123 -e THIS_IS_DEPLOYER_ONE=true testenvimage-migrations:0.0.0")
     })
   })
 
@@ -549,7 +526,7 @@ describe("herd.yaml loading", function() {
     })
 
     it("should fail with meaningful error message from image loader", function() {
-      expect(loadError.message).to.contain("nonexistingimage:0.0.0")
+      assert.ok(loadError.message.includes("nonexistingimage:0.0.0"))
     })
   })
 })

@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/ui-push",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Push information about deployments to Shepherd UI",
   "types": "dist/upload.d.ts",
   "main": "dist/upload.js",
@@ -9,24 +9,20 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "mocha --exit --require ts-node/register --recursive './**/*.spec.ts'",
-    "tdd": "mocha --exit -R dot --require ts-node/register --recursive --watch-extensions ts,js,json --watch './**/*.spec.ts'",
+    "test": "node --require ts-node/register --test \"**/*.spec.ts\"",
+    "tdd": "node --require ts-node/register --watch --test \"**/*.spec.ts\"",
     "prepublishOnly": "yarn build && yarn test",
     "testupdate": "ts-node src/upload.ts"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@shepherdorg/metadata": "^6.0.0",
+    "@shepherdorg/metadata": "^6.0.1",
     "@shepherdorg/ui-graphql-client": "^3.3.0",
     "js-yaml": "^3.15.2"
   },
   "devDependencies": {
-    "@types/chai": "4.3.20",
-    "@types/mocha": "^5.2.7",
     "@types/node": "^22.10.0",
-    "chai": "^4.5.0",
-    "mocha": "^12.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
     "@types/js-yaml": "^3.12.10"

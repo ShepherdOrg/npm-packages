@@ -1,5 +1,6 @@
 import { base64Encode, processLine } from "./base64-env-subst"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before, after } from "node:test"
 
 describe("expanding and decoding base64 encoded variables", function() {
 
@@ -16,19 +17,19 @@ describe("expanding and decoding base64 encoded variables", function() {
   it("should expand base 64 encoded variable in middle of line", () => {
     const inputString = "   ${Base64Decode:BASE64_ENCODED_VARIABLE}  more\n"
     const output = processLine(inputString, {appendNewline:false})
-    expect(output).to.equal('   something different  more\n')
+    assert.strictEqual(output, '   something different  more\n')
   })
 
   it("should expand and encode variable in middle of line", () => {
     const inputString = "   ${Base64Encode:JUST_A_VARIABLE}  more\n"
     const output = processLine(inputString, {appendNewline:false})
-    expect(output).to.equal('   c29tZSB2YWx1ZSB0byBlbmNvZGU=  more\n')
+    assert.strictEqual(output, '   c29tZSB2YWx1ZSB0byBlbmNvZGU=  more\n')
   })
 
   it("should expand multiple variables", () => {
     const inputString = "   ${Base64Encode:JUST_A_VARIABLE}  ${Base64Decode:BASE64_ENCODED_VARIABLE}"
     const output = processLine(inputString, {appendNewline:false})
-    expect(output).to.equal('   c29tZSB2YWx1ZSB0byBlbmNvZGU=  something different')
+    assert.strictEqual(output, '   c29tZSB2YWx1ZSB0byBlbmNvZGU=  something different')
   })
 
 })

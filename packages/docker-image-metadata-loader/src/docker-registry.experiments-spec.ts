@@ -1,6 +1,8 @@
 const https = require("https")
 const fs = require("fs")
 const url = require("url")
+const _ = require("lodash")
+import { describe, it, beforeEach } from "node:test"
 
 function getUserHome() {
   return process.env[process.platform === "win32" ? "USERPROFILE" : "HOME"]
@@ -59,7 +61,7 @@ function httpsRequest(url, basicAuth, path, accept, headers, done) {
   })
 }
 
-xdescribe("Docker registry API - get manifest - basicauth", function() {
+describe.skip("Docker registry API - get manifest - basicauth", function() {
   let REGISTRY_URL = "registry.hub.docker.com"
   let basicAuth = loadAuth("https://" + REGISTRY_URL)
 
@@ -68,7 +70,7 @@ xdescribe("Docker registry API - get manifest - basicauth", function() {
 
   beforeEach(function() {})
 
-  it("Should call  registry", function(done) {
+  it("Should call  registry", function(_t, done) {
     // Just checking for a wiring/injection error
     //  done();
     //  return;

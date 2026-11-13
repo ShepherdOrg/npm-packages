@@ -1,5 +1,6 @@
 import * as fs from "fs"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, beforeEach } from "node:test"
 
 const dockerEnvGenerator = require("./docker-env-generator")()
 describe("docker env file generation", function() {
@@ -18,7 +19,7 @@ describe("docker env file generation", function() {
     const expectedEnv = "VARIABLE_ONE=one\n" + "VARIABLE_TWO=2\n"
     const actualEnv = fs.readFileSync(".build/envfile", "utf-8")
 
-    expect(actualEnv).to.eql(expectedEnv)
+    assert.deepStrictEqual(actualEnv, expectedEnv)
   })
 
   it("should exclude reserved environment variables", function() {
@@ -33,6 +34,6 @@ describe("docker env file generation", function() {
     const expectedEnv = "VARIABLE_TWO=2\n"
     const actualEnv = fs.readFileSync(".build/envfile", "utf-8")
 
-    expect(actualEnv).to.eql(expectedEnv)
+    assert.deepStrictEqual(actualEnv, expectedEnv)
   })
 })

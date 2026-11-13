@@ -1,11 +1,11 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import * as path from "path"
 import { execCmd } from "../../src/exec/exec-cmd"
 
 const shellExec = require("shell-exec").default
 
 describe("Build docker with deployment dir", function() {
-  this.timeout(10000)
   let shepherdMeta, buildOutput
   let dockerMeta: any
 
@@ -14,7 +14,7 @@ describe("Build docker with deployment dir", function() {
 
     return execCmd(`./bin/shepherd-build-docker.sh`, [`${dockerDir}/Dockerfile`] ).then(
       ({ stdout, stderr }) => {
-        if (stderr) expect.fail("GOT ERROR> " + stderr)
+        if (stderr) assert.fail("GOT ERROR> " + stderr)
 
         buildOutput = stdout
         shepherdMeta = require(dockerDir + '/.build/metadata/shepherd.json')
@@ -35,46 +35,38 @@ describe("Build docker with deployment dir", function() {
 
   it("should have shepherd.metadata as a label in docker metadata", () => {
     // console.info('dockerMeta[0]', JSON.stringify(dockerMeta[0]))
-    expect(dockerMeta[0].Config.Labels["shepherd.metadata"].length).to.be.gte(
-      1000
-    )
+    assert.ok(dockerMeta[0].Config.Labels["shepherd.metadata"].length >= 1000)
   })
 
   it("should not warn of unconsumed variables", () => {
-    expect(buildOutput.indexOf("were not consumed")).to.equal(-1)
+    assert.strictEqual(buildOutput.indexOf("were not consumed"), -1)
   })
 
   it("should have kubeConfigB64", () => {
-    expect(shepherdMeta.kubeConfigB64.length).to.be.gte(684)
+    assert.ok(shepherdMeta.kubeConfigB64.length >= 684)
   })
 
   it("should have correct buildHostName property", () => {
-    expect(shepherdMeta.hasOwnProperty("buildHostName")).to.equal(true)
+    assert.strictEqual(shepherdMeta.hasOwnProperty("buildHostName"), true)
   })
 
   it("should have correct dockerImageTag property", () => {
-    expect(shepherdMeta.dockerImageUrl).to.contain(
-      "public-repo-with-deployment-dir"
-    )
+    assert.ok(shepherdMeta.dockerImageUrl.includes("public-repo-with-deployment-dir"))
   })
 
   it("should have correct dockerImageGithash property", () => {
-    expect(shepherdMeta.dockerImageGithash).to.contain(
-      "public-repo-with-deployment-dir"
-    )
+    assert.ok(shepherdMeta.dockerImageGithash.includes("public-repo-with-deployment-dir"))
   })
 
   it("should have correct gitUrl property", () => {
-    expect(shepherdMeta.gitUrl).to.equal(
-      "git@github.com:ShepherdOrg/npm-packages.git"
-    )
+    assert.strictEqual(shepherdMeta.gitUrl, "git@github.com:ShepherdOrg/npm-packages.git")
   })
 
   it("should have correct gitCommit property", () => {
-    expect(shepherdMeta.hasOwnProperty("gitCommit")).to.equal(true)
+    assert.strictEqual(shepherdMeta.hasOwnProperty("gitCommit"), true)
   })
 
   it("should have correct lastCommits property", () => {
-    expect(shepherdMeta.hasOwnProperty("lastCommits")).to.equal(true)
+    assert.strictEqual(shepherdMeta.hasOwnProperty("lastCommits"), true)
   })
 })

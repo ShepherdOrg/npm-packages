@@ -1,4 +1,5 @@
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it } from "node:test"
 
 import untarString from "./untar-string"
 
@@ -26,15 +27,9 @@ const base64EncodedTar =
 describe("untar base64 encoded string archive", function() {
   it("should untar string and return object with expanded directory structure", function() {
     return untarString(base64EncodedTar).then(function(dirStructure: any) {
-      expect(
-        dirStructure["./deployment/www-icelandair-com.deployment.yml"]
-      ).to.be.a("object")
-      expect(
-        dirStructure["./deployment/www-icelandair-com.deployment.yml"].content
-      ).to.be.a("string")
-      expect(
-        dirStructure["./deployment/www-icelandair-com.deployment.yml"].content
-      ).to.contain("name: www-icelandair-com")
+      assert.strictEqual(typeof dirStructure["./deployment/www-icelandair-com.deployment.yml"], "object")
+      assert.strictEqual(typeof dirStructure["./deployment/www-icelandair-com.deployment.yml"].content, "string")
+      assert.ok(dirStructure["./deployment/www-icelandair-com.deployment.yml"].content.includes("name: www-icelandair-com"))
     })
   })
 })

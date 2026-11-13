@@ -1,12 +1,13 @@
 import { createFakeStateStore, TFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
 import { IStatefulExecutableAction, TActionExecutionOptions } from "../../../deployment-types"
-import { expect } from "chai"
+import { strict as assert } from "node:assert"
+import { describe, it, before } from "node:test"
 import { createDeploymentTimeAnnotationActionFactory } from "./create-deployment-time-annotation-action"
 import { defaultTestExecutionOptions } from "../../../test-tools/test-action-execution-options"
 import { exec } from "@shepherdorg/ts-exec"
 
-xdescribe("Deployment Time Annotation Action - Integrated - Requires access to a running kube cluster", function() {
+describe.skip("Deployment Time Annotation Action - Integrated - Requires access to a running kube cluster", function() {
   describe("For deployment in unspecified namespace", function() {
     let deploymentName = "tjon-service-deployment-domestic-accident"
 
@@ -38,7 +39,7 @@ xdescribe("Deployment Time Annotation Action - Integrated - Requires access to a
     it("should log that resource was annotated", () => {
       // fakeLogger.printAllStatements()
 
-      expect(fakeLogger.infoLogEntries[1].data[0].trim()).to.equal(`deployment.extensions/${deploymentName} annotated`)
+      assert.strictEqual(fakeLogger.infoLogEntries[1].data[0].trim(), `deployment.extensions/${deploymentName} annotated`)
     })
   })
 })
