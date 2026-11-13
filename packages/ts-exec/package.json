@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/ts-exec",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Promise based command execution. With buffer control, fairly good tests and a test double.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,7 +20,7 @@
     "command"
   ],
   "dependencies": {
-    "@shepherdorg/logger": "^6.0.1"
+    "@shepherdorg/logger": "^6.0.2"
   },
   "author": "Guðlaugur S. Egilsson",
   "license": "MIT",

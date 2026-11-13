@@ -3,7 +3,7 @@ import { describe, it, before } from "node:test"
 import * as path from "path"
 import { execCmd } from "../../src/exec/exec-cmd"
 
-const shellExec = require("shell-exec").default
+import { shellExec } from "./shell-exec"
 
 describe("Build docker with deployment dir", function() {
   let shepherdMeta, buildOutput

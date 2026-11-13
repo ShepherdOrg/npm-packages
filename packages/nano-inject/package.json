@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/nano-inject",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Minimalistic dependency injection library...",
   "keywords": [
     "dependency injection",
@@ -21,8 +21,8 @@
     "build": "yarn clean && tsc",
     "clean": "rm -rf dist",
     "ci": "yarn clean && yarn test && yarn build && yarn format-verify",
-    "e2etest": "node --require ts-node/register --test \"**/*.e2e.ts\"",
-    "e2etdd": "node --require ts-node/register --watch --test \"**/*.e2e.ts\"",
+    "e2etest": "node --require ts-node/register --test --test-concurrency=1 \"**/*.e2e.ts\"",
+    "e2etdd": "node --require ts-node/register --watch --test --test-concurrency=1 \"**/*.e2e.ts\"",
     "test": "node --require ts-node/register --test \"**/*.spec.ts\"",
     "tdd": "node --require ts-node/register --watch --test \"**/*.spec.ts\"",
     "prepush": "yarn ci",

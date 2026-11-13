@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/docker-image-metadata-loader",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Retrieve docker image metadata efficiently from (private) docker registry, or alternatively by using docker pull and inspect",
   "keywords": [
     "docker",
@@ -40,7 +40,7 @@
     "prepublishOnly": "yarn build && yarn test"
   },
   "dependencies": {
-    "@shepherdorg/ts-exec": "^6.0.1",
+    "@shepherdorg/ts-exec": "^6.0.2",
     "lodash": "^4.18.1"
   },
   "devDependencies": {

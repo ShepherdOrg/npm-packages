@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/cli",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Command line interfaces for Shepherd",
   "keywords": [],
   "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
@@ -28,19 +28,18 @@
   "scripts": {
     "specs": "node --require ts-node/register --test \"src/**/*.spec.ts\"",
     "tdd": "node --require ts-node/register --watch --test \"src/**/*.spec.ts\"",
-    "e2etest": "yarn build && DOCKER_REGISTRY_HOST= node --require ts-node/register --test \"e2etest/**/*.e2e.ts\"",
-    "e2etdd": "yarn build-in-background && DOCKER_REGISTRY_HOST= node --require ts-node/register --watch --test \"e2etest/**/*.e2e.ts\"",
+    "e2etest": "yarn build && DOCKER_REGISTRY_HOST= node --require ts-node/register --test --test-concurrency=1 \"e2etest/**/*.e2e.ts\"",
+    "e2etdd": "yarn build-in-background && DOCKER_REGISTRY_HOST= node --require ts-node/register --watch --test --test-concurrency=1 \"e2etest/**/*.e2e.ts\"",
     "test": "yarn specs && yarn e2etest",
     "build-in-background": "tsc -w > /dev/null &",
     "build": "tsc && chmod +x ./dist/shepherd-inspect-cmd.js ./dist/add-to-deployment-queue.js",
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@shepherdorg/deployer": "^6.0.1",
-    "@shepherdorg/docker-image-metadata-loader": "^6.0.1",
-    "@shepherdorg/metadata": "^6.0.1",
-    "@shepherdorg/versionist": "^6.0.1",
-    "shell-exec": "^1.1.2"
+    "@shepherdorg/deployer": "^6.0.2",
+    "@shepherdorg/docker-image-metadata-loader": "^6.0.2",
+    "@shepherdorg/metadata": "^6.0.2",
+    "@shepherdorg/versionist": "^6.0.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

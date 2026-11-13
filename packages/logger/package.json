@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/logger",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Logger with a log context concept, nice rendering of error, warn and info logs, with log context on the left. Designed for outputting logs from multiple child processes in parallel. Comes with a test double for easy unit testing of users.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

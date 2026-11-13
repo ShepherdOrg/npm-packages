@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/versionist",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Creates or prefers version for shepherd docker building",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,8 +11,7 @@
     "node": ">=8"
   },
   "dependencies": {
-    "chalk": "^4.1.2",
-    "shell-exec": "~1.1.2"
+    "chalk": "^4.1.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

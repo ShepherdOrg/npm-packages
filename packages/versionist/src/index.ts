@@ -1,7 +1,6 @@
 import * as path from "path"
 import * as fs from "fs"
-
-const shellExec = require("shell-exec").default
+import { exec } from "child_process"
 
 export function asBashExports(dirVersion: TDirVersion) {
   let imageUrl = `${dirVersion.dockerRegistry ? dirVersion.dockerRegistry + "/" : ""}${
@@ -20,6 +19,15 @@ export DOCKER_IMAGE_BRANCH_HASH_TAG=${imageUrl}:${dirVersion.branchName ? dirVer
 
 type ShellExecResults = { stdout: string; stderr: string; code: number }
 
+function shellExec(cmd: string, options: { cwd: string; env: NodeJS.ProcessEnv }): Promise<ShellExecResults> {
+  return new Promise(resolve => {
+    exec(cmd, options, (error, stdout, stderr) => {
+      const code = error ? (typeof error.code === "number" ? error.code : 1) : 0
+      resolve({ stdout: stdout.toString(), stderr: stderr.toString(), code })
+    })
+  })
+}
+
 export const DEFAULT_SEMANTIC_VERSION = "0.0.0"
 
 export async function gitDirHash(dirname: string) {
@@ -32,7 +40,7 @@ export async function gitDirHash(dirname: string) {
   const dirHash = await shellExec(GIT_DIR_HASH_CMD, {
     cwd: dirname,
     env: { ...process.env, ...{ BRANCH_NAME: "master" } },
-  }).then(({ stdout, stderr, code }: ShellExecResults) => {
+  }).then(({ stdout, stderr, code }) => {
     if (code !== 0)
       throw new Error(`Process exited with code ${code} while calculating dir hash. \n${stdout}\n ${stderr}\n`)
     let hash = stdout.trim()
