@@ -1,4 +1,54 @@
-import * as request from "request-promise"
+import * as http from "http"
+import * as https from "https"
+
+export type TRequestOptions = {
+  method?: string
+  url: string
+  headers?: { [key: string]: string }
+  ca?: string
+}
+
+export class RegistryRequestError extends Error {
+  statusCode?: number
+  error: any
+
+  constructor(message: string, statusCode?: number, error?: any) {
+    super(message)
+    this.statusCode = statusCode
+    this.error = error
+  }
+}
+
+/**
+ * Minimal promise based http client. Resolves with the response body for 2xx responses and
+ * rejects with a RegistryRequestError (carrying statusCode and body) otherwise.
+ */
+function request(options: TRequestOptions): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = new URL(options.url)
+    const client = url.protocol === "https:" ? https : http
+    const req = client.request(
+      url,
+      { method: options.method || "GET", headers: options.headers, ca: options.ca },
+      res => {
+        const chunks: Buffer[] = []
+        res.on("data", chunk => chunks.push(chunk))
+        res.on("error", reject)
+        res.on("end", () => {
+          const body = Buffer.concat(chunks).toString("utf-8")
+          const statusCode = res.statusCode || 0
+          if (statusCode >= 200 && statusCode < 300) {
+            resolve(body)
+          } else {
+            reject(new RegistryRequestError(`${statusCode} - ${body}`, statusCode, body))
+          }
+        })
+      },
+    )
+    req.on("error", err => reject(new RegistryRequestError(err.message, undefined, err.message)))
+    req.end()
+  })
+}
 
 export type TImageWithTags = {
   name: string

@@ -218,7 +218,7 @@ ${err.message || err}`)
         setActionDeploymentState(newState: TDeploymentState | undefined): void {
           deploymentState = newState
         },
-        canRollbackExecution(): boolean {
+        canRollbackExecution(): this is ICanRollbackActionExecution {
           return Boolean(deploymentRollouts.length)
         },
         planString() {

@@ -1,4 +1,4 @@
-import { IDockerExecutableAction, TActionExecutionOptions } from "../../deployment-types"
+import { ICanRollbackActionExecution, IDockerExecutableAction, TActionExecutionOptions } from "../../deployment-types"
 import { expandEnv } from "../../template/expandenv"
 import { expandTemplate } from "@shepherdorg/hbs-template"
 import { TEnvironmentVariables, TImageMetadata } from "@shepherdorg/metadata"
@@ -127,7 +127,7 @@ ${err.message}`
       async execute(actionExecutionOptions: TActionExecutionOptions): Promise<IDockerExecutableAction> {
         return await executeDockerAction(deploymentAction, actionExecutionOptions)
       },
-      canRollbackExecution(): boolean {
+      canRollbackExecution(): this is ICanRollbackActionExecution {
         return false
       },
     }

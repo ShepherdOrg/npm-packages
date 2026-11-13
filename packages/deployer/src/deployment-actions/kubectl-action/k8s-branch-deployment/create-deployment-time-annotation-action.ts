@@ -1,6 +1,6 @@
 import { TK8sPartialDescriptor } from "../k8s-document-types"
 import { ILog, TLogContext } from "@shepherdorg/logger"
-import { IStatefulExecutableAction, IKubectlAction, TDeploymentOptions } from "../../../deployment-types"
+import { ICanRollbackActionExecution, IStatefulExecutableAction, IKubectlAction, TDeploymentOptions } from "../../../deployment-types"
 import { TDeploymentState } from "@shepherdorg/metadata"
 import { TDescriptorsByKind } from "../k8s-deployment-document-identifier"
 import { FProvideTime, FTimer } from "../../../helpers/basic-types"
@@ -45,7 +45,7 @@ export function createDeploymentTimeAnnotationActionFactory(
       isStateful: false,
       operation: "annotate",
       type: "k8s",
-      canRollbackExecution(): boolean {
+      canRollbackExecution(): this is ICanRollbackActionExecution {
         return false
       },
       execute(

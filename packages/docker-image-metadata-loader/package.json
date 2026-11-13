@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/docker-image-metadata-loader",
-  "version": "5.2.0",
+  "version": "6.0.0",
   "description": "Retrieve docker image metadata efficiently from (private) docker registry, or alternatively by using docker pull and inspect",
   "keywords": [
     "docker",
@@ -40,20 +40,18 @@
     "prepublishOnly": "yarn build && yarn test"
   },
   "dependencies": {
-    "@shepherdorg/ts-exec": "^5.2.0",
-    "lodash": "^4.17.15",
-    "request": "^2.88.2",
-    "request-promise": "^4.2.5"
+    "@shepherdorg/ts-exec": "^6.0.0",
+    "lodash": "^4.18.1"
   },
   "devDependencies": {
-    "@types/chai": "4.2.11",
-    "@types/lodash": "^4.14.144",
+    "@types/chai": "4.3.20",
+    "@types/lodash": "^4.17.0",
     "@types/mocha": "^5.2.7",
-    "@types/node": "12.12.6",
-    "chai": "^4.2.0",
-    "mocha": "^6.2.2",
-    "prettier": "^1.18.2",
-    "ts-node": "^8.4.1",
-    "typescript": "^3.6.4"
+    "@types/node": "^22.10.0",
+    "chai": "^4.5.0",
+    "mocha": "^12.0.3",
+    "prettier": "^1.19.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

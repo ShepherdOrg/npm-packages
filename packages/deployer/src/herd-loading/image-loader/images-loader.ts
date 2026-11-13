@@ -64,7 +64,7 @@ export function createImagesLoader(injected: TImageDeclarationsLoaderDependencie
           } else {
             errorMessage = "When processing image " + imgName + "\n" + e.message
           }
-          throw newProgrammerOops(errorMessage, {}, e)
+          throw newProgrammerOops(errorMessage, {}, e instanceof Error ? e : undefined)
         })
       return promise
     })

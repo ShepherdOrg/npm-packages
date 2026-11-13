@@ -2,7 +2,7 @@ import { expect } from "chai"
 import * as path from "path"
 import { execCmd } from "../../src/exec/exec-cmd"
 
-const shellExec = require('shell-exec')
+const shellExec = require("shell-exec").default
 
 describe("Build docker with deployment dir", function() {
   this.timeout(10000)

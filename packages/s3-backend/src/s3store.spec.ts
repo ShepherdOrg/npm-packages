@@ -7,23 +7,11 @@ testBackend("s3 object", () => {
   const localCache = {}
   const s3Backend = {
     getObject({ Key }) {
-      return {
-        async promise() {
-          return { Body: localCache[Key] }
-        },
-      }
+      return Promise.resolve({ Body: localCache[Key] })
     },
     putObject({ Key, Body }) {
-      return {
-        async promise() {
-          localCache[Key] = Body
-          return {
-            $response: {
-              error: undefined,
-            },
-          }
-        },
-      }
+      localCache[Key] = Body
+      return Promise.resolve({})
     },
   }
   if (isE2E) {

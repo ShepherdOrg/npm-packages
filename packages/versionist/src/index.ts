@@ -1,7 +1,7 @@
 import * as path from "path"
 import * as fs from "fs"
 
-const shellExec = require("shell-exec")
+const shellExec = require("shell-exec").default
 
 export function asBashExports(dirVersion: TDirVersion) {
   let imageUrl = `${dirVersion.dockerRegistry ? dirVersion.dockerRegistry + "/" : ""}${

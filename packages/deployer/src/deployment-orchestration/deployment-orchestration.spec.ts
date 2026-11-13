@@ -2,6 +2,7 @@ import { expect } from "chai"
 import { DeploymentOrchestration, IDeploymentOrchestration } from "./deployment-orchestration"
 import {
   IAnyDeploymentAction,
+  ICanRollbackActionExecution,
   IDockerDeploymentAction,
   IDockerExecutableAction,
   IK8sDirDeploymentAction,
@@ -59,7 +60,7 @@ export function createKubectlTestDeployAction(
         deploymentOptions
       )
     },
-    canRollbackExecution(): boolean {
+    canRollbackExecution(): this is ICanRollbackActionExecution {
       return false
     },
     testInstance: true,
@@ -98,7 +99,7 @@ export function createFakeDockerDeploymentAction(
         return await dockerActionFactory.executeDockerAction(dockerAction, actionExecutionOptions)
       })(testAction, deploymentOptions)
     },
-    canRollbackExecution(): boolean {
+    canRollbackExecution(): this is ICanRollbackActionExecution {
       return false
     },
     ...serialisedAction,

@@ -1,4 +1,4 @@
-import { execFile, ExecFileOptions } from "child_process"
+import { execFile, ExecFileOptions, ExecFileOptionsWithStringEncoding } from "child_process"
 
 export type TExecResult = {
   /** Command that was executed */
@@ -52,7 +52,7 @@ export const exec: FExec = async (
 
   return new Promise((resolve, reject) => {
     try {
-      let child = execFile(command, params, options)
+      let child = execFile(command, params ?? [], (options ?? {}) as ExecFileOptionsWithStringEncoding)
       let outBuffer = ""
       let errBuffer = ""
 
@@ -93,7 +93,8 @@ export const exec: FExec = async (
           }
           resolve(execResult)
         } else {
-          reject(new TExecError(code, formatExecErrorMessage(command, params, code), errBuffer, outBuffer))
+          const exitCode = code ?? 1
+          reject(new TExecError(exitCode, formatExecErrorMessage(command, params, exitCode), errBuffer, outBuffer))
         }
       })
 

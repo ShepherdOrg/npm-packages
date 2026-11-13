@@ -22,7 +22,7 @@ export default function(base64EncodedTar:TBase64String): Promise<TTarFolderStruc
 
     try {
       bufferToStream(buffer)
-        .pipe(new tar.Parse())
+        .pipe(new tar.Parser())
         .on("entry", (entry: TTarFileEntry) => {
           let file = {
             path: entry.path,

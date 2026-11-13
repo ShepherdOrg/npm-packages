@@ -1,6 +1,4 @@
-import { DefaultLogFields, ListLogLine } from "simple-git/typings/response"
-
-import git from "simple-git/promise"
+import { simpleGit, DefaultLogFields, ListLogLine } from "simple-git"
 
 export function extractLastFiveChangesText(gitLog: {
   all: ReadonlyArray<DefaultLogFields & ListLogLine>;
@@ -14,7 +12,7 @@ export function extractLastFiveChangesText(gitLog: {
 
 export function getGitHistory(directory: string){
 
-  const repoGit = git(directory)
+  const repoGit = simpleGit(directory)
 
   return {
     lastFiveCommits: ()=>{

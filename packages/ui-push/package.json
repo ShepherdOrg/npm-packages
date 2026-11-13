@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/ui-push",
-  "version": "5.2.0",
+  "version": "6.0.0",
   "description": "Push information about deployments to Shepherd UI",
   "types": "dist/upload.d.ts",
   "main": "dist/upload.js",
@@ -17,17 +17,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@shepherdorg/metadata": "^5.2.0",
+    "@shepherdorg/metadata": "^6.0.0",
     "@shepherdorg/ui-graphql-client": "^3.3.0",
-    "add": "^2.0.6"
+    "js-yaml": "^3.15.2"
   },
   "devDependencies": {
-    "@types/chai": "4.2.11",
+    "@types/chai": "4.3.20",
     "@types/mocha": "^5.2.7",
-    "@types/node": "12.12.6",
-    "chai": "^4.2.0",
-    "mocha": "^6.2.2",
-    "ts-node": "^8.4.1",
-    "typescript": "^3.6.4"
+    "@types/node": "^22.10.0",
+    "chai": "^4.5.0",
+    "mocha": "^12.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "@types/js-yaml": "^3.12.10"
   }
 }

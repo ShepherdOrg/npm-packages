@@ -1,4 +1,4 @@
-import { IStatefulExecutableAction, IKubectlAction, TActionExecutionOptions } from "../../deployment-types"
+import { ICanRollbackActionExecution, IStatefulExecutableAction, IKubectlAction, TActionExecutionOptions } from "../../deployment-types"
 import { TDeploymentRollout } from "./kubectl-deployment-action-factory"
 import { IReleaseStateStore } from "@shepherdorg/state-store/dist"
 import { ILog } from "@shepherdorg/logger"
@@ -36,7 +36,7 @@ export function createRolloutWaitActionFactory(dependencies: TRolloutWaitActionD
         return undefined
       },
       setActionDeploymentState(_ignore: TDeploymentState | undefined): void {},
-      canRollbackExecution(): boolean {
+      canRollbackExecution(): this is ICanRollbackActionExecution {
         return false
       },
 

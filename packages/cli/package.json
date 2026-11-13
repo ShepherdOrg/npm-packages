@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/cli",
-  "version": "5.3.2",
+  "version": "6.0.0",
   "description": "Command line interfaces for Shepherd",
   "keywords": [],
   "author": "Guðlaugur S. Egilsson <gulli@kolibri.is>",
@@ -36,24 +36,19 @@
     "prepublishOnly": "yarn build"
   },
   "dependencies": {
-    "@shepherdorg/deployer": "^5.3.2",
-    "@shepherdorg/docker-image-metadata-loader": "^5.2.0",
-    "@shepherdorg/metadata": "^5.2.0",
-    "@shepherdorg/versionist": "^5.2.1",
-    "js-yaml": "^3.13.1",
-    "shell-exec": "^1.0.2",
-    "simple-git": "^1.126.0"
+    "@shepherdorg/deployer": "^6.0.0",
+    "@shepherdorg/docker-image-metadata-loader": "^6.0.0",
+    "@shepherdorg/metadata": "^6.0.0",
+    "@shepherdorg/versionist": "^6.0.0",
+    "shell-exec": "^1.1.2"
   },
   "devDependencies": {
-    "@types/chai": "4.2.11",
+    "@types/chai": "4.3.20",
     "@types/mocha": "^5.2.7",
-    "@types/node": "12.12.6",
-    "chai": "^4.2.0",
-    "child-process-promise": "2.2.1",
-    "fluture": "^11.0.3",
-    "glob": "^7.1.6",
-    "mocha": "^6.2.1",
-    "ts-node": "^8.5.2",
-    "typescript": "^3.7.2"
+    "@types/node": "^22.10.0",
+    "chai": "^4.5.0",
+    "mocha": "^12.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

@@ -8,7 +8,7 @@ import {
 import { clearEnv, setEnv } from "../deployment-actions/kubectl-action/testdata/test-action-factory"
 import { expect } from "chai"
 import { createFakeLogger, IFakeLogging } from "@shepherdorg/logger"
-import { IBasicExecutableAction, IStatefulExecutableAction, TActionExecutionOptions } from "../deployment-types"
+import { IBasicExecutableAction, ICanRollbackActionExecution, IStatefulExecutableAction, TActionExecutionOptions } from "../deployment-types"
 import { emptyArray } from "../helpers/ts-functions"
 import { createFakeStateStore } from "@shepherdorg/state-store/dist/fake-state-store-factory"
 import { createFakeUIPusher } from "../deployment-orchestration/deployment-orchestration.spec"
@@ -84,7 +84,7 @@ function createFakeAction(fakeLambda: FFakeLambda): IFakeExecutableActions {
     setActionDeploymentState(newState: TDeploymentState | undefined): void {
       deploymentState = newState
     },
-    canRollbackExecution(): boolean {
+    canRollbackExecution(): this is ICanRollbackActionExecution {
       return false
     },
     descriptor: "",

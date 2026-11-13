@@ -4,7 +4,7 @@ import * as path from "path"
 import { execCmd } from "../../src/exec/exec-cmd"
 import { getDockerTags } from "./get-docker.tags"
 
-const shellExec = require("shell-exec")
+const shellExec = require("shell-exec").default
 
 describe("Build docker with kube.yaml deployment", function() {
   describe("build on master", function() {

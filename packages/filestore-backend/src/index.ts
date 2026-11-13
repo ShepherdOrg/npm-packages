@@ -12,12 +12,12 @@ function fileNamify(keyString) {
 const exists = (path: fs.PathLike) =>
   new Promise<boolean>(res => fs.exists(path, res))
 
-const readFile = (path: fs.PathLike, encoding: string): Promise<string> =>
-  new Promise((res, rej) =>
+const readFile = (path: fs.PathLike, encoding: BufferEncoding): Promise<string> =>
+  new Promise<string>((res, rej) =>
     fs.readFile(path, encoding, (err, data) => (err ? rej(err) : res(data)))
   )
 const writeFile = (path: fs.PathLike, content: Buffer | string) =>
-  new Promise((res, rej) =>
+  new Promise<void>((res, rej) =>
     fs.writeFile(path, content, err => (err ? rej(err) : res()))
   )
 

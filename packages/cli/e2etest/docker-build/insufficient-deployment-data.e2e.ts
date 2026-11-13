@@ -1,5 +1,7 @@
 import { expect } from "chai"
-import { exec } from "child-process-promise"
+import { promisify } from "util"
+import { exec as execCb } from "child_process"
+const exec = promisify(execCb)
 
 describe("Build docker with insufficient deployment information", function() {
   this.timeout(10000)

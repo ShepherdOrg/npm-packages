@@ -1,5 +1,7 @@
 import { expect } from "chai"
-import { exec } from "child-process-promise"
+import { promisify } from "util"
+import { exec as execCb } from "child_process"
+const exec = promisify(execCb)
 import { promises as fs } from "fs"
 
 describe("Verify installation of last published version in a docker, but with latest version of shepherd-build-docker ", function() {

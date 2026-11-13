@@ -1,6 +1,6 @@
 {
   "name": "@shepherdorg/metadata",
-  "version": "5.2.0",
+  "version": "6.0.0",
   "description": "Shepherd metadata model handling",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,18 +19,17 @@
   "author": "Guðlaugur S. Egilsson gulli@kolibri.is",
   "license": "MIT",
   "dependencies": {
-    "ajv": "^6.10.2",
-    "fluture": "^11.0.3",
-    "glob": "^7.1.4",
-    "tar": "^5.0.5"
+    "ajv": "^6.15.0",
+    "tar": "^7.0.0",
+    "simple-git": "^4.0.2"
   },
   "devDependencies": {
-    "@types/chai": "4.2.11",
+    "@types/chai": "4.3.20",
     "@types/mocha": "^5.2.7",
-    "@types/node": "12.12.6",
-    "chai": "^4.2.0",
-    "mocha": "^6.2.1",
-    "ts-node": "^8.4.1",
-    "typescript": "^3.6.3"
+    "@types/node": "^22.10.0",
+    "chai": "^4.5.0",
+    "mocha": "^12.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

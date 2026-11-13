@@ -3,7 +3,7 @@ import fs from "fs"
 import path from "path"
 
 const mkdir = (path: fs.PathLike) =>
-  new Promise((res, rej) => fs.mkdir(path, err => (err ? rej(err) : res())))
+  new Promise<void>((res, rej) => fs.mkdir(path, err => (err ? rej(err) : res())))
 
 export function mkdirp(targetDir, { isRelativeToScript = false } = {}) {
   const sep = path.sep

@@ -10,7 +10,7 @@ describe("k8s deployment document identifier", function() {
   before(()=>{
     let rawYamlDoc = fs.readFileSync(
       __dirname + "/testdata/multipart-deployment.yaml",
-      { encoding: "UTF-8" }
+      { encoding: "utf-8" }
     )
 
     let identifier1 = identifyDocument(rawYamlDoc)
