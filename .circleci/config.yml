@@ -21,9 +21,6 @@ jobs:
           name: Yarn install
           command: yarn install --frozen-lockfile --check-files
       - run:
-          name: Bootstrap
-          command: yarn bootstrap
-      - run:
           name: Build
           command: yarn build
       - save_cache:
@@ -71,9 +68,6 @@ jobs:
       - run:
           name: Yarn install
           command: yarn install --frozen-lockfile --check-files
-      - run:
-          name: Bootstrap
-          command: yarn bootstrap
       - save_cache:
           key: yarn-{{ .Branch }}-{{ epoch }}
           paths:
